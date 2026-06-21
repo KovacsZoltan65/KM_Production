@@ -1,0 +1,212 @@
+php artisan optimize:clear
+php artisan cache:clear
+php artisan migrate:fresh --seed
+
+Futtassa ezt a parancsot a Facades automatikus kiegészítésének létrehozásához. Ez létrehozza az _ide_helper.php fájlt.
+    php artisan ide-helper:generate
+
+Futtassa ezt a parancsot phpdocs hozzáadásához a modellekhez. Adja hozzá az -RW kapcsolót a meglévő phpdocs visszaállításához és a modellekbe való közvetlen íráshoz.
+    php artisan ide-helper:models -RW
+
+php artisan ide-helper:generate - PHPDoc generálás Laravel Facades-hez
+php artisan ide-helper:models - PHPDocs modellekhez
+php artisan ide-helper:meta - PhpStorm metafájl
+
+php artisan migrate:fresh --env=testing
+php artisan migrate:fresh --seed --env=testing
+
+php artisan key:generate --env=testing
+
+
+php artisan ziggy:generate resources/js/ziggy.js
+php artisan ziggy:generate resources/js/ziggy.js --types
+
+=========================================
+= Fromázás minden fájlra
+=========================================
+npm run format:all
+
+=========================================
+= queue futtatás
+=========================================
+1. Indítás:
+    .\start-queue.bat
+2. Leállítás:
+    Ctrl + c
+
+=========================================
+= Git merge cunflict vizsgálat
+=========================================
+1. Dry-run merge (ajánlott)
+
+Átváltasz arra az ágra, amibe merge-ölni akarsz:
+
+```bash
+git checkout A_2
+```
+
+Majd:
+```Bash
+git merge --no-commit --no-ff main
+```
+
+Ha konfliktus van, Git azonnal jelzi.
+
+Előny:
+
+- még nincs commit
+- pontosan látod a konfliktusokat
+- utána vissza tudod vonni:
+
+```bash
+git merge --abort
+```
+
+Ez a legbiztonságosabb előzetes ellenőrzés.
+
+
+2. Konfliktusok listázása merge nélkül
+
+Nagyon elegáns megoldás:
+
+```Bash
+git merge-tree $(git merge-base A_2 main) A_2 main
+```
+
+Ez megmutatja, hol lenne konfliktus.
+
+Modern Git verzióknál különösen hasznos CI/CD vagy script esetén.
+
+3. Csak fájlok ellenőrzése
+
+```Bash
+git diff --name-only --diff-filter=U
+```
+
+DE:
+ez csak már meglévő merge conflict után működik.
+
+4. Rebase próba (haladóbb workflow)
+```Bash
+git checkout A_2
+git rebase main
+```
+
+Ha konfliktus van, azonnal megáll.
+
+Visszavonás:
+```Bash
+git rebase --abort
+```
+
+Sok senior fejlesztő ezt preferálja feature branch frissítésre.
+
+5. napi workflow-ra
+
+A te flow-dhoz:
+```Bash
+git checkout A_2
+git fetch origin
+git merge --no-commit --no-ff main
+```
+
+Ha minden OK:
+
+```Bash
+git commit
+```
+
+Ha nem:
+
+```Bash
+git merge --abort
+```
+
+=========================================
+= patch fájl használata
+=========================================
+✅ 1. Menj a projekt gyökerébe
+    cd /path/to/your/project
+
+🔍 2. Ellenőrizd (NE alkalmazd még)
+    git apply --check -p4 hajnalhej_locale_format_refactor.patch
+
+    👉 ha nincs output → jó
+    👉 ha hiba → mondja melyik fájl nem stimmel
+
+🚀 3. Alkalmazd
+    git apply -p4 hajnalhej_locale_format_refactor.patch
+
+👀 4. Nézd meg mit változott
+    git diff
+
+💾 5. Commit
+    git add .
+    git commit -m "refactor: use Inertia locale instead of trans(common.locale)"
+
+⚠️ Ha hibát kapsz (mint előbb)
+    Tipikus:
+    patch does not apply
+
+
+=========================================
+= Ág frissítése
+=========================================
+Jelenleg a main ágon állsz.
+
+Lépések az ág (pl. Localization) frissítéséhez az origin/main alapján, rebase-szel:
+```bash
+git status
+```
+```text
+On branch Localization
+Your branch is up to date with 'origin/Localization'.
+
+nothing to commit, working tree clean
+```
+```bash
+git status
+```
+```text
+On branch main
+Your branch is up to date with 'origin/main'.
+
+nothing to commit, working tree clean
+```
+```bash
+git checkout main
+```
+```teyt
+Already on 'main'
+Your branch is up to date with 'origin/main'.
+```
+```bash
+git pull origin main
+```
+```text
+From https://github.com/KovacsZoltan65/hajnalhej
+ * branch            main       -> FETCH_HEAD
+Already up to date.
+```
+```bash
+git checkout Localization
+```
+```text
+Updating files: 100% (864/864), done.
+Switched to branch 'Localization'
+Your branch is up to date with 'origin/Localization'.
+```
+```bash
+git rebase main             
+```
+```text
+Successfully rebased and updated refs/heads/Localization.
+```
+```bash
+git push --force-with-lease origin Localization
+```
+```text
+Total 0 (delta 0), reused 0 (delta 0), pack-reused 0 (from 0)
+To https://github.com/KovacsZoltan65/hajnalhej.git
+   86c12da..e72cfea  Localization -> Localization
+```

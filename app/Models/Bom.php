@@ -2,35 +2,40 @@
 
 namespace App\Models;
 
-use Database\Factories\CustomerFactory;
+use Database\Factories\BomFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[Fillable([
-    'code',
+    'item_id',
+    'version',
     'name',
-    'tax_number',
-    'email',
-    'phone',
-    'billing_address',
-    'shipping_address',
-    'notes',
+    'description',
     'is_active',
 ])]
-class Customer extends Model
+class Bom extends Model
 {
-    /** @use HasFactory<CustomerFactory> */
+    /** @use HasFactory<BomFactory> */
     use HasFactory, SoftDeletes;
 
     /**
-     * @return HasMany<CustomerOrder, $this>
+     * @return BelongsTo<Item, $this>
      */
-    public function customerOrders(): HasMany
+    public function item(): BelongsTo
     {
-        return $this->hasMany(CustomerOrder::class);
+        return $this->belongsTo(Item::class);
+    }
+
+    /**
+     * @return HasMany<BomItem, $this>
+     */
+    public function bomItems(): HasMany
+    {
+        return $this->hasMany(BomItem::class);
     }
 
     /**
@@ -39,6 +44,7 @@ class Customer extends Model
     protected function casts(): array
     {
         return [
+            'version' => 'integer',
             'is_active' => 'boolean',
         ];
     }

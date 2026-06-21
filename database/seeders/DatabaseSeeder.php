@@ -25,6 +25,14 @@ class DatabaseSeeder extends Seeder
             ],
         );
 
-        $this->call(ProductionMasterDataSeeder::class);
+        $this->call([
+            ProductionMasterDataSeeder::class,
+            ItemMasterDataSeeder::class,
+            ProductionStructureSeeder::class,
+            OrderProductionSeeder::class,
+            InventorySeeder::class,
+            ProcurementSeeder::class,
+            ProductionExecutionSeeder::class,
+        ]);
     }
 }

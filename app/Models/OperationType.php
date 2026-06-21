@@ -2,7 +2,8 @@
 
 namespace App\Models;
 
-use Database\Factories\CustomerFactory;
+use App\Enums\OperationTypeCode;
+use Database\Factories\OperationTypeFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -12,25 +13,20 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 #[Fillable([
     'code',
     'name',
-    'tax_number',
-    'email',
-    'phone',
-    'billing_address',
-    'shipping_address',
-    'notes',
+    'description',
     'is_active',
 ])]
-class Customer extends Model
+class OperationType extends Model
 {
-    /** @use HasFactory<CustomerFactory> */
+    /** @use HasFactory<OperationTypeFactory> */
     use HasFactory, SoftDeletes;
 
     /**
-     * @return HasMany<CustomerOrder, $this>
+     * @return HasMany<OperationSequenceStep, $this>
      */
-    public function customerOrders(): HasMany
+    public function operationSequenceSteps(): HasMany
     {
-        return $this->hasMany(CustomerOrder::class);
+        return $this->hasMany(OperationSequenceStep::class);
     }
 
     /**
@@ -39,6 +35,7 @@ class Customer extends Model
     protected function casts(): array
     {
         return [
+            'code' => OperationTypeCode::class,
             'is_active' => 'boolean',
         ];
     }
