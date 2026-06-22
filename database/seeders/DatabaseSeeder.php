@@ -33,6 +33,7 @@ class DatabaseSeeder extends Seeder
             InventorySeeder::class,
             ProcurementSeeder::class,
             ProductionExecutionSeeder::class,
+            DocumentSeeder::class,
         ]);
     }
 }
