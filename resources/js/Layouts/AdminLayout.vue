@@ -24,9 +24,13 @@ const menuItems = [
 
 const sidebarItems = [
     { label: 'Dashboard', icon: 'pi pi-home', href: '/dashboard' },
-    { label: 'Users', icon: 'pi pi-users', href: '#', disabled: true },
-    { label: 'Roles', icon: 'pi pi-shield', href: '#', disabled: true },
-    { label: 'Permissions', icon: 'pi pi-key', href: '#', disabled: true },
+    { label: 'Users', icon: 'pi pi-users', href: '/admin/users' },
+    { label: 'Roles', icon: 'pi pi-shield', href: '/admin/roles' },
+    { label: 'Permissions', icon: 'pi pi-key', href: '/admin/permissions' },
+    { label: 'Employees', icon: 'pi pi-id-card', href: '/admin/employees' },
+    { label: 'Factory Units', icon: 'pi pi-building', href: '/admin/factory-units' },
+    { label: 'Locations', icon: 'pi pi-map-marker', href: '/admin/locations' },
+    { label: 'Professional Roles', icon: 'pi pi-briefcase', href: '/admin/professional-roles' },
 ];
 
 const toggleUserMenu = (event) => {
