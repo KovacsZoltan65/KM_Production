@@ -1,0 +1,128 @@
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
+
+class RolesAndPermissionsSeeder extends Seeder
+{
+    /**
+     * Seed application authorization roles and permissions.
+     */
+    public function run(): void
+    {
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+        $permissions = [
+            'users.view',
+            'users.create',
+            'users.update',
+            'users.delete',
+            'employees.view',
+            'employees.create',
+            'employees.update',
+            'employees.delete',
+            'production.view',
+            'production.create',
+            'production.update',
+            'production.delete',
+            'production.execute',
+            'production.check',
+            'inventory.view',
+            'inventory.create',
+            'inventory.update',
+            'inventory.delete',
+            'procurement.view',
+            'procurement.create',
+            'procurement.update',
+            'procurement.delete',
+            'documents.view',
+            'documents.create',
+            'documents.update',
+            'documents.delete',
+        ];
+
+        foreach ($permissions as $permission) {
+            Permission::query()->firstOrCreate([
+                'name' => $permission,
+                'guard_name' => 'web',
+            ]);
+        }
+
+        foreach ($this->rolePermissions() as $roleName => $rolePermissions) {
+            $role = Role::query()->firstOrCreate([
+                'name' => $roleName,
+                'guard_name' => 'web',
+            ]);
+
+            $role->syncPermissions($roleName === 'super-admin' ? $permissions : $rolePermissions);
+        }
+
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+    }
+
+    /**
+     * @return array<string, array<int, string>>
+     */
+    private function rolePermissions(): array
+    {
+        return [
+            'super-admin' => [],
+            'production-manager' => [
+                'employees.view',
+                'production.view',
+                'production.create',
+                'production.update',
+                'production.execute',
+                'production.check',
+                'inventory.view',
+                'documents.view',
+                'documents.create',
+                'documents.update',
+            ],
+            'warehouse-manager' => [
+                'inventory.view',
+                'inventory.create',
+                'inventory.update',
+                'inventory.delete',
+                'production.view',
+                'procurement.view',
+                'documents.view',
+                'documents.create',
+            ],
+            'procurement-manager' => [
+                'procurement.view',
+                'procurement.create',
+                'procurement.update',
+                'procurement.delete',
+                'inventory.view',
+                'documents.view',
+                'documents.create',
+                'documents.update',
+            ],
+            'quality-manager' => [
+                'production.view',
+                'production.check',
+                'documents.view',
+                'documents.create',
+                'documents.update',
+            ],
+            'worker' => [
+                'production.view',
+                'production.execute',
+                'documents.view',
+            ],
+            'viewer' => [
+                'users.view',
+                'employees.view',
+                'production.view',
+                'inventory.view',
+                'procurement.view',
+                'documents.view',
+            ],
+        ];
+    }
+}

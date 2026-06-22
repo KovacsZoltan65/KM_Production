@@ -19,6 +19,19 @@ export default defineConfig({
         },
     },
     server: {
+        host: '127.0.0.1',
+        port: 5173,
+        strictPort: true,
+        cors: {
+            origin: [
+                'http://km-production',
+                'http://localhost',
+                'http://127.0.0.1',
+            ],
+        },
+        hmr: {
+            host: '127.0.0.1',
+        },
         watch: {
             ignored: ['**/storage/framework/views/**'],
         },
