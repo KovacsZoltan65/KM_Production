@@ -40,6 +40,8 @@ const sidebarItems = [
     { label: 'Suppliers', icon: 'pi pi-truck', href: '/admin/suppliers' },
     { label: 'Sales', icon: 'pi pi-shopping-cart', disabled: true },
     { label: 'Customer Orders', icon: 'pi pi-file-edit', href: '/admin/customer-orders' },
+    { label: 'Planning', icon: 'pi pi-calendar-clock', disabled: true },
+    { label: 'Production Plans', icon: 'pi pi-calendar-plus', href: '/admin/production-plans' },
 ];
 
 const toggleUserMenu = (event) => {

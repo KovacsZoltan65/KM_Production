@@ -16,6 +16,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int $production_plan_id
  * @property int $customer_order_item_id
  * @property int $item_id
+ * @property int|null $bom_id
+ * @property int|null $operation_sequence_id
  * @property numeric $quantity
  * @property \Illuminate\Support\Carbon|null $planned_start_date
  * @property \Illuminate\Support\Carbon|null $planned_finish_date
@@ -25,7 +27,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property \Illuminate\Support\Carbon|null $deleted_at
  * @property-read \App\Models\CustomerOrderItem|null $customerOrderItem
+ * @property-read \App\Models\Bom|null $bom
  * @property-read \App\Models\Item|null $item
+ * @property-read \App\Models\OperationSequence|null $operationSequence
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ProductionOrder> $productionOrders
  * @property-read int|null $production_orders_count
  * @property-read \App\Models\ProductionPlan|null $productionPlan
@@ -54,6 +58,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'production_plan_id',
     'customer_order_item_id',
     'item_id',
+    'bom_id',
+    'operation_sequence_id',
     'quantity',
     'planned_start_date',
     'planned_finish_date',
@@ -87,6 +93,22 @@ class ProductionPlanItem extends Model
     public function item(): BelongsTo
     {
         return $this->belongsTo(Item::class);
+    }
+
+    /**
+     * @return BelongsTo<Bom, $this>
+     */
+    public function bom(): BelongsTo
+    {
+        return $this->belongsTo(Bom::class);
+    }
+
+    /**
+     * @return BelongsTo<OperationSequence, $this>
+     */
+    public function operationSequence(): BelongsTo
+    {
+        return $this->belongsTo(OperationSequence::class);
     }
 
     /**

@@ -16,6 +16,7 @@ use App\Repositories\Admin\OperationSequenceRepository;
 use App\Repositories\Admin\OperationTypeRepository;
 use App\Repositories\Admin\PermissionRepository;
 use App\Repositories\Admin\ProfessionalRoleRepository;
+use App\Repositories\Admin\ProductionPlanRepository;
 use App\Repositories\Admin\RoleRepository;
 use App\Repositories\Admin\SupplierAdminRepository;
 use App\Repositories\Admin\UserRepository;
@@ -30,6 +31,7 @@ use App\Repositories\Contracts\OperationSequenceRepositoryInterface;
 use App\Repositories\Contracts\OperationTypeRepositoryInterface;
 use App\Repositories\Contracts\PermissionRepositoryInterface;
 use App\Repositories\Contracts\ProfessionalRoleRepositoryInterface;
+use App\Repositories\Contracts\ProductionPlanRepositoryInterface;
 use App\Repositories\Contracts\RoleRepositoryInterface;
 use App\Repositories\Contracts\SupplierAdminRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
@@ -59,6 +61,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(CustomerAdminRepositoryInterface::class, CustomerAdminRepository::class);
         $this->app->bind(SupplierAdminRepositoryInterface::class, SupplierAdminRepository::class);
         $this->app->bind(CustomerOrderRepositoryInterface::class, CustomerOrderRepository::class);
+        $this->app->bind(ProductionPlanRepositoryInterface::class, ProductionPlanRepository::class);
     }
 
     /**

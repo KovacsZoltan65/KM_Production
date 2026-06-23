@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\LocationController as AdminLocationController;
 use App\Http\Controllers\Admin\OperationSequenceController as AdminOperationSequenceController;
 use App\Http\Controllers\Admin\OperationTypeController as AdminOperationTypeController;
 use App\Http\Controllers\Admin\PermissionController as AdminPermissionController;
+use App\Http\Controllers\Admin\ProductionPlanController as AdminProductionPlanController;
 use App\Http\Controllers\Admin\ProfessionalRoleController as AdminProfessionalRoleController;
 use App\Http\Controllers\Admin\RoleController as AdminRoleController;
 use App\Http\Controllers\Admin\SupplierController as AdminSupplierController;
@@ -63,6 +64,13 @@ Route::middleware(['auth', 'verified'])
             ->name('customer-orders.cancel');
         Route::resource('customer-orders', AdminCustomerOrderController::class)
             ->parameters(['customer-orders' => 'customerOrder'])
+            ->only(['index', 'show', 'store', 'update', 'destroy']);
+        Route::patch('production-plans/{productionPlan}/approve', [AdminProductionPlanController::class, 'approve'])
+            ->name('production-plans.approve');
+        Route::post('production-plans/{productionPlan}/generate-production-orders', [AdminProductionPlanController::class, 'generateProductionOrders'])
+            ->name('production-plans.generate-production-orders');
+        Route::resource('production-plans', AdminProductionPlanController::class)
+            ->parameters(['production-plans' => 'productionPlan'])
             ->only(['index', 'show', 'store', 'update', 'destroy']);
     });
 
