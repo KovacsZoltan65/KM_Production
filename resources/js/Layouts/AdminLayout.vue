@@ -38,6 +38,8 @@ const sidebarItems = [
     { label: 'Business Partners', icon: 'pi pi-address-book', disabled: true },
     { label: 'Customers', icon: 'pi pi-user-plus', href: '/admin/customers' },
     { label: 'Suppliers', icon: 'pi pi-truck', href: '/admin/suppliers' },
+    { label: 'Sales', icon: 'pi pi-shopping-cart', disabled: true },
+    { label: 'Customer Orders', icon: 'pi pi-file-edit', href: '/admin/customer-orders' },
 ];
 
 const toggleUserMenu = (event) => {

@@ -19,6 +19,7 @@ class IndexRequest extends FormRequest
     {
         return [
             'search' => ['nullable', 'string', 'max:255'],
+            'status' => ['nullable', 'string', 'max:100'],
             'sort' => ['nullable', 'string', 'max:100'],
             'direction' => ['nullable', Rule::in(['asc', 'desc'])],
             'per_page' => ['nullable', 'integer', Rule::in([10, 25, 50, 100])],

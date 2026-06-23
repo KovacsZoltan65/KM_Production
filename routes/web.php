@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\EmployeeController as AdminEmployeeController;
 use App\Http\Controllers\Admin\FactoryUnitController as AdminFactoryUnitController;
 use App\Http\Controllers\Admin\BomController as AdminBomController;
+use App\Http\Controllers\Admin\CustomerOrderController as AdminCustomerOrderController;
 use App\Http\Controllers\Admin\CustomerController as AdminCustomerController;
 use App\Http\Controllers\Admin\ItemController as AdminItemController;
 use App\Http\Controllers\Admin\LocationController as AdminLocationController;
@@ -56,6 +57,13 @@ Route::middleware(['auth', 'verified'])
             ->only(['index', 'store', 'update', 'destroy']);
         Route::resource('customers', AdminCustomerController::class)->only(['index', 'store', 'update', 'destroy']);
         Route::resource('suppliers', AdminSupplierController::class)->only(['index', 'store', 'update', 'destroy']);
+        Route::patch('customer-orders/{customerOrder}/confirm', [AdminCustomerOrderController::class, 'confirm'])
+            ->name('customer-orders.confirm');
+        Route::patch('customer-orders/{customerOrder}/cancel', [AdminCustomerOrderController::class, 'cancel'])
+            ->name('customer-orders.cancel');
+        Route::resource('customer-orders', AdminCustomerOrderController::class)
+            ->parameters(['customer-orders' => 'customerOrder'])
+            ->only(['index', 'show', 'store', 'update', 'destroy']);
     });
 
 require __DIR__.'/auth.php';
