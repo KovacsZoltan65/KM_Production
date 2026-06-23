@@ -11,6 +11,45 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @property int $id
+ * @property int $production_plan_id
+ * @property int $customer_order_item_id
+ * @property int $item_id
+ * @property numeric $quantity
+ * @property \Illuminate\Support\Carbon|null $planned_start_date
+ * @property \Illuminate\Support\Carbon|null $planned_finish_date
+ * @property ProductionPlanItemStatus $status
+ * @property string|null $notes
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @property-read \App\Models\CustomerOrderItem|null $customerOrderItem
+ * @property-read \App\Models\Item|null $item
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ProductionOrder> $productionOrders
+ * @property-read int|null $production_orders_count
+ * @property-read \App\Models\ProductionPlan|null $productionPlan
+ * @method static \Database\Factories\ProductionPlanItemFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProductionPlanItem newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProductionPlanItem newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProductionPlanItem onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProductionPlanItem query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProductionPlanItem whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProductionPlanItem whereCustomerOrderItemId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProductionPlanItem whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProductionPlanItem whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProductionPlanItem whereItemId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProductionPlanItem whereNotes($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProductionPlanItem wherePlannedFinishDate($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProductionPlanItem wherePlannedStartDate($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProductionPlanItem whereProductionPlanId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProductionPlanItem whereQuantity($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProductionPlanItem whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProductionPlanItem whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProductionPlanItem withTrashed(bool $withTrashed = true)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProductionPlanItem withoutTrashed()
+ * @mixin \Eloquent
+ */
 #[Fillable([
     'production_plan_id',
     'customer_order_item_id',

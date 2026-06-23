@@ -66,7 +66,7 @@ class AuthenticationPermissionFoundationTest extends TestCase
         $this->seed(RolesAndPermissionsSeeder::class);
 
         $this->assertDatabaseCount('roles', 7);
-        $this->assertDatabaseCount('permissions', 43);
+        $this->assertDatabaseCount('permissions', 67);
     }
 
     public function test_super_admin_gets_all_permissions(): void

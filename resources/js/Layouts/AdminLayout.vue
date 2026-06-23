@@ -31,6 +31,13 @@ const sidebarItems = [
     { label: 'Factory Units', icon: 'pi pi-building', href: '/admin/factory-units' },
     { label: 'Locations', icon: 'pi pi-map-marker', href: '/admin/locations' },
     { label: 'Professional Roles', icon: 'pi pi-briefcase', href: '/admin/professional-roles' },
+    { label: 'Items', icon: 'pi pi-box', href: '/admin/items' },
+    { label: 'BOMs', icon: 'pi pi-list-check', href: '/admin/boms' },
+    { label: 'Operation Types', icon: 'pi pi-cog', href: '/admin/operation-types' },
+    { label: 'Operation Sequences', icon: 'pi pi-sitemap', href: '/admin/operation-sequences' },
+    { label: 'Business Partners', icon: 'pi pi-address-book', disabled: true },
+    { label: 'Customers', icon: 'pi pi-user-plus', href: '/admin/customers' },
+    { label: 'Suppliers', icon: 'pi pi-truck', href: '/admin/suppliers' },
 ];
 
 const toggleUserMenu = (event) => {

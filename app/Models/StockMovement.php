@@ -10,6 +10,50 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
+/**
+ * @property int $id
+ * @property int $item_id
+ * @property int|null $item_batch_id
+ * @property int|null $item_instance_id
+ * @property int|null $from_location_id
+ * @property int|null $to_location_id
+ * @property numeric $quantity
+ * @property StockMovementType $movement_type
+ * @property string|null $source_type
+ * @property int|null $source_id
+ * @property int|null $performed_by
+ * @property \Illuminate\Support\Carbon $performed_at
+ * @property string|null $notes
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \App\Models\Location|null $fromLocation
+ * @property-read \App\Models\Item|null $item
+ * @property-read \App\Models\ItemBatch|null $itemBatch
+ * @property-read \App\Models\ItemInstance|null $itemInstance
+ * @property-read \App\Models\User|null $performer
+ * @property-read \Illuminate\Database\Eloquent\Model|null $source
+ * @property-read \App\Models\Location|null $toLocation
+ * @method static \Database\Factories\StockMovementFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockMovement newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockMovement newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockMovement query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockMovement whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockMovement whereFromLocationId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockMovement whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockMovement whereItemBatchId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockMovement whereItemId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockMovement whereItemInstanceId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockMovement whereMovementType($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockMovement whereNotes($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockMovement wherePerformedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockMovement wherePerformedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockMovement whereQuantity($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockMovement whereSourceId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockMovement whereSourceType($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockMovement whereToLocationId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|StockMovement whereUpdatedAt($value)
+ * @mixin \Eloquent
+ */
 #[Fillable([
     'item_id',
     'item_batch_id',

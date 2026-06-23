@@ -10,6 +10,43 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property int $id
+ * @property int $production_order_id
+ * @property int $item_instance_id
+ * @property int $operation_sequence_step_id
+ * @property int $employee_id
+ * @property ProductionTaskStatus $status
+ * @property \Illuminate\Support\Carbon|null $started_at
+ * @property \Illuminate\Support\Carbon|null $finished_at
+ * @property string|null $notes
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \App\Models\Employee|null $employee
+ * @property-read \App\Models\ItemInstance $itemInstance
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ProductionTaskMaterial> $materials
+ * @property-read int|null $materials_count
+ * @property-read \App\Models\OperationSequenceStep $operationSequenceStep
+ * @property-read \App\Models\ProductionOrder|null $productionOrder
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\QualityCheck> $qualityChecks
+ * @property-read int|null $quality_checks_count
+ * @method static \Database\Factories\ProductionTaskFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProductionTask newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProductionTask newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProductionTask query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProductionTask whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProductionTask whereEmployeeId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProductionTask whereFinishedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProductionTask whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProductionTask whereItemInstanceId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProductionTask whereNotes($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProductionTask whereOperationSequenceStepId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProductionTask whereProductionOrderId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProductionTask whereStartedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProductionTask whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProductionTask whereUpdatedAt($value)
+ * @mixin \Eloquent
+ */
 #[Fillable([
     'production_order_id',
     'item_instance_id',

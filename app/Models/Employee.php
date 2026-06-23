@@ -9,6 +9,44 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @property int $id
+ * @property int|null $user_id
+ * @property int|null $professional_role_id
+ * @property string $employee_number
+ * @property string $name
+ * @property string|null $email
+ * @property string|null $phone
+ * @property bool $is_active
+ * @property \Illuminate\Support\Carbon|null $hired_at
+ * @property \Illuminate\Support\Carbon|null $left_at
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @property-read \App\Models\ProfessionalRole|null $professionalRole
+ * @property-read \App\Models\User|null $user
+ * @method static \Database\Factories\EmployeeFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Employee newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Employee newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Employee onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Employee query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Employee whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Employee whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Employee whereEmail($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Employee whereEmployeeNumber($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Employee whereHiredAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Employee whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Employee whereIsActive($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Employee whereLeftAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Employee whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Employee wherePhone($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Employee whereProfessionalRoleId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Employee whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Employee whereUserId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Employee withTrashed(bool $withTrashed = true)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Employee withoutTrashed()
+ * @mixin \Eloquent
+ */
 #[Fillable([
     'user_id',
     'professional_role_id',

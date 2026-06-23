@@ -2,10 +2,16 @@
 
 use App\Http\Controllers\Admin\EmployeeController as AdminEmployeeController;
 use App\Http\Controllers\Admin\FactoryUnitController as AdminFactoryUnitController;
+use App\Http\Controllers\Admin\BomController as AdminBomController;
+use App\Http\Controllers\Admin\CustomerController as AdminCustomerController;
+use App\Http\Controllers\Admin\ItemController as AdminItemController;
 use App\Http\Controllers\Admin\LocationController as AdminLocationController;
+use App\Http\Controllers\Admin\OperationSequenceController as AdminOperationSequenceController;
+use App\Http\Controllers\Admin\OperationTypeController as AdminOperationTypeController;
 use App\Http\Controllers\Admin\PermissionController as AdminPermissionController;
 use App\Http\Controllers\Admin\ProfessionalRoleController as AdminProfessionalRoleController;
 use App\Http\Controllers\Admin\RoleController as AdminRoleController;
+use App\Http\Controllers\Admin\SupplierController as AdminSupplierController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
@@ -40,6 +46,16 @@ Route::middleware(['auth', 'verified'])
         Route::resource('professional-roles', AdminProfessionalRoleController::class)
             ->parameters(['professional-roles' => 'professionalRole'])
             ->only(['index', 'store', 'update', 'destroy']);
+        Route::resource('items', AdminItemController::class)->only(['index', 'store', 'update', 'destroy']);
+        Route::resource('boms', AdminBomController::class)->only(['index', 'store', 'update', 'destroy']);
+        Route::resource('operation-types', AdminOperationTypeController::class)
+            ->parameters(['operation-types' => 'operationType'])
+            ->only(['index', 'store', 'update', 'destroy']);
+        Route::resource('operation-sequences', AdminOperationSequenceController::class)
+            ->parameters(['operation-sequences' => 'operationSequence'])
+            ->only(['index', 'store', 'update', 'destroy']);
+        Route::resource('customers', AdminCustomerController::class)->only(['index', 'store', 'update', 'destroy']);
+        Route::resource('suppliers', AdminSupplierController::class)->only(['index', 'store', 'update', 'destroy']);
     });
 
 require __DIR__.'/auth.php';

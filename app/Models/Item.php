@@ -10,6 +10,52 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @property int $id
+ * @property string $item_number
+ * @property string $name
+ * @property ItemType $item_type
+ * @property string $unit
+ * @property numeric|null $width
+ * @property numeric|null $length
+ * @property numeric|null $thickness
+ * @property numeric|null $diameter
+ * @property bool $requires_serial_number
+ * @property bool $is_active
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ItemBatch> $batches
+ * @property-read int|null $batches_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\CustomerOrderItem> $customerOrderItems
+ * @property-read int|null $customer_order_items_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ItemInstance> $instances
+ * @property-read int|null $instances_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ProductionOrder> $productionOrders
+ * @property-read int|null $production_orders_count
+ * @method static \Database\Factories\ItemFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Item newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Item newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Item onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Item query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Item whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Item whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Item whereDiameter($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Item whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Item whereIsActive($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Item whereItemNumber($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Item whereItemType($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Item whereLength($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Item whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Item whereRequiresSerialNumber($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Item whereThickness($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Item whereUnit($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Item whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Item whereWidth($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Item withTrashed(bool $withTrashed = true)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Item withoutTrashed()
+ * @mixin \Eloquent
+ */
 #[Fillable([
     'item_number',
     'name',

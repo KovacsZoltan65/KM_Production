@@ -8,6 +8,31 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property int $id
+ * @property int $bom_id
+ * @property int $item_id
+ * @property numeric $quantity
+ * @property string $unit
+ * @property string|null $notes
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \App\Models\Bom|null $bom
+ * @property-read \App\Models\Item|null $item
+ * @method static \Database\Factories\BomItemFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BomItem newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BomItem newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BomItem query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BomItem whereBomId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BomItem whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BomItem whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BomItem whereItemId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BomItem whereNotes($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BomItem whereQuantity($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BomItem whereUnit($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|BomItem whereUpdatedAt($value)
+ * @mixin \Eloquent
+ */
 #[Fillable([
     'bom_id',
     'item_id',

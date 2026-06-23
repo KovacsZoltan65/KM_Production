@@ -11,6 +11,45 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @property int $id
+ * @property string $order_number
+ * @property int $supplier_id
+ * @property int|null $purchase_requisition_id
+ * @property PurchaseOrderStatus $status
+ * @property \Illuminate\Support\Carbon|null $ordered_at
+ * @property \Illuminate\Support\Carbon|null $expected_delivery_date
+ * @property string|null $notes
+ * @property int|null $created_by
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @property-read \App\Models\User|null $creator
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\PurchaseOrderItem> $items
+ * @property-read int|null $items_count
+ * @property-read \App\Models\PurchaseRequisition|null $purchaseRequisition
+ * @property-read \App\Models\Supplier|null $supplier
+ * @method static \Database\Factories\PurchaseOrderFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PurchaseOrder newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PurchaseOrder newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PurchaseOrder onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PurchaseOrder query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PurchaseOrder whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PurchaseOrder whereCreatedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PurchaseOrder whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PurchaseOrder whereExpectedDeliveryDate($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PurchaseOrder whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PurchaseOrder whereNotes($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PurchaseOrder whereOrderNumber($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PurchaseOrder whereOrderedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PurchaseOrder wherePurchaseRequisitionId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PurchaseOrder whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PurchaseOrder whereSupplierId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PurchaseOrder whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PurchaseOrder withTrashed(bool $withTrashed = true)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PurchaseOrder withoutTrashed()
+ * @mixin \Eloquent
+ */
 #[Fillable([
     'order_number',
     'supplier_id',

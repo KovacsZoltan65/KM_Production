@@ -8,6 +8,38 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property int $id
+ * @property int $goods_receipt_id
+ * @property int|null $purchase_order_item_id
+ * @property int $item_id
+ * @property int|null $item_batch_id
+ * @property int $location_id
+ * @property numeric $quantity
+ * @property string|null $notes
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \App\Models\GoodsReceipt|null $goodsReceipt
+ * @property-read \App\Models\Item|null $item
+ * @property-read \App\Models\ItemBatch|null $itemBatch
+ * @property-read \App\Models\Location|null $location
+ * @property-read \App\Models\PurchaseOrderItem|null $purchaseOrderItem
+ * @method static \Database\Factories\GoodsReceiptItemFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GoodsReceiptItem newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GoodsReceiptItem newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GoodsReceiptItem query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GoodsReceiptItem whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GoodsReceiptItem whereGoodsReceiptId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GoodsReceiptItem whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GoodsReceiptItem whereItemBatchId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GoodsReceiptItem whereItemId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GoodsReceiptItem whereLocationId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GoodsReceiptItem whereNotes($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GoodsReceiptItem wherePurchaseOrderItemId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GoodsReceiptItem whereQuantity($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GoodsReceiptItem whereUpdatedAt($value)
+ * @mixin \Eloquent
+ */
 #[Fillable([
     'goods_receipt_id',
     'purchase_order_item_id',

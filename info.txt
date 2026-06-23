@@ -17,6 +17,13 @@ php artisan migrate:fresh --seed --env=testing
 
 php artisan key:generate --env=testing
 
+=========================================
+= 
+=========================================
+
+Developer: Reload Window
+
+=========================================
 
 php artisan ziggy:generate resources/js/ziggy.js
 php artisan ziggy:generate resources/js/ziggy.js --types

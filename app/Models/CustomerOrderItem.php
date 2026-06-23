@@ -11,6 +11,40 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @property int $id
+ * @property int $customer_order_id
+ * @property int $item_id
+ * @property numeric $quantity
+ * @property string $unit
+ * @property CustomerOrderItemStatus $status
+ * @property string|null $notes
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @property-read \App\Models\CustomerOrder|null $customerOrder
+ * @property-read \App\Models\Item|null $item
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ProductionOrder> $productionOrders
+ * @property-read int|null $production_orders_count
+ * @method static \Database\Factories\CustomerOrderItemFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CustomerOrderItem newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CustomerOrderItem newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CustomerOrderItem onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CustomerOrderItem query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CustomerOrderItem whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CustomerOrderItem whereCustomerOrderId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CustomerOrderItem whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CustomerOrderItem whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CustomerOrderItem whereItemId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CustomerOrderItem whereNotes($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CustomerOrderItem whereQuantity($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CustomerOrderItem whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CustomerOrderItem whereUnit($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CustomerOrderItem whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CustomerOrderItem withTrashed(bool $withTrashed = true)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|CustomerOrderItem withoutTrashed()
+ * @mixin \Eloquent
+ */
 #[Fillable([
     'customer_order_id',
     'item_id',

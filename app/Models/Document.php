@@ -11,6 +11,55 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @property int $id
+ * @property string $documentable_type
+ * @property int $documentable_id
+ * @property DocumentType $document_type
+ * @property string $title
+ * @property string|null $description
+ * @property string|null $file_path
+ * @property string|null $original_filename
+ * @property string|null $mime_type
+ * @property int|null $file_size
+ * @property int $version
+ * @property bool $is_current
+ * @property int|null $uploaded_by
+ * @property int|null $approved_by
+ * @property \Illuminate\Support\Carbon|null $approved_at
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @property-read \App\Models\User|null $approver
+ * @property-read \Illuminate\Database\Eloquent\Model $documentable
+ * @property-read \App\Models\User|null $uploader
+ * @method static \Database\Factories\DocumentFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereApprovedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereApprovedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereDescription($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereDocumentType($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereDocumentableId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereDocumentableType($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereFilePath($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereFileSize($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereIsCurrent($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereMimeType($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereOriginalFilename($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereTitle($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereUploadedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereVersion($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document withTrashed(bool $withTrashed = true)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document withoutTrashed()
+ * @mixin \Eloquent
+ */
 #[Fillable([
     'documentable_type',
     'documentable_id',

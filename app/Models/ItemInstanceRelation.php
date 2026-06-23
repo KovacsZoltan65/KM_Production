@@ -8,6 +8,27 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property int $id
+ * @property int $parent_item_instance_id
+ * @property int $child_item_instance_id
+ * @property numeric $quantity
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \App\Models\ItemInstance $child
+ * @property-read \App\Models\ItemInstance $parent
+ * @method static \Database\Factories\ItemInstanceRelationFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ItemInstanceRelation newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ItemInstanceRelation newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ItemInstanceRelation query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ItemInstanceRelation whereChildItemInstanceId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ItemInstanceRelation whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ItemInstanceRelation whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ItemInstanceRelation whereParentItemInstanceId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ItemInstanceRelation whereQuantity($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ItemInstanceRelation whereUpdatedAt($value)
+ * @mixin \Eloquent
+ */
 #[Fillable([
     'parent_item_instance_id',
     'child_item_instance_id',

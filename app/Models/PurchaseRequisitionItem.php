@@ -10,6 +10,41 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @property int $id
+ * @property int $purchase_requisition_id
+ * @property int|null $material_requirement_id
+ * @property int $item_id
+ * @property numeric $quantity
+ * @property string $unit
+ * @property PurchaseRequisitionItemStatus $status
+ * @property string|null $notes
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @property-read \App\Models\Item|null $item
+ * @property-read \App\Models\MaterialRequirement|null $materialRequirement
+ * @property-read \App\Models\PurchaseRequisition|null $purchaseRequisition
+ * @method static \Database\Factories\PurchaseRequisitionItemFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PurchaseRequisitionItem newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PurchaseRequisitionItem newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PurchaseRequisitionItem onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PurchaseRequisitionItem query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PurchaseRequisitionItem whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PurchaseRequisitionItem whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PurchaseRequisitionItem whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PurchaseRequisitionItem whereItemId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PurchaseRequisitionItem whereMaterialRequirementId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PurchaseRequisitionItem whereNotes($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PurchaseRequisitionItem wherePurchaseRequisitionId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PurchaseRequisitionItem whereQuantity($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PurchaseRequisitionItem whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PurchaseRequisitionItem whereUnit($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PurchaseRequisitionItem whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PurchaseRequisitionItem withTrashed(bool $withTrashed = true)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PurchaseRequisitionItem withoutTrashed()
+ * @mixin \Eloquent
+ */
 #[Fillable([
     'purchase_requisition_id',
     'material_requirement_id',

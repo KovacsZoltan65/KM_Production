@@ -10,6 +10,38 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @property int $id
+ * @property string $receipt_number
+ * @property int|null $purchase_order_id
+ * @property int|null $received_by
+ * @property \Illuminate\Support\Carbon $received_at
+ * @property string|null $notes
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\GoodsReceiptItem> $items
+ * @property-read int|null $items_count
+ * @property-read \App\Models\PurchaseOrder|null $purchaseOrder
+ * @property-read \App\Models\User|null $receiver
+ * @method static \Database\Factories\GoodsReceiptFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GoodsReceipt newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GoodsReceipt newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GoodsReceipt onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GoodsReceipt query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GoodsReceipt whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GoodsReceipt whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GoodsReceipt whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GoodsReceipt whereNotes($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GoodsReceipt wherePurchaseOrderId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GoodsReceipt whereReceiptNumber($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GoodsReceipt whereReceivedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GoodsReceipt whereReceivedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GoodsReceipt whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GoodsReceipt withTrashed(bool $withTrashed = true)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|GoodsReceipt withoutTrashed()
+ * @mixin \Eloquent
+ */
 #[Fillable([
     'receipt_number',
     'purchase_order_id',

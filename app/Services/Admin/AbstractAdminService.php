@@ -28,6 +28,7 @@ abstract class AbstractAdminService
      */
     public function create(array $attributes, ?User $causer = null): Model
     {
+        $attributes = $this->normalizeAttributes($attributes);
         $model = $this->repository->create($attributes);
         $this->auditLogService->log($this->createdEvent(), $model, [], $causer);
 
@@ -39,6 +40,7 @@ abstract class AbstractAdminService
      */
     public function update(Model $model, array $attributes, ?User $causer = null): Model
     {
+        $attributes = $this->normalizeAttributes($attributes);
         $model = $this->repository->update($model, $attributes);
         $this->auditLogService->log($this->updatedEvent(), $model, [], $causer);
 
@@ -56,4 +58,13 @@ abstract class AbstractAdminService
     abstract protected function updatedEvent(): string;
 
     abstract protected function deletedEvent(): string;
+
+    /**
+     * @param  array<string, mixed>  $attributes
+     * @return array<string, mixed>
+     */
+    protected function normalizeAttributes(array $attributes): array
+    {
+        return $attributes;
+    }
 }
