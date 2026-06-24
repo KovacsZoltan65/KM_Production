@@ -1,5 +1,6 @@
 <script setup>
 import GuestLayout from '@/Layouts/GuestLayout.vue';
+import { route } from '@/Utils/routes';
 import { Head, useForm } from '@inertiajs/vue3';
 import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
@@ -17,7 +18,7 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.post('/reset-password', {
+    form.post(route('password.store'), {
         onFinish: () => form.reset('password', 'password_confirmation'),
     });
 };

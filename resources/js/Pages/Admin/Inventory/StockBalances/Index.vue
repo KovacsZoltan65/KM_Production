@@ -24,7 +24,7 @@ const columns = [
     <AdminCrudPage
         title="Stock Balances"
         subtitle="Review current stock quantities, reservations, and availability."
-        base-url="/admin/inventory/stock-balances"
+        route-name="admin.inventory.stock-balances"
         :records="records"
         :filters="filters"
         :columns="columns"

@@ -1,6 +1,7 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import ProductionPlanStatusBadge from '@/Pages/Admin/ProductionPlans/Partials/ProductionPlanStatusBadge.vue';
+import { route } from '@/Utils/routes';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import Button from 'primevue/button';
 import Column from 'primevue/column';
@@ -28,7 +29,7 @@ const approvePlan = () => {
         message: `Approve ${props.productionPlan.plan_number}?`,
         header: 'Approve production plan',
         icon: 'pi pi-check-circle',
-        accept: () => router.patch(`/admin/production-plans/${props.productionPlan.id}/approve`, {}, { preserveScroll: true }),
+        accept: () => router.patch(route('admin.production-plans.approve', props.productionPlan.id), {}, { preserveScroll: true }),
     });
 };
 
@@ -37,7 +38,7 @@ const generateProductionOrders = () => {
         message: `Generate production orders for ${props.productionPlan.plan_number}?`,
         header: 'Generate production orders',
         icon: 'pi pi-cog',
-        accept: () => router.post(`/admin/production-plans/${props.productionPlan.id}/generate-production-orders`, {}, { preserveScroll: true }),
+        accept: () => router.post(route('admin.production-plans.generate-production-orders', props.productionPlan.id), {}, { preserveScroll: true }),
     });
 };
 
@@ -67,7 +68,7 @@ watch(
         <div class="space-y-4">
             <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div class="space-y-2">
-                    <Link href="/admin/production-plans" class="text-sm text-blue-700 hover:underline">Back to production plans</Link>
+                    <Link :href="route('admin.production-plans.index')" class="text-sm text-blue-700 hover:underline">Back to production plans</Link>
                     <div class="flex flex-wrap items-center gap-3">
                         <h1 class="text-2xl font-semibold">{{ productionPlan.plan_number }}</h1>
                         <ProductionPlanStatusBadge :status="productionPlan.status" />

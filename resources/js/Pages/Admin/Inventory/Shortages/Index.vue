@@ -28,7 +28,7 @@ const columns = [
     <AdminCrudPage
         title="Shortages"
         subtitle="Review material requirements with missing quantities."
-        base-url="/admin/inventory/shortages"
+        route-name="admin.inventory.shortages"
         :records="records"
         :filters="filters"
         :columns="columns"

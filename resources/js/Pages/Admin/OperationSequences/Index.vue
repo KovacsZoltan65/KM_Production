@@ -5,6 +5,7 @@ import AdminSearchBar from '@/Components/Admin/AdminSearchBar.vue';
 import AdminStatusBadge from '@/Components/Admin/AdminStatusBadge.vue';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import SequenceStepsEditor from '@/Pages/Admin/OperationSequences/Partials/SequenceStepsEditor.vue';
+import { route } from '@/Utils/routes';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import Button from 'primevue/button';
 import Column from 'primevue/column';
@@ -88,7 +89,7 @@ const query = (pageNumber = props.records.current_page || 1) => ({
 });
 
 const reload = (pageNumber = 1) => {
-    router.get('/admin/operation-sequences', query(pageNumber), { preserveState: true, replace: true });
+    router.get(route('admin.operation-sequences.index'), query(pageNumber), { preserveState: true, replace: true });
 };
 
 const submit = () => {
@@ -106,11 +107,11 @@ const submit = () => {
     };
 
     if (editingRecord.value) {
-        router.put(`/admin/operation-sequences/${editingRecord.value.id}`, payload, callbacks);
+        router.put(route('admin.operation-sequences.update', editingRecord.value.id), payload, callbacks);
         return;
     }
 
-    router.post('/admin/operation-sequences', payload, callbacks);
+    router.post(route('admin.operation-sequences.store'), payload, callbacks);
 };
 
 const destroyRecord = (record) => {
@@ -119,7 +120,7 @@ const destroyRecord = (record) => {
         header: 'Confirm delete',
         icon: 'pi pi-exclamation-triangle',
         acceptClass: 'p-button-danger',
-        accept: () => router.delete(`/admin/operation-sequences/${record.id}`, { preserveScroll: true }),
+        accept: () => router.delete(route('admin.operation-sequences.destroy', record.id), { preserveScroll: true }),
     });
 };
 

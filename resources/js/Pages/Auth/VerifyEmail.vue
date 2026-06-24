@@ -1,5 +1,6 @@
 <script setup>
 import GuestLayout from '@/Layouts/GuestLayout.vue';
+import { route } from '@/Utils/routes';
 import { Head, useForm } from '@inertiajs/vue3';
 import Button from 'primevue/button';
 
@@ -10,7 +11,7 @@ defineProps({
 const form = useForm({});
 
 const submit = () => {
-    form.post('/email/verification-notification');
+    form.post(route('verification.send'));
 };
 </script>
 

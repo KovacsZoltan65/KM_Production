@@ -26,7 +26,7 @@ const fields = [
     <AdminCrudPage
         title="Operation Types"
         subtitle="Manage reusable manufacturing operation types."
-        base-url="/admin/operation-types"
+        route-name="admin.operation-types"
         create-label="Create operation type"
         :records="records"
         :filters="filters"

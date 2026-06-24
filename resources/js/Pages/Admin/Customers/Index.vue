@@ -32,7 +32,7 @@ const fields = [
     <AdminCrudPage
         title="Customers"
         subtitle="Manage business partner customer master data."
-        base-url="/admin/customers"
+        route-name="admin.customers"
         create-label="Create customer"
         :records="records"
         :filters="filters"

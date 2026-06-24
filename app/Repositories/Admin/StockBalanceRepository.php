@@ -69,6 +69,20 @@ class StockBalanceRepository extends AbstractAdminRepository implements StockBal
             ->sum('quantity');
     }
 
+    public function increaseQuantity(int $itemId, int $locationId, ?int $itemBatchId, float $quantity): void
+    {
+        $balance = StockBalance::query()->firstOrCreate(
+            [
+                'item_id' => $itemId,
+                'location_id' => $locationId,
+                'item_batch_id' => $itemBatchId,
+            ],
+            ['quantity' => 0]
+        );
+
+        $balance->increment('quantity', $quantity);
+    }
+
     /**
      * @return Collection<int, StockBalance>
      */

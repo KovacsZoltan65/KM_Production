@@ -22,7 +22,7 @@ const fields = [
     <AdminCrudPage
         title="Roles"
         subtitle="Manage authorization roles and their permissions."
-        base-url="/admin/roles"
+        route-name="admin.roles"
         create-label="Create role"
         :records="records"
         :filters="filters"

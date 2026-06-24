@@ -1,6 +1,7 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import CustomerOrderStatusBadge from '@/Pages/Admin/CustomerOrders/Partials/CustomerOrderStatusBadge.vue';
+import { route } from '@/Utils/routes';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import Button from 'primevue/button';
 import Column from 'primevue/column';
@@ -29,7 +30,7 @@ const confirmOrder = () => {
         message: `Confirm ${props.customerOrder.order_number}?`,
         header: 'Confirm customer order',
         icon: 'pi pi-check-circle',
-        accept: () => router.patch(`/admin/customer-orders/${props.customerOrder.id}/confirm`, {}, { preserveScroll: true }),
+        accept: () => router.patch(route('admin.customer-orders.confirm', props.customerOrder.id), {}, { preserveScroll: true }),
     });
 };
 
@@ -39,7 +40,7 @@ const cancelOrder = () => {
         header: 'Cancel customer order',
         icon: 'pi pi-exclamation-triangle',
         acceptClass: 'p-button-danger',
-        accept: () => router.patch(`/admin/customer-orders/${props.customerOrder.id}/cancel`, {}, { preserveScroll: true }),
+        accept: () => router.patch(route('admin.customer-orders.cancel', props.customerOrder.id), {}, { preserveScroll: true }),
     });
 };
 
@@ -69,7 +70,7 @@ watch(
         <div class="space-y-4">
             <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div class="space-y-2">
-                    <Link href="/admin/customer-orders" class="text-sm text-blue-700 hover:underline">Back to customer orders</Link>
+                    <Link :href="route('admin.customer-orders.index')" class="text-sm text-blue-700 hover:underline">Back to customer orders</Link>
                     <div class="flex flex-wrap items-center gap-3">
                         <h1 class="text-2xl font-semibold">{{ customerOrder.order_number }}</h1>
                         <CustomerOrderStatusBadge :status="customerOrder.status" />

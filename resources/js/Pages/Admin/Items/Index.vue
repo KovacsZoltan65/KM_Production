@@ -34,7 +34,7 @@ const fields = [
     <AdminCrudPage
         title="Items"
         subtitle="Manage purchased materials and manufactured items."
-        base-url="/admin/items"
+        route-name="admin.items"
         create-label="Create item"
         :records="records"
         :filters="filters"

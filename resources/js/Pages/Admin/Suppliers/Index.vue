@@ -31,7 +31,7 @@ const fields = [
     <AdminCrudPage
         title="Suppliers"
         subtitle="Manage supplier master data."
-        base-url="/admin/suppliers"
+        route-name="admin.suppliers"
         create-label="Create supplier"
         :records="records"
         :filters="filters"

@@ -28,7 +28,7 @@ const fields = [
     <AdminCrudPage
         title="Factory Units"
         subtitle="Manage manufacturing units."
-        base-url="/admin/factory-units"
+        route-name="admin.factory-units"
         create-label="Create factory unit"
         :records="records"
         :filters="filters"

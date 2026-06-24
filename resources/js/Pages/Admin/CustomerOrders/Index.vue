@@ -5,6 +5,7 @@ import AdminSearchBar from '@/Components/Admin/AdminSearchBar.vue';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import CustomerOrderForm from '@/Pages/Admin/CustomerOrders/Partials/CustomerOrderForm.vue';
 import CustomerOrderStatusBadge from '@/Pages/Admin/CustomerOrders/Partials/CustomerOrderStatusBadge.vue';
+import { route } from '@/Utils/routes';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import Button from 'primevue/button';
 import Column from 'primevue/column';
@@ -83,7 +84,7 @@ const query = (pageNumber = props.records.current_page || 1) => ({
 });
 
 const reload = (pageNumber = 1) => {
-    router.get('/admin/customer-orders', query(pageNumber), { preserveState: true, replace: true });
+    router.get(route('admin.customer-orders.index'), query(pageNumber), { preserveState: true, replace: true });
 };
 
 const submit = () => {
@@ -101,11 +102,11 @@ const submit = () => {
     };
 
     if (editingRecord.value) {
-        router.put(`/admin/customer-orders/${editingRecord.value.id}`, payload, callbacks);
+        router.put(route('admin.customer-orders.update', editingRecord.value.id), payload, callbacks);
         return;
     }
 
-    router.post('/admin/customer-orders', payload, callbacks);
+    router.post(route('admin.customer-orders.store'), payload, callbacks);
 };
 
 const confirmOrder = (record) => {
@@ -113,7 +114,7 @@ const confirmOrder = (record) => {
         message: `Confirm ${record.order_number}?`,
         header: 'Confirm customer order',
         icon: 'pi pi-check-circle',
-        accept: () => router.patch(`/admin/customer-orders/${record.id}/confirm`, {}, { preserveScroll: true }),
+        accept: () => router.patch(route('admin.customer-orders.confirm', record.id), {}, { preserveScroll: true }),
     });
 };
 
@@ -123,7 +124,7 @@ const cancelOrder = (record) => {
         header: 'Cancel customer order',
         icon: 'pi pi-exclamation-triangle',
         acceptClass: 'p-button-danger',
-        accept: () => router.patch(`/admin/customer-orders/${record.id}/cancel`, {}, { preserveScroll: true }),
+        accept: () => router.patch(route('admin.customer-orders.cancel', record.id), {}, { preserveScroll: true }),
     });
 };
 
@@ -133,7 +134,7 @@ const destroyRecord = (record) => {
         header: 'Delete customer order',
         icon: 'pi pi-exclamation-triangle',
         acceptClass: 'p-button-danger',
-        accept: () => router.delete(`/admin/customer-orders/${record.id}`, { preserveScroll: true }),
+        accept: () => router.delete(route('admin.customer-orders.destroy', record.id), { preserveScroll: true }),
     });
 };
 
@@ -206,7 +207,7 @@ watch(
             >
                 <Column field="order_number" header="Order number" sortable>
                     <template #body="{ data }">
-                        <Link :href="`/admin/customer-orders/${data.id}`" class="font-medium text-blue-700 hover:underline">
+                        <Link :href="route('admin.customer-orders.show', data.id)" class="font-medium text-blue-700 hover:underline">
                             {{ data.order_number }}
                         </Link>
                     </template>

@@ -5,6 +5,7 @@ import AdminSearchBar from '@/Components/Admin/AdminSearchBar.vue';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import ProductionPlanForm from '@/Pages/Admin/ProductionPlans/Partials/ProductionPlanForm.vue';
 import ProductionPlanStatusBadge from '@/Pages/Admin/ProductionPlans/Partials/ProductionPlanStatusBadge.vue';
+import { route } from '@/Utils/routes';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import Button from 'primevue/button';
 import Column from 'primevue/column';
@@ -92,7 +93,7 @@ const query = (pageNumber = props.records.current_page || 1) => ({
 });
 
 const reload = (pageNumber = 1) => {
-    router.get('/admin/production-plans', query(pageNumber), { preserveState: true, replace: true });
+    router.get(route('admin.production-plans.index'), query(pageNumber), { preserveState: true, replace: true });
 };
 
 const submit = () => {
@@ -110,11 +111,11 @@ const submit = () => {
     };
 
     if (editingRecord.value) {
-        router.put(`/admin/production-plans/${editingRecord.value.id}`, payload, callbacks);
+        router.put(route('admin.production-plans.update', editingRecord.value.id), payload, callbacks);
         return;
     }
 
-    router.post('/admin/production-plans', payload, callbacks);
+    router.post(route('admin.production-plans.store'), payload, callbacks);
 };
 
 const approvePlan = (record) => {
@@ -122,7 +123,7 @@ const approvePlan = (record) => {
         message: `Approve ${record.plan_number}?`,
         header: 'Approve production plan',
         icon: 'pi pi-check-circle',
-        accept: () => router.patch(`/admin/production-plans/${record.id}/approve`, {}, { preserveScroll: true }),
+        accept: () => router.patch(route('admin.production-plans.approve', record.id), {}, { preserveScroll: true }),
     });
 };
 
@@ -132,7 +133,7 @@ const destroyRecord = (record) => {
         header: 'Delete production plan',
         icon: 'pi pi-exclamation-triangle',
         acceptClass: 'p-button-danger',
-        accept: () => router.delete(`/admin/production-plans/${record.id}`, { preserveScroll: true }),
+        accept: () => router.delete(route('admin.production-plans.destroy', record.id), { preserveScroll: true }),
     });
 };
 
@@ -201,7 +202,7 @@ watch(
             >
                 <Column field="plan_number" header="Plan number" sortable>
                     <template #body="{ data }">
-                        <Link :href="`/admin/production-plans/${data.id}`" class="font-medium text-blue-700 hover:underline">
+                        <Link :href="route('admin.production-plans.show', data.id)" class="font-medium text-blue-700 hover:underline">
                             {{ data.plan_number }}
                         </Link>
                     </template>

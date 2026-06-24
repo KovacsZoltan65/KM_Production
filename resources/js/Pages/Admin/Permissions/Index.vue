@@ -16,7 +16,7 @@ const columns = [
     <AdminCrudPage
         title="Permissions"
         subtitle="Read-only list of system permissions."
-        base-url="/admin/permissions"
+        route-name="admin.permissions"
         :records="records"
         :filters="filters"
         :columns="columns"

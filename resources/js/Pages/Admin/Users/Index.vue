@@ -25,7 +25,7 @@ const fields = [
     <AdminCrudPage
         title="Users"
         subtitle="Manage application users and assigned authorization roles."
-        base-url="/admin/users"
+        route-name="admin.users"
         create-label="Create user"
         :records="records"
         :filters="filters"

@@ -1,5 +1,6 @@
 <script setup>
 import { Link, router, usePage } from '@inertiajs/vue3';
+import { route } from '@/Utils/routes';
 import Avatar from 'primevue/avatar';
 import Button from 'primevue/button';
 import Menu from 'primevue/menu';
@@ -13,41 +14,46 @@ const menuItems = [
     {
         label: 'Profile',
         icon: 'pi pi-user',
-        command: () => router.visit('/profile'),
+        command: () => router.visit(route('profile.edit')),
     },
     {
         label: 'Logout',
         icon: 'pi pi-sign-out',
-        command: () => router.post('/logout'),
+        command: () => router.post(route('logout')),
     },
 ];
 
 const sidebarItems = [
-    { label: 'Dashboard', icon: 'pi pi-home', href: '/dashboard' },
-    { label: 'Users', icon: 'pi pi-users', href: '/admin/users' },
-    { label: 'Roles', icon: 'pi pi-shield', href: '/admin/roles' },
-    { label: 'Permissions', icon: 'pi pi-key', href: '/admin/permissions' },
-    { label: 'Employees', icon: 'pi pi-id-card', href: '/admin/employees' },
-    { label: 'Factory Units', icon: 'pi pi-building', href: '/admin/factory-units' },
-    { label: 'Locations', icon: 'pi pi-map-marker', href: '/admin/locations' },
-    { label: 'Professional Roles', icon: 'pi pi-briefcase', href: '/admin/professional-roles' },
-    { label: 'Items', icon: 'pi pi-box', href: '/admin/items' },
-    { label: 'BOMs', icon: 'pi pi-list-check', href: '/admin/boms' },
-    { label: 'Operation Types', icon: 'pi pi-cog', href: '/admin/operation-types' },
-    { label: 'Operation Sequences', icon: 'pi pi-sitemap', href: '/admin/operation-sequences' },
+    { label: 'Dashboard', icon: 'pi pi-home', href: route('dashboard') },
+    { label: 'Users', icon: 'pi pi-users', href: route('admin.users.index') },
+    { label: 'Roles', icon: 'pi pi-shield', href: route('admin.roles.index') },
+    { label: 'Permissions', icon: 'pi pi-key', href: route('admin.permissions.index') },
+    { label: 'Employees', icon: 'pi pi-id-card', href: route('admin.employees.index') },
+    { label: 'Factory Units', icon: 'pi pi-building', href: route('admin.factory-units.index') },
+    { label: 'Locations', icon: 'pi pi-map-marker', href: route('admin.locations.index') },
+    { label: 'Professional Roles', icon: 'pi pi-briefcase', href: route('admin.professional-roles.index') },
+    { label: 'Items', icon: 'pi pi-box', href: route('admin.items.index') },
+    { label: 'BOMs', icon: 'pi pi-list-check', href: route('admin.boms.index') },
+    { label: 'Operation Types', icon: 'pi pi-cog', href: route('admin.operation-types.index') },
+    { label: 'Operation Sequences', icon: 'pi pi-sitemap', href: route('admin.operation-sequences.index') },
     { label: 'Business Partners', icon: 'pi pi-address-book', disabled: true },
-    { label: 'Customers', icon: 'pi pi-user-plus', href: '/admin/customers' },
-    { label: 'Suppliers', icon: 'pi pi-truck', href: '/admin/suppliers' },
+    { label: 'Customers', icon: 'pi pi-user-plus', href: route('admin.customers.index') },
+    { label: 'Suppliers', icon: 'pi pi-truck', href: route('admin.suppliers.index') },
     { label: 'Sales', icon: 'pi pi-shopping-cart', disabled: true },
-    { label: 'Customer Orders', icon: 'pi pi-file-edit', href: '/admin/customer-orders' },
+    { label: 'Customer Orders', icon: 'pi pi-file-edit', href: route('admin.customer-orders.index') },
     { label: 'Planning', icon: 'pi pi-calendar-clock', disabled: true },
-    { label: 'Production Plans', icon: 'pi pi-calendar-plus', href: '/admin/production-plans' },
+    { label: 'Production Plans', icon: 'pi pi-calendar-plus', href: route('admin.production-plans.index') },
     { label: 'Inventory', icon: 'pi pi-warehouse', disabled: true },
-    { label: 'Stock Balances', icon: 'pi pi-box', href: '/admin/inventory/stock-balances' },
-    { label: 'Stock Movements', icon: 'pi pi-arrow-right-arrow-left', href: '/admin/inventory/stock-movements' },
-    { label: 'Reservations', icon: 'pi pi-lock', href: '/admin/inventory/stock-reservations' },
-    { label: 'Material Requirements', icon: 'pi pi-list', href: '/admin/inventory/material-requirements' },
-    { label: 'Shortages', icon: 'pi pi-exclamation-triangle', href: '/admin/inventory/shortages' },
+    { label: 'Stock Balances', icon: 'pi pi-box', href: route('admin.inventory.stock-balances.index') },
+    { label: 'Stock Movements', icon: 'pi pi-arrow-right-arrow-left', href: route('admin.inventory.stock-movements.index') },
+    { label: 'Reservations', icon: 'pi pi-lock', href: route('admin.inventory.stock-reservations.index') },
+    { label: 'Material Requirements', icon: 'pi pi-list', href: route('admin.inventory.material-requirements.index') },
+    { label: 'Shortages', icon: 'pi pi-exclamation-triangle', href: route('admin.inventory.shortages.index') },
+    { label: 'Procurement', icon: 'pi pi-shopping-bag', disabled: true },
+    { label: 'Procurement Dashboard', icon: 'pi pi-chart-bar', href: route('admin.procurement.dashboard') },
+    { label: 'Purchase Requisitions', icon: 'pi pi-list-check', href: route('admin.purchase-requisitions.index') },
+    { label: 'Purchase Orders', icon: 'pi pi-shopping-cart', href: route('admin.purchase-orders.index') },
+    { label: 'Goods Receipts', icon: 'pi pi-inbox', href: route('admin.goods-receipts.index') },
 ];
 
 const toggleUserMenu = (event) => {
@@ -59,7 +65,7 @@ const toggleUserMenu = (event) => {
     <div class="min-h-screen bg-slate-50 text-slate-900">
         <header class="sticky top-0 z-20 border-b border-slate-200 bg-white">
             <div class="flex h-14 items-center justify-between px-4 sm:px-6">
-                <Link href="/dashboard" class="flex items-center gap-3 font-semibold">
+                <Link :href="route('dashboard')" class="flex items-center gap-3 font-semibold">
                     <span class="grid h-8 w-8 place-items-center rounded bg-blue-600 text-sm text-white">KM</span>
                     <span>KM Production</span>
                 </Link>

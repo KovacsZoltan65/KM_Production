@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -73,6 +75,25 @@ class PurchaseRequisitionItem extends Model
     public function materialRequirement(): BelongsTo
     {
         return $this->belongsTo(MaterialRequirement::class);
+    }
+
+    /**
+     * @return HasMany<PurchaseRequisitionItemSource, $this>
+     */
+    public function sources(): HasMany
+    {
+        return $this->hasMany(PurchaseRequisitionItemSource::class);
+    }
+
+    /**
+     * @return BelongsToMany<MaterialRequirement, $this>
+     */
+    public function sourceMaterialRequirements(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            MaterialRequirement::class,
+            'purchase_requisition_item_sources'
+        )->withPivot('quantity')->withTimestamps();
     }
 
     /**

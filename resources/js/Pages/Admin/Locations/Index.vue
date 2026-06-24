@@ -29,7 +29,7 @@ const fields = [
     <AdminCrudPage
         title="Locations"
         subtitle="Manage warehouses, workshops and quality areas."
-        base-url="/admin/locations"
+        route-name="admin.locations"
         create-label="Create location"
         :records="records"
         :filters="filters"

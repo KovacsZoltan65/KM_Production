@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\GoodsReceiptStatus;
 use Database\Factories\GoodsReceiptFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -14,6 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int $id
  * @property string $receipt_number
  * @property int|null $purchase_order_id
+ * @property GoodsReceiptStatus $status
  * @property int|null $received_by
  * @property \Illuminate\Support\Carbon $received_at
  * @property string|null $notes
@@ -45,6 +47,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 #[Fillable([
     'receipt_number',
     'purchase_order_id',
+    'status',
     'received_by',
     'received_at',
     'notes',
@@ -84,6 +87,7 @@ class GoodsReceipt extends Model
     protected function casts(): array
     {
         return [
+            'status' => GoodsReceiptStatus::class,
             'received_at' => 'datetime',
         ];
     }

@@ -2,6 +2,7 @@
 import AdminPageHeader from '@/Components/Admin/AdminPageHeader.vue';
 import AdminSearchBar from '@/Components/Admin/AdminSearchBar.vue';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
+import { route } from '@/Utils/routes';
 import { Head, router } from '@inertiajs/vue3';
 import Column from 'primevue/column';
 import DataTable from 'primevue/datatable';
@@ -44,7 +45,7 @@ const query = (page = 1) => ({
     date_to: isoDate(dateTo.value),
 });
 
-const reload = (page = 1) => router.get('/admin/inventory/stock-movements', query(page), { preserveState: true, replace: true });
+const reload = (page = 1) => router.get(route('admin.inventory.stock-movements.index'), query(page), { preserveState: true, replace: true });
 const onPage = (event) => { perPage.value = event.rows; reload(event.page + 1); };
 const onSort = (event) => { sortField.value = event.sortField; sortOrder.value = event.sortOrder; reload(1); };
 </script>

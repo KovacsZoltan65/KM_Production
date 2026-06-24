@@ -2,6 +2,7 @@
 import AdminPageHeader from '@/Components/Admin/AdminPageHeader.vue';
 import AdminSearchBar from '@/Components/Admin/AdminSearchBar.vue';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
+import { route } from '@/Utils/routes';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import Button from 'primevue/button';
 import Column from 'primevue/column';
@@ -27,10 +28,10 @@ const sortOrder = ref((props.filters.direction || 'desc') === 'asc' ? 1 : -1);
 const number = (value) => Number(value || 0).toFixed(3);
 const formatDate = (value) => (value ? new Date(value).toLocaleString() : '-');
 const query = (pageNumber = 1) => ({ search: search.value || undefined, per_page: perPage.value, page: pageNumber, sort: sortField.value, direction: sortOrder.value === -1 ? 'desc' : 'asc', status: status.value || undefined });
-const reload = (pageNumber = 1) => router.get('/admin/inventory/stock-reservations', query(pageNumber), { preserveState: true, replace: true });
+const reload = (pageNumber = 1) => router.get(route('admin.inventory.stock-reservations.index'), query(pageNumber), { preserveState: true, replace: true });
 const onPage = (event) => { perPage.value = event.rows; reload(event.page + 1); };
 const onSort = (event) => { sortField.value = event.sortField; sortOrder.value = event.sortOrder; reload(1); };
-const release = (record) => confirm.require({ message: 'Release this reservation?', header: 'Confirm release', icon: 'pi pi-exclamation-triangle', accept: () => router.patch(`/admin/inventory/stock-reservations/${record.id}/release`, {}, { preserveScroll: true }) });
+const release = (record) => confirm.require({ message: 'Release this reservation?', header: 'Confirm release', icon: 'pi pi-exclamation-triangle', accept: () => router.patch(route('admin.inventory.stock-reservations.release', record.id), {}, { preserveScroll: true }) });
 
 onMounted(() => page.props.flash?.success && toast.add({ severity: 'success', summary: page.props.flash.success, life: 2500 }));
 watch(() => page.props.flash?.success, (message) => message && toast.add({ severity: 'success', summary: message, life: 2500 }));

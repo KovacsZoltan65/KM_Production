@@ -24,7 +24,7 @@ const fields = [
     <AdminCrudPage
         title="Professional Roles"
         subtitle="Manage professional employee roles separately from authorization roles."
-        base-url="/admin/professional-roles"
+        route-name="admin.professional-roles"
         create-label="Create professional role"
         :records="records"
         :filters="filters"

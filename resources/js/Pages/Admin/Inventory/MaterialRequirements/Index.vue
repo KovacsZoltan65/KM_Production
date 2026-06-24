@@ -2,6 +2,7 @@
 import AdminPageHeader from '@/Components/Admin/AdminPageHeader.vue';
 import AdminSearchBar from '@/Components/Admin/AdminSearchBar.vue';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
+import { route } from '@/Utils/routes';
 import { Head, router } from '@inertiajs/vue3';
 import Column from 'primevue/column';
 import DataTable from 'primevue/datatable';
@@ -20,7 +21,7 @@ const sortOrder = ref((props.filters.direction || 'asc') === 'desc' ? -1 : 1);
 
 const number = (value) => Number(value || 0).toFixed(3);
 const query = (page = 1) => ({ search: search.value || undefined, per_page: perPage.value, page, sort: sortField.value, direction: sortOrder.value === -1 ? 'desc' : 'asc', status: status.value || undefined, required_item_id: requiredItemId.value || undefined, customer_order_id: customerOrderId.value || undefined });
-const reload = (page = 1) => router.get('/admin/inventory/material-requirements', query(page), { preserveState: true, replace: true });
+const reload = (page = 1) => router.get(route('admin.inventory.material-requirements.index'), query(page), { preserveState: true, replace: true });
 const onPage = (event) => { perPage.value = event.rows; reload(event.page + 1); };
 const onSort = (event) => { sortField.value = event.sortField; sortOrder.value = event.sortOrder; reload(1); };
 const severity = (value) => ({ missing: 'danger', partially_available: 'warn', reserved: 'success', calculated: 'info' }[value] || 'secondary');

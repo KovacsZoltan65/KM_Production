@@ -5,6 +5,7 @@ import AdminSearchBar from '@/Components/Admin/AdminSearchBar.vue';
 import AdminStatusBadge from '@/Components/Admin/AdminStatusBadge.vue';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import BomItemsEditor from '@/Pages/Admin/Boms/Partials/BomItemsEditor.vue';
+import { route } from '@/Utils/routes';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import Button from 'primevue/button';
 import Column from 'primevue/column';
@@ -82,7 +83,7 @@ const query = (pageNumber = props.records.current_page || 1) => ({
 });
 
 const reload = (pageNumber = 1) => {
-    router.get('/admin/boms', query(pageNumber), { preserveState: true, replace: true });
+    router.get(route('admin.boms.index'), query(pageNumber), { preserveState: true, replace: true });
 };
 
 const submit = () => {
@@ -100,11 +101,11 @@ const submit = () => {
     };
 
     if (editingRecord.value) {
-        router.put(`/admin/boms/${editingRecord.value.id}`, payload, callbacks);
+        router.put(route('admin.boms.update', editingRecord.value.id), payload, callbacks);
         return;
     }
 
-    router.post('/admin/boms', payload, callbacks);
+    router.post(route('admin.boms.store'), payload, callbacks);
 };
 
 const destroyRecord = (record) => {
@@ -113,7 +114,7 @@ const destroyRecord = (record) => {
         header: 'Confirm delete',
         icon: 'pi pi-exclamation-triangle',
         acceptClass: 'p-button-danger',
-        accept: () => router.delete(`/admin/boms/${record.id}`, { preserveScroll: true }),
+        accept: () => router.delete(route('admin.boms.destroy', record.id), { preserveScroll: true }),
     });
 };
 

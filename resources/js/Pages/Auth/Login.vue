@@ -1,5 +1,6 @@
 <script setup>
 import GuestLayout from '@/Layouts/GuestLayout.vue';
+import { route } from '@/Utils/routes';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import Button from 'primevue/button';
 import Checkbox from 'primevue/checkbox';
@@ -17,7 +18,7 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.post('/login', {
+    form.post(route('login.store'), {
         onFinish: () => form.reset('password'),
     });
 };
@@ -53,7 +54,7 @@ const submit = () => {
             </label>
 
             <div class="flex items-center justify-between gap-3">
-                <Link v-if="canResetPassword" href="/forgot-password" class="text-sm font-medium text-blue-700 hover:text-blue-900">
+                <Link v-if="canResetPassword" :href="route('password.request')" class="text-sm font-medium text-blue-700 hover:text-blue-900">
                     Forgot password?
                 </Link>
                 <Button type="submit" label="Login" icon="pi pi-sign-in" :loading="form.processing" />

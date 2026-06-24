@@ -15,8 +15,12 @@ use App\Http\Controllers\Admin\LocationController as AdminLocationController;
 use App\Http\Controllers\Admin\OperationSequenceController as AdminOperationSequenceController;
 use App\Http\Controllers\Admin\OperationTypeController as AdminOperationTypeController;
 use App\Http\Controllers\Admin\PermissionController as AdminPermissionController;
+use App\Http\Controllers\Admin\GoodsReceiptController as AdminGoodsReceiptController;
+use App\Http\Controllers\Admin\ProcurementDashboardController as AdminProcurementDashboardController;
 use App\Http\Controllers\Admin\ProductionPlanController as AdminProductionPlanController;
 use App\Http\Controllers\Admin\ProfessionalRoleController as AdminProfessionalRoleController;
+use App\Http\Controllers\Admin\PurchaseOrderController as AdminPurchaseOrderController;
+use App\Http\Controllers\Admin\PurchaseRequisitionController as AdminPurchaseRequisitionController;
 use App\Http\Controllers\Admin\RoleController as AdminRoleController;
 use App\Http\Controllers\Admin\SupplierController as AdminSupplierController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
@@ -88,6 +92,28 @@ Route::middleware(['auth', 'verified'])
                 Route::get('material-requirements', [AdminMaterialRequirementController::class, 'index'])->name('material-requirements.index');
                 Route::get('shortages', [AdminShortageController::class, 'index'])->name('shortages.index');
             });
+        Route::get('procurement/dashboard', AdminProcurementDashboardController::class)->name('procurement.dashboard');
+        Route::post('purchase-requisitions/generate-from-material-requirements', [AdminPurchaseRequisitionController::class, 'generateFromMaterialRequirements'])
+            ->name('purchase-requisitions.generate-from-material-requirements');
+        Route::patch('purchase-requisitions/{purchaseRequisition}/approve', [AdminPurchaseRequisitionController::class, 'approve'])
+            ->name('purchase-requisitions.approve');
+        Route::post('purchase-requisitions/{purchaseRequisition}/generate-purchase-order', [AdminPurchaseRequisitionController::class, 'generatePurchaseOrder'])
+            ->name('purchase-requisitions.generate-purchase-order');
+        Route::resource('purchase-requisitions', AdminPurchaseRequisitionController::class)
+            ->parameters(['purchase-requisitions' => 'purchaseRequisition'])
+            ->only(['index', 'show', 'store', 'update', 'destroy']);
+        Route::patch('purchase-orders/{purchaseOrder}/approve', [AdminPurchaseOrderController::class, 'approve'])
+            ->name('purchase-orders.approve');
+        Route::patch('purchase-orders/{purchaseOrder}/close', [AdminPurchaseOrderController::class, 'close'])
+            ->name('purchase-orders.close');
+        Route::resource('purchase-orders', AdminPurchaseOrderController::class)
+            ->parameters(['purchase-orders' => 'purchaseOrder'])
+            ->only(['index', 'show', 'store', 'update', 'destroy']);
+        Route::post('goods-receipts/{goodsReceipt}/post', [AdminGoodsReceiptController::class, 'post'])
+            ->name('goods-receipts.post');
+        Route::resource('goods-receipts', AdminGoodsReceiptController::class)
+            ->parameters(['goods-receipts' => 'goodsReceipt'])
+            ->only(['index', 'show', 'store']);
     });
 
 require __DIR__.'/auth.php';

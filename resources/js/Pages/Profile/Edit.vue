@@ -1,5 +1,6 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue';
+import { route } from '@/Utils/routes';
 import { Head, useForm, usePage } from '@inertiajs/vue3';
 import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
@@ -25,13 +26,13 @@ const passwordForm = useForm({
 });
 
 const updateProfile = () => {
-    profileForm.patch('/profile', {
+    profileForm.patch(route('profile.update'), {
         preserveScroll: true,
     });
 };
 
 const updatePassword = () => {
-    passwordForm.put('/password', {
+    passwordForm.put(route('profile.password'), {
         preserveScroll: true,
         onSuccess: () => passwordForm.reset(),
         onError: () => passwordForm.reset('password', 'password_confirmation'),

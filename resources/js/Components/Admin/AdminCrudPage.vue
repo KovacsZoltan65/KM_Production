@@ -4,6 +4,7 @@ import AdminPageHeader from '@/Components/Admin/AdminPageHeader.vue';
 import AdminSearchBar from '@/Components/Admin/AdminSearchBar.vue';
 import AdminStatusBadge from '@/Components/Admin/AdminStatusBadge.vue';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
+import { route } from '@/Utils/routes';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import Checkbox from 'primevue/checkbox';
 import Button from 'primevue/button';
@@ -23,7 +24,7 @@ import { computed, onMounted, reactive, ref, watch } from 'vue';
 const props = defineProps({
     title: { type: String, required: true },
     subtitle: { type: String, default: '' },
-    baseUrl: { type: String, required: true },
+    routeName: { type: String, required: true },
     records: { type: Object, required: true },
     filters: { type: Object, default: () => ({}) },
     columns: { type: Array, required: true },
@@ -46,6 +47,10 @@ const form = reactive({});
 const errors = ref({});
 
 const pageTitle = computed(() => (editingRecord.value ? `Edit ${props.title}` : props.createLabel));
+const indexRoute = computed(() => `${props.routeName}.index`);
+const storeRoute = computed(() => `${props.routeName}.store`);
+const updateRoute = computed(() => `${props.routeName}.update`);
+const destroyRoute = computed(() => `${props.routeName}.destroy`);
 
 onMounted(() => {
     if (page.props.flash?.success) {
@@ -113,7 +118,7 @@ const query = (pageNumber = props.records.current_page || 1) => ({
 });
 
 const reload = (pageNumber = 1) => {
-    router.get(props.baseUrl, query(pageNumber), {
+    router.get(route(indexRoute.value), query(pageNumber), {
         preserveState: true,
         replace: true,
     });
@@ -145,11 +150,11 @@ const submit = () => {
     };
 
     if (editingRecord.value) {
-        router.put(`${props.baseUrl}/${editingRecord.value.id}`, payload, callbacks);
+        router.put(route(updateRoute.value, editingRecord.value.id), payload, callbacks);
         return;
     }
 
-    router.post(props.baseUrl, payload, callbacks);
+    router.post(route(storeRoute.value), payload, callbacks);
 };
 
 const destroyRecord = (record) => {
@@ -158,7 +163,7 @@ const destroyRecord = (record) => {
         header: 'Confirm delete',
         icon: 'pi pi-exclamation-triangle',
         acceptClass: 'p-button-danger',
-        accept: () => router.delete(`${props.baseUrl}/${record.id}`, { preserveScroll: true }),
+        accept: () => router.delete(route(destroyRoute.value, record.id), { preserveScroll: true }),
     });
 };
 

@@ -32,7 +32,7 @@ const fields = [
     <AdminCrudPage
         title="Employees"
         subtitle="Manage employee master data and optional user links."
-        base-url="/admin/employees"
+        route-name="admin.employees"
         create-label="Create employee"
         :records="records"
         :filters="filters"

@@ -3,12 +3,18 @@
 namespace App\Providers;
 
 use App\Models\User;
+use App\Models\GoodsReceipt;
 use App\Models\MaterialRequirement;
+use App\Models\PurchaseOrder;
+use App\Models\PurchaseRequisition;
 use App\Models\StockBalance;
 use App\Models\StockMovement;
 use App\Models\StockReservation;
+use App\Policies\GoodsReceiptPolicy;
 use App\Policies\MaterialRequirementPolicy;
 use App\Policies\PermissionPolicy;
+use App\Policies\PurchaseOrderPolicy;
+use App\Policies\PurchaseRequisitionPolicy;
 use App\Policies\RolePolicy;
 use App\Policies\StockBalancePolicy;
 use App\Policies\StockMovementPolicy;
@@ -25,6 +31,9 @@ use App\Repositories\Admin\OperationTypeRepository;
 use App\Repositories\Admin\PermissionRepository;
 use App\Repositories\Admin\ProfessionalRoleRepository;
 use App\Repositories\Admin\ProductionPlanRepository;
+use App\Repositories\Admin\GoodsReceiptRepository;
+use App\Repositories\Admin\PurchaseOrderRepository;
+use App\Repositories\Admin\PurchaseRequisitionRepository;
 use App\Repositories\Admin\RoleRepository;
 use App\Repositories\Admin\MaterialRequirementRepository;
 use App\Repositories\Admin\StockBalanceRepository;
@@ -44,6 +53,9 @@ use App\Repositories\Contracts\OperationTypeRepositoryInterface;
 use App\Repositories\Contracts\PermissionRepositoryInterface;
 use App\Repositories\Contracts\ProfessionalRoleRepositoryInterface;
 use App\Repositories\Contracts\ProductionPlanRepositoryInterface;
+use App\Repositories\Contracts\GoodsReceiptRepositoryInterface;
+use App\Repositories\Contracts\PurchaseOrderRepositoryInterface;
+use App\Repositories\Contracts\PurchaseRequisitionRepositoryInterface;
 use App\Repositories\Contracts\RoleRepositoryInterface;
 use App\Repositories\Contracts\MaterialRequirementRepositoryInterface;
 use App\Repositories\Contracts\StockBalanceRepositoryInterface;
@@ -82,6 +94,9 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(StockMovementRepositoryInterface::class, StockMovementRepository::class);
         $this->app->bind(StockReservationRepositoryInterface::class, StockReservationRepository::class);
         $this->app->bind(MaterialRequirementRepositoryInterface::class, MaterialRequirementRepository::class);
+        $this->app->bind(PurchaseRequisitionRepositoryInterface::class, PurchaseRequisitionRepository::class);
+        $this->app->bind(PurchaseOrderRepositoryInterface::class, PurchaseOrderRepository::class);
+        $this->app->bind(GoodsReceiptRepositoryInterface::class, GoodsReceiptRepository::class);
     }
 
     /**
@@ -95,6 +110,9 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(StockMovement::class, StockMovementPolicy::class);
         Gate::policy(StockReservation::class, StockReservationPolicy::class);
         Gate::policy(MaterialRequirement::class, MaterialRequirementPolicy::class);
+        Gate::policy(PurchaseRequisition::class, PurchaseRequisitionPolicy::class);
+        Gate::policy(PurchaseOrder::class, PurchaseOrderPolicy::class);
+        Gate::policy(GoodsReceipt::class, GoodsReceiptPolicy::class);
 
         Gate::before(function (User $user): ?bool {
             return $user->hasRole('super-admin') ? true : null;

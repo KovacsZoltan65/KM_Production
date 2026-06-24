@@ -10,6 +10,7 @@ import PrimeVue from 'primevue/config';
 import Aura from '@primeuix/themes/aura';
 import ConfirmationService from 'primevue/confirmationservice';
 import ToastService from 'primevue/toastservice';
+import { route } from '@/Utils/routes';
 
 const appName = import.meta.env.VITE_APP_NAME || 'KM Production';
 
@@ -33,6 +34,7 @@ createInertiaApp({
                     },
                 },
             })
+            .provide('route', route)
             .mount(el);
     },
     progress: {
