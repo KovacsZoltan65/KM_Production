@@ -18,6 +18,8 @@ class ProductionPlanService
     public function __construct(
         private readonly ProductionPlanRepositoryInterface $repository,
         private readonly AuditLogService $auditLogService,
+        private readonly MaterialRequirementService $materialRequirementService,
+        private readonly StockReservationService $stockReservationService,
     ) {}
 
     /**
@@ -127,6 +129,12 @@ class ProductionPlanService
 
         DB::transaction(function () use ($productionPlan, $causer): void {
             $orders = $this->repository->generateProductionOrders($productionPlan, $causer?->id);
+
+            foreach ($orders as $order) {
+                $this->materialRequirementService->calculateForProductionOrder($order, $causer);
+                $this->stockReservationService->reserveForProductionOrder($order, $causer);
+            }
+
             $this->auditLogService->log('production_orders_generated', $productionPlan, [
                 'generated_count' => $orders->count(),
             ], $causer);

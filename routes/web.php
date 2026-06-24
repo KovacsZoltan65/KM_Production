@@ -5,6 +5,11 @@ use App\Http\Controllers\Admin\FactoryUnitController as AdminFactoryUnitControll
 use App\Http\Controllers\Admin\BomController as AdminBomController;
 use App\Http\Controllers\Admin\CustomerOrderController as AdminCustomerOrderController;
 use App\Http\Controllers\Admin\CustomerController as AdminCustomerController;
+use App\Http\Controllers\Admin\Inventory\MaterialRequirementController as AdminMaterialRequirementController;
+use App\Http\Controllers\Admin\Inventory\ShortageController as AdminShortageController;
+use App\Http\Controllers\Admin\Inventory\StockBalanceController as AdminStockBalanceController;
+use App\Http\Controllers\Admin\Inventory\StockMovementController as AdminStockMovementController;
+use App\Http\Controllers\Admin\Inventory\StockReservationController as AdminStockReservationController;
 use App\Http\Controllers\Admin\ItemController as AdminItemController;
 use App\Http\Controllers\Admin\LocationController as AdminLocationController;
 use App\Http\Controllers\Admin\OperationSequenceController as AdminOperationSequenceController;
@@ -72,6 +77,17 @@ Route::middleware(['auth', 'verified'])
         Route::resource('production-plans', AdminProductionPlanController::class)
             ->parameters(['production-plans' => 'productionPlan'])
             ->only(['index', 'show', 'store', 'update', 'destroy']);
+        Route::prefix('inventory')
+            ->name('inventory.')
+            ->group(function (): void {
+                Route::get('stock-balances', [AdminStockBalanceController::class, 'index'])->name('stock-balances.index');
+                Route::get('stock-movements', [AdminStockMovementController::class, 'index'])->name('stock-movements.index');
+                Route::patch('stock-reservations/{stockReservation}/release', [AdminStockReservationController::class, 'release'])
+                    ->name('stock-reservations.release');
+                Route::get('stock-reservations', [AdminStockReservationController::class, 'index'])->name('stock-reservations.index');
+                Route::get('material-requirements', [AdminMaterialRequirementController::class, 'index'])->name('material-requirements.index');
+                Route::get('shortages', [AdminShortageController::class, 'index'])->name('shortages.index');
+            });
     });
 
 require __DIR__.'/auth.php';

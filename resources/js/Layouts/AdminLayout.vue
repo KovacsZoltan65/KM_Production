@@ -42,6 +42,12 @@ const sidebarItems = [
     { label: 'Customer Orders', icon: 'pi pi-file-edit', href: '/admin/customer-orders' },
     { label: 'Planning', icon: 'pi pi-calendar-clock', disabled: true },
     { label: 'Production Plans', icon: 'pi pi-calendar-plus', href: '/admin/production-plans' },
+    { label: 'Inventory', icon: 'pi pi-warehouse', disabled: true },
+    { label: 'Stock Balances', icon: 'pi pi-box', href: '/admin/inventory/stock-balances' },
+    { label: 'Stock Movements', icon: 'pi pi-arrow-right-arrow-left', href: '/admin/inventory/stock-movements' },
+    { label: 'Reservations', icon: 'pi pi-lock', href: '/admin/inventory/stock-reservations' },
+    { label: 'Material Requirements', icon: 'pi pi-list', href: '/admin/inventory/material-requirements' },
+    { label: 'Shortages', icon: 'pi pi-exclamation-triangle', href: '/admin/inventory/shortages' },
 ];
 
 const toggleUserMenu = (event) => {
