@@ -18,10 +18,14 @@ use App\Http\Controllers\Admin\PermissionController as AdminPermissionController
 use App\Http\Controllers\Admin\GoodsReceiptController as AdminGoodsReceiptController;
 use App\Http\Controllers\Admin\ProcurementDashboardController as AdminProcurementDashboardController;
 use App\Http\Controllers\Admin\ProductionPlanController as AdminProductionPlanController;
+use App\Http\Controllers\Admin\ProductionTaskController as AdminProductionTaskController;
+use App\Http\Controllers\Admin\ProductionTaskMaterialController as AdminProductionTaskMaterialController;
 use App\Http\Controllers\Admin\ProfessionalRoleController as AdminProfessionalRoleController;
 use App\Http\Controllers\Admin\PurchaseOrderController as AdminPurchaseOrderController;
 use App\Http\Controllers\Admin\PurchaseRequisitionController as AdminPurchaseRequisitionController;
+use App\Http\Controllers\Admin\QualityCheckController as AdminQualityCheckController;
 use App\Http\Controllers\Admin\RoleController as AdminRoleController;
+use App\Http\Controllers\Admin\ShopFloorController as AdminShopFloorController;
 use App\Http\Controllers\Admin\SupplierController as AdminSupplierController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\ProfileController;
@@ -80,6 +84,21 @@ Route::middleware(['auth', 'verified'])
             ->name('production-plans.generate-production-orders');
         Route::resource('production-plans', AdminProductionPlanController::class)
             ->parameters(['production-plans' => 'productionPlan'])
+            ->only(['index', 'show', 'store', 'update', 'destroy']);
+        Route::get('shop-floor', [AdminShopFloorController::class, 'index'])->name('shop-floor.index');
+        Route::get('shop-floor/my-tasks', [AdminShopFloorController::class, 'myTasks'])->name('shop-floor.my-tasks');
+        Route::post('production-tasks/generate-from-order', [AdminProductionTaskController::class, 'generateFromOrder'])
+            ->name('production-tasks.generate-from-order');
+        Route::patch('production-tasks/{productionTask}/start', [AdminProductionTaskController::class, 'start'])
+            ->name('production-tasks.start');
+        Route::patch('production-tasks/{productionTask}/finish', [AdminProductionTaskController::class, 'finish'])
+            ->name('production-tasks.finish');
+        Route::post('production-tasks/{productionTask}/materials', [AdminProductionTaskMaterialController::class, 'store'])
+            ->name('production-tasks.materials.store');
+        Route::post('production-tasks/{productionTask}/quality-checks', [AdminQualityCheckController::class, 'store'])
+            ->name('production-tasks.quality-checks.store');
+        Route::resource('production-tasks', AdminProductionTaskController::class)
+            ->parameters(['production-tasks' => 'productionTask'])
             ->only(['index', 'show', 'store', 'update', 'destroy']);
         Route::prefix('inventory')
             ->name('inventory.')

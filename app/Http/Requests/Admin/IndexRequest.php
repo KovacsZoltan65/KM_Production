@@ -22,6 +22,8 @@ class IndexRequest extends FormRequest
             'status' => ['nullable', 'string', 'max:100'],
             'movement_type' => ['nullable', 'string', 'max:100'],
             'item_id' => ['nullable', 'integer', 'exists:items,id'],
+            'employee_id' => ['nullable', 'integer', 'exists:employees,id'],
+            'production_order_id' => ['nullable', 'integer', 'exists:production_orders,id'],
             'location_id' => ['nullable', 'integer', 'exists:locations,id'],
             'required_item_id' => ['nullable', 'integer', 'exists:items,id'],
             'customer_order_id' => ['nullable', 'integer', 'exists:customer_orders,id'],
