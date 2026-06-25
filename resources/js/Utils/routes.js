@@ -1,4 +1,4 @@
-const routes = {
+export const routes = {
     dashboard: '/dashboard',
     login: '/login',
     'login.store': '/login',

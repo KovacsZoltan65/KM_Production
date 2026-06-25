@@ -117,6 +117,10 @@ class ProductionPlanService
     {
         $productionPlan = $this->repository->findForShow($productionPlan);
 
+        if ($productionPlan->status !== ProductionPlanStatus::Approved) {
+            throw ValidationException::withMessages(['status' => 'Production orders can only be generated from approved production plans.']);
+        }
+
         foreach ($productionPlan->items as $item) {
             if ($item->bom_id === null) {
                 throw ValidationException::withMessages(['items' => 'Every production plan item must have a BOM before generating production orders.']);

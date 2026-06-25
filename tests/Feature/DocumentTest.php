@@ -6,6 +6,8 @@ use App\Enums\DocumentType;
 use App\Models\Document;
 use App\Models\Item;
 use App\Models\ProductionOrder;
+use App\Models\ProductionTask;
+use App\Models\QualityCheck;
 use App\Models\User;
 use App\Services\AuditLogService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -42,6 +44,28 @@ class DocumentTest extends TestCase
         ]);
 
         $this->assertTrue($document->documentable->is($productionOrder));
+    }
+
+    public function test_document_can_belong_to_production_task_polymorphically(): void
+    {
+        $productionTask = ProductionTask::factory()->create();
+        $document = Document::factory()->create([
+            'documentable_type' => $productionTask::class,
+            'documentable_id' => $productionTask->id,
+        ]);
+
+        $this->assertTrue($document->documentable->is($productionTask));
+    }
+
+    public function test_document_can_belong_to_quality_check_polymorphically(): void
+    {
+        $qualityCheck = QualityCheck::factory()->create();
+        $document = Document::factory()->create([
+            'documentable_type' => $qualityCheck::class,
+            'documentable_id' => $qualityCheck->id,
+        ]);
+
+        $this->assertTrue($document->documentable->is($qualityCheck));
     }
 
     public function test_document_uploader_can_be_user(): void

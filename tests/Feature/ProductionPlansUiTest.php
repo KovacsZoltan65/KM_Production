@@ -140,7 +140,7 @@ class ProductionPlansUiTest extends TestCase
     public function test_production_orders_can_be_generated(): void
     {
         $admin = $this->superAdmin();
-        [$productionPlan, $planItem, $item, $customerOrderItem] = $this->productionPlanWithItem();
+        [$productionPlan, $planItem, $item, $customerOrderItem] = $this->productionPlanWithItem(['status' => ProductionPlanStatus::Approved]);
         $bom = Bom::factory()->create(['item_id' => $item->id, 'version' => 1]);
         $sequence = OperationSequence::factory()->create(['item_id' => $item->id, 'version' => 1]);
         $planItem->update(['bom_id' => $bom->id, 'operation_sequence_id' => $sequence->id]);
@@ -162,7 +162,7 @@ class ProductionPlansUiTest extends TestCase
     public function test_production_order_cannot_be_generated_without_bom(): void
     {
         $admin = $this->superAdmin();
-        [$productionPlan, $planItem, $item] = $this->productionPlanWithItem();
+        [$productionPlan, $planItem, $item] = $this->productionPlanWithItem(['status' => ProductionPlanStatus::Approved]);
         $sequence = OperationSequence::factory()->create(['item_id' => $item->id, 'version' => 1]);
         $planItem->update(['bom_id' => null, 'operation_sequence_id' => $sequence->id]);
 
@@ -176,7 +176,7 @@ class ProductionPlansUiTest extends TestCase
     public function test_production_order_cannot_be_generated_without_operation_sequence(): void
     {
         $admin = $this->superAdmin();
-        [$productionPlan, $planItem, $item] = $this->productionPlanWithItem();
+        [$productionPlan, $planItem, $item] = $this->productionPlanWithItem(['status' => ProductionPlanStatus::Approved]);
         $bom = Bom::factory()->create(['item_id' => $item->id, 'version' => 1]);
         $planItem->update(['bom_id' => $bom->id, 'operation_sequence_id' => null]);
 
@@ -243,7 +243,7 @@ class ProductionPlansUiTest extends TestCase
     public function test_activity_log_is_created_for_production_order_generation(): void
     {
         $admin = $this->superAdmin();
-        [$productionPlan, $planItem, $item] = $this->productionPlanWithItem();
+        [$productionPlan, $planItem, $item] = $this->productionPlanWithItem(['status' => ProductionPlanStatus::Approved]);
         $bom = Bom::factory()->create(['item_id' => $item->id, 'version' => 1]);
         $sequence = OperationSequence::factory()->create(['item_id' => $item->id, 'version' => 1]);
         $planItem->update(['bom_id' => $bom->id, 'operation_sequence_id' => $sequence->id]);

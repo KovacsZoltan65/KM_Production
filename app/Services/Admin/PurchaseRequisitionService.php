@@ -99,7 +99,13 @@ class PurchaseRequisitionService
     public function generateFromMaterialRequirements(?User $causer = null): PurchaseRequisition
     {
         return DB::transaction(function () use ($causer): PurchaseRequisition {
-            $requirements = $this->purchaseRequisitions->missingMaterialRequirements();
+            $requirements = MaterialRequirement::query()
+                ->with(['requiredItem', 'customerOrderItem.customerOrder'])
+                ->where('missing_quantity', '>', 0)
+                ->whereDoesntHave('purchaseRequisitionSources')
+                ->orderBy('required_item_id')
+                ->lockForUpdate()
+                ->get();
 
             if ($requirements->isEmpty()) {
                 throw ValidationException::withMessages(['requirements' => 'There are no missing material requirements to generate.']);
@@ -146,11 +152,16 @@ class PurchaseRequisitionService
 
     public function generatePurchaseOrder(PurchaseRequisition $purchaseRequisition, int $supplierId, ?string $expectedDeliveryDate = null, ?User $causer = null): PurchaseOrder
     {
-        if ($purchaseRequisition->status !== PurchaseRequisitionStatus::Approved) {
-            throw ValidationException::withMessages(['status' => 'Purchase orders can only be generated from approved requisitions.']);
-        }
-
         return DB::transaction(function () use ($purchaseRequisition, $supplierId, $expectedDeliveryDate, $causer): PurchaseOrder {
+            $purchaseRequisition = PurchaseRequisition::query()
+                ->whereKey($purchaseRequisition->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if ($purchaseRequisition->status !== PurchaseRequisitionStatus::Approved) {
+                throw ValidationException::withMessages(['status' => 'Purchase orders can only be generated from approved requisitions.']);
+            }
+
             $purchaseRequisition->load('items');
 
             $purchaseOrder = PurchaseOrder::query()->create([

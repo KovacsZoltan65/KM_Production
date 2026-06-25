@@ -71,11 +71,16 @@ class GoodsReceiptService
 
     public function post(GoodsReceipt $goodsReceipt, ?User $causer = null): GoodsReceipt
     {
-        if ($goodsReceipt->status === GoodsReceiptStatus::Posted) {
-            throw ValidationException::withMessages(['status' => 'Posted goods receipts cannot be posted again.']);
-        }
-
         return DB::transaction(function () use ($goodsReceipt, $causer): GoodsReceipt {
+            $goodsReceipt = GoodsReceipt::query()
+                ->whereKey($goodsReceipt->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if ($goodsReceipt->status === GoodsReceiptStatus::Posted) {
+                throw ValidationException::withMessages(['status' => 'Posted goods receipts cannot be posted again.']);
+            }
+
             $goodsReceipt->load(['items', 'purchaseOrder.items']);
 
             foreach ($goodsReceipt->items as $item) {

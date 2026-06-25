@@ -223,7 +223,14 @@ class ProductionExecutionUiTest extends TestCase
         $employee->update(['user_id' => $user->id]);
         $ownTask = $this->generatedTask($order, $employee, ProductionTaskStatus::Ready);
         $otherEmployee = Employee::factory()->create();
-        $otherTask = ProductionTask::factory()->create(['employee_id' => $otherEmployee->id, 'status' => ProductionTaskStatus::Ready]);
+        ProductionTask::query()
+            ->where('production_order_id', $order->id)
+            ->whereKeyNot($ownTask->id)
+            ->firstOrFail()
+            ->update([
+                'employee_id' => $otherEmployee->id,
+                'status' => ProductionTaskStatus::Ready->value,
+            ]);
 
         $this->actingAs($user)
             ->get(route('admin.shop-floor.my-tasks'))

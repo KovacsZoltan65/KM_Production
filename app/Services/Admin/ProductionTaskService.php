@@ -72,6 +72,10 @@ class ProductionTaskService
     public function generateFromOrder(ProductionOrder $productionOrder, Employee $employee, ?User $causer = null): int
     {
         return DB::transaction(function () use ($productionOrder, $employee, $causer): int {
+            $productionOrder = ProductionOrder::query()
+                ->whereKey($productionOrder->id)
+                ->lockForUpdate()
+                ->firstOrFail();
             $productionOrder->load('operationSequence.steps.factoryUnit');
 
             if ($productionOrder->operationSequence->steps->isEmpty()) {
@@ -240,12 +244,27 @@ class ProductionTaskService
     private function nextSerialNumber(string $prefix): string
     {
         $year = (int) now()->format('Y');
-        $sequence = SerialSequence::query()->firstOrCreate(
-            ['prefix' => $prefix, 'year' => $year],
-            ['last_number' => 0]
-        );
+        $sequence = SerialSequence::query()
+            ->where('prefix', $prefix)
+            ->where('year', $year)
+            ->lockForUpdate()
+            ->first();
+
+        if ($sequence === null) {
+            $sequence = SerialSequence::query()->create([
+                'prefix' => $prefix,
+                'year' => $year,
+                'last_number' => 0,
+            ]);
+
+            $sequence = SerialSequence::query()
+                ->whereKey($sequence->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+        }
 
         $sequence->increment('last_number');
+        $sequence->refresh();
 
         return \sprintf('%s/%d/%04d', $prefix, $year, $sequence->last_number);
     }
