@@ -45,7 +45,7 @@ abstract class AbstractAdminRepository implements AdminRepositoryInterface
             });
         }
 
-        $sort = in_array($filters['sort'] ?? null, $this->sortable, true)
+        $sort = \in_array($filters['sort'] ?? null, $this->sortable, true)
             ? (string) $filters['sort']
             : 'id';
         $direction = ($filters['direction'] ?? 'asc') === 'desc' ? 'desc' : 'asc';

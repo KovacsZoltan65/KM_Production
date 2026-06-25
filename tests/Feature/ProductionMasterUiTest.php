@@ -286,7 +286,7 @@ class ProductionMasterUiTest extends TestCase
      */
     private function itemPayload(array $overrides = []): array
     {
-        return array_merge([
+        return \array_merge([
             'item_number' => 'ITEM-UI-DEFAULT',
             'name' => 'UI Item',
             'item_type' => ItemType::PurchasedMaterial->value,
@@ -307,7 +307,7 @@ class ProductionMasterUiTest extends TestCase
      */
     private function bomPayload(Item $item, array $items, array $overrides = []): array
     {
-        return array_merge([
+        return \array_merge([
             'item_id' => $item->id,
             'version' => 1,
             'name' => 'UI BOM',

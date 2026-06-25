@@ -84,7 +84,7 @@ class PurchaseRequisitionService
 
     public function approve(PurchaseRequisition $purchaseRequisition, ?User $causer = null): PurchaseRequisition
     {
-        if (! in_array($purchaseRequisition->status, [PurchaseRequisitionStatus::Draft, PurchaseRequisitionStatus::Requested], true)) {
+        if (! \in_array($purchaseRequisition->status, [PurchaseRequisitionStatus::Draft, PurchaseRequisitionStatus::Requested], true)) {
             throw ValidationException::withMessages(['status' => 'Only draft or requested requisitions can be approved.']);
         }
 

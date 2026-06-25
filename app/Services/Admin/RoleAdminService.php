@@ -16,6 +16,12 @@ class RoleAdminService extends AbstractAdminService
         parent::__construct($repository, $auditLogService);
     }
 
+    /**
+     * @param Model $model
+     * @param array $attributes
+     * @param mixed $causer
+     * @return Model
+     */
     public function update(Model $model, array $attributes, $causer = null): Model
     {
         /** @var Role $model */
@@ -27,6 +33,11 @@ class RoleAdminService extends AbstractAdminService
         return parent::update($model, $attributes, $causer);
     }
 
+    /**
+     * @param Model $model
+     * @param mixed $causer
+     * @return void
+     */
     public function delete(Model $model, $causer = null): void
     {
         /** @var Role $model */
@@ -39,16 +50,25 @@ class RoleAdminService extends AbstractAdminService
         parent::delete($model, $causer);
     }
 
+    /**
+     * @return string
+     */
     protected function createdEvent(): string
     {
         return 'admin_role_created';
     }
 
+    /**
+     * @return string
+     */
     protected function updatedEvent(): string
     {
         return 'admin_role_updated';
     }
 
+    /**
+     * @return string
+     */
     protected function deletedEvent(): string
     {
         return 'admin_role_deleted';

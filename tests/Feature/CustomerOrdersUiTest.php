@@ -233,7 +233,7 @@ class CustomerOrdersUiTest extends TestCase
      */
     private function payload(Customer $customer, Item $item, array $overrides = []): array
     {
-        return array_merge([
+        return \array_merge([
             'customer_id' => $customer->id,
             'requested_delivery_date' => now()->addMonth()->format('Y-m-d'),
             'notes' => 'Order notes',

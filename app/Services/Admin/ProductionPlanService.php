@@ -101,7 +101,7 @@ class ProductionPlanService
 
     public function approve(ProductionPlan $productionPlan, ?User $causer = null): ProductionPlan
     {
-        if (! in_array($productionPlan->status, [ProductionPlanStatus::Draft, ProductionPlanStatus::Calculated], true)) {
+        if (! \in_array($productionPlan->status, [ProductionPlanStatus::Draft, ProductionPlanStatus::Calculated], true)) {
             throw ValidationException::withMessages([
                 'status' => 'Only draft or calculated production plans can be approved.',
             ]);

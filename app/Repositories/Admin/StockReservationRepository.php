@@ -27,7 +27,7 @@ class StockReservationRepository extends AbstractAdminRepository implements Stoc
             $query->where('status', $filters['status']);
         }
 
-        $sort = in_array($filters['sort'] ?? null, $this->sortable, true) ? (string) $filters['sort'] : 'reserved_at';
+        $sort = \in_array($filters['sort'] ?? null, $this->sortable, true) ? (string) $filters['sort'] : 'reserved_at';
         $direction = ($filters['direction'] ?? 'desc') === 'asc' ? 'asc' : 'desc';
 
         return $query->orderBy($sort, $direction)->paginate($perPage)->withQueryString();

@@ -42,7 +42,7 @@ class CustomerOrderRepository extends AbstractAdminRepository implements Custome
             $query->where('status', $status);
         }
 
-        $sort = in_array($filters['sort'] ?? null, $this->sortable, true)
+        $sort = \in_array($filters['sort'] ?? null, $this->sortable, true)
             ? (string) $filters['sort']
             : 'id';
         $direction = ($filters['direction'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
@@ -116,7 +116,7 @@ class CustomerOrderRepository extends AbstractAdminRepository implements Custome
         $next = 1;
 
         if (is_string($lastOrderNumber)) {
-            $next = ((int) substr($lastOrderNumber, strlen($prefix))) + 1;
+            $next = ((int) substr($lastOrderNumber, \strlen($prefix))) + 1;
         }
 
         return $prefix.str_pad((string) $next, 6, '0', STR_PAD_LEFT);

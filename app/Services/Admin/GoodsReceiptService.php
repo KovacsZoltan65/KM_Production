@@ -62,7 +62,7 @@ class GoodsReceiptService
             }
 
             $this->auditLogService->log('goods_receipt_created', $goodsReceipt, [
-                'items_count' => count($items),
+                'items_count' => \count($items),
             ], $causer);
 
             return $goodsReceipt->refresh();

@@ -20,12 +20,18 @@ class CustomerOrderService
 
     /**
      * @param  array<string, mixed>  $filters
+     * @param int $perPage
+     * @return LengthAwarePaginator
      */
     public function paginateForAdminIndex(array $filters, int $perPage = 10): LengthAwarePaginator
     {
         return $this->repository->paginateForAdminIndex($filters, $perPage);
     }
 
+    /**
+     * @param CustomerOrder $customerOrder
+     * @return CustomerOrder
+     */
     public function findForShow(CustomerOrder $customerOrder): CustomerOrder
     {
         return $this->repository->findForShow($customerOrder);
@@ -33,6 +39,8 @@ class CustomerOrderService
 
     /**
      * @param  array<string, mixed>  $payload
+     * @param mixed $causer
+     * @return CustomerOrder
      */
     public function create(array $payload, ?User $causer = null): CustomerOrder
     {
@@ -47,7 +55,10 @@ class CustomerOrderService
     }
 
     /**
+     * @param CustomerOrder $customerOrder
      * @param  array<string, mixed>  $payload
+     * @param mixed $causer
+     * @return CustomerOrder
      */
     public function update(CustomerOrder $customerOrder, array $payload, ?User $causer = null): CustomerOrder
     {
@@ -60,6 +71,11 @@ class CustomerOrderService
         return $customerOrder;
     }
 
+    /**
+     * @param CustomerOrder $customerOrder
+     * @param ?User $causer
+     * @return CustomerOrder
+     */
     public function confirm(CustomerOrder $customerOrder, ?User $causer = null): CustomerOrder
     {
         $this->ensureStatus($customerOrder, [CustomerOrderStatus::Draft], 'Only draft customer orders can be confirmed.');
@@ -72,9 +88,14 @@ class CustomerOrderService
         });
     }
 
+    /**
+     * @param CustomerOrder $customerOrder
+     * @param ?User $causer
+     * @return CustomerOrder
+     */
     public function cancel(CustomerOrder $customerOrder, ?User $causer = null): CustomerOrder
     {
-        if (in_array($customerOrder->status, [CustomerOrderStatus::Completed, CustomerOrderStatus::Cancelled], true)) {
+        if (\in_array($customerOrder->status, [CustomerOrderStatus::Completed, CustomerOrderStatus::Cancelled], true)) {
             throw ValidationException::withMessages([
                 'status' => 'Completed or already cancelled customer orders cannot be cancelled.',
             ]);
@@ -88,9 +109,14 @@ class CustomerOrderService
         });
     }
 
+    /**
+     * @param CustomerOrder $customerOrder
+     * @param ?User $causer
+     * @return void
+     */
     public function delete(CustomerOrder $customerOrder, ?User $causer = null): void
     {
-        if (! in_array($customerOrder->status, [CustomerOrderStatus::Draft, CustomerOrderStatus::Cancelled], true)) {
+        if (! \in_array($customerOrder->status, [CustomerOrderStatus::Draft, CustomerOrderStatus::Cancelled], true)) {
             throw ValidationException::withMessages([
                 'status' => 'Only draft or cancelled customer orders can be deleted.',
             ]);
@@ -118,11 +144,14 @@ class CustomerOrderService
     }
 
     /**
-     * @param  array<int, CustomerOrderStatus>  $allowedStatuses
+     * @param CustomerOrder $customerOrder
+     * @param array $allowedStatuses
+     * @param string $message
+     * @return void
      */
     private function ensureStatus(CustomerOrder $customerOrder, array $allowedStatuses, string $message): void
     {
-        if (! in_array($customerOrder->status, $allowedStatuses, true)) {
+        if (! \in_array($customerOrder->status, $allowedStatuses, true)) {
             throw ValidationException::withMessages(['status' => $message]);
         }
     }

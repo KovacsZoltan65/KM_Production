@@ -216,7 +216,7 @@ class BusinessPartnersUiTest extends TestCase
      */
     private function customerPayload(array $overrides = []): array
     {
-        return array_merge([
+        return \array_merge([
             'code' => 'CUST-DEFAULT',
             'name' => 'Default Customer',
             'tax_number' => '12345678-1-42',
@@ -235,7 +235,7 @@ class BusinessPartnersUiTest extends TestCase
      */
     private function supplierPayload(array $overrides = []): array
     {
-        return array_merge([
+        return \array_merge([
             'code' => 'SUP-DEFAULT',
             'name' => 'Default Supplier',
             'tax_number' => '87654321-1-42',

@@ -16,7 +16,7 @@ class StoreGoodsReceiptRequest extends FormRequest
     {
         $items = collect($this->input('items', []))
             ->map(function (array $item): array {
-                if (! array_key_exists('quantity', $item) && array_key_exists('received_quantity', $item)) {
+                if (! \array_key_exists('quantity', $item) && \array_key_exists('received_quantity', $item)) {
                     $item['quantity'] = $item['received_quantity'];
                 }
 

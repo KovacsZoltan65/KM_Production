@@ -31,7 +31,7 @@ class CustomerOrderPolicy
     public function delete(User $user, CustomerOrder $customerOrder): bool
     {
         return $user->can('customer-orders.delete')
-            && in_array($customerOrder->status, [CustomerOrderStatus::Draft, CustomerOrderStatus::Cancelled], true);
+            && \in_array($customerOrder->status, [CustomerOrderStatus::Draft, CustomerOrderStatus::Cancelled], true);
     }
 
     public function confirm(User $user, CustomerOrder $customerOrder): bool

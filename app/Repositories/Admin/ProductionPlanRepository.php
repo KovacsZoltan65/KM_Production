@@ -46,7 +46,7 @@ class ProductionPlanRepository extends AbstractAdminRepository implements Produc
             $query->where('status', $status);
         }
 
-        $sort = in_array($filters['sort'] ?? null, $this->sortable, true)
+        $sort = \in_array($filters['sort'] ?? null, $this->sortable, true)
             ? (string) $filters['sort']
             : 'id';
         $direction = ($filters['direction'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
@@ -154,8 +154,8 @@ class ProductionPlanRepository extends AbstractAdminRepository implements Produc
             ->orderByDesc('plan_number')
             ->value('plan_number');
 
-        $next = is_string($lastPlanNumber)
-            ? ((int) substr($lastPlanNumber, strlen($prefix))) + 1
+        $next = \is_string($lastPlanNumber)
+            ? ((int) substr($lastPlanNumber, \strlen($prefix))) + 1
             : 1;
 
         return $prefix.str_pad((string) $next, 6, '0', STR_PAD_LEFT);
@@ -172,8 +172,8 @@ class ProductionPlanRepository extends AbstractAdminRepository implements Produc
             ->orderByDesc('order_number')
             ->value('order_number');
 
-        $next = is_string($lastOrderNumber)
-            ? ((int) substr($lastOrderNumber, strlen($prefix))) + 1
+        $next = \is_string($lastOrderNumber)
+            ? ((int) substr($lastOrderNumber, \strlen($prefix))) + 1
             : 1;
 
         return $prefix.str_pad((string) $next, 6, '0', STR_PAD_LEFT);

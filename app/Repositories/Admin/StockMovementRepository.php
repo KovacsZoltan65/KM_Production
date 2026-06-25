@@ -45,7 +45,7 @@ class StockMovementRepository extends AbstractAdminRepository implements StockMo
             $query->whereDate('performed_at', '<=', $filters['date_to']);
         }
 
-        $sort = in_array($filters['sort'] ?? null, $this->sortable, true) ? (string) $filters['sort'] : 'performed_at';
+        $sort = \in_array($filters['sort'] ?? null, $this->sortable, true) ? (string) $filters['sort'] : 'performed_at';
         $direction = ($filters['direction'] ?? 'desc') === 'asc' ? 'asc' : 'desc';
 
         return $query->orderBy($sort, $direction)->paginate($perPage)->withQueryString();

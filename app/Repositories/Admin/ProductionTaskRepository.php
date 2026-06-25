@@ -31,7 +31,7 @@ class ProductionTaskRepository extends AbstractAdminRepository implements Produc
         $query = $this->executionQuery();
         $this->applyFilters($query, $filters);
 
-        $sort = in_array($filters['sort'] ?? null, $this->sortable, true) ? (string) $filters['sort'] : 'id';
+        $sort = \in_array($filters['sort'] ?? null, $this->sortable, true) ? (string) $filters['sort'] : 'id';
         $direction = ($filters['direction'] ?? 'desc') === 'asc' ? 'asc' : 'desc';
 
         return $query->orderBy($sort, $direction)->paginate($perPage)->withQueryString();

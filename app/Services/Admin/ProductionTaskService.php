@@ -247,6 +247,6 @@ class ProductionTaskService
 
         $sequence->increment('last_number');
 
-        return sprintf('%s/%d/%04d', $prefix, $year, $sequence->last_number);
+        return \sprintf('%s/%d/%04d', $prefix, $year, $sequence->last_number);
     }
 }

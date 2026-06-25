@@ -35,7 +35,7 @@ class GoodsReceiptRepository extends AbstractAdminRepository implements GoodsRec
             });
         }
 
-        $sort = in_array($filters['sort'] ?? null, $this->sortable, true) ? (string) $filters['sort'] : 'id';
+        $sort = \in_array($filters['sort'] ?? null, $this->sortable, true) ? (string) $filters['sort'] : 'id';
         $direction = ($filters['direction'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
 
         return $query->orderBy($sort, $direction)->paginate($perPage)->withQueryString();

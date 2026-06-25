@@ -12,16 +12,25 @@ class CustomerAdminService extends AbstractAdminService
         parent::__construct($repository, $auditLogService);
     }
 
+    /**
+     * @return string
+     */
     protected function createdEvent(): string
     {
         return 'admin_customer_created';
     }
 
+    /**
+     * @return string
+     */
     protected function updatedEvent(): string
     {
         return 'admin_customer_updated';
     }
 
+    /**
+     * @return string
+     */
     protected function deletedEvent(): string
     {
         return 'admin_customer_deleted';

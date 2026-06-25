@@ -316,7 +316,7 @@ class ProductionPlansUiTest extends TestCase
         $items = $productionPlan->items()->get()->map(function (ProductionPlanItem $item) use ($itemOverrides): array {
             $override = collect($itemOverrides)->firstWhere('id', $item->id) ?? [];
 
-            return array_merge([
+            return \array_merge([
                 'id' => $item->id,
                 'bom_id' => $item->bom_id,
                 'operation_sequence_id' => $item->operation_sequence_id,
