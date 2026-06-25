@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\User;
+use App\Models\Document;
 use App\Models\GoodsReceipt;
 use App\Models\MaterialRequirement;
 use App\Models\PurchaseOrder;
@@ -13,6 +14,7 @@ use App\Models\StockBalance;
 use App\Models\StockMovement;
 use App\Models\StockReservation;
 use App\Policies\GoodsReceiptPolicy;
+use App\Policies\DocumentPolicy;
 use App\Policies\MaterialRequirementPolicy;
 use App\Policies\PermissionPolicy;
 use App\Policies\PurchaseOrderPolicy;
@@ -26,6 +28,7 @@ use App\Policies\StockReservationPolicy;
 use App\Repositories\Admin\BomRepository;
 use App\Repositories\Admin\CustomerOrderRepository;
 use App\Repositories\Admin\CustomerAdminRepository;
+use App\Repositories\Admin\DocumentRepository;
 use App\Repositories\Admin\EmployeeRepository;
 use App\Repositories\Admin\FactoryUnitRepository;
 use App\Repositories\Admin\ItemRepository;
@@ -49,6 +52,7 @@ use App\Repositories\Admin\UserRepository;
 use App\Repositories\Contracts\BomRepositoryInterface;
 use App\Repositories\Contracts\CustomerOrderRepositoryInterface;
 use App\Repositories\Contracts\CustomerAdminRepositoryInterface;
+use App\Repositories\Contracts\DocumentRepositoryInterface;
 use App\Repositories\Contracts\EmployeeRepositoryInterface;
 use App\Repositories\Contracts\FactoryUnitRepositoryInterface;
 use App\Repositories\Contracts\ItemRepositoryInterface;
@@ -104,6 +108,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(PurchaseRequisitionRepositoryInterface::class, PurchaseRequisitionRepository::class);
         $this->app->bind(PurchaseOrderRepositoryInterface::class, PurchaseOrderRepository::class);
         $this->app->bind(GoodsReceiptRepositoryInterface::class, GoodsReceiptRepository::class);
+        $this->app->bind(DocumentRepositoryInterface::class, DocumentRepository::class);
     }
 
     /**
@@ -122,6 +127,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(GoodsReceipt::class, GoodsReceiptPolicy::class);
         Gate::policy(ProductionTask::class, ProductionTaskPolicy::class);
         Gate::policy(QualityCheck::class, QualityCheckPolicy::class);
+        Gate::policy(Document::class, DocumentPolicy::class);
 
         Gate::before(function (User $user): ?bool {
             return $user->hasRole('super-admin') ? true : null;

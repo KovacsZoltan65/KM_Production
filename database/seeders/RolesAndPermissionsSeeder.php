@@ -112,6 +112,9 @@ class RolesAndPermissionsSeeder extends Seeder
             'documents.create',
             'documents.update',
             'documents.delete',
+            'documents.download',
+            'documents.approve',
+            'documents.version',
         ];
 
         foreach ($permissions as $permission) {
@@ -193,6 +196,10 @@ class RolesAndPermissionsSeeder extends Seeder
                 'documents.view',
                 'documents.create',
                 'documents.update',
+                'documents.delete',
+                'documents.download',
+                'documents.approve',
+                'documents.version',
             ],
             'warehouse-manager' => [
                 'inventory.view',
@@ -210,6 +217,7 @@ class RolesAndPermissionsSeeder extends Seeder
                 'suppliers.delete',
                 'documents.view',
                 'documents.create',
+                'documents.download',
             ],
             'procurement-manager' => [
                 'procurement.view',
@@ -228,6 +236,7 @@ class RolesAndPermissionsSeeder extends Seeder
                 'documents.view',
                 'documents.create',
                 'documents.update',
+                'documents.download',
             ],
             'quality-manager' => [
                 'production.view',
@@ -236,8 +245,8 @@ class RolesAndPermissionsSeeder extends Seeder
                 'production-tasks.check',
                 'shop-floor.view',
                 'documents.view',
-                'documents.create',
-                'documents.update',
+                'documents.download',
+                'documents.approve',
             ],
             'worker' => [
                 'production.view',
@@ -248,6 +257,7 @@ class RolesAndPermissionsSeeder extends Seeder
                 'production-tasks.materials',
                 'shop-floor.view',
                 'documents.view',
+                'documents.download',
             ],
             'viewer' => [
                 'users.view',

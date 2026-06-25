@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\EmployeeController as AdminEmployeeController;
 use App\Http\Controllers\Admin\FactoryUnitController as AdminFactoryUnitController;
 use App\Http\Controllers\Admin\BomController as AdminBomController;
 use App\Http\Controllers\Admin\CustomerOrderController as AdminCustomerOrderController;
+use App\Http\Controllers\Admin\DocumentController as AdminDocumentController;
 use App\Http\Controllers\Admin\CustomerController as AdminCustomerController;
 use App\Http\Controllers\Admin\Inventory\MaterialRequirementController as AdminMaterialRequirementController;
 use App\Http\Controllers\Admin\Inventory\ShortageController as AdminShortageController;
@@ -133,6 +134,14 @@ Route::middleware(['auth', 'verified'])
         Route::resource('goods-receipts', AdminGoodsReceiptController::class)
             ->parameters(['goods-receipts' => 'goodsReceipt'])
             ->only(['index', 'show', 'store']);
+        Route::get('documents/{document}/download', [AdminDocumentController::class, 'download'])
+            ->name('documents.download');
+        Route::patch('documents/{document}/approve', [AdminDocumentController::class, 'approve'])
+            ->name('documents.approve');
+        Route::patch('documents/{document}/make-current', [AdminDocumentController::class, 'makeCurrent'])
+            ->name('documents.make-current');
+        Route::resource('documents', AdminDocumentController::class)
+            ->only(['index', 'show', 'store', 'update', 'destroy']);
     });
 
 require __DIR__.'/auth.php';

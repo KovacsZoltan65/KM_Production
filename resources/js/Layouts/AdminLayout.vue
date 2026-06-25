@@ -58,6 +58,8 @@ const sidebarItems = [
     { label: 'Purchase Requisitions', icon: 'pi pi-list-check', href: route('admin.purchase-requisitions.index') },
     { label: 'Purchase Orders', icon: 'pi pi-shopping-cart', href: route('admin.purchase-orders.index') },
     { label: 'Goods Receipts', icon: 'pi pi-inbox', href: route('admin.goods-receipts.index') },
+    { label: 'Documents', icon: 'pi pi-folder', disabled: true },
+    { label: 'Document Library', icon: 'pi pi-file', href: route('admin.documents.index') },
 ];
 
 const toggleUserMenu = (event) => {

@@ -18,12 +18,16 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property DocumentType $document_type
  * @property string $title
  * @property string|null $description
+ * @property string|null $disk
+ * @property string|null $path
  * @property string|null $file_path
  * @property string|null $original_filename
  * @property string|null $mime_type
  * @property int|null $file_size
+ * @property string|null $checksum
  * @property int $version
  * @property bool $is_current
+ * @property bool $approved
  * @property int|null $uploaded_by
  * @property int|null $approved_by
  * @property \Illuminate\Support\Carbon|null $approved_at
@@ -66,12 +70,16 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'document_type',
     'title',
     'description',
+    'disk',
+    'path',
     'file_path',
     'original_filename',
     'mime_type',
     'file_size',
+    'checksum',
     'version',
     'is_current',
+    'approved',
     'uploaded_by',
     'approved_by',
     'approved_at',
@@ -115,6 +123,7 @@ class Document extends Model
             'file_size' => 'integer',
             'version' => 'integer',
             'is_current' => 'boolean',
+            'approved' => 'boolean',
             'approved_at' => 'datetime',
         ];
     }

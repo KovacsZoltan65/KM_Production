@@ -111,6 +111,14 @@ export const routes = {
     'admin.goods-receipts.show': '/admin/goods-receipts/{goodsReceipt}',
     'admin.goods-receipts.store': '/admin/goods-receipts',
     'admin.goods-receipts.post': '/admin/goods-receipts/{goodsReceipt}/post',
+    'admin.documents.index': '/admin/documents',
+    'admin.documents.show': '/admin/documents/{document}',
+    'admin.documents.store': '/admin/documents',
+    'admin.documents.update': '/admin/documents/{document}',
+    'admin.documents.destroy': '/admin/documents/{document}',
+    'admin.documents.download': '/admin/documents/{document}/download',
+    'admin.documents.approve': '/admin/documents/{document}/approve',
+    'admin.documents.make-current': '/admin/documents/{document}/make-current',
 };
 
 const valueFrom = (value) => {
