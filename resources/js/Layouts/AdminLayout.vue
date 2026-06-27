@@ -24,7 +24,7 @@ const menuItems = [
 ];
 
 const sidebarItems = [
-    { label: 'Dashboard', icon: 'pi pi-home', href: route('dashboard') },
+    { label: 'Dashboard', icon: 'pi pi-home', href: route('admin.dashboard') },
     { label: 'Users', icon: 'pi pi-users', href: route('admin.users.index') },
     { label: 'Roles', icon: 'pi pi-shield', href: route('admin.roles.index') },
     { label: 'Permissions', icon: 'pi pi-key', href: route('admin.permissions.index') },
@@ -60,6 +60,13 @@ const sidebarItems = [
     { label: 'Goods Receipts', icon: 'pi pi-inbox', href: route('admin.goods-receipts.index') },
     { label: 'Documents', icon: 'pi pi-folder', disabled: true },
     { label: 'Document Library', icon: 'pi pi-file', href: route('admin.documents.index') },
+    { label: 'Reports', icon: 'pi pi-chart-line', disabled: true },
+    { label: 'Customer Orders Report', icon: 'pi pi-list', href: route('admin.reports.customer-orders') },
+    { label: 'Production Report', icon: 'pi pi-cog', href: route('admin.reports.production') },
+    { label: 'Inventory Report', icon: 'pi pi-warehouse', href: route('admin.reports.inventory') },
+    { label: 'Procurement Report', icon: 'pi pi-shopping-bag', href: route('admin.reports.procurement') },
+    { label: 'Quality Report', icon: 'pi pi-check-circle', href: route('admin.reports.quality') },
+    { label: 'Shop Floor Report', icon: 'pi pi-th-large', href: route('admin.reports.shop-floor') },
 ];
 
 const toggleUserMenu = (event) => {
@@ -71,7 +78,7 @@ const toggleUserMenu = (event) => {
     <div class="min-h-screen bg-slate-50 text-slate-900">
         <header class="sticky top-0 z-20 border-b border-slate-200 bg-white">
             <div class="flex h-14 items-center justify-between px-4 sm:px-6">
-                <Link :href="route('dashboard')" class="flex items-center gap-3 font-semibold">
+                <Link :href="route('admin.dashboard')" class="flex items-center gap-3 font-semibold">
                     <span class="grid h-8 w-8 place-items-center rounded bg-blue-600 text-sm text-white">KM</span>
                     <span>KM Production</span>
                 </Link>

@@ -31,6 +31,7 @@ class IndexRequest extends FormRequest
             'location_id' => ['nullable', 'integer', 'exists:locations,id'],
             'required_item_id' => ['nullable', 'integer', 'exists:items,id'],
             'customer_order_id' => ['nullable', 'integer', 'exists:customer_orders,id'],
+            'customer_id' => ['nullable', 'integer', 'exists:customers,id'],
             'supplier_id' => ['nullable', 'integer', 'exists:suppliers,id'],
             'date_from' => ['nullable', 'date'],
             'date_to' => ['nullable', 'date', 'after_or_equal:date_from'],

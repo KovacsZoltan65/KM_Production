@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\FactoryUnitController as AdminFactoryUnitControll
 use App\Http\Controllers\Admin\BomController as AdminBomController;
 use App\Http\Controllers\Admin\CustomerOrderController as AdminCustomerOrderController;
 use App\Http\Controllers\Admin\DocumentController as AdminDocumentController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\CustomerController as AdminCustomerController;
 use App\Http\Controllers\Admin\Inventory\MaterialRequirementController as AdminMaterialRequirementController;
 use App\Http\Controllers\Admin\Inventory\ShortageController as AdminShortageController;
@@ -25,6 +26,7 @@ use App\Http\Controllers\Admin\ProfessionalRoleController as AdminProfessionalRo
 use App\Http\Controllers\Admin\PurchaseOrderController as AdminPurchaseOrderController;
 use App\Http\Controllers\Admin\PurchaseRequisitionController as AdminPurchaseRequisitionController;
 use App\Http\Controllers\Admin\QualityCheckController as AdminQualityCheckController;
+use App\Http\Controllers\Admin\ReportsController as AdminReportsController;
 use App\Http\Controllers\Admin\RoleController as AdminRoleController;
 use App\Http\Controllers\Admin\ShopFloorController as AdminShopFloorController;
 use App\Http\Controllers\Admin\SupplierController as AdminSupplierController;
@@ -51,6 +53,17 @@ Route::middleware(['auth', 'verified'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function (): void {
+        Route::get('dashboard', AdminDashboardController::class)->name('dashboard');
+        Route::prefix('reports')
+            ->name('reports.')
+            ->group(function (): void {
+                Route::get('customer-orders', [AdminReportsController::class, 'customerOrders'])->name('customer-orders');
+                Route::get('production', [AdminReportsController::class, 'production'])->name('production');
+                Route::get('inventory', [AdminReportsController::class, 'inventory'])->name('inventory');
+                Route::get('procurement', [AdminReportsController::class, 'procurement'])->name('procurement');
+                Route::get('quality', [AdminReportsController::class, 'quality'])->name('quality');
+                Route::get('shop-floor', [AdminReportsController::class, 'shopFloor'])->name('shop-floor');
+            });
         Route::resource('users', AdminUserController::class)->only(['index', 'store', 'update', 'destroy']);
         Route::resource('roles', AdminRoleController::class)->only(['index', 'store', 'update', 'destroy']);
         Route::resource('permissions', AdminPermissionController::class)->only(['index']);

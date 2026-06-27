@@ -16,8 +16,11 @@ class DocumentSeeder extends Seeder
      */
     public function run(): void
     {
+        /** @var User $user */
         $user = User::query()->where('email', 'test@example.com')->first();
+        /** @var Item $product */
         $product = Item::query()->where('item_number', 'PRODUCT-AAA')->firstOrFail();
+        /** @var ProductionOrder $productionOrder */
         $productionOrder = ProductionOrder::query()->where('order_number', 'PO-2026-000001')->firstOrFail();
 
         $this->updateOrCreateDocument(
@@ -62,11 +65,15 @@ class DocumentSeeder extends Seeder
             ],
             [
                 'description' => null,
+                'disk' => 'local',
+                'path' => $filePath,
                 'file_path' => $filePath,
                 'original_filename' => basename($filePath),
                 'mime_type' => str_ends_with($filePath, '.txt') ? 'text/plain' : 'application/pdf',
                 'file_size' => null,
+                'checksum' => hash('sha256', $filePath),
                 'is_current' => true,
+                'approved' => false,
                 'uploaded_by' => $uploadedBy,
                 'approved_by' => null,
                 'approved_at' => null,

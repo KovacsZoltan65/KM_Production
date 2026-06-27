@@ -39,6 +39,7 @@ use App\Repositories\Admin\PermissionRepository;
 use App\Repositories\Admin\ProfessionalRoleRepository;
 use App\Repositories\Admin\ProductionPlanRepository;
 use App\Repositories\Admin\ProductionTaskRepository;
+use App\Repositories\Admin\ReportingRepository;
 use App\Repositories\Admin\GoodsReceiptRepository;
 use App\Repositories\Admin\PurchaseOrderRepository;
 use App\Repositories\Admin\PurchaseRequisitionRepository;
@@ -63,6 +64,7 @@ use App\Repositories\Contracts\PermissionRepositoryInterface;
 use App\Repositories\Contracts\ProfessionalRoleRepositoryInterface;
 use App\Repositories\Contracts\ProductionPlanRepositoryInterface;
 use App\Repositories\Contracts\ProductionTaskRepositoryInterface;
+use App\Repositories\Contracts\ReportingRepositoryInterface;
 use App\Repositories\Contracts\GoodsReceiptRepositoryInterface;
 use App\Repositories\Contracts\PurchaseOrderRepositoryInterface;
 use App\Repositories\Contracts\PurchaseRequisitionRepositoryInterface;
@@ -109,6 +111,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(PurchaseOrderRepositoryInterface::class, PurchaseOrderRepository::class);
         $this->app->bind(GoodsReceiptRepositoryInterface::class, GoodsReceiptRepository::class);
         $this->app->bind(DocumentRepositoryInterface::class, DocumentRepository::class);
+        $this->app->bind(ReportingRepositoryInterface::class, ReportingRepository::class);
     }
 
     /**
