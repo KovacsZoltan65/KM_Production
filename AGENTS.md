@@ -68,6 +68,46 @@ Examples:
 
 ---
 
+## Frontend usage
+
+Frontend must use **laravel-vue-i18n with the shared Laravel JSON translation files**.
+
+Use:
+
+$t('employees.title')
+
+or
+
+trans('employees.title')
+
+Example:
+
+{{ $t('employees.title') }}
+
+Backend and frontend must reference **the same translation keys**.
+
+Important:
+
+- In Vue templates, use `$t(...)`
+- In `<script setup>`, use `trans(...)`
+- Do not use `$t(...)` directly inside `<script setup>` logic
+
+For static definitions loaded at module import time, do not translate eagerly during file load if the value must react to locale changes.
+
+Instead:
+
+- store translation keys in the definition
+- resolve them at runtime in a computed/composable/component layer
+
+This rule is especially important for:
+
+- menu definitions
+- static config arrays
+- shared action definitions
+- table column metadata
+
+---
+
 ## Frontend Conventions
 
 Use:
@@ -154,10 +194,9 @@ At any time, the system must know:
 - By default, each workshop finished output must be inspected.
 - Operation sequence steps have a field indicating whether inspection is required.
 - Inspection results can be:
-
-  - accepted
-  - rejected
-  - rework_required
+    - accepted
+    - rejected
+    - rework_required
 
 ---
 
