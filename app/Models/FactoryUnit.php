@@ -4,10 +4,12 @@ namespace App\Models;
 
 use Database\Factories\FactoryUnitFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
@@ -17,11 +19,12 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int|null $daily_capacity_minutes
  * @property int $shift_count
  * @property bool $is_active
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property \Illuminate\Support\Carbon|null $deleted_at
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Location> $locations
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ * @property-read Collection<int, Location> $locations
  * @property-read int|null $locations_count
+ *
  * @method static \Database\Factories\FactoryUnitFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|FactoryUnit newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|FactoryUnit newQuery()
@@ -39,6 +42,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|FactoryUnit whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|FactoryUnit withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|FactoryUnit withoutTrashed()
+ *
  * @mixin \Eloquent
  */
 #[Fillable([
@@ -60,6 +64,14 @@ class FactoryUnit extends Model
     public function locations(): HasMany
     {
         return $this->hasMany(Location::class);
+    }
+
+    /**
+     * @return HasMany<FactoryUnitCalendar, $this>
+     */
+    public function calendars(): HasMany
+    {
+        return $this->hasMany(FactoryUnitCalendar::class);
     }
 
     /**

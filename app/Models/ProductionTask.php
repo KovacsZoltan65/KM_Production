@@ -5,10 +5,12 @@ namespace App\Models;
 use App\Enums\ProductionTaskStatus;
 use Database\Factories\ProductionTaskFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
@@ -17,19 +19,20 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $operation_sequence_step_id
  * @property int $employee_id
  * @property ProductionTaskStatus $status
- * @property \Illuminate\Support\Carbon|null $started_at
- * @property \Illuminate\Support\Carbon|null $finished_at
+ * @property Carbon|null $started_at
+ * @property Carbon|null $finished_at
  * @property string|null $notes
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \App\Models\Employee|null $employee
- * @property-read \App\Models\ItemInstance $itemInstance
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ProductionTaskMaterial> $materials
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read Employee|null $employee
+ * @property-read ItemInstance $itemInstance
+ * @property-read Collection<int, ProductionTaskMaterial> $materials
  * @property-read int|null $materials_count
- * @property-read \App\Models\OperationSequenceStep $operationSequenceStep
- * @property-read \App\Models\ProductionOrder|null $productionOrder
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\QualityCheck> $qualityChecks
+ * @property-read OperationSequenceStep $operationSequenceStep
+ * @property-read ProductionOrder|null $productionOrder
+ * @property-read Collection<int, QualityCheck> $qualityChecks
  * @property-read int|null $quality_checks_count
+ *
  * @method static \Database\Factories\ProductionTaskFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ProductionTask newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ProductionTask newQuery()
@@ -45,6 +48,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ProductionTask whereStartedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ProductionTask whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ProductionTask whereUpdatedAt($value)
+ *
  * @mixin \Eloquent
  */
 #[Fillable([
@@ -108,6 +112,14 @@ class ProductionTask extends Model
     public function qualityChecks(): HasMany
     {
         return $this->hasMany(QualityCheck::class);
+    }
+
+    /**
+     * @return HasMany<CapacityReservation, $this>
+     */
+    public function capacityReservations(): HasMany
+    {
+        return $this->hasMany(CapacityReservation::class);
     }
 
     /**

@@ -36,6 +36,7 @@ class DatabaseSeeder extends Seeder
             ProcurementSeeder::class,
             ProductionExecutionSeeder::class,
             DocumentSeeder::class,
+            CapacityCalendarSeeder::class,
         ]);
     }
 }

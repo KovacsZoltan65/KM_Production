@@ -1,12 +1,14 @@
 <?php
 
+use App\Http\Controllers\Admin\BomController as AdminBomController;
+use App\Http\Controllers\Admin\CapacityController as AdminCapacityController;
+use App\Http\Controllers\Admin\CustomerController as AdminCustomerController;
+use App\Http\Controllers\Admin\CustomerOrderController as AdminCustomerOrderController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\DocumentController as AdminDocumentController;
 use App\Http\Controllers\Admin\EmployeeController as AdminEmployeeController;
 use App\Http\Controllers\Admin\FactoryUnitController as AdminFactoryUnitController;
-use App\Http\Controllers\Admin\BomController as AdminBomController;
-use App\Http\Controllers\Admin\CustomerOrderController as AdminCustomerOrderController;
-use App\Http\Controllers\Admin\DocumentController as AdminDocumentController;
-use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
-use App\Http\Controllers\Admin\CustomerController as AdminCustomerController;
+use App\Http\Controllers\Admin\GoodsReceiptController as AdminGoodsReceiptController;
 use App\Http\Controllers\Admin\Inventory\MaterialRequirementController as AdminMaterialRequirementController;
 use App\Http\Controllers\Admin\Inventory\ShortageController as AdminShortageController;
 use App\Http\Controllers\Admin\Inventory\StockBalanceController as AdminStockBalanceController;
@@ -17,7 +19,6 @@ use App\Http\Controllers\Admin\LocationController as AdminLocationController;
 use App\Http\Controllers\Admin\OperationSequenceController as AdminOperationSequenceController;
 use App\Http\Controllers\Admin\OperationTypeController as AdminOperationTypeController;
 use App\Http\Controllers\Admin\PermissionController as AdminPermissionController;
-use App\Http\Controllers\Admin\GoodsReceiptController as AdminGoodsReceiptController;
 use App\Http\Controllers\Admin\ProcurementDashboardController as AdminProcurementDashboardController;
 use App\Http\Controllers\Admin\ProductionPlanController as AdminProductionPlanController;
 use App\Http\Controllers\Admin\ProductionTaskController as AdminProductionTaskController;
@@ -54,6 +55,17 @@ Route::middleware(['auth', 'verified'])
     ->name('admin.')
     ->group(function (): void {
         Route::get('dashboard', AdminDashboardController::class)->name('dashboard');
+        Route::prefix('capacity')
+            ->name('capacity.')
+            ->group(function (): void {
+                Route::get('dashboard', [AdminCapacityController::class, 'dashboard'])->name('dashboard');
+                Route::get('factory-units', [AdminCapacityController::class, 'factoryUnits'])->name('factory-units');
+                Route::get('employees', [AdminCapacityController::class, 'employees'])->name('employees');
+                Route::get('schedule', [AdminCapacityController::class, 'schedule'])->name('schedule');
+                Route::post('schedule', [AdminCapacityController::class, 'storeSchedule'])->name('schedule.store');
+                Route::get('simulate', [AdminCapacityController::class, 'simulate'])->name('simulate');
+                Route::post('simulate', [AdminCapacityController::class, 'runSimulation'])->name('simulate.run');
+            });
         Route::prefix('reports')
             ->name('reports.')
             ->group(function (): void {

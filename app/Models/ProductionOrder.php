@@ -8,7 +8,9 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
@@ -20,21 +22,22 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string $order_number
  * @property numeric $quantity
  * @property ProductionOrderStatus $status
- * @property \Illuminate\Support\Carbon|null $planned_start_date
- * @property \Illuminate\Support\Carbon|null $planned_finish_date
- * @property \Illuminate\Support\Carbon|null $started_at
- * @property \Illuminate\Support\Carbon|null $finished_at
+ * @property Carbon|null $planned_start_date
+ * @property Carbon|null $planned_finish_date
+ * @property Carbon|null $started_at
+ * @property Carbon|null $finished_at
  * @property int|null $created_by
  * @property string|null $notes
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property \Illuminate\Support\Carbon|null $deleted_at
- * @property-read \App\Models\Bom|null $bom
- * @property-read \App\Models\User|null $creator
- * @property-read \App\Models\CustomerOrderItem|null $customerOrderItem
- * @property-read \App\Models\Item|null $item
- * @property-read \App\Models\OperationSequence|null $operationSequence
- * @property-read \App\Models\ProductionPlanItem|null $productionPlanItem
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ * @property-read Bom|null $bom
+ * @property-read User|null $creator
+ * @property-read CustomerOrderItem|null $customerOrderItem
+ * @property-read Item|null $item
+ * @property-read OperationSequence|null $operationSequence
+ * @property-read ProductionPlanItem|null $productionPlanItem
+ *
  * @method static \Database\Factories\ProductionOrderFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ProductionOrder newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ProductionOrder newQuery()
@@ -60,6 +63,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ProductionOrder whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ProductionOrder withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ProductionOrder withoutTrashed()
+ *
  * @mixin \Eloquent
  */
 #[Fillable([
@@ -129,6 +133,14 @@ class ProductionOrder extends Model
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /**
+     * @return HasMany<ProductionTask, $this>
+     */
+    public function productionTasks(): HasMany
+    {
+        return $this->hasMany(ProductionTask::class);
     }
 
     /**
