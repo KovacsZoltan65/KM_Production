@@ -23,6 +23,10 @@ class ProductionPlanController extends Controller
 {
     public function __construct(private readonly ProductionPlanService $service) {}
 
+    /**
+     * @param IndexRequest $request
+     * @return Response
+     */
     public function index(IndexRequest $request): Response
     {
         $this->authorize('viewAny', ProductionPlan::class);
@@ -37,6 +41,10 @@ class ProductionPlanController extends Controller
         ]);
     }
 
+    /**
+     * @param ProductionPlan $productionPlan
+     * @return Response
+     */
     public function show(ProductionPlan $productionPlan): Response
     {
         $this->authorize('view', $productionPlan);
@@ -47,6 +55,10 @@ class ProductionPlanController extends Controller
         ]);
     }
 
+    /**
+     * @param StoreProductionPlanRequest $request
+     * @return RedirectResponse
+     */
     public function store(StoreProductionPlanRequest $request): RedirectResponse
     {
         $this->service->create($request->validated(), $request->user());
@@ -54,6 +66,11 @@ class ProductionPlanController extends Controller
         return back()->with('success', 'Production plan created.');
     }
 
+    /**
+     * @param UpdateProductionPlanRequest $request
+     * @param ProductionPlan $productionPlan
+     * @return RedirectResponse
+     */
     public function update(UpdateProductionPlanRequest $request, ProductionPlan $productionPlan): RedirectResponse
     {
         $this->service->update($productionPlan, $request->validated(), $request->user());
@@ -61,6 +78,10 @@ class ProductionPlanController extends Controller
         return back()->with('success', 'Production plan updated.');
     }
 
+    /**
+     * @param ProductionPlan $productionPlan
+     * @return RedirectResponse
+     */
     public function destroy(ProductionPlan $productionPlan): RedirectResponse
     {
         $this->authorize('delete', $productionPlan);
@@ -69,6 +90,11 @@ class ProductionPlanController extends Controller
         return back()->with('success', 'Production plan deleted.');
     }
 
+    /**
+     * @param ApproveProductionPlanRequest $request
+     * @param ProductionPlan $productionPlan
+     * @return RedirectResponse
+     */
     public function approve(ApproveProductionPlanRequest $request, ProductionPlan $productionPlan): RedirectResponse
     {
         $this->service->approve($productionPlan, $request->user());
@@ -76,6 +102,11 @@ class ProductionPlanController extends Controller
         return back()->with('success', 'Production plan approved.');
     }
 
+    /**
+     * @param GenerateProductionOrdersRequest $request
+     * @param ProductionPlan $productionPlan
+     * @return RedirectResponse
+     */
     public function generateProductionOrders(GenerateProductionOrdersRequest $request, ProductionPlan $productionPlan): RedirectResponse
     {
         $this->service->generateProductionOrders($productionPlan, $request->user());

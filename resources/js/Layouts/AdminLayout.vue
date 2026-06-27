@@ -72,6 +72,14 @@ const sidebarItems = [
     { label: 'Procurement Report', icon: 'pi pi-shopping-bag', href: route('admin.reports.procurement') },
     { label: 'Quality Report', icon: 'pi pi-check-circle', href: route('admin.reports.quality') },
     { label: 'Shop Floor Report', icon: 'pi pi-th-large', href: route('admin.reports.shop-floor') },
+    { label: 'Intelligence', icon: 'pi pi-sparkles', disabled: true },
+    { label: 'MI Dashboard', icon: 'pi pi-chart-pie', href: route('admin.intelligence.dashboard') },
+    { label: 'Bottlenecks', icon: 'pi pi-exclamation-triangle', href: route('admin.intelligence.bottlenecks') },
+    { label: 'Material Forecast', icon: 'pi pi-box', href: route('admin.intelligence.material-forecast') },
+    { label: 'Supplier Performance', icon: 'pi pi-truck', href: route('admin.intelligence.supplier-performance') },
+    { label: 'Quality Trends', icon: 'pi pi-chart-line', href: route('admin.intelligence.quality-trends') },
+    { label: 'Production Risks', icon: 'pi pi-shield', href: route('admin.intelligence.risks') },
+    { label: 'Recommendations', icon: 'pi pi-lightbulb', href: route('admin.intelligence.recommendations') },
 ];
 
 const toggleUserMenu = (event) => {

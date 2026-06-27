@@ -12,6 +12,11 @@ class ProductionTaskMaterialController extends Controller
 {
     public function __construct(private readonly ProductionTaskMaterialService $service) {}
 
+    /**
+     * @param StoreProductionTaskMaterialRequest $request
+     * @param ProductionTask $productionTask
+     * @return RedirectResponse
+     */
     public function store(StoreProductionTaskMaterialRequest $request, ProductionTask $productionTask): RedirectResponse
     {
         $this->service->store($productionTask, $request->validated(), $request->user());

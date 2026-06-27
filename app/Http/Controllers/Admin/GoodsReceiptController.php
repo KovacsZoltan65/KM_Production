@@ -21,6 +21,10 @@ class GoodsReceiptController extends Controller
 {
     public function __construct(private readonly GoodsReceiptService $service) {}
 
+    /**
+     * @param IndexRequest $request
+     * @return Response
+     */
     public function index(IndexRequest $request): Response
     {
         $this->authorize('viewAny', GoodsReceipt::class);
@@ -35,6 +39,11 @@ class GoodsReceiptController extends Controller
         ]);
     }
 
+    /**
+     * Summary of show
+     * @param GoodsReceipt $goodsReceipt
+     * @return Response
+     */
     public function show(GoodsReceipt $goodsReceipt): Response
     {
         $this->authorize('view', $goodsReceipt);
@@ -44,6 +53,11 @@ class GoodsReceiptController extends Controller
         ]);
     }
 
+    /**
+     * Summary of store
+     * @param StoreGoodsReceiptRequest $request
+     * @return RedirectResponse
+     */
     public function store(StoreGoodsReceiptRequest $request): RedirectResponse
     {
         $goodsReceipt = $this->service->create($request->validated(), $request->user());
@@ -51,6 +65,11 @@ class GoodsReceiptController extends Controller
         return redirect()->route('admin.goods-receipts.show', $goodsReceipt)->with('success', 'Goods receipt created.');
     }
 
+    /**
+     * @param PostGoodsReceiptRequest $request
+     * @param GoodsReceipt $goodsReceipt
+     * @return RedirectResponse
+     */
     public function post(PostGoodsReceiptRequest $request, GoodsReceipt $goodsReceipt): RedirectResponse
     {
         $this->service->post($goodsReceipt, $request->user());
@@ -58,6 +77,9 @@ class GoodsReceiptController extends Controller
         return back()->with('success', 'Goods receipt posted.');
     }
 
+    /**
+     * @return array[]
+     */
     private function statusOptions(): array
     {
         return collect(GoodsReceiptStatus::cases())
@@ -69,6 +91,9 @@ class GoodsReceiptController extends Controller
             ->all();
     }
 
+    /**
+     * @return Collection<int, array>|\Illuminate\Database\Eloquent\Collection<int, array>
+     */
     private function purchaseOrderOptions(): Collection
     {
         return PurchaseOrder::query()
@@ -81,6 +106,9 @@ class GoodsReceiptController extends Controller
             ]);
     }
 
+    /**
+     * @return Collection<int, array>|\Illuminate\Database\Eloquent\Collection<int, array>
+     */
     private function itemOptions(): Collection
     {
         return Item::query()
@@ -93,6 +121,9 @@ class GoodsReceiptController extends Controller
             ]);
     }
 
+    /**
+     * @return Collection<int, array>|\Illuminate\Database\Eloquent\Collection<int, array>
+     */
     private function locationOptions(): Collection
     {
         return Location::query()

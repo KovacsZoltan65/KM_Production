@@ -16,6 +16,10 @@ class FactoryUnitController extends Controller
 {
     public function __construct(private readonly FactoryUnitAdminService $service) {}
 
+    /**
+     * @param IndexRequest $request
+     * @return Response
+     */
     public function index(IndexRequest $request): Response
     {
         $this->authorize('viewAny', FactoryUnit::class);
@@ -26,6 +30,10 @@ class FactoryUnitController extends Controller
         ]);
     }
 
+    /**
+     * @param StoreFactoryUnitRequest $request
+     * @return RedirectResponse
+     */
     public function store(StoreFactoryUnitRequest $request): RedirectResponse
     {
         $this->service->create($request->validated(), $request->user());
@@ -33,6 +41,11 @@ class FactoryUnitController extends Controller
         return back()->with('success', 'Factory unit created.');
     }
 
+    /**
+     * @param UpdateFactoryUnitRequest $request
+     * @param FactoryUnit $factoryUnit
+     * @return RedirectResponse
+     */
     public function update(UpdateFactoryUnitRequest $request, FactoryUnit $factoryUnit): RedirectResponse
     {
         $this->service->update($factoryUnit, $request->validated(), $request->user());
@@ -40,6 +53,10 @@ class FactoryUnitController extends Controller
         return back()->with('success', 'Factory unit updated.');
     }
 
+    /**
+     * @param FactoryUnit $factoryUnit
+     * @return RedirectResponse
+     */
     public function destroy(FactoryUnit $factoryUnit): RedirectResponse
     {
         $this->authorize('delete', $factoryUnit);

@@ -24,6 +24,10 @@ class ProductionTaskController extends Controller
 {
     public function __construct(private readonly ProductionTaskService $service) {}
 
+    /**
+     * @param IndexRequest $request
+     * @return Response
+     */
     public function index(IndexRequest $request): Response
     {
         $this->authorize('viewAny', ProductionTask::class);
@@ -39,6 +43,10 @@ class ProductionTaskController extends Controller
         ]);
     }
 
+    /**
+     * @param ProductionTask $productionTask
+     * @return Response
+     */
     public function show(ProductionTask $productionTask): Response
     {
         $this->authorize('view', $productionTask);
@@ -52,6 +60,10 @@ class ProductionTaskController extends Controller
         ]);
     }
 
+    /**
+     * @param StoreProductionTaskRequest $request
+     * @return RedirectResponse
+     */
     public function store(StoreProductionTaskRequest $request): RedirectResponse
     {
         $this->service->create($request->validated(), $request->user());
@@ -59,6 +71,11 @@ class ProductionTaskController extends Controller
         return redirect()->route('admin.production-tasks.index')->with('success', 'Production task created.');
     }
 
+    /**
+     * @param UpdateProductionTaskRequest $request
+     * @param ProductionTask $productionTask
+     * @return RedirectResponse
+     */
     public function update(UpdateProductionTaskRequest $request, ProductionTask $productionTask): RedirectResponse
     {
         $this->service->update($productionTask, $request->validated(), $request->user());
@@ -66,6 +83,10 @@ class ProductionTaskController extends Controller
         return back()->with('success', 'Production task updated.');
     }
 
+    /**
+     * @param ProductionTask $productionTask
+     * @return RedirectResponse
+     */
     public function destroy(ProductionTask $productionTask): RedirectResponse
     {
         $this->authorize('delete', $productionTask);
@@ -74,6 +95,10 @@ class ProductionTaskController extends Controller
         return redirect()->route('admin.production-tasks.index')->with('success', 'Production task deleted.');
     }
 
+    /**
+     * @param GenerateProductionTasksRequest $request
+     * @return RedirectResponse
+     */
     public function generateFromOrder(GenerateProductionTasksRequest $request): RedirectResponse
     {
         $payload = $request->validated();
@@ -86,6 +111,11 @@ class ProductionTaskController extends Controller
         return back()->with('success', "{$count} production tasks generated.");
     }
 
+    /**
+     * @param StartProductionTaskRequest $request
+     * @param ProductionTask $productionTask
+     * @return RedirectResponse
+     */
     public function start(StartProductionTaskRequest $request, ProductionTask $productionTask): RedirectResponse
     {
         $this->service->start($productionTask, $request->user());
@@ -93,6 +123,11 @@ class ProductionTaskController extends Controller
         return back()->with('success', 'Production task started.');
     }
 
+    /**
+     * @param FinishProductionTaskRequest $request
+     * @param ProductionTask $productionTask
+     * @return RedirectResponse
+     */
     public function finish(FinishProductionTaskRequest $request, ProductionTask $productionTask): RedirectResponse
     {
         $this->service->finish($productionTask, $request->user());
@@ -114,6 +149,9 @@ class ProductionTaskController extends Controller
             ->all();
     }
 
+    /**
+     * @return array[]
+     */
     private function employeeOptions(): array
     {
         return Employee::query()
@@ -127,6 +165,9 @@ class ProductionTaskController extends Controller
             ->all();
     }
 
+    /**
+     * @return array[]
+     */
     private function productionOrderOptions(): array
     {
         return ProductionOrder::query()
@@ -136,6 +177,9 @@ class ProductionTaskController extends Controller
             ->all();
     }
 
+    /**
+     * @return array[]
+     */
     private function itemInstanceOptions(): array
     {
         return ItemInstance::query()
@@ -146,6 +190,9 @@ class ProductionTaskController extends Controller
             ->all();
     }
 
+    /**
+     * @return array[]
+     */
     private function operationStepOptions(): array
     {
         return OperationSequenceStep::query()
@@ -160,6 +207,9 @@ class ProductionTaskController extends Controller
             ->all();
     }
 
+    /**
+     * @return array[]
+     */
     private function itemOptions(): array
     {
         return \App\Models\Item::query()
@@ -173,6 +223,9 @@ class ProductionTaskController extends Controller
             ->all();
     }
 
+    /**
+     * @return array[]
+     */
     private function locationOptions(): array
     {
         return \App\Models\Location::query()
@@ -185,6 +238,9 @@ class ProductionTaskController extends Controller
             ->all();
     }
 
+    /**
+     * @return array<int, array{label: string, value: string}>
+     */
     private function qualityResultOptions(): array
     {
         return collect(\App\Enums\QualityCheckResult::cases())

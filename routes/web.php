@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\Inventory\StockMovementController as AdminStockMo
 use App\Http\Controllers\Admin\Inventory\StockReservationController as AdminStockReservationController;
 use App\Http\Controllers\Admin\ItemController as AdminItemController;
 use App\Http\Controllers\Admin\LocationController as AdminLocationController;
+use App\Http\Controllers\Admin\ManufacturingIntelligenceController as AdminManufacturingIntelligenceController;
 use App\Http\Controllers\Admin\OperationSequenceController as AdminOperationSequenceController;
 use App\Http\Controllers\Admin\OperationTypeController as AdminOperationTypeController;
 use App\Http\Controllers\Admin\PermissionController as AdminPermissionController;
@@ -75,6 +76,17 @@ Route::middleware(['auth', 'verified'])
                 Route::get('procurement', [AdminReportsController::class, 'procurement'])->name('procurement');
                 Route::get('quality', [AdminReportsController::class, 'quality'])->name('quality');
                 Route::get('shop-floor', [AdminReportsController::class, 'shopFloor'])->name('shop-floor');
+            });
+        Route::prefix('intelligence')
+            ->name('intelligence.')
+            ->group(function (): void {
+                Route::get('dashboard', [AdminManufacturingIntelligenceController::class, 'dashboard'])->name('dashboard');
+                Route::get('bottlenecks', [AdminManufacturingIntelligenceController::class, 'bottlenecks'])->name('bottlenecks');
+                Route::get('material-forecast', [AdminManufacturingIntelligenceController::class, 'materialForecast'])->name('material-forecast');
+                Route::get('supplier-performance', [AdminManufacturingIntelligenceController::class, 'supplierPerformance'])->name('supplier-performance');
+                Route::get('quality-trends', [AdminManufacturingIntelligenceController::class, 'qualityTrends'])->name('quality-trends');
+                Route::get('risks', [AdminManufacturingIntelligenceController::class, 'risks'])->name('risks');
+                Route::get('recommendations', [AdminManufacturingIntelligenceController::class, 'recommendations'])->name('recommendations');
             });
         Route::resource('users', AdminUserController::class)->only(['index', 'store', 'update', 'destroy']);
         Route::resource('roles', AdminRoleController::class)->only(['index', 'store', 'update', 'destroy']);

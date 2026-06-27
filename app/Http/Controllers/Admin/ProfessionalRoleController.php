@@ -16,6 +16,10 @@ class ProfessionalRoleController extends Controller
 {
     public function __construct(private readonly ProfessionalRoleAdminService $service) {}
 
+    /**
+     * @param IndexRequest $request
+     * @return Response
+     */
     public function index(IndexRequest $request): Response
     {
         $this->authorize('viewAny', ProfessionalRole::class);
@@ -26,6 +30,10 @@ class ProfessionalRoleController extends Controller
         ]);
     }
 
+    /**
+     * @param StoreProfessionalRoleRequest $request
+     * @return RedirectResponse
+     */
     public function store(StoreProfessionalRoleRequest $request): RedirectResponse
     {
         $this->service->create($request->validated(), $request->user());
@@ -33,6 +41,11 @@ class ProfessionalRoleController extends Controller
         return back()->with('success', 'Professional role created.');
     }
 
+    /**
+     * @param UpdateProfessionalRoleRequest $request
+     * @param ProfessionalRole $professionalRole
+     * @return RedirectResponse
+     */
     public function update(UpdateProfessionalRoleRequest $request, ProfessionalRole $professionalRole): RedirectResponse
     {
         $this->service->update($professionalRole, $request->validated(), $request->user());
@@ -40,6 +53,10 @@ class ProfessionalRoleController extends Controller
         return back()->with('success', 'Professional role updated.');
     }
 
+    /**
+     * @param ProfessionalRole $professionalRole
+     * @return RedirectResponse
+     */
     public function destroy(ProfessionalRole $professionalRole): RedirectResponse
     {
         $this->authorize('delete', $professionalRole);

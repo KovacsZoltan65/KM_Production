@@ -22,6 +22,10 @@ class PurchaseRequisitionController extends Controller
 {
     public function __construct(private readonly PurchaseRequisitionService $service) {}
 
+    /**
+     * @param IndexRequest $request
+     * @return Response
+     */
     public function index(IndexRequest $request): Response
     {
         $this->authorize('viewAny', PurchaseRequisition::class);
@@ -34,6 +38,11 @@ class PurchaseRequisitionController extends Controller
         ]);
     }
 
+    /**
+     * Summary of show
+     * @param PurchaseRequisition $purchaseRequisition
+     * @return Response
+     */
     public function show(PurchaseRequisition $purchaseRequisition): Response
     {
         $this->authorize('view', $purchaseRequisition);
@@ -44,6 +53,10 @@ class PurchaseRequisitionController extends Controller
         ]);
     }
 
+    /**
+     * @param StorePurchaseRequisitionRequest $request
+     * @return RedirectResponse
+     */
     public function store(StorePurchaseRequisitionRequest $request): RedirectResponse
     {
         $this->service->create($request->validated(), $request->user());
@@ -51,6 +64,11 @@ class PurchaseRequisitionController extends Controller
         return back()->with('success', 'Purchase requisition created.');
     }
 
+    /**
+     * @param UpdatePurchaseRequisitionRequest $request
+     * @param PurchaseRequisition $purchaseRequisition
+     * @return RedirectResponse
+     */
     public function update(UpdatePurchaseRequisitionRequest $request, PurchaseRequisition $purchaseRequisition): RedirectResponse
     {
         $this->service->update($purchaseRequisition, $request->validated(), $request->user());
@@ -58,6 +76,10 @@ class PurchaseRequisitionController extends Controller
         return back()->with('success', 'Purchase requisition updated.');
     }
 
+    /**
+     * @param PurchaseRequisition $purchaseRequisition
+     * @return RedirectResponse
+     */
     public function destroy(PurchaseRequisition $purchaseRequisition): RedirectResponse
     {
         $this->authorize('delete', $purchaseRequisition);
@@ -66,6 +88,11 @@ class PurchaseRequisitionController extends Controller
         return back()->with('success', 'Purchase requisition deleted.');
     }
 
+    /**
+     * @param ApprovePurchaseRequisitionRequest $request
+     * @param PurchaseRequisition $purchaseRequisition
+     * @return RedirectResponse
+     */
     public function approve(ApprovePurchaseRequisitionRequest $request, PurchaseRequisition $purchaseRequisition): RedirectResponse
     {
         $this->service->approve($purchaseRequisition, $request->user());
@@ -73,6 +100,11 @@ class PurchaseRequisitionController extends Controller
         return back()->with('success', 'Purchase requisition approved.');
     }
 
+    /**
+     * @param GeneratePurchaseOrderRequest $request
+     * @param PurchaseRequisition $purchaseRequisition
+     * @return RedirectResponse
+     */
     public function generatePurchaseOrder(GeneratePurchaseOrderRequest $request, PurchaseRequisition $purchaseRequisition): RedirectResponse
     {
         $purchaseOrder = $this->service->generatePurchaseOrder(
@@ -85,6 +117,10 @@ class PurchaseRequisitionController extends Controller
         return redirect()->route('admin.purchase-orders.show', $purchaseOrder)->with('success', 'Purchase order generated.');
     }
 
+    /**
+     * @param IndexRequest $request
+     * @return RedirectResponse
+     */
     public function generateFromMaterialRequirements(IndexRequest $request): RedirectResponse
     {
         $this->authorize('create', PurchaseRequisition::class);
@@ -93,6 +129,9 @@ class PurchaseRequisitionController extends Controller
         return redirect()->route('admin.purchase-requisitions.show', $requisition)->with('success', 'Purchase requisition generated.');
     }
 
+    /**
+     * @return array[]
+     */
     private function statusOptions(): array
     {
         return collect(PurchaseRequisitionStatus::cases())
@@ -104,6 +143,9 @@ class PurchaseRequisitionController extends Controller
             ->all();
     }
 
+    /**
+     * @return Collection
+     */
     private function itemOptions(): Collection
     {
         return Item::query()
@@ -116,6 +158,9 @@ class PurchaseRequisitionController extends Controller
             ]);
     }
 
+    /**
+     * @return Collection
+     */
     private function supplierOptions(): Collection
     {
         return Supplier::query()

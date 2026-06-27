@@ -17,6 +17,10 @@ class RoleController extends Controller
 {
     public function __construct(private readonly RoleAdminService $service) {}
 
+    /**
+     * @param IndexRequest $request
+     * @return Response
+     */
     public function index(IndexRequest $request): Response
     {
         $this->authorize('viewAny', Role::class);
@@ -37,6 +41,10 @@ class RoleController extends Controller
         ]);
     }
 
+    /**
+     * @param StoreRoleRequest $request
+     * @return RedirectResponse
+     */
     public function store(StoreRoleRequest $request): RedirectResponse
     {
         $this->service->create($request->validated(), $request->user());
@@ -44,6 +52,11 @@ class RoleController extends Controller
         return back()->with('success', 'Role created.');
     }
 
+    /**
+     * @param UpdateRoleRequest $request
+     * @param Role $role
+     * @return RedirectResponse
+     */
     public function update(UpdateRoleRequest $request, Role $role): RedirectResponse
     {
         $this->service->update($role, $request->validated(), $request->user());
@@ -51,6 +64,10 @@ class RoleController extends Controller
         return back()->with('success', 'Role updated.');
     }
 
+    /**
+     * @param Role $role
+     * @return RedirectResponse
+     */
     public function destroy(Role $role): RedirectResponse
     {
         $this->authorize('delete', $role);

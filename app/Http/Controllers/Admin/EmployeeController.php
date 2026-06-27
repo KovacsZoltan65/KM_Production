@@ -18,6 +18,10 @@ class EmployeeController extends Controller
 {
     public function __construct(private readonly EmployeeAdminService $service) {}
 
+    /**
+     * @param IndexRequest $request
+     * @return Response
+     */
     public function index(IndexRequest $request): Response
     {
         $this->authorize('viewAny', Employee::class);
@@ -32,6 +36,10 @@ class EmployeeController extends Controller
         ]);
     }
 
+    /**
+     * @param StoreEmployeeRequest $request
+     * @return RedirectResponse
+     */
     public function store(StoreEmployeeRequest $request): RedirectResponse
     {
         $this->service->create($request->validated(), $request->user());
@@ -39,6 +47,11 @@ class EmployeeController extends Controller
         return back()->with('success', 'Employee created.');
     }
 
+    /**
+     * @param UpdateEmployeeRequest $request
+     * @param Employee $employee
+     * @return RedirectResponse
+     */
     public function update(UpdateEmployeeRequest $request, Employee $employee): RedirectResponse
     {
         $this->service->update($employee, $request->validated(), $request->user());
@@ -46,6 +59,10 @@ class EmployeeController extends Controller
         return back()->with('success', 'Employee updated.');
     }
 
+    /**
+     * @param Employee $employee
+     * @return RedirectResponse
+     */
     public function destroy(Employee $employee): RedirectResponse
     {
         $this->authorize('delete', $employee);
