@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\DocumentProcessingStatus;
 use App\Enums\DocumentType;
 use App\Models\Document;
 use App\Models\Item;
@@ -35,6 +36,11 @@ class DocumentFactory extends Factory
             'version' => 1,
             'is_current' => true,
             'approved' => false,
+            'processing_status' => DocumentProcessingStatus::Pending,
+            'processing_confidence' => null,
+            'processing_result' => null,
+            'processing_error' => null,
+            'processed_at' => null,
             'uploaded_by' => null,
             'approved_by' => null,
             'approved_at' => null,

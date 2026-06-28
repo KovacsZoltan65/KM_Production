@@ -8,7 +8,8 @@ The current engine is intentionally minimal. It accepts JSON through stdin and r
 
 ## Current Scope
 
-- Health-check task only.
+- Health-check task.
+- Document classification stub using filename heuristics only.
 - JSON input and output only.
 - No Laravel `.env` reads.
 - No database access.
@@ -18,6 +19,10 @@ The current engine is intentionally minimal. It accepts JSON through stdin and r
 
 ```bash
 echo {"task":"health_check"} | python python/ai_engine.py
+```
+
+```bash
+echo {"task":"document_classification","document":{"filename":"delivery_note.pdf"}} | python python/ai_engine.py
 ```
 
 ## Boundaries

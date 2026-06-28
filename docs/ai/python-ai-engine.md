@@ -96,7 +96,7 @@ Defaults are safe for local development and do not require network access.
 
 ## Future OCR Expansion
 
-The next expected step is a queue-based Document Intelligence job that calls the Python AI Engine for document classification and OCR.
+The Document Intelligence queue pipeline now calls the Python AI Engine for document classification. The next expected step is adding an OCR adapter inside that existing pipeline.
 
 Future OCR work should add:
 

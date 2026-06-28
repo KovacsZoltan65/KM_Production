@@ -16,8 +16,9 @@ def response(
     confidence: float,
     data: dict[str, Any] | None = None,
     errors: list[dict[str, str]] | None = None,
+    extra: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    return {
+    payload = {
         "success": success,
         "engine": ENGINE,
         "version": VERSION,
@@ -25,6 +26,49 @@ def response(
         "confidence": confidence,
         "data": data or {},
         "errors": errors or [],
+    }
+
+    if extra:
+        payload.update(extra)
+
+    return payload
+
+
+def classify_filename(filename: str) -> dict[str, Any]:
+    normalized = filename.lower()
+
+    if "delivery" in normalized or "delivery_note" in normalized:
+        return {
+            "classification": "unknown",
+            "confidence": 0.82,
+            "suggested_type": "delivery_note",
+        }
+
+    if "invoice" in normalized:
+        return {
+            "classification": "unknown",
+            "confidence": 0.82,
+            "suggested_type": "supplier_document",
+        }
+
+    if "quality" in normalized or "inspection" in normalized:
+        return {
+            "classification": "unknown",
+            "confidence": 0.82,
+            "suggested_type": "quality_report",
+        }
+
+    if "drawing" in normalized:
+        return {
+            "classification": "unknown",
+            "confidence": 0.82,
+            "suggested_type": "drawing",
+        }
+
+    return {
+        "classification": "unknown",
+        "confidence": 0.5,
+        "suggested_type": "other",
     }
 
 
@@ -37,6 +81,32 @@ def handle(payload: dict[str, Any]) -> dict[str, Any]:
             task="health_check",
             confidence=1.0,
             data={"message": "Python AI Engine is reachable"},
+        )
+
+    if task == "document_classification":
+        document = payload.get("document")
+
+        if not isinstance(document, dict) or not isinstance(document.get("filename"), str):
+            return response(
+                success=False,
+                task="document_classification",
+                confidence=0.0,
+                errors=[
+                    {
+                        "code": "invalid_document_payload",
+                        "message": "Document filename is required.",
+                    }
+                ],
+            )
+
+        classification = classify_filename(document["filename"])
+
+        return response(
+            success=True,
+            task="document_classification",
+            confidence=classification["confidence"],
+            data={"suggested_type": classification["suggested_type"]},
+            extra={"classification": classification["classification"]},
         )
 
     return response(

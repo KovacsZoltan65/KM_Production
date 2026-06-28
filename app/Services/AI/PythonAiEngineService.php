@@ -140,7 +140,7 @@ class PythonAiEngineService
      */
     private function normalizeResponse(array $response): array
     {
-        return [
+        $normalized = [
             'success' => $response['success'],
             'engine' => $response['engine'],
             'version' => $response['version'],
@@ -149,6 +149,12 @@ class PythonAiEngineService
             'data' => $response['data'],
             'errors' => $response['errors'],
         ];
+
+        if (array_key_exists('classification', $response)) {
+            $normalized['classification'] = $response['classification'];
+        }
+
+        return $normalized;
     }
 
     /**

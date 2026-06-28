@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\DocumentProcessingStatus;
 use App\Enums\DocumentType;
 use Database\Factories\DocumentFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -10,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
@@ -28,15 +30,21 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int $version
  * @property bool $is_current
  * @property bool $approved
+ * @property DocumentProcessingStatus $processing_status
+ * @property float|null $processing_confidence
+ * @property array<string, mixed>|null $processing_result
+ * @property array<string, mixed>|null $processing_error
+ * @property Carbon|null $processed_at
  * @property int|null $uploaded_by
  * @property int|null $approved_by
- * @property \Illuminate\Support\Carbon|null $approved_at
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property \Illuminate\Support\Carbon|null $deleted_at
- * @property-read \App\Models\User|null $approver
- * @property-read \Illuminate\Database\Eloquent\Model $documentable
- * @property-read \App\Models\User|null $uploader
+ * @property Carbon|null $approved_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ * @property-read User|null $approver
+ * @property-read Model $documentable
+ * @property-read User|null $uploader
+ *
  * @method static \Database\Factories\DocumentFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Document newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Document newQuery()
@@ -62,6 +70,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereVersion($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Document withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Document withoutTrashed()
+ *
  * @mixin \Eloquent
  */
 #[Fillable([
@@ -80,6 +89,11 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'version',
     'is_current',
     'approved',
+    'processing_status',
+    'processing_confidence',
+    'processing_result',
+    'processing_error',
+    'processed_at',
     'uploaded_by',
     'approved_by',
     'approved_at',
@@ -120,11 +134,16 @@ class Document extends Model
     {
         return [
             'document_type' => DocumentType::class,
+            'processing_status' => DocumentProcessingStatus::class,
+            'processing_confidence' => 'float',
+            'processing_result' => 'array',
+            'processing_error' => 'array',
             'file_size' => 'integer',
             'version' => 'integer',
             'is_current' => 'boolean',
             'approved' => 'boolean',
             'approved_at' => 'datetime',
+            'processed_at' => 'datetime',
         ];
     }
 }
