@@ -5,6 +5,8 @@ import json
 import sys
 from typing import Any
 
+from adapters.ocr import run_ocr
+
 
 ENGINE = "python-ai-engine"
 VERSION = "0.1.0"
@@ -107,6 +109,38 @@ def handle(payload: dict[str, Any]) -> dict[str, Any]:
             confidence=classification["confidence"],
             data={"suggested_type": classification["suggested_type"]},
             extra={"classification": classification["classification"]},
+        )
+
+    if task == "document_ocr":
+        document = payload.get("document")
+
+        if not isinstance(document, dict):
+            return response(
+                success=False,
+                task="document_ocr",
+                confidence=0.0,
+                data={
+                    "text": "",
+                    "language": "unknown",
+                    "pages": [],
+                    "backend": None,
+                },
+                errors=[
+                    {
+                        "code": "invalid_document_payload",
+                        "message": "Document payload is required.",
+                    }
+                ],
+            )
+
+        ocr_result = run_ocr(document, payload.get("options") if isinstance(payload.get("options"), dict) else {})
+
+        return response(
+            success=ocr_result["success"],
+            task="document_ocr",
+            confidence=ocr_result["confidence"],
+            data=ocr_result["data"],
+            errors=ocr_result["errors"],
         )
 
     return response(

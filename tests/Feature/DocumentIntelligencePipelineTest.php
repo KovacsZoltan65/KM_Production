@@ -7,6 +7,8 @@ use App\Services\AI\PythonAiEngineService;
 use App\Services\AuditLogService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Storage;
 use Mockery\MockInterface;
 use Spatie\Activitylog\Models\Activity;
 use Symfony\Component\Process\Process;
@@ -29,17 +31,58 @@ function documentClassificationResult(float $confidence, string $suggestedType =
     ];
 }
 
-function runDocumentIntelligenceJob(Document $document, array $engineResult): Document
+function documentOcrResult(string $text = 'Detected OCR text'): array
 {
-    $engine = Mockery::mock(PythonAiEngineService::class, function (MockInterface $mock) use ($document, $engineResult): void {
+    return [
+        'success' => true,
+        'engine' => 'python-ai-engine',
+        'version' => '0.1.0',
+        'task' => 'document_ocr',
+        'confidence' => 0.75,
+        'data' => [
+            'text' => $text,
+            'language' => 'unknown',
+            'pages' => [],
+            'backend' => 'stub',
+        ],
+        'errors' => [],
+    ];
+}
+
+function documentOcrUnavailableResult(): array
+{
+    return [
+        'success' => false,
+        'engine' => 'python-ai-engine',
+        'version' => '0.1.0',
+        'task' => 'document_ocr',
+        'confidence' => 0.0,
+        'data' => [
+            'text' => '',
+            'language' => 'unknown',
+            'pages' => [],
+            'backend' => null,
+        ],
+        'errors' => [
+            [
+                'code' => 'ocr_backend_unavailable',
+                'message' => 'No OCR backend is configured or available.',
+            ],
+        ],
+    ];
+}
+
+function runDocumentIntelligenceJob(Document $document, array ...$engineResults): Document
+{
+    $engine = Mockery::mock(PythonAiEngineService::class, function (MockInterface $mock) use ($document, $engineResults): void {
         $mock->shouldReceive('run')
-            ->once()
+            ->times(count($engineResults))
             ->withArgs(function (array $payload) use ($document): bool {
-                return ($payload['task'] ?? null) === 'document_classification'
+                return in_array($payload['task'] ?? null, ['document_classification', 'document_ocr'], true)
                     && ($payload['document']['id'] ?? null) === $document->id
                     && ($payload['document']['filename'] ?? null) === $document->original_filename;
             })
-            ->andReturn($engineResult);
+            ->andReturn(...$engineResults);
     });
 
     (new ProcessDocumentJob($document->id))->handle($engine, app(AuditLogService::class));
@@ -81,6 +124,72 @@ it('python classifier stub returns a document classification result', function (
     expect($result['data']['suggested_type'])->toBe('delivery_note');
 });
 
+it('python ocr task returns structured unavailable json without a backend', function (): void {
+    $process = new Process([
+        (string) config('ai.python_binary', 'python'),
+        base_path('python/ai_engine.py'),
+    ], base_path(), null, json_encode([
+        'task' => 'document_ocr',
+        'document' => [
+            'filename' => 'delivery_note.pdf',
+            'path' => base_path('missing-delivery-note.pdf'),
+            'mime_type' => 'application/pdf',
+        ],
+        'options' => [
+            'backend' => null,
+        ],
+    ]));
+
+    $process->run();
+
+    expect($process->isSuccessful())->toBeTrue();
+
+    $result = json_decode($process->getOutput(), true);
+
+    expect($result['success'])->toBeFalse();
+    expect($result['task'])->toBe('document_ocr');
+    expect($result['confidence'])->toBe(0.0);
+    expect($result['data']['text'])->toBe('');
+    expect($result['data']['language'])->toBe('unknown');
+    expect($result['data']['pages'])->toBe([]);
+    expect($result['data']['backend'])->toBeNull();
+    expect($result['errors'][0]['code'])->toBe('ocr_backend_unavailable');
+});
+
+it('python txt fallback ocr works deterministically with the stub backend', function (): void {
+    $path = storage_path('framework/testing/ocr-sample.txt');
+    file_put_contents($path, 'Plain text OCR fixture');
+
+    $process = new Process([
+        (string) config('ai.python_binary', 'python'),
+        base_path('python/ai_engine.py'),
+    ], base_path(), null, json_encode([
+        'task' => 'document_ocr',
+        'document' => [
+            'filename' => 'ocr-sample.txt',
+            'path' => $path,
+            'mime_type' => 'text/plain',
+        ],
+        'options' => [
+            'backend' => 'stub',
+            'max_text_bytes' => 20000,
+        ],
+    ]));
+
+    $process->run();
+
+    expect($process->isSuccessful())->toBeTrue();
+
+    $result = json_decode($process->getOutput(), true);
+
+    expect($result['success'])->toBeTrue();
+    expect($result['task'])->toBe('document_ocr');
+    expect($result['confidence'])->toBe(0.75);
+    expect($result['data']['text'])->toBe('Plain text OCR fixture');
+    expect($result['data']['backend'])->toBe('stub');
+    expect($result['errors'])->toBe([]);
+});
+
 it('marks high confidence classification as completed', function (): void {
     $document = Document::factory()->create(['original_filename' => 'delivery_note.pdf']);
 
@@ -118,6 +227,61 @@ it('marks low confidence classification as failed', function (): void {
     expect($document->processing_error['reason'])->toBe('low_confidence_classification');
 
     expect(Activity::query()->where('event', 'document_ai_processing_failed')->exists())->toBeTrue();
+});
+
+it('preserves classification when optional ocr fails', function (): void {
+    Storage::fake('local');
+    Storage::disk('local')->put('documents/delivery_note.pdf', 'fake pdf bytes');
+    Config::set('ai.ocr_enabled', true);
+
+    $document = Document::factory()->create([
+        'disk' => 'local',
+        'path' => 'documents/delivery_note.pdf',
+        'file_path' => 'documents/delivery_note.pdf',
+        'original_filename' => 'delivery_note.pdf',
+        'mime_type' => 'application/pdf',
+    ]);
+
+    $document = runDocumentIntelligenceJob(
+        $document,
+        documentClassificationResult(0.97),
+        documentOcrUnavailableResult()
+    );
+
+    expect($document->processing_status)->toBe(DocumentProcessingStatus::Completed);
+    expect($document->processing_result['data']['suggested_type'])->toBe('delivery_note');
+    expect($document->processing_result['data']['ocr']['success'])->toBeFalse();
+    expect($document->processing_result['data']['ocr']['errors'][0]['code'])->toBe('ocr_backend_unavailable');
+
+    expect(Activity::query()->where('event', 'document_ai_ocr_failed')->exists())->toBeTrue();
+});
+
+it('combines classification and ocr results when optional ocr succeeds', function (): void {
+    Storage::fake('local');
+    Storage::disk('local')->put('documents/delivery_note.txt', 'Received material: Steel plate');
+    Config::set('ai.ocr_enabled', true);
+
+    $document = Document::factory()->create([
+        'disk' => 'local',
+        'path' => 'documents/delivery_note.txt',
+        'file_path' => 'documents/delivery_note.txt',
+        'original_filename' => 'delivery_note.txt',
+        'mime_type' => 'text/plain',
+    ]);
+
+    $document = runDocumentIntelligenceJob(
+        $document,
+        documentClassificationResult(0.82),
+        documentOcrResult('Received material: Steel plate')
+    );
+
+    expect($document->processing_status)->toBe(DocumentProcessingStatus::ReviewRequired);
+    expect($document->processing_result['data']['suggested_type'])->toBe('delivery_note');
+    expect($document->processing_result['data']['ocr']['success'])->toBeTrue();
+    expect($document->processing_result['data']['ocr']['data']['text'])->toBe('Received material: Steel plate');
+    expect($document->processing_result['data']['ocr']['data']['backend'])->toBe('stub');
+
+    expect(Activity::query()->where('event', 'document_ai_ocr_completed')->exists())->toBeTrue();
 });
 
 it('handles python engine failure output safely', function (): void {

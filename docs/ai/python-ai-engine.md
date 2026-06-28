@@ -8,14 +8,16 @@ It exists to prove that Laravel can call a local Python script, pass a small JSO
 
 ## Current Scope
 
-This first step is intentionally small:
+The engine is intentionally small and local:
 
-- health-check task only
+- health-check task
+- document classification stub
+- optional OCR adapter task
 - direct Symfony Process call from Laravel
 - JSON over stdin/stdout
 - Laravel response-shape validation
 - safe application logging
-- no OCR
+- stub OCR only, with deterministic plain text fallback
 - no OpenCV, EasyOCR, PaddleOCR, YOLO, PyTorch, external LLMs, or external APIs
 
 Long-running future AI work must use queues. The direct process call is acceptable here only because this is a local health-check foundation.
@@ -81,9 +83,14 @@ Environment values:
 AI_PYTHON_BINARY=python
 AI_ENGINE_SCRIPT=python/ai_engine.py
 AI_ENGINE_TIMEOUT=30
+AI_OCR_ENABLED=false
+AI_OCR_BACKEND=stub
+AI_OCR_MAX_TEXT_BYTES=20000
 ```
 
 Defaults are safe for local development and do not require network access.
+
+OCR is disabled by default at the Laravel pipeline level. The Python engine still exposes a JSON-only `document_ocr` task so tests and future queued jobs can call it safely.
 
 ## Security Boundaries
 
@@ -94,18 +101,74 @@ Defaults are safe for local development and do not require network access.
 - Laravel logs execution metadata and failures without exposing stack traces or raw sensitive payloads.
 - AI output must not bypass human review, permissions, traceability, inventory rules, quality rules, or audit logging.
 
+## OCR Adapter
+
+The current OCR adapter is a boundary, not a real OCR implementation.
+
+Input:
+
+```json
+{
+  "task": "document_ocr",
+  "document": {
+    "filename": "delivery_note.txt",
+    "path": "/absolute/path/to/file.txt",
+    "mime_type": "text/plain"
+  },
+  "options": {
+    "backend": "stub",
+    "max_text_bytes": 20000
+  }
+}
+```
+
+Success response:
+
+```json
+{
+  "success": true,
+  "engine": "python-ai-engine",
+  "version": "0.1.0",
+  "task": "document_ocr",
+  "confidence": 0.75,
+  "data": {
+    "text": "Detected OCR text...",
+    "language": "unknown",
+    "pages": [],
+    "backend": "stub"
+  },
+  "errors": []
+}
+```
+
+Unavailable response:
+
+```json
+{
+  "success": false,
+  "engine": "python-ai-engine",
+  "version": "0.1.0",
+  "task": "document_ocr",
+  "confidence": 0.0,
+  "data": {
+    "text": "",
+    "language": "unknown",
+    "pages": [],
+    "backend": null
+  },
+  "errors": [
+    {
+      "code": "ocr_backend_unavailable",
+      "message": "No OCR backend is configured or available."
+    }
+  ]
+}
+```
+
+The stub backend reads only plain `.txt` files and limits bytes read with `AI_OCR_MAX_TEXT_BYTES`. Other file types return structured errors until a real OCR backend is added.
+
 ## Future OCR Expansion
 
-The Document Intelligence queue pipeline now calls the Python AI Engine for document classification. The next expected step is adding an OCR adapter inside that existing pipeline.
-
-Future OCR work should add:
-
-- queued job orchestration
-- uploaded document validation
-- structured document classification output
-- field-level confidence
-- human review workflow
-- audit records for execution, validation, review, and acceptance
-- retry and timeout strategy
+The next expected step is adding a real OCR backend option while keeping this JSON contract stable.
 
 Do not add heavy OCR or AI dependencies until the queued workflow and JSON contract are ready.

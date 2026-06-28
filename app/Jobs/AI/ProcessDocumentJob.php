@@ -8,6 +8,7 @@ use App\Services\AI\PythonAiEngineService;
 use App\Services\AuditLogService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Facades\Storage;
 use Throwable;
 
 class ProcessDocumentJob implements ShouldQueue
@@ -36,7 +37,7 @@ class ProcessDocumentJob implements ShouldQueue
 
         $this->markProcessing($document, $auditLog);
 
-        $result = $engine->run([
+        $classificationResult = $engine->run([
             'task' => 'document_classification',
             'document' => [
                 'id' => $document->id,
@@ -44,19 +45,20 @@ class ProcessDocumentJob implements ShouldQueue
             ],
         ]);
 
-        if (! $this->isValidClassificationResult($result)) {
-            $this->markFailed($document, $auditLog, $result, $this->failureReason($result));
+        if (! $this->isValidClassificationResult($classificationResult)) {
+            $this->markFailed($document, $auditLog, $classificationResult, $this->failureReason($classificationResult));
 
             return;
         }
 
         $auditLog->log('document_ai_classification_returned', $document, [
-            'confidence' => $result['confidence'],
-            'classification' => $result['classification'] ?? null,
-            'suggested_type' => $result['data']['suggested_type'] ?? null,
+            'confidence' => $classificationResult['confidence'],
+            'classification' => $classificationResult['classification'] ?? null,
+            'suggested_type' => $classificationResult['data']['suggested_type'] ?? null,
         ]);
 
-        $confidence = (float) $result['confidence'];
+        $result = $this->withOptionalOcr($document, $classificationResult, $engine, $auditLog);
+        $confidence = (float) $classificationResult['confidence'];
 
         if ($confidence >= 0.95) {
             $this->markCompleted($document, $auditLog, $result);
@@ -207,5 +209,151 @@ class ProcessDocumentJob implements ShouldQueue
         $firstError = $result['errors'][0]['code'] ?? null;
 
         return is_string($firstError) ? $firstError : 'invalid_classification_result';
+    }
+
+    /**
+     * @param  array<string, mixed>  $classificationResult
+     * @return array<string, mixed>
+     */
+    private function withOptionalOcr(
+        Document $document,
+        array $classificationResult,
+        PythonAiEngineService $engine,
+        AuditLogService $auditLog,
+    ): array {
+        if (! config('ai.ocr_enabled', false)) {
+            return $classificationResult;
+        }
+
+        $path = $this->documentAbsolutePath($document);
+        if ($path === null) {
+            return $classificationResult;
+        }
+
+        $auditLog->log('document_ai_ocr_started', $document, [
+            'backend' => config('ai.ocr_backend', 'stub'),
+        ]);
+
+        $ocrResult = $engine->run([
+            'task' => 'document_ocr',
+            'document' => [
+                'id' => $document->id,
+                'filename' => $document->original_filename ?? $document->title,
+                'path' => $path,
+                'mime_type' => $document->mime_type,
+            ],
+            'options' => [
+                'backend' => config('ai.ocr_backend', 'stub'),
+                'max_text_bytes' => (int) config('ai.ocr_max_text_bytes', 20000),
+            ],
+        ]);
+
+        $ocrResult = $this->normalizeOcrResult($ocrResult);
+        $classificationResult['data']['ocr'] = $ocrResult;
+
+        if (($ocrResult['success'] ?? false) === true) {
+            $auditLog->log('document_ai_ocr_completed', $document, [
+                'confidence' => $ocrResult['confidence'],
+                'backend' => $ocrResult['data']['backend'] ?? null,
+                'text_length' => strlen((string) ($ocrResult['data']['text'] ?? '')),
+            ]);
+
+            return $classificationResult;
+        }
+
+        $auditLog->log('document_ai_ocr_failed', $document, [
+            'reason' => $this->failureReason($ocrResult),
+            'backend' => $ocrResult['data']['backend'] ?? null,
+        ]);
+
+        return $classificationResult;
+    }
+
+    private function documentAbsolutePath(Document $document): ?string
+    {
+        $relativePath = $document->path ?? $document->file_path;
+
+        if ($relativePath === null) {
+            return null;
+        }
+
+        $disk = $document->disk ?? 'local';
+
+        if (! Storage::disk($disk)->exists($relativePath)) {
+            return null;
+        }
+
+        return Storage::disk($disk)->path($relativePath);
+    }
+
+    /**
+     * @param  array<string, mixed>  $result
+     * @return array<string, mixed>
+     */
+    private function normalizeOcrResult(array $result): array
+    {
+        if ($this->isValidOcrResult($result)) {
+            return $result;
+        }
+
+        return [
+            'success' => false,
+            'engine' => 'python-ai-engine',
+            'version' => '0.1.0',
+            'task' => 'document_ocr',
+            'confidence' => 0.0,
+            'data' => [
+                'text' => '',
+                'language' => 'unknown',
+                'pages' => [],
+                'backend' => null,
+            ],
+            'errors' => [
+                [
+                    'code' => 'invalid_ocr_result',
+                    'message' => 'Python AI Engine returned an invalid OCR response.',
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $result
+     */
+    private function isValidOcrResult(array $result): bool
+    {
+        if (($result['task'] ?? null) !== 'document_ocr') {
+            return false;
+        }
+
+        if (! is_bool($result['success'] ?? null)) {
+            return false;
+        }
+
+        if (! is_numeric($result['confidence'] ?? null)) {
+            return false;
+        }
+
+        if (! is_array($result['data'] ?? null)) {
+            return false;
+        }
+
+        if (! is_string($result['data']['text'] ?? null)) {
+            return false;
+        }
+
+        if (! is_string($result['data']['language'] ?? null)) {
+            return false;
+        }
+
+        if (! is_array($result['data']['pages'] ?? null)) {
+            return false;
+        }
+
+        if (! is_array($result['errors'] ?? null)) {
+            return false;
+        }
+
+        return array_key_exists('backend', $result['data']);
     }
 }
