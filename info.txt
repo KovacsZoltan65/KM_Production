@@ -25,6 +25,45 @@ Developer: Reload Window
 
 =========================================
 
+
+
+
+=========================================
+= tudásréteg
+=========================================
+AGENTS.md
+.kiro/steering/     → hogyan fejlesszünk
+.kiro/decisions/    → miért döntöttünk így
+.kiro/knowledge/    → mit jelent az üzleti domain
+
+=========================================
+= 
+=========================================
+README.md                  ← Embernek
+
+AGENTS.md                  ← Minden AI belépési pontja
+
+.kiro/
+
+    steering/              ← Szabályok
+    decisions/             ← Miért így döntöttünk?
+    knowledge/             ← Üzleti tudás
+    playbooks/             ← Hogyan implementáljunk?
+    prompts/               ← Kész AI promptok
+    templates/             ← Kódsablonok
+    checklists/            ← Ellenőrzőlisták
+    reviews/               ← Code review szabályok
+
+
+
+=========================================
+
+
+
+
+
+=========================================
+
 php artisan ziggy:generate resources/js/ziggy.js
 php artisan ziggy:generate resources/js/ziggy.js --types
 

@@ -268,3 +268,23 @@ Required areas:
 - Do not mix professional roles with authorization roles.
 - Do not put business logic in controllers.
 - Do not duplicate UI or workflow logic.
+
+---
+
+## Additional Steering
+
+`AGENTS.md` is the root entry point for AI agents.
+
+Project-specific guidance is maintained under:
+
+- `.kiro/steering/` — project rules and development guidance
+- `.kiro/decisions/` — architecture decision records
+- `.kiro/knowledge/` — manufacturing domain knowledge
+- `.kiro/playbooks/` — implementation procedures
+- `.kiro/prompts/` — reusable AI prompt templates
+- `.kiro/checklists/` — quality gate checklists
+- `.kiro/workflows/` — end-to-end AI development workflows
+
+AI agents should consult the relevant `.kiro/` documents before implementing significant changes.
+
+Keep AGENTS.md concise.
