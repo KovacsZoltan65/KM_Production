@@ -20,8 +20,10 @@ Read in this order:
 4. `.kiro/knowledge/`
 5. `.kiro/playbooks/`
 6. `.kiro/prompts/`
-7. `.kiro/checklists/`
-8. `.kiro/workflows/`
+7. `.kiro/templates/`
+8. `.kiro/checklists/`
+9. `.kiro/workflows/`
+10. `.kiro/memory/`
 
 # Workflow Steps
 
@@ -41,7 +43,7 @@ Read in this order:
 
 2. Context Loading
    - Read `AGENTS.md`.
-   - Read relevant steering, decisions, knowledge, playbooks, prompts, checklists, and workflows.
+   - Read relevant steering, decisions, knowledge, playbooks, prompts, templates, checklists, workflows, and memory.
    - Load only context relevant to the task.
 
 3. Impact Analysis
@@ -132,9 +134,10 @@ Controller
       - decision
       - knowledge
       - playbook
-      - prompt
-      - checklist
-      - workflow
+     - prompt
+     - checklist
+     - workflow
+      - memory
 
 The goal is not only to complete the task, but to improve the project’s ability to complete similar tasks better next time.
 
@@ -150,7 +153,7 @@ The goal is not only to complete the task, but to improve the project’s abilit
 
 # Documentation Updates
 
-Documentation updates are required when the task changes reusable project knowledge, architecture, domain understanding, implementation process, prompt templates, checklists, or workflows.
+Documentation updates are required when the task changes reusable project knowledge, architecture, domain understanding, implementation process, prompt templates, checklists, workflows, or permanent memory.
 
 Do not update documentation for incidental implementation details that do not affect future work.
 
@@ -173,3 +176,9 @@ Do not update documentation for incidental implementation details that do not af
 - Running no verification and failing to explain why.
 - Updating unrelated files.
 - Missing the learning loop after discovering reusable guidance.
+
+# Related Navigation
+
+- `.kiro/index.md`
+- `.kiro/checklists/documentation.md`
+- `.kiro/memory/index.md`

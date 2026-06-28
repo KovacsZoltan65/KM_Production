@@ -6,6 +6,8 @@ Artificial intelligence knowledge describes the long-term AI vision inside KM_Pr
 
 AI exists to assist manufacturing, procurement, inventory, quality, documentation, planning, and decision support while preserving Laravel-owned business rules and human accountability.
 
+Related product vision: [docs/vision/manufacturing-intelligence-platform.md](../../docs/vision/manufacturing-intelligence-platform.md).
+
 ## Why AI Exists Inside KM_Production
 
 AI can reduce manual work, surface risks, interpret documents, inspect images, and help users find manufacturing knowledge.

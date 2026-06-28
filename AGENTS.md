@@ -1,292 +1,37 @@
 # AGENTS.md
 
-## Project
+## Purpose
 
-KM_Production
+`AGENTS.md` is the root entry point for AI agents working on KM_Production.
 
-Manufacturing Execution System (MES) and Production Management platform built with:
+KM_Production is a Laravel, Vue, Inertia, and MySQL Manufacturing Execution System for production workflows, inventory, traceability, quality control, procurement, documentation, and manufacturing intelligence.
 
-- Laravel 13
-- PHP 8.4+
-- MySQL
-- Inertia.js
-- Vue 3
-- PrimeVue 4
-- @primeuix/themes
-- Tailwind CSS 4
-- Vite
+## Start Here
 
-The project is a production management system for manufacturing workflows, inventory, traceability, quality control, and documentation.
+Before significant work, read in this order:
 
----
+1. [README.md](README.md)
+2. [.kiro/index.md](.kiro/index.md)
+3. Relevant files under [.kiro/steering/](.kiro/steering/)
+4. Relevant architecture decisions under [.kiro/decisions/](.kiro/decisions/)
+5. Relevant domain knowledge under [.kiro/knowledge/](.kiro/knowledge/)
+6. Relevant procedures under [.kiro/playbooks/](.kiro/playbooks/)
+7. Relevant quality gates under [.kiro/checklists/](.kiro/checklists/)
+8. Relevant workflows under [.kiro/workflows/](.kiro/workflows/)
+9. Relevant permanent memory under [.kiro/memory/](.kiro/memory/)
 
-## Architecture
+## Core Rules
 
-Always follow this layer order:
-
-Controller
--> Service
--> Repository
--> Model
-
-Rules:
-
-- Do not place business logic in controllers.
-- Controllers coordinate requests, authorization, validation, and responses.
-- Services contain business rules and workflow orchestration.
-- Repositories contain data access and query logic.
-- Use interfaces for repositories.
-- Use database transactions for critical business operations.
-
----
-
-## Backend Conventions
-
-Use:
-
-- FormRequest validation
-- Policy-based authorization
-- Spatie Permission
-- Spatie Activitylog
-- Prettus Repository
-- Explicit return types
-- Enums where justified
-- Small methods with clear names
-
-Every important business action must be logged.
-
-Examples:
-
-- Production order created
-- Operation started
-- Operation completed
-- Material consumed
-- Stock movement created
-- Quality inspection performed
-- Scrap recorded
-- Subassembly transferred
-
----
-
-## Frontend usage
-
-Frontend must use **laravel-vue-i18n with the shared Laravel JSON translation files**.
-
-Use:
-
-$t('employees.title')
-
-or
-
-trans('employees.title')
-
-Example:
-
-{{ $t('employees.title') }}
-
-Backend and frontend must reference **the same translation keys**.
-
-Important:
-
-- In Vue templates, use `$t(...)`
-- In `<script setup>`, use `trans(...)`
-- Do not use `$t(...)` directly inside `<script setup>` logic
-
-For static definitions loaded at module import time, do not translate eagerly during file load if the value must react to locale changes.
-
-Instead:
-
-- store translation keys in the definition
-- resolve them at runtime in a computed/composable/component layer
-
-This rule is especially important for:
-
-- menu definitions
-- static config arrays
-- shared action definitions
-- table column metadata
-
----
-
-## Frontend Conventions
-
-Use:
-
-- Vue 3 Composition API
-- Inertia
-- PrimeVue components
-- Reusable components
-- Page components under `resources/js/Pages/...`
-- Shared components under `resources/js/Components/...`
-
-Avoid:
-
-- jQuery
-- Duplicated UI logic
-- Oversized components
-- Mixed business and presentation concerns in the same component
-
----
-
-## Production Rules
-
-The system is built for production management.
-
-Requirements:
-
-- Every in-house manufactured component, subassembly, and finished product receives a unique serial number.
-- Purchased materials do not receive unique serial numbers.
-- Serial number format:
-
-```txt
-PREFIX/YYYY/NNNN
-```
-
-Examples:
-
-```txt
-HEG/2026/0001
-FES/2026/0007
-AAA/2026/0001
-```
-
-`PREFIX` is the factory unit identifier.
-
----
-
-## Operation Sequence Rules
-
-- Manufacturing operations happen in a fixed order.
-- Operation sequences are versioned.
-- Changing the order or adding a new operation requires a new operation sequence/version.
-- Existing production orders must remain traceable with their original operation sequence version.
-
----
-
-## Inventory Rules
-
-Inventory quantities must never be modified directly.
-
-Every stock change must happen through a `stock_movements` record.
-
-Movement types include:
-
-- purchase_receive
-- production_issue
-- production_consume
-- production_output
-- transfer
-- scrap
-- correction
-
-At any time, the system must know:
-
-- Which warehouse/location contains stock
-- Which material is present
-- Which subassembly is present
-- Which finished product is present
-- How much quantity is available
-
----
-
-## Quality Control
-
-- By default, each workshop finished output must be inspected.
-- Operation sequence steps have a field indicating whether inspection is required.
-- Inspection results can be:
-    - accepted
-    - rejected
-    - rework_required
-
----
-
-## Documentation
-
-Documents can be attached to:
-
-- Items
-- Operation sequences
-- Production orders
-- Specific operations
-- Quality inspections
-
-Supported document types:
-
-- drawing
-- operation_description
-- work_note
-- quality_report
-- photo
-
----
-
-## Permissions
-
-CRUD permissions:
-
-- create
-- view
-- update
-- delete
-
-Special permission:
-
-- check
-
-Professional roles must be handled separately from authorization roles.
-
-For example, an employee can be:
-
-- An admin user for authorization purposes
-- A welder professionally
-
-Do not mix professional roles with permission roles.
-
----
-
-## Testing
-
-Write tests for business-critical behavior.
-
-Required areas:
-
-- Serial number generation
-- Stock movement
-- Material consumption
-- Operation sequence versioning
-- Quality control
-- Subassembly transfer
-- Permission checks
-
----
-
-## Prohibitions
-
+- Follow the layered architecture: Controller -> Service -> Repository -> Model.
+- Keep business logic out of controllers.
+- Never modify inventory quantities directly; use stock movements.
+- Preserve manufacturing traceability, serial numbers, operation sequence versions, audit logs, and permissions.
+- Use shared Laravel JSON translation keys for backend and frontend text.
 - Do not modify business logic unless explicitly requested.
-- Do not modify inventory quantities directly.
-- Do not create large classes with mixed responsibilities.
-- Do not mix professional roles with authorization roles.
-- Do not put business logic in controllers.
-- Do not duplicate UI or workflow logic.
+- Prefer links to deeper documentation over duplicating guidance here.
 
----
+## Documentation System
 
-## Additional Steering
+Project-specific rules, decisions, knowledge, playbooks, prompts, templates, checklists, workflows, and memory live under [.kiro/](.kiro/).
 
-`AGENTS.md` is the root entry point for AI agents.
-
-Project-specific guidance is maintained under:
-
-- `.kiro/steering/` — project rules and development guidance
-- `.kiro/decisions/` — architecture decision records
-- `.kiro/knowledge/` — manufacturing domain knowledge
-- `.kiro/playbooks/` — implementation procedures
-- `.kiro/prompts/` — reusable AI prompt templates
-- `.kiro/checklists/` — quality gate checklists
-- `.kiro/workflows/` — end-to-end AI development workflows
-
-Long-term product vision documents are maintained under `docs/vision/`.
-
-AI agents should consult the relevant `.kiro/` documents before implementing significant changes.
-
-Keep AGENTS.md concise.
+Reader-facing product documentation lives under [docs/](docs/).
