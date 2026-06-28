@@ -156,6 +156,38 @@ it('python ocr task returns structured unavailable json without a backend', func
     expect($result['errors'][0]['code'])->toBe('ocr_backend_unavailable');
 });
 
+it('python ocr task returns structured error for unknown backend', function (): void {
+    $process = new Process([
+        (string) config('ai.python_binary', 'python'),
+        base_path('python/ai_engine.py'),
+    ], base_path(), null, json_encode([
+        'task' => 'document_ocr',
+        'document' => [
+            'filename' => 'delivery_note.pdf',
+            'path' => base_path('missing-delivery-note.pdf'),
+            'mime_type' => 'application/pdf',
+        ],
+        'options' => [
+            'backend' => 'future-backend',
+        ],
+    ]));
+
+    $process->run();
+
+    expect($process->isSuccessful())->toBeTrue();
+
+    $result = json_decode($process->getOutput(), true);
+
+    expect($result['success'])->toBeFalse();
+    expect($result['task'])->toBe('document_ocr');
+    expect($result['confidence'])->toBe(0.0);
+    expect($result['data']['text'])->toBe('');
+    expect($result['data']['language'])->toBe('unknown');
+    expect($result['data']['pages'])->toBe([]);
+    expect($result['data']['backend'])->toBeNull();
+    expect($result['errors'][0]['code'])->toBe('ocr_backend_unknown');
+});
+
 it('python txt fallback ocr works deterministically with the stub backend', function (): void {
     $path = storage_path('framework/testing/ocr-sample.txt');
     file_put_contents($path, 'Plain text OCR fixture');

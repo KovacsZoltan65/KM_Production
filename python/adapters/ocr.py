@@ -1,7 +1,8 @@
 """OCR adapter boundary for the Python AI Engine."""
 
-from pathlib import Path
 from typing import Any
+
+from adapters.ocr_backends import get_backend
 
 
 def empty_ocr_data(backend: str | None = None) -> dict[str, Any]:
@@ -20,11 +21,18 @@ def unavailable_error() -> dict[str, str]:
     }
 
 
+def unknown_backend_error(backend: str | None) -> dict[str, str]:
+    return {
+        "code": "ocr_backend_unknown",
+        "message": f"OCR backend is not supported: {backend or 'none'}.",
+    }
+
+
 def run_ocr(document: dict[str, Any], options: dict[str, Any] | None = None) -> dict[str, Any]:
     options = options or {}
     backend = options.get("backend")
 
-    if backend != "stub":
+    if backend is None:
         return {
             "success": False,
             "confidence": 0.0,
@@ -32,64 +40,33 @@ def run_ocr(document: dict[str, Any], options: dict[str, Any] | None = None) -> 
             "errors": [unavailable_error()],
         }
 
-    path_value = document.get("path")
-    if not isinstance(path_value, str) or not path_value:
+    if not isinstance(backend, str):
         return {
             "success": False,
             "confidence": 0.0,
-            "data": empty_ocr_data("stub"),
-            "errors": [
-                {
-                    "code": "document_path_missing",
-                    "message": "Document path is required for OCR.",
-                }
-            ],
+            "data": empty_ocr_data(None),
+            "errors": [unknown_backend_error(None)],
         }
 
-    path = Path(path_value)
-    if not path.exists() or not path.is_file():
+    selected_backend = get_backend(backend)
+    if selected_backend is None:
         return {
             "success": False,
             "confidence": 0.0,
-            "data": empty_ocr_data("stub"),
-            "errors": [
-                {
-                    "code": "document_file_missing",
-                    "message": "Document file is not available for OCR.",
-                }
-            ],
+            "data": empty_ocr_data(None),
+            "errors": [unknown_backend_error(backend)],
         }
 
-    max_text_bytes = int(options.get("max_text_bytes") or 20000)
-    max_text_bytes = max(1, min(max_text_bytes, 200000))
-
-    filename = str(document.get("filename") or path.name).lower()
-    mime_type = str(document.get("mime_type") or "").lower()
-
-    if path.suffix.lower() != ".txt" and mime_type != "text/plain" and not filename.endswith(".txt"):
-        return {
-            "success": False,
-            "confidence": 0.0,
-            "data": empty_ocr_data("stub"),
-            "errors": [
-                {
-                    "code": "ocr_file_type_unsupported",
-                    "message": "Stub OCR supports plain text files only.",
-                }
-            ],
-        }
-
-    with path.open("rb") as handle:
-        text = handle.read(max_text_bytes).decode("utf-8", errors="replace")
+    backend_result = selected_backend.extract(document, options)
 
     return {
-        "success": True,
-        "confidence": 0.75,
+        "success": backend_result["success"],
+        "confidence": backend_result["confidence"],
         "data": {
-            "text": text,
-            "language": "unknown",
-            "pages": [],
-            "backend": "stub",
+            "text": backend_result["text"],
+            "language": backend_result["language"],
+            "pages": backend_result["pages"],
+            "backend": backend_result["backend"],
         },
-        "errors": [],
+        "errors": backend_result["errors"],
     }

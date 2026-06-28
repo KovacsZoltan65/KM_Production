@@ -13,6 +13,7 @@ The engine is intentionally small and local:
 - health-check task
 - document classification stub
 - optional OCR adapter task
+- OCR backend plugin boundary
 - direct Symfony Process call from Laravel
 - JSON over stdin/stdout
 - Laravel response-shape validation
@@ -103,7 +104,7 @@ OCR is disabled by default at the Laravel pipeline level. The Python engine stil
 
 ## OCR Adapter
 
-The current OCR adapter is a boundary, not a real OCR implementation.
+The current OCR adapter is a backend plugin boundary, not a real OCR implementation.
 
 Input:
 
@@ -167,8 +168,18 @@ Unavailable response:
 
 The stub backend reads only plain `.txt` files and limits bytes read with `AI_OCR_MAX_TEXT_BYTES`. Other file types return structured errors until a real OCR backend is added.
 
+Current backend structure:
+
+```txt
+python/adapters/ocr.py
+python/adapters/ocr_backends/base.py
+python/adapters/ocr_backends/stub.py
+```
+
+Unknown backend names return `ocr_backend_unknown`. Missing backend configuration returns `ocr_backend_unavailable`.
+
 ## Future OCR Expansion
 
-The next expected step is adding a real OCR backend option while keeping this JSON contract stable.
+The next expected step is adding a real OCR backend option, probably Tesseract first, while keeping this JSON contract stable.
 
 Do not add heavy OCR or AI dependencies until the queued workflow and JSON contract are ready.

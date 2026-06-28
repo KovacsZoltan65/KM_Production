@@ -35,7 +35,7 @@ Ready for Review
 - The Python engine runs the `document_classification` task.
 - The classifier is a filename heuristic stub.
 - If OCR is enabled and a file path is available, the job also runs `document_ocr`.
-- The current OCR backend is a stub with deterministic plain text fallback.
+- The current OCR backend plugin is a stub with deterministic plain text fallback.
 - Laravel validates the response shape and confidence.
 - Laravel updates document processing status.
 - Activity log events record started, classification returned, review required, completed, and failed outcomes.
@@ -100,6 +100,10 @@ AI_OCR_MAX_TEXT_BYTES=20000
 ```
 
 OCR is disabled by default. When enabled, the stub backend can read a limited amount of text from plain `.txt` files for deterministic tests and local development.
+
+Laravel passes the selected backend name through configuration, but Laravel must not depend on backend-specific details. Python owns backend selection and returns the same JSON contract for every backend.
+
+Unknown backend names return a safe `ocr_backend_unknown` error and preserve the classification result.
 
 ## Future Vision Integration
 
