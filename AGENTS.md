@@ -285,6 +285,8 @@ Project-specific guidance is maintained under:
 - `.kiro/checklists/` — quality gate checklists
 - `.kiro/workflows/` — end-to-end AI development workflows
 
+Long-term product vision documents are maintained under `docs/vision/`.
+
 AI agents should consult the relevant `.kiro/` documents before implementing significant changes.
 
 Keep AGENTS.md concise.

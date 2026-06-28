@@ -59,7 +59,8 @@ AGENTS.md                  ← Minden AI belépési pontja
 =========================================
 
 
-
+A MES azt mondja: "megmutatom, mi történik."
+A Manufacturing Intelligence azt mondja: "segítek eldönteni, mi történjen ezután."
 
 
 =========================================
