@@ -1,8 +1,11 @@
 <?php
 
+use App\Enums\AiProcessingRunStatus;
 use App\Enums\DocumentProcessingStatus;
 use App\Jobs\AI\ProcessDocumentJob;
+use App\Models\AiProcessingRun;
 use App\Models\Document;
+use App\Services\AI\AiProcessingTelemetryService;
 use App\Services\AI\PythonAiEngineService;
 use App\Services\AuditLogService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -85,7 +88,11 @@ function runDocumentIntelligenceJob(Document $document, array ...$engineResults)
             ->andReturn(...$engineResults);
     });
 
-    (new ProcessDocumentJob($document->id))->handle($engine, app(AuditLogService::class));
+    (new ProcessDocumentJob($document->id))->handle(
+        $engine,
+        app(AuditLogService::class),
+        app(AiProcessingTelemetryService::class),
+    );
 
     return $document->refresh();
 }
@@ -237,6 +244,37 @@ it('marks high confidence classification as completed', function (): void {
     expect(Activity::query()->where('event', 'document_ai_processing_completed')->exists())->toBeTrue();
 });
 
+it('creates telemetry for classification runs', function (): void {
+    $document = Document::factory()->create(['original_filename' => 'delivery_note.pdf']);
+
+    runDocumentIntelligenceJob($document, documentClassificationResult(0.97));
+
+    $run = AiProcessingRun::query()
+        ->whereMorphedTo('processable', $document)
+        ->where('task', 'document_classification')
+        ->firstOrFail();
+
+    expect($run->status)->toBe(AiProcessingRunStatus::Completed);
+    expect($run->success)->toBeTrue();
+    expect($run->engine)->toBe('python-ai-engine');
+    expect($run->engine_version)->toBe('0.1.0');
+    expect($run->confidence)->toBe(0.97);
+    expect($run->duration_ms)->not->toBeNull();
+    expect($run->result_summary)->toMatchArray([
+        'suggested_type' => 'delivery_note',
+        'classification' => 'unknown',
+        'confidence' => 0.97,
+    ]);
+});
+
+it('captures completed telemetry status', function (): void {
+    $document = Document::factory()->create(['original_filename' => 'delivery_note.pdf']);
+
+    runDocumentIntelligenceJob($document, documentClassificationResult(0.97));
+
+    expect(AiProcessingRun::query()->sole()->status)->toBe(AiProcessingRunStatus::Completed);
+});
+
 it('marks medium confidence classification as review required', function (): void {
     $document = Document::factory()->create(['original_filename' => 'delivery_note.pdf']);
 
@@ -249,6 +287,18 @@ it('marks medium confidence classification as review required', function (): voi
     expect(Activity::query()->where('event', 'document_ai_review_required')->exists())->toBeTrue();
 });
 
+it('captures review required telemetry status', function (): void {
+    $document = Document::factory()->create(['original_filename' => 'delivery_note.pdf']);
+
+    runDocumentIntelligenceJob($document, documentClassificationResult(0.82));
+
+    $run = AiProcessingRun::query()->sole();
+
+    expect($run->status)->toBe(AiProcessingRunStatus::ReviewRequired);
+    expect($run->success)->toBeTrue();
+    expect($run->confidence)->toBe(0.82);
+});
+
 it('marks low confidence classification as failed', function (): void {
     $document = Document::factory()->create(['original_filename' => 'unknown.pdf']);
 
@@ -259,6 +309,19 @@ it('marks low confidence classification as failed', function (): void {
     expect($document->processing_error['reason'])->toBe('low_confidence_classification');
 
     expect(Activity::query()->where('event', 'document_ai_processing_failed')->exists())->toBeTrue();
+});
+
+it('captures failed telemetry status', function (): void {
+    $document = Document::factory()->create(['original_filename' => 'unknown.pdf']);
+
+    runDocumentIntelligenceJob($document, documentClassificationResult(0.5, 'other'));
+
+    $run = AiProcessingRun::query()->sole();
+
+    expect($run->status)->toBe(AiProcessingRunStatus::Failed);
+    expect($run->success)->toBeFalse();
+    expect($run->error_code)->toBe('low_confidence_classification');
+    expect($run->confidence)->toBe(0.5);
 });
 
 it('preserves classification when optional ocr fails', function (): void {
@@ -314,6 +377,41 @@ it('combines classification and ocr results when optional ocr succeeds', functio
     expect($document->processing_result['data']['ocr']['data']['backend'])->toBe('stub');
 
     expect(Activity::query()->where('event', 'document_ai_ocr_completed')->exists())->toBeTrue();
+});
+
+it('records ocr telemetry text length without raw text', function (): void {
+    Storage::fake('local');
+    Storage::disk('local')->put('documents/delivery_note.txt', 'Received material: Steel plate');
+    Config::set('ai.ocr_enabled', true);
+
+    $document = Document::factory()->create([
+        'disk' => 'local',
+        'path' => 'documents/delivery_note.txt',
+        'file_path' => 'documents/delivery_note.txt',
+        'original_filename' => 'delivery_note.txt',
+        'mime_type' => 'text/plain',
+    ]);
+
+    runDocumentIntelligenceJob(
+        $document,
+        documentClassificationResult(0.97),
+        documentOcrResult('Received material: Steel plate')
+    );
+
+    $ocrRun = AiProcessingRun::query()
+        ->whereMorphedTo('processable', $document)
+        ->where('task', 'document_ocr')
+        ->firstOrFail();
+
+    expect($ocrRun->status)->toBe(AiProcessingRunStatus::Completed);
+    expect($ocrRun->result_summary)->toMatchArray([
+        'backend' => 'stub',
+        'text_length' => strlen('Received material: Steel plate'),
+        'page_count' => 0,
+        'confidence' => 0.75,
+        'error_codes' => [],
+    ]);
+    expect(json_encode($ocrRun->result_summary))->not->toContain('Received material: Steel plate');
 });
 
 it('handles python engine failure output safely', function (): void {

@@ -4,6 +4,7 @@ namespace App\Jobs\AI;
 
 use App\Enums\DocumentProcessingStatus;
 use App\Models\Document;
+use App\Services\AI\AiProcessingTelemetryService;
 use App\Services\AI\PythonAiEngineService;
 use App\Services\AuditLogService;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -31,21 +32,51 @@ class ProcessDocumentJob implements ShouldQueue
         return [60, 300];
     }
 
-    public function handle(PythonAiEngineService $engine, AuditLogService $auditLog): void
-    {
+    public function handle(
+        PythonAiEngineService $engine,
+        AuditLogService $auditLog,
+        AiProcessingTelemetryService $telemetry,
+    ): void {
         $document = Document::query()->findOrFail($this->documentId);
 
         $this->markProcessing($document, $auditLog);
 
-        $classificationResult = $engine->run([
-            'task' => 'document_classification',
-            'document' => [
-                'id' => $document->id,
-                'filename' => $document->original_filename ?? $document->title,
-            ],
+        $classificationRun = $telemetry->startRun($document, 'document_classification', [
+            'document_id' => $document->id,
+            'filename' => $document->original_filename ?? $document->title,
         ]);
 
+        try {
+            $classificationResult = $engine->run([
+                'task' => 'document_classification',
+                'document' => [
+                    'id' => $document->id,
+                    'filename' => $document->original_filename ?? $document->title,
+                ],
+            ]);
+        } catch (Throwable $exception) {
+            $telemetry->markFailed($classificationRun, [
+                'success' => false,
+                'task' => 'document_classification',
+                'confidence' => 0.0,
+                'data' => [],
+                'errors' => [
+                    [
+                        'code' => 'classification_exception',
+                        'message' => 'Document classification failed.',
+                    ],
+                ],
+            ]);
+
+            throw $exception;
+        }
+
         if (! $this->isValidClassificationResult($classificationResult)) {
+            $telemetry->markFailed(
+                $classificationRun,
+                $classificationResult,
+                $this->failureReason($classificationResult),
+            );
             $this->markFailed($document, $auditLog, $classificationResult, $this->failureReason($classificationResult));
 
             return;
@@ -57,21 +88,24 @@ class ProcessDocumentJob implements ShouldQueue
             'suggested_type' => $classificationResult['data']['suggested_type'] ?? null,
         ]);
 
-        $result = $this->withOptionalOcr($document, $classificationResult, $engine, $auditLog);
+        $result = $this->withOptionalOcr($document, $classificationResult, $engine, $auditLog, $telemetry);
         $confidence = (float) $classificationResult['confidence'];
 
         if ($confidence >= 0.95) {
+            $telemetry->markCompleted($classificationRun, $classificationResult);
             $this->markCompleted($document, $auditLog, $result);
 
             return;
         }
 
         if ($confidence >= 0.70) {
+            $telemetry->markReviewRequired($classificationRun, $classificationResult);
             $this->markReviewRequired($document, $auditLog, $result);
 
             return;
         }
 
+        $telemetry->markFailed($classificationRun, $classificationResult, 'low_confidence_classification');
         $this->markFailed($document, $auditLog, $result, 'low_confidence_classification');
     }
 
@@ -84,6 +118,25 @@ class ProcessDocumentJob implements ShouldQueue
         }
 
         $auditLog = app(AuditLogService::class);
+        $telemetry = app(AiProcessingTelemetryService::class);
+
+        $run = $telemetry->startRun($document, 'document_classification', [
+            'document_id' => $document->id,
+            'job_failed' => true,
+        ]);
+
+        $telemetry->markFailed($run, [
+            'success' => false,
+            'task' => 'document_classification',
+            'confidence' => 0.0,
+            'data' => [],
+            'errors' => [
+                [
+                    'code' => 'job_failed',
+                    'message' => 'Document Intelligence processing failed.',
+                ],
+            ],
+        ]);
 
         $this->markFailed($document, $auditLog, [
             'success' => false,
@@ -220,6 +273,7 @@ class ProcessDocumentJob implements ShouldQueue
         array $classificationResult,
         PythonAiEngineService $engine,
         AuditLogService $auditLog,
+        AiProcessingTelemetryService $telemetry,
     ): array {
         if (! config('ai.ocr_enabled', false)) {
             return $classificationResult;
@@ -234,24 +288,55 @@ class ProcessDocumentJob implements ShouldQueue
             'backend' => config('ai.ocr_backend', 'stub'),
         ]);
 
-        $ocrResult = $engine->run([
-            'task' => 'document_ocr',
-            'document' => [
-                'id' => $document->id,
-                'filename' => $document->original_filename ?? $document->title,
-                'path' => $path,
-                'mime_type' => $document->mime_type,
-            ],
-            'options' => [
-                'backend' => config('ai.ocr_backend', 'stub'),
-                'max_text_bytes' => (int) config('ai.ocr_max_text_bytes', 20000),
-            ],
+        $ocrRun = $telemetry->startRun($document, 'document_ocr', [
+            'document_id' => $document->id,
+            'filename' => $document->original_filename ?? $document->title,
+            'mime_type' => $document->mime_type,
+            'backend' => config('ai.ocr_backend', 'stub'),
         ]);
+
+        try {
+            $ocrResult = $engine->run([
+                'task' => 'document_ocr',
+                'document' => [
+                    'id' => $document->id,
+                    'filename' => $document->original_filename ?? $document->title,
+                    'path' => $path,
+                    'mime_type' => $document->mime_type,
+                ],
+                'options' => [
+                    'backend' => config('ai.ocr_backend', 'stub'),
+                    'max_text_bytes' => (int) config('ai.ocr_max_text_bytes', 20000),
+                ],
+            ]);
+        } catch (Throwable $exception) {
+            $telemetry->markFailed($ocrRun, [
+                'success' => false,
+                'task' => 'document_ocr',
+                'confidence' => 0.0,
+                'data' => [
+                    'text' => '',
+                    'language' => 'unknown',
+                    'pages' => [],
+                    'backend' => config('ai.ocr_backend', 'stub'),
+                ],
+                'errors' => [
+                    [
+                        'code' => 'ocr_exception',
+                        'message' => 'Document OCR failed.',
+                    ],
+                ],
+            ]);
+
+            throw $exception;
+        }
 
         $ocrResult = $this->normalizeOcrResult($ocrResult);
         $classificationResult['data']['ocr'] = $ocrResult;
 
         if (($ocrResult['success'] ?? false) === true) {
+            $telemetry->markCompleted($ocrRun, $ocrResult);
+
             $auditLog->log('document_ai_ocr_completed', $document, [
                 'confidence' => $ocrResult['confidence'],
                 'backend' => $ocrResult['data']['backend'] ?? null,
@@ -260,6 +345,8 @@ class ProcessDocumentJob implements ShouldQueue
 
             return $classificationResult;
         }
+
+        $telemetry->markFailed($ocrRun, $ocrResult, $this->failureReason($ocrResult));
 
         $auditLog->log('document_ai_ocr_failed', $document, [
             'reason' => $this->failureReason($ocrResult),

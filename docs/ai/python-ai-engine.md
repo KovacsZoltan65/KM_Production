@@ -18,6 +18,7 @@ The engine is intentionally small and local:
 - JSON over stdin/stdout
 - Laravel response-shape validation
 - safe application logging
+- Laravel-side AI processing telemetry
 - stub OCR only, with deterministic plain text fallback
 - no OpenCV, EasyOCR, PaddleOCR, YOLO, PyTorch, external LLMs, or external APIs
 
@@ -74,6 +75,8 @@ Error response:
 
 Laravel treats Python output as untrusted and validates the response shape before returning it to callers.
 
+Laravel may also summarize validated engine responses into `ai_processing_runs` for monitoring. This telemetry keeps technical metadata such as task, engine, version, backend, confidence, duration, status, and safe error codes.
+
 ## Configuration
 
 Configuration lives in `config/ai.php`.
@@ -100,7 +103,10 @@ OCR is disabled by default at the Laravel pipeline level. The Python engine stil
 - Python communicates through JSON only.
 - Laravel owns business rules, validation, permissions, persistence, and audit logging.
 - Laravel logs execution metadata and failures without exposing stack traces or raw sensitive payloads.
+- Laravel telemetry must not store raw OCR text, raw document content, secrets, or stack traces.
 - AI output must not bypass human review, permissions, traceability, inventory rules, quality rules, or audit logging.
+
+Telemetry complements activity logs. Activity logs remain the business audit trail; telemetry is for operational monitoring, debugging, reporting, and future dashboard views.
 
 ## OCR Adapter
 
@@ -167,6 +173,8 @@ Unavailable response:
 ```
 
 The stub backend reads only plain `.txt` files and limits bytes read with `AI_OCR_MAX_TEXT_BYTES`. Other file types return structured errors until a real OCR backend is added.
+
+When OCR is run through the Document Intelligence Pipeline, telemetry stores derived OCR metrics such as backend, text length, page count, confidence, and error codes. It does not store the extracted text.
 
 Current backend structure:
 

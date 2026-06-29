@@ -39,6 +39,7 @@ Ready for Review
 - Laravel validates the response shape and confidence.
 - Laravel updates document processing status.
 - Activity log events record started, classification returned, review required, completed, and failed outcomes.
+- AI processing telemetry records technical run details for classification and optional OCR attempts.
 
 No OpenCV, EasyOCR, PaddleOCR, YOLO, PyTorch, external LLM, real OCR binary, or external API dependency is included.
 
@@ -67,6 +68,7 @@ Current document processing states:
 - Raw Python failures are converted into safe processing errors.
 - Long-running OCR and vision work must remain queued.
 - OCR text is stored in the structured AI result and must not be logged as raw text.
+- OCR telemetry stores text length and page count, not raw OCR text.
 
 ## Activity Log Events
 
@@ -78,6 +80,8 @@ Current document processing states:
 - `document_ai_ocr_started`
 - `document_ai_ocr_completed`
 - `document_ai_ocr_failed`
+
+Activity logs remain the business audit trail. AI processing telemetry complements those events with engine, backend, confidence, duration, safe errors, and compact result summaries for monitoring and future dashboards.
 
 ## OCR Integration
 
@@ -104,6 +108,10 @@ OCR is disabled by default. When enabled, the stub backend can read a limited am
 Laravel passes the selected backend name through configuration, but Laravel must not depend on backend-specific details. Python owns backend selection and returns the same JSON contract for every backend.
 
 Unknown backend names return a safe `ocr_backend_unknown` error and preserve the classification result.
+
+OCR telemetry records the backend, text length, page count, confidence, and error codes. It must not store full OCR text, raw document content, secrets, or stack traces.
+
+See [AI Processing Telemetry](ai-processing-telemetry.md) for the telemetry schema and privacy boundaries.
 
 ## Future Vision Integration
 
