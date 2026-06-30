@@ -57,6 +57,7 @@ Mandatory checklist before committing work in KM_Production.
 - [ ] No commented dead code.
 - [ ] Pint passes.
 - [ ] PHPStan/Larastan passes.
+- [ ] New PHPStan/Larastan findings are fixed instead of added to the baseline unless explicitly justified.
 
 ## Documentation
 

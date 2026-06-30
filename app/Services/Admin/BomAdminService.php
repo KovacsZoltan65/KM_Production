@@ -25,7 +25,6 @@ class BomAdminService
 
     /**
      * @param  array<string, mixed>  $payload
-     * @param  mixed  $causer
      */
     public function create(array $payload, ?User $causer = null): Bom
     {
@@ -40,7 +39,6 @@ class BomAdminService
 
     /**
      * @param  array<string, mixed>  $payload
-     * @param  mixed  $causer
      */
     public function update(Bom $bom, array $payload, ?User $causer = null): Bom
     {
@@ -53,9 +51,6 @@ class BomAdminService
         return $bom;
     }
 
-    /**
-     * @param  mixed  $causer
-     */
     public function delete(Bom $bom, ?User $causer = null): void
     {
         $this->auditLogService->log('admin_bom_deleted', $bom, [], $causer);

@@ -1,0 +1,181 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\CustomerOrderController\:\:customerOptions\(\) should return Illuminate\\Support\\Collection\<int, array\{id\: int, code\: string, name\: string, label\: string\}\> but returns Illuminate\\Support\\Collection\<int, array\{id\: int, code\: string, name\: string, label\: non\-falsy\-string\}\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/Admin/CustomerOrderController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\CustomerOrderController\:\:itemOptions\(\) should return Illuminate\\Support\\Collection\<int, array\{id\: int, item_number\: string, name\: string, unit\: string, label\: string\}\> but returns Illuminate\\Support\\Collection\<int, array\{id\: int, item_number\: string, name\: string, unit\: string, label\: non\-falsy\-string\}\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/Admin/CustomerOrderController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\GoodsReceiptController\:\:itemOptions\(\) should return Illuminate\\Support\\Collection\<int, array\> but returns Illuminate\\Support\\Collection\<int, array\{id\: int, unit\: string, label\: non\-falsy\-string\}\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/Admin/GoodsReceiptController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\GoodsReceiptController\:\:locationOptions\(\) should return Illuminate\\Support\\Collection\<int, array\> but returns Illuminate\\Support\\Collection\<int, array\{id\: int, label\: non\-falsy\-string\}\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/Admin/GoodsReceiptController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\GoodsReceiptController\:\:purchaseOrderOptions\(\) should return Illuminate\\Support\\Collection\<int, array\> but returns Illuminate\\Support\\Collection\<int, array\{id\: int, label\: non\-falsy\-string\}\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/Admin/GoodsReceiptController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\Inventory\\MaterialRequirementController\:\:itemOptions\(\) should return Illuminate\\Support\\Collection\<int, array\{id\: int, label\: string\}\> but returns Illuminate\\Support\\Collection\<int, array\{id\: int, label\: non\-falsy\-string\}\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/Admin/Inventory/MaterialRequirementController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\Inventory\\StockMovementController\:\:itemOptions\(\) should return Illuminate\\Support\\Collection\<int, array\{id\: int, label\: string\}\> but returns Illuminate\\Support\\Collection\<int, array\{id\: int, label\: non\-falsy\-string\}\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/Admin/Inventory/StockMovementController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\Inventory\\StockMovementController\:\:locationOptions\(\) should return Illuminate\\Support\\Collection\<int, array\{id\: int, label\: string\}\> but returns Illuminate\\Support\\Collection\<int, array\{id\: int, label\: non\-falsy\-string\}\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/Admin/Inventory/StockMovementController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\ProductionPlanController\:\:bomOptions\(\) should return Illuminate\\Support\\Collection\<int, array\{id\: int, item_id\: int, label\: string\}\> but returns Illuminate\\Support\\Collection\<int, array\{id\: int, item_id\: int, label\: non\-falsy\-string\}\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/Admin/ProductionPlanController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\ProductionPlanController\:\:customerOrderOptions\(\) should return Illuminate\\Support\\Collection\<int, array\{id\: int, order_number\: string, customer_name\: string, label\: string\}\> but returns Illuminate\\Support\\Collection\<int, array\{id\: int, order_number\: string, customer_name\: string, label\: non\-falsy\-string\}\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/Admin/ProductionPlanController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\ProductionPlanController\:\:operationSequenceOptions\(\) should return Illuminate\\Support\\Collection\<int, array\{id\: int, item_id\: int, label\: string\}\> but returns Illuminate\\Support\\Collection\<int, array\{id\: int, item_id\: int, label\: non\-falsy\-string\}\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/Admin/ProductionPlanController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\PurchaseOrderController\:\:itemOptions\(\) should return Illuminate\\Support\\Collection\<int, array\> but returns Illuminate\\Support\\Collection\<int, array\{id\: int, unit\: string, label\: non\-falsy\-string\}\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/Admin/PurchaseOrderController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\PurchaseOrderController\:\:supplierOptions\(\) should return Illuminate\\Support\\Collection\<int, array\> but returns Illuminate\\Support\\Collection\<int, array\{id\: int, label\: non\-falsy\-string\}\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/Admin/PurchaseOrderController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Contracts\\Pagination\\LengthAwarePaginator\:\:through\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/RoleController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Contracts\\Pagination\\LengthAwarePaginator\:\:through\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/UserController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CapacityReservation\:\:\$assigned_tasks\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Repositories/Admin/CapacityRepository.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CapacityReservation\:\:\$queue_count\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Repositories/Admin/CapacityRepository.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CapacityReservation\:\:\$reserved_minutes\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Repositories/Admin/CapacityRepository.php
+
+		-
+			message: '#^Cannot call method toDateTimeString\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 2
+			path: app/Repositories/Admin/CapacityRepository.php
+
+		-
+			message: '#^Method App\\Repositories\\Admin\\CapacityRepository\:\:employeeLoads\(\) should return Illuminate\\Support\\Collection\<int, array\<string, mixed\>\> but returns Illuminate\\Support\\Collection\<int, array\{id\: int, employee\: string, professional_role\: string, working_minutes\: int, reserved_minutes\: int, utilization\: float, assigned_tasks\: int, status\: string\}\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Repositories/Admin/CapacityRepository.php
+
+		-
+			message: '#^Method App\\Repositories\\Admin\\CapacityRepository\:\:factoryUnitLoads\(\) should return Illuminate\\Support\\Collection\<int, array\<string, mixed\>\> but returns Illuminate\\Support\\Collection\<int, array\{id\: int, factory_unit\: string, code\: string, available_minutes\: int, reserved_minutes\: int, utilization\: float, current_queue\: int, status\: string\}\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Repositories/Admin/CapacityRepository.php
+
+		-
+			message: '#^Method App\\Repositories\\Admin\\CapacityRepository\:\:scheduleRows\(\) should return Illuminate\\Support\\Collection\<int, array\<string, mixed\>\> but returns Illuminate\\Support\\Collection\<int, array\{id\: int, factory_unit\: string, production_task\: non\-falsy\-string, start\: mixed, finish\: mixed, duration\: int\<0, max\>, employee\: string, status\: string\}\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Repositories/Admin/CapacityRepository.php
+
+		-
+			message: '#^Method App\\Services\\Admin\\CapacityPlanningService\:\:ordersLikelyToMissDeadline\(\) should return Illuminate\\Support\\Collection\<int, array\<string, mixed\>\> but returns Illuminate\\Support\\Collection\<int, array\{id\: int, order_number\: string, requested_delivery_date\: string\|null, estimated_finish\: mixed, late_by_minutes\: mixed, critical_factory_unit\: mixed\}\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Services/Admin/CapacityPlanningService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$version\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/Admin/DocumentService.php
+
+		-
+			message: '#^Method App\\Services\\Admin\\DocumentService\:\:update\(\) should return App\\Models\\Document but returns Illuminate\\Database\\Eloquent\\Model\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Services/Admin/DocumentService.php
+
+		-
+			message: '#^Access to protected property App\\Models\\CustomerOrder\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\CustomerOrder\>\:\:\$items\.$#'
+			identifier: property.protected
+			count: 1
+			path: app/Services/Admin/ProductionPlanService.php
+
+		-
+			message: '#^Class League\\Fractal\\Serializer\\DataArraySerializer not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: config/repository.php
+
+		-
+			message: '#^Cannot call method format\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: tests/Feature/CapacityPlanningTest.php
+
+		-
+			message: '#^Cannot call method lessThanOrEqualTo\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: tests/Feature/CapacityPlanningTest.php
+
+		-
+			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:times\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Feature/DocumentIntelligencePipelineTest.php

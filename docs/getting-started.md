@@ -20,6 +20,18 @@ Typical development flow:
 4. Run migrations and seeders when a fresh dataset is needed.
 5. Start the Laravel and Vite development servers.
 
+## Quality Checks
+
+Before committing backend changes, run:
+
+```bash
+php artisan test
+vendor/bin/pint
+vendor/bin/phpstan analyse
+```
+
+PHPStan uses Larastan at level 3 with an initial baseline for existing findings. New work should keep analysis green and reduce baseline entries when touching related code.
+
 ## Before Changing Code
 
 Read:

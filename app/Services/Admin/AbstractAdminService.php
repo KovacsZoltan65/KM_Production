@@ -25,7 +25,6 @@ abstract class AbstractAdminService
 
     /**
      * @param  array<string, mixed>  $attributes
-     * @param  mixed  $causer
      */
     public function create(array $attributes, ?User $causer = null): Model
     {
@@ -48,9 +47,6 @@ abstract class AbstractAdminService
         return $model;
     }
 
-    /**
-     * @param  mixed  $causer
-     */
     public function delete(Model $model, ?User $causer = null): void
     {
         $this->auditLogService->log($this->deletedEvent(), $model, [], $causer);

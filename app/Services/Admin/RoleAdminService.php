@@ -2,6 +2,7 @@
 
 namespace App\Services\Admin;
 
+use App\Models\User;
 use App\Repositories\Contracts\RoleRepositoryInterface;
 use App\Services\AuditLogService;
 use Illuminate\Database\Eloquent\Model;
@@ -16,10 +17,7 @@ class RoleAdminService extends AbstractAdminService
         parent::__construct($repository, $auditLogService);
     }
 
-    /**
-     * @param  mixed  $causer
-     */
-    public function update(Model $model, array $attributes, $causer = null): Model
+    public function update(Model $model, array $attributes, ?User $causer = null): Model
     {
         /** @var Role $model */
         if ($model->name === 'super-admin') {
@@ -30,10 +28,7 @@ class RoleAdminService extends AbstractAdminService
         return parent::update($model, $attributes, $causer);
     }
 
-    /**
-     * @param  mixed  $causer
-     */
-    public function delete(Model $model, $causer = null): void
+    public function delete(Model $model, ?User $causer = null): void
     {
         /** @var Role $model */
         if ($model->name === 'super-admin') {

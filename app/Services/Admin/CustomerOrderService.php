@@ -33,7 +33,6 @@ class CustomerOrderService
 
     /**
      * @param  array<string, mixed>  $payload
-     * @param  mixed  $causer
      */
     public function create(array $payload, ?User $causer = null): CustomerOrder
     {
@@ -49,7 +48,6 @@ class CustomerOrderService
 
     /**
      * @param  array<string, mixed>  $payload
-     * @param  mixed  $causer
      */
     public function update(CustomerOrder $customerOrder, array $payload, ?User $causer = null): CustomerOrder
     {
