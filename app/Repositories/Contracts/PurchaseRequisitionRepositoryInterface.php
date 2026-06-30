@@ -2,6 +2,7 @@
 
 namespace App\Repositories\Contracts;
 
+use App\Models\MaterialRequirement;
 use App\Models\PurchaseRequisition;
 use Illuminate\Support\Collection;
 
@@ -10,7 +11,7 @@ interface PurchaseRequisitionRepositoryInterface extends AdminRepositoryInterfac
     public function findForShow(PurchaseRequisition $purchaseRequisition): PurchaseRequisition;
 
     /**
-     * @return Collection<int, \App\Models\MaterialRequirement>
+     * @return Collection<int, MaterialRequirement>
      */
     public function missingMaterialRequirements(): Collection;
 }

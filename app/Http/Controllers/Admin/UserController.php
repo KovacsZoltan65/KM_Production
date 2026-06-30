@@ -17,10 +17,6 @@ class UserController extends Controller
 {
     public function __construct(private readonly UserAdminService $service) {}
 
-    /**
-     * @param IndexRequest $request
-     * @return Response
-     */
     public function index(IndexRequest $request): Response
     {
         $this->authorize('viewAny', User::class);
@@ -43,10 +39,6 @@ class UserController extends Controller
         ]);
     }
 
-    /**
-     * @param StoreUserRequest $request
-     * @return RedirectResponse
-     */
     public function store(StoreUserRequest $request): RedirectResponse
     {
         $this->service->create($request->validated(), $request->user());
@@ -54,11 +46,6 @@ class UserController extends Controller
         return back()->with('success', 'User created.');
     }
 
-    /**
-     * @param UpdateUserRequest $request
-     * @param User $user
-     * @return RedirectResponse
-     */
     public function update(UpdateUserRequest $request, User $user): RedirectResponse
     {
         $this->service->update($user, $request->validated(), $request->user());
@@ -66,10 +53,6 @@ class UserController extends Controller
         return back()->with('success', 'User updated.');
     }
 
-    /**
-     * @param User $user
-     * @return RedirectResponse
-     */
     public function destroy(User $user): RedirectResponse
     {
         $this->authorize('delete', $user);

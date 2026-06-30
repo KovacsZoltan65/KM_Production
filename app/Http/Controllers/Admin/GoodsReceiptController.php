@@ -21,10 +21,6 @@ class GoodsReceiptController extends Controller
 {
     public function __construct(private readonly GoodsReceiptService $service) {}
 
-    /**
-     * @param IndexRequest $request
-     * @return Response
-     */
     public function index(IndexRequest $request): Response
     {
         $this->authorize('viewAny', GoodsReceipt::class);
@@ -41,8 +37,6 @@ class GoodsReceiptController extends Controller
 
     /**
      * Summary of show
-     * @param GoodsReceipt $goodsReceipt
-     * @return Response
      */
     public function show(GoodsReceipt $goodsReceipt): Response
     {
@@ -55,8 +49,6 @@ class GoodsReceiptController extends Controller
 
     /**
      * Summary of store
-     * @param StoreGoodsReceiptRequest $request
-     * @return RedirectResponse
      */
     public function store(StoreGoodsReceiptRequest $request): RedirectResponse
     {
@@ -65,11 +57,6 @@ class GoodsReceiptController extends Controller
         return redirect()->route('admin.goods-receipts.show', $goodsReceipt)->with('success', 'Goods receipt created.');
     }
 
-    /**
-     * @param PostGoodsReceiptRequest $request
-     * @param GoodsReceipt $goodsReceipt
-     * @return RedirectResponse
-     */
     public function post(PostGoodsReceiptRequest $request, GoodsReceipt $goodsReceipt): RedirectResponse
     {
         $this->service->post($goodsReceipt, $request->user());

@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
@@ -22,11 +23,12 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string $unit
  * @property MaterialRequirementStatus $status
  * @property string|null $notes
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property \Illuminate\Support\Carbon|null $deleted_at
- * @property-read \App\Models\CustomerOrderItem|null $customerOrderItem
- * @property-read \App\Models\Item|null $requiredItem
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ * @property-read CustomerOrderItem|null $customerOrderItem
+ * @property-read Item|null $requiredItem
+ *
  * @method static \Database\Factories\MaterialRequirementFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|MaterialRequirement newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|MaterialRequirement newQuery()
@@ -47,6 +49,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|MaterialRequirement whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|MaterialRequirement withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|MaterialRequirement withoutTrashed()
+ *
  * @mixin \Eloquent
  */
 #[Fillable([

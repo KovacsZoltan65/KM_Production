@@ -21,10 +21,6 @@ class DocumentController extends Controller
 {
     public function __construct(private readonly DocumentService $service) {}
 
-    /**
-     * @param IndexRequest $request
-     * @return Response
-     */
     public function index(IndexRequest $request): Response
     {
         $this->authorize('viewAny', Document::class);
@@ -37,10 +33,6 @@ class DocumentController extends Controller
         ]);
     }
 
-    /**
-     * @param Document $document
-     * @return Response
-     */
     public function show(Document $document): Response
     {
         $this->authorize('view', $document);
@@ -51,10 +43,6 @@ class DocumentController extends Controller
         ]);
     }
 
-    /**
-     * @param StoreDocumentRequest $request
-     * @return RedirectResponse
-     */
     public function store(StoreDocumentRequest $request): RedirectResponse
     {
         $document = $this->service->create($request->validated(), $request->file('file'), $request->user());
@@ -62,11 +50,6 @@ class DocumentController extends Controller
         return redirect()->route('admin.documents.show', $document)->with('success', 'Document uploaded.');
     }
 
-    /**
-     * @param UpdateDocumentRequest $request
-     * @param Document $document
-     * @return RedirectResponse
-     */
     public function update(UpdateDocumentRequest $request, Document $document): RedirectResponse
     {
         $this->service->update($document, $request->validated(), $request->user());
@@ -74,10 +57,6 @@ class DocumentController extends Controller
         return back()->with('success', 'Document updated.');
     }
 
-    /**
-     * @param Document $document
-     * @return RedirectResponse
-     */
     public function destroy(Document $document): RedirectResponse
     {
         $this->authorize('delete', $document);
@@ -87,10 +66,6 @@ class DocumentController extends Controller
         return redirect()->route('admin.documents.index')->with('success', 'Document deleted.');
     }
 
-    /**
-     * @param Document $document
-     * @return StreamedResponse
-     */
     public function download(Document $document): StreamedResponse
     {
         $this->authorize('download', $document);
@@ -98,11 +73,6 @@ class DocumentController extends Controller
         return $this->service->download($document, request()->user());
     }
 
-    /**
-     * @param ApproveDocumentRequest $request
-     * @param Document $document
-     * @return RedirectResponse
-     */
     public function approve(ApproveDocumentRequest $request, Document $document): RedirectResponse
     {
         $this->service->approve($document, $request->user());
@@ -110,11 +80,6 @@ class DocumentController extends Controller
         return back()->with('success', 'Document approved.');
     }
 
-    /**
-     * @param MakeCurrentDocumentRequest $request
-     * @param Document $document
-     * @return RedirectResponse
-     */
     public function makeCurrent(MakeCurrentDocumentRequest $request, Document $document): RedirectResponse
     {
         $this->service->makeCurrent($document, $request->user());

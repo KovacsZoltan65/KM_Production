@@ -12,11 +12,6 @@ class QualityCheckController extends Controller
 {
     public function __construct(private readonly QualityCheckService $service) {}
 
-    /**
-     * @param StoreQualityCheckRequest $request
-     * @param ProductionTask $productionTask
-     * @return RedirectResponse
-     */
     public function store(StoreQualityCheckRequest $request, ProductionTask $productionTask): RedirectResponse
     {
         $this->service->store($productionTask, $request->validated(), $request->user());

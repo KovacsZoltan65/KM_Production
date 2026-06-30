@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
@@ -22,17 +23,18 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  * @property string|null $source_type
  * @property int|null $source_id
  * @property int|null $performed_by
- * @property \Illuminate\Support\Carbon $performed_at
+ * @property Carbon $performed_at
  * @property string|null $notes
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \App\Models\Location|null $fromLocation
- * @property-read \App\Models\Item|null $item
- * @property-read \App\Models\ItemBatch|null $itemBatch
- * @property-read \App\Models\ItemInstance|null $itemInstance
- * @property-read \App\Models\User|null $performer
- * @property-read \Illuminate\Database\Eloquent\Model|null $source
- * @property-read \App\Models\Location|null $toLocation
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read Location|null $fromLocation
+ * @property-read Item|null $item
+ * @property-read ItemBatch|null $itemBatch
+ * @property-read ItemInstance|null $itemInstance
+ * @property-read User|null $performer
+ * @property-read Model|null $source
+ * @property-read Location|null $toLocation
+ *
  * @method static \Database\Factories\StockMovementFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|StockMovement newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|StockMovement newQuery()
@@ -52,6 +54,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|StockMovement whereSourceType($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|StockMovement whereToLocationId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|StockMovement whereUpdatedAt($value)
+ *
  * @mixin \Eloquent
  */
 #[Fillable([

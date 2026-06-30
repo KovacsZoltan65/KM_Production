@@ -5,30 +5,33 @@ namespace App\Models;
 use App\Enums\CustomerOrderStatus;
 use Database\Factories\CustomerOrderFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
  * @property string $order_number
  * @property int $customer_id
  * @property CustomerOrderStatus $status
- * @property \Illuminate\Support\Carbon|null $requested_delivery_date
- * @property \Illuminate\Support\Carbon|null $confirmed_at
+ * @property Carbon|null $requested_delivery_date
+ * @property Carbon|null $confirmed_at
  * @property string|null $notes
  * @property int|null $created_by
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property \Illuminate\Support\Carbon|null $deleted_at
- * @property-read \App\Models\User|null $creator
- * @property-read \App\Models\Customer|null $customer
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\CustomerOrderItem> $items
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ * @property-read User|null $creator
+ * @property-read Customer|null $customer
+ * @property-read Collection<int, CustomerOrderItem> $items
  * @property-read int|null $items_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ProductionPlan> $productionPlans
+ * @property-read Collection<int, ProductionPlan> $productionPlans
  * @property-read int|null $production_plans_count
+ *
  * @method static \Database\Factories\CustomerOrderFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CustomerOrder newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CustomerOrder newQuery()
@@ -47,6 +50,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CustomerOrder whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CustomerOrder withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CustomerOrder withoutTrashed()
+ *
  * @mixin \Eloquent
  */
 #[Fillable([

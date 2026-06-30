@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
@@ -17,13 +18,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $location_id
  * @property numeric $quantity
  * @property string|null $notes
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \App\Models\GoodsReceipt|null $goodsReceipt
- * @property-read \App\Models\Item|null $item
- * @property-read \App\Models\ItemBatch|null $itemBatch
- * @property-read \App\Models\Location|null $location
- * @property-read \App\Models\PurchaseOrderItem|null $purchaseOrderItem
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read GoodsReceipt|null $goodsReceipt
+ * @property-read Item|null $item
+ * @property-read ItemBatch|null $itemBatch
+ * @property-read Location|null $location
+ * @property-read PurchaseOrderItem|null $purchaseOrderItem
+ *
  * @method static \Database\Factories\GoodsReceiptItemFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GoodsReceiptItem newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GoodsReceiptItem newQuery()
@@ -38,6 +40,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GoodsReceiptItem wherePurchaseOrderItemId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GoodsReceiptItem whereQuantity($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GoodsReceiptItem whereUpdatedAt($value)
+ *
  * @mixin \Eloquent
  */
 #[Fillable([

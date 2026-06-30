@@ -20,10 +20,6 @@ class OperationSequenceController extends Controller
 {
     public function __construct(private readonly OperationSequenceAdminService $service) {}
 
-    /**
-     * @param IndexRequest $request
-     * @return Response
-     */
     public function index(IndexRequest $request): Response
     {
         $this->authorize('viewAny', OperationSequence::class);
@@ -50,10 +46,6 @@ class OperationSequenceController extends Controller
         ]);
     }
 
-    /**
-     * @param StoreOperationSequenceRequest $request
-     * @return RedirectResponse
-     */
     public function store(StoreOperationSequenceRequest $request): RedirectResponse
     {
         $this->service->create($request->validated(), $request->user());
@@ -61,11 +53,6 @@ class OperationSequenceController extends Controller
         return back()->with('success', 'Operation sequence created.');
     }
 
-    /**
-     * @param UpdateOperationSequenceRequest $request
-     * @param OperationSequence $operationSequence
-     * @return RedirectResponse
-     */
     public function update(UpdateOperationSequenceRequest $request, OperationSequence $operationSequence): RedirectResponse
     {
         $this->service->update($operationSequence, $request->validated(), $request->user());
@@ -73,10 +60,6 @@ class OperationSequenceController extends Controller
         return back()->with('success', 'Operation sequence updated.');
     }
 
-    /**
-     * @param OperationSequence $operationSequence
-     * @return RedirectResponse
-     */
     public function destroy(OperationSequence $operationSequence): RedirectResponse
     {
         $this->authorize('delete', $operationSequence);

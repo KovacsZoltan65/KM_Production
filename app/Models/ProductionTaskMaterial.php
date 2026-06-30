@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
@@ -17,11 +18,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property numeric $used_quantity
  * @property string $unit
  * @property string|null $notes
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \App\Models\Item|null $item
- * @property-read \App\Models\ItemBatch|null $itemBatch
- * @property-read \App\Models\ProductionTask $productionTask
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read Item|null $item
+ * @property-read ItemBatch|null $itemBatch
+ * @property-read ProductionTask $productionTask
+ *
  * @method static \Database\Factories\ProductionTaskMaterialFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ProductionTaskMaterial newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ProductionTaskMaterial newQuery()
@@ -36,6 +38,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ProductionTaskMaterial whereUnit($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ProductionTaskMaterial whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ProductionTaskMaterial whereUsedQuantity($value)
+ *
  * @mixin \Eloquent
  */
 #[Fillable([

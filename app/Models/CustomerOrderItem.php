@@ -5,11 +5,13 @@ namespace App\Models;
 use App\Enums\CustomerOrderItemStatus;
 use Database\Factories\CustomerOrderItemFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
@@ -19,13 +21,14 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string $unit
  * @property CustomerOrderItemStatus $status
  * @property string|null $notes
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property \Illuminate\Support\Carbon|null $deleted_at
- * @property-read \App\Models\CustomerOrder|null $customerOrder
- * @property-read \App\Models\Item|null $item
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ProductionOrder> $productionOrders
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ * @property-read CustomerOrder|null $customerOrder
+ * @property-read Item|null $item
+ * @property-read Collection<int, ProductionOrder> $productionOrders
  * @property-read int|null $production_orders_count
+ *
  * @method static \Database\Factories\CustomerOrderItemFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CustomerOrderItem newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CustomerOrderItem newQuery()
@@ -43,6 +46,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CustomerOrderItem whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CustomerOrderItem withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CustomerOrderItem withoutTrashed()
+ *
  * @mixin \Eloquent
  */
 #[Fillable([

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
@@ -15,10 +16,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property numeric $quantity
  * @property string $unit
  * @property string|null $notes
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \App\Models\Bom|null $bom
- * @property-read \App\Models\Item|null $item
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read Bom|null $bom
+ * @property-read Item|null $item
+ *
  * @method static \Database\Factories\BomItemFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|BomItem newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|BomItem newQuery()
@@ -31,6 +33,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|BomItem whereQuantity($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|BomItem whereUnit($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|BomItem whereUpdatedAt($value)
+ *
  * @mixin \Eloquent
  */
 #[Fillable([

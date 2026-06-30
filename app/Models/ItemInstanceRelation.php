@@ -7,16 +7,18 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
  * @property int $parent_item_instance_id
  * @property int $child_item_instance_id
  * @property numeric $quantity
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \App\Models\ItemInstance $child
- * @property-read \App\Models\ItemInstance $parent
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read ItemInstance $child
+ * @property-read ItemInstance $parent
+ *
  * @method static \Database\Factories\ItemInstanceRelationFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ItemInstanceRelation newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ItemInstanceRelation newQuery()
@@ -27,6 +29,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ItemInstanceRelation whereParentItemInstanceId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ItemInstanceRelation whereQuantity($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ItemInstanceRelation whereUpdatedAt($value)
+ *
  * @mixin \Eloquent
  */
 #[Fillable([

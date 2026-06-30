@@ -16,10 +16,6 @@ class CustomerController extends Controller
 {
     public function __construct(private readonly CustomerAdminService $service) {}
 
-    /**
-     * @param IndexRequest $request
-     * @return Response
-     */
     public function index(IndexRequest $request): Response
     {
         $this->authorize('viewAny', Customer::class);
@@ -30,10 +26,6 @@ class CustomerController extends Controller
         ]);
     }
 
-    /**
-     * @param StoreCustomerRequest $request
-     * @return RedirectResponse
-     */
     public function store(StoreCustomerRequest $request): RedirectResponse
     {
         $this->service->create($request->validated(), $request->user());
@@ -41,11 +33,6 @@ class CustomerController extends Controller
         return back()->with('success', 'Customer created.');
     }
 
-    /**
-     * @param UpdateCustomerRequest $request
-     * @param Customer $customer
-     * @return RedirectResponse
-     */
     public function update(UpdateCustomerRequest $request, Customer $customer): RedirectResponse
     {
         $this->service->update($customer, $request->validated(), $request->user());
@@ -53,10 +40,6 @@ class CustomerController extends Controller
         return back()->with('success', 'Customer updated.');
     }
 
-    /**
-     * @param Customer $customer
-     * @return RedirectResponse
-     */
     public function destroy(Customer $customer): RedirectResponse
     {
         $this->authorize('delete', $customer);

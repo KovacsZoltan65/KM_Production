@@ -17,10 +17,7 @@ class RoleAdminService extends AbstractAdminService
     }
 
     /**
-     * @param Model $model
-     * @param array $attributes
-     * @param mixed $causer
-     * @return Model
+     * @param  mixed  $causer
      */
     public function update(Model $model, array $attributes, $causer = null): Model
     {
@@ -34,9 +31,7 @@ class RoleAdminService extends AbstractAdminService
     }
 
     /**
-     * @param Model $model
-     * @param mixed $causer
-     * @return void
+     * @param  mixed  $causer
      */
     public function delete(Model $model, $causer = null): void
     {
@@ -50,25 +45,16 @@ class RoleAdminService extends AbstractAdminService
         parent::delete($model, $causer);
     }
 
-    /**
-     * @return string
-     */
     protected function createdEvent(): string
     {
         return 'admin_role_created';
     }
 
-    /**
-     * @return string
-     */
     protected function updatedEvent(): string
     {
         return 'admin_role_updated';
     }
 
-    /**
-     * @return string
-     */
     protected function deletedEvent(): string
     {
         return 'admin_role_deleted';

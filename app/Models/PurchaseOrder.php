@@ -5,11 +5,13 @@ namespace App\Models;
 use App\Enums\PurchaseOrderStatus;
 use Database\Factories\PurchaseOrderFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
@@ -17,18 +19,19 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int $supplier_id
  * @property int|null $purchase_requisition_id
  * @property PurchaseOrderStatus $status
- * @property \Illuminate\Support\Carbon|null $ordered_at
- * @property \Illuminate\Support\Carbon|null $expected_delivery_date
+ * @property Carbon|null $ordered_at
+ * @property Carbon|null $expected_delivery_date
  * @property string|null $notes
  * @property int|null $created_by
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property \Illuminate\Support\Carbon|null $deleted_at
- * @property-read \App\Models\User|null $creator
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\PurchaseOrderItem> $items
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ * @property-read User|null $creator
+ * @property-read Collection<int, PurchaseOrderItem> $items
  * @property-read int|null $items_count
- * @property-read \App\Models\PurchaseRequisition|null $purchaseRequisition
- * @property-read \App\Models\Supplier|null $supplier
+ * @property-read PurchaseRequisition|null $purchaseRequisition
+ * @property-read Supplier|null $supplier
+ *
  * @method static \Database\Factories\PurchaseOrderFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PurchaseOrder newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PurchaseOrder newQuery()
@@ -48,6 +51,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PurchaseOrder whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PurchaseOrder withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PurchaseOrder withoutTrashed()
+ *
  * @mixin \Eloquent
  */
 #[Fillable([

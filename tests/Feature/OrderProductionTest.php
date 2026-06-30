@@ -196,7 +196,7 @@ class OrderProductionTest extends TestCase
     }
 
     /**
-     * @param array<string, mixed> $context
+     * @param  array<string, mixed>  $context
      * @return array<string, mixed>
      */
     private function productionOrderAttributes(array $context): array

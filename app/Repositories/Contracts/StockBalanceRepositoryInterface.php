@@ -2,6 +2,7 @@
 
 namespace App\Repositories\Contracts;
 
+use App\Models\StockBalance;
 use Illuminate\Support\Collection;
 
 interface StockBalanceRepositoryInterface extends AdminRepositoryInterface
@@ -11,7 +12,7 @@ interface StockBalanceRepositoryInterface extends AdminRepositoryInterface
     public function increaseQuantity(int $itemId, int $locationId, ?int $itemBatchId, float $quantity): void;
 
     /**
-     * @return Collection<int, \App\Models\StockBalance>
+     * @return Collection<int, StockBalance>
      */
     public function balancesForReservation(int $itemId): Collection;
 }

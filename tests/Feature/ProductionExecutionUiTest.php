@@ -12,7 +12,6 @@ use App\Enums\StockReservationStatus;
 use App\Models\Employee;
 use App\Models\FactoryUnit;
 use App\Models\Item;
-use App\Models\ItemInstance;
 use App\Models\Location;
 use App\Models\OperationSequence;
 use App\Models\OperationSequenceStep;
@@ -23,6 +22,7 @@ use App\Models\ProfessionalRole;
 use App\Models\StockBalance;
 use App\Models\StockReservation;
 use App\Models\User;
+use App\Services\Admin\ProductionTaskService;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia;
@@ -291,7 +291,7 @@ class ProductionExecutionUiTest extends TestCase
 
     private function generatedTask(ProductionOrder $order, Employee $employee, ProductionTaskStatus $status, int $stepOrder = 1): ProductionTask
     {
-        app(\App\Services\Admin\ProductionTaskService::class)->generateFromOrder($order, $employee);
+        app(ProductionTaskService::class)->generateFromOrder($order, $employee);
         $task = ProductionTask::query()
             ->where('production_order_id', $order->id)
             ->whereHas('operationSequenceStep', fn ($query) => $query->where('step_order', $stepOrder))

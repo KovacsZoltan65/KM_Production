@@ -22,10 +22,6 @@ class PurchaseOrderController extends Controller
 {
     public function __construct(private readonly PurchaseOrderService $service) {}
 
-    /**
-     * @param IndexRequest $request
-     * @return Response
-     */
     public function index(IndexRequest $request): Response
     {
         $this->authorize('viewAny', PurchaseOrder::class);
@@ -39,10 +35,6 @@ class PurchaseOrderController extends Controller
         ]);
     }
 
-    /**
-     * @param PurchaseOrder $purchaseOrder
-     * @return Response
-     */
     public function show(PurchaseOrder $purchaseOrder): Response
     {
         $this->authorize('view', $purchaseOrder);
@@ -52,10 +44,6 @@ class PurchaseOrderController extends Controller
         ]);
     }
 
-    /**
-     * @param StorePurchaseOrderRequest $request
-     * @return RedirectResponse
-     */
     public function store(StorePurchaseOrderRequest $request): RedirectResponse
     {
         $this->service->create($request->validated(), $request->user());
@@ -63,11 +51,6 @@ class PurchaseOrderController extends Controller
         return back()->with('success', 'Purchase order created.');
     }
 
-    /**
-     * @param UpdatePurchaseOrderRequest $request
-     * @param PurchaseOrder $purchaseOrder
-     * @return RedirectResponse
-     */
     public function update(UpdatePurchaseOrderRequest $request, PurchaseOrder $purchaseOrder): RedirectResponse
     {
         $this->service->update($purchaseOrder, $request->validated(), $request->user());
@@ -75,10 +58,6 @@ class PurchaseOrderController extends Controller
         return back()->with('success', 'Purchase order updated.');
     }
 
-    /**
-     * @param PurchaseOrder $purchaseOrder
-     * @return RedirectResponse
-     */
     public function destroy(PurchaseOrder $purchaseOrder): RedirectResponse
     {
         $this->authorize('delete', $purchaseOrder);
@@ -87,11 +66,6 @@ class PurchaseOrderController extends Controller
         return back()->with('success', 'Purchase order deleted.');
     }
 
-    /**
-     * @param ApprovePurchaseOrderRequest $request
-     * @param PurchaseOrder $purchaseOrder
-     * @return RedirectResponse
-     */
     public function approve(ApprovePurchaseOrderRequest $request, PurchaseOrder $purchaseOrder): RedirectResponse
     {
         $this->service->approve($purchaseOrder, $request->user());
@@ -99,11 +73,6 @@ class PurchaseOrderController extends Controller
         return back()->with('success', 'Purchase order approved.');
     }
 
-    /**
-     * @param ClosePurchaseOrderRequest $request
-     * @param PurchaseOrder $purchaseOrder
-     * @return RedirectResponse
-     */
     public function close(ClosePurchaseOrderRequest $request, PurchaseOrder $purchaseOrder): RedirectResponse
     {
         $this->service->close($purchaseOrder, $request->user());

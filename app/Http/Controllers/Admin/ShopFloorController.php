@@ -11,9 +11,6 @@ class ShopFloorController extends Controller
 {
     public function __construct(private readonly ShopFloorService $service) {}
 
-    /**
-     * @return Response
-     */
     public function index(): Response
     {
         abort_unless(request()->user()->can('shop-floor.view'), 403);
@@ -23,9 +20,6 @@ class ShopFloorController extends Controller
         ]);
     }
 
-    /**
-     * @return Response
-     */
     public function myTasks(): Response
     {
         abort_unless(request()->user()->can('shop-floor.view'), 403);

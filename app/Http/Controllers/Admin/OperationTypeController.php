@@ -17,10 +17,6 @@ class OperationTypeController extends Controller
 {
     public function __construct(private readonly OperationTypeAdminService $service) {}
 
-    /**
-     * @param IndexRequest $request
-     * @return Response
-     */
     public function index(IndexRequest $request): Response
     {
         $this->authorize('viewAny', OperationType::class);
@@ -37,10 +33,6 @@ class OperationTypeController extends Controller
         ]);
     }
 
-    /**
-     * @param StoreOperationTypeRequest $request
-     * @return RedirectResponse
-     */
     public function store(StoreOperationTypeRequest $request): RedirectResponse
     {
         $this->service->create($request->validated(), $request->user());
@@ -48,11 +40,6 @@ class OperationTypeController extends Controller
         return back()->with('success', 'Operation type created.');
     }
 
-    /**
-     * @param UpdateOperationTypeRequest $request
-     * @param OperationType $operationType
-     * @return RedirectResponse
-     */
     public function update(UpdateOperationTypeRequest $request, OperationType $operationType): RedirectResponse
     {
         $this->service->update($operationType, $request->validated(), $request->user());
@@ -60,10 +47,6 @@ class OperationTypeController extends Controller
         return back()->with('success', 'Operation type updated.');
     }
 
-    /**
-     * @param OperationType $operationType
-     * @return RedirectResponse
-     */
     public function destroy(OperationType $operationType): RedirectResponse
     {
         $this->authorize('delete', $operationType);

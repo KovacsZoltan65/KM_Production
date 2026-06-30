@@ -11,6 +11,7 @@ use App\Enums\PurchaseOrderStatus;
 use App\Enums\QualityCheckResult;
 use App\Enums\StockReservationStatus;
 use App\Repositories\Contracts\ReportingRepositoryInterface;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class ReportingRepository implements ReportingRepositoryInterface
@@ -81,7 +82,7 @@ class ReportingRepository implements ReportingRepositoryInterface
                 'status' => $row->status,
                 'created' => $row->created_at,
                 'requested_delivery' => $row->requested_delivery_date,
-                'days_open' => now()->startOfDay()->diffInDays(\Illuminate\Support\Carbon::parse($row->created_at)->startOfDay()),
+                'days_open' => now()->startOfDay()->diffInDays(Carbon::parse($row->created_at)->startOfDay()),
             ])->values()->all(),
         ];
     }
@@ -222,7 +223,7 @@ class ReportingRepository implements ReportingRepositoryInterface
         $driver = DB::connection()->getDriverName();
         $todayExpression = $driver === 'sqlite' ? "DATE('now')" : 'CURDATE()';
         $averageMinutesExpression = $driver === 'sqlite'
-            ? "(julianday(production_tasks.finished_at) - julianday(production_tasks.started_at)) * 24 * 60"
+            ? '(julianday(production_tasks.finished_at) - julianday(production_tasks.started_at)) * 24 * 60'
             : 'TIMESTAMPDIFF(MINUTE, production_tasks.started_at, production_tasks.finished_at)';
 
         $rows = DB::table('employees')

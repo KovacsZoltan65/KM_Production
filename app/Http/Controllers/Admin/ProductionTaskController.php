@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Enums\ProductionTaskStatus;
+use App\Enums\QualityCheckResult;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\FinishProductionTaskRequest;
 use App\Http\Requests\Admin\GenerateProductionTasksRequest;
@@ -11,7 +12,9 @@ use App\Http\Requests\Admin\StartProductionTaskRequest;
 use App\Http\Requests\Admin\StoreProductionTaskRequest;
 use App\Http\Requests\Admin\UpdateProductionTaskRequest;
 use App\Models\Employee;
+use App\Models\Item;
 use App\Models\ItemInstance;
+use App\Models\Location;
 use App\Models\OperationSequenceStep;
 use App\Models\ProductionOrder;
 use App\Models\ProductionTask;
@@ -24,10 +27,6 @@ class ProductionTaskController extends Controller
 {
     public function __construct(private readonly ProductionTaskService $service) {}
 
-    /**
-     * @param IndexRequest $request
-     * @return Response
-     */
     public function index(IndexRequest $request): Response
     {
         $this->authorize('viewAny', ProductionTask::class);
@@ -43,10 +42,6 @@ class ProductionTaskController extends Controller
         ]);
     }
 
-    /**
-     * @param ProductionTask $productionTask
-     * @return Response
-     */
     public function show(ProductionTask $productionTask): Response
     {
         $this->authorize('view', $productionTask);
@@ -60,10 +55,6 @@ class ProductionTaskController extends Controller
         ]);
     }
 
-    /**
-     * @param StoreProductionTaskRequest $request
-     * @return RedirectResponse
-     */
     public function store(StoreProductionTaskRequest $request): RedirectResponse
     {
         $this->service->create($request->validated(), $request->user());
@@ -71,11 +62,6 @@ class ProductionTaskController extends Controller
         return redirect()->route('admin.production-tasks.index')->with('success', 'Production task created.');
     }
 
-    /**
-     * @param UpdateProductionTaskRequest $request
-     * @param ProductionTask $productionTask
-     * @return RedirectResponse
-     */
     public function update(UpdateProductionTaskRequest $request, ProductionTask $productionTask): RedirectResponse
     {
         $this->service->update($productionTask, $request->validated(), $request->user());
@@ -83,10 +69,6 @@ class ProductionTaskController extends Controller
         return back()->with('success', 'Production task updated.');
     }
 
-    /**
-     * @param ProductionTask $productionTask
-     * @return RedirectResponse
-     */
     public function destroy(ProductionTask $productionTask): RedirectResponse
     {
         $this->authorize('delete', $productionTask);
@@ -95,10 +77,6 @@ class ProductionTaskController extends Controller
         return redirect()->route('admin.production-tasks.index')->with('success', 'Production task deleted.');
     }
 
-    /**
-     * @param GenerateProductionTasksRequest $request
-     * @return RedirectResponse
-     */
     public function generateFromOrder(GenerateProductionTasksRequest $request): RedirectResponse
     {
         $payload = $request->validated();
@@ -111,11 +89,6 @@ class ProductionTaskController extends Controller
         return back()->with('success', "{$count} production tasks generated.");
     }
 
-    /**
-     * @param StartProductionTaskRequest $request
-     * @param ProductionTask $productionTask
-     * @return RedirectResponse
-     */
     public function start(StartProductionTaskRequest $request, ProductionTask $productionTask): RedirectResponse
     {
         $this->service->start($productionTask, $request->user());
@@ -123,11 +96,6 @@ class ProductionTaskController extends Controller
         return back()->with('success', 'Production task started.');
     }
 
-    /**
-     * @param FinishProductionTaskRequest $request
-     * @param ProductionTask $productionTask
-     * @return RedirectResponse
-     */
     public function finish(FinishProductionTaskRequest $request, ProductionTask $productionTask): RedirectResponse
     {
         $this->service->finish($productionTask, $request->user());
@@ -212,10 +180,10 @@ class ProductionTaskController extends Controller
      */
     private function itemOptions(): array
     {
-        return \App\Models\Item::query()
+        return Item::query()
             ->orderBy('item_number')
             ->get(['id', 'item_number', 'name', 'unit'])
-            ->map(fn (\App\Models\Item $item): array => [
+            ->map(fn (Item $item): array => [
                 'id' => $item->id,
                 'unit' => $item->unit,
                 'label' => "{$item->item_number} - {$item->name}",
@@ -228,10 +196,10 @@ class ProductionTaskController extends Controller
      */
     private function locationOptions(): array
     {
-        return \App\Models\Location::query()
+        return Location::query()
             ->orderBy('code')
             ->get(['id', 'code', 'name'])
-            ->map(fn (\App\Models\Location $location): array => [
+            ->map(fn (Location $location): array => [
                 'id' => $location->id,
                 'label' => "{$location->code} - {$location->name}",
             ])
@@ -243,8 +211,8 @@ class ProductionTaskController extends Controller
      */
     private function qualityResultOptions(): array
     {
-        return collect(\App\Enums\QualityCheckResult::cases())
-            ->map(fn (\App\Enums\QualityCheckResult $result): array => [
+        return collect(QualityCheckResult::cases())
+            ->map(fn (QualityCheckResult $result): array => [
                 'label' => str($result->value)->replace('_', ' ')->title()->toString(),
                 'value' => $result->value,
             ])

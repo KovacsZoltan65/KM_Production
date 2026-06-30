@@ -17,8 +17,6 @@ abstract class AbstractAdminService
 
     /**
      * @param  array<string, mixed>  $filters
-     * @param int $perPage
-     * @return LengthAwarePaginator
      */
     public function paginateForAdminIndex(array $filters, int $perPage = 10): LengthAwarePaginator
     {
@@ -27,8 +25,7 @@ abstract class AbstractAdminService
 
     /**
      * @param  array<string, mixed>  $attributes
-     * @param mixed $causer
-     * @return Model
+     * @param  mixed  $causer
      */
     public function create(array $attributes, ?User $causer = null): Model
     {
@@ -41,7 +38,6 @@ abstract class AbstractAdminService
 
     /**
      * @param  array<string, mixed>  $attributes
-     * @return Model
      */
     public function update(Model $model, array $attributes, ?User $causer = null): Model
     {
@@ -53,9 +49,7 @@ abstract class AbstractAdminService
     }
 
     /**
-     * @param Model $model
-     * @param mixed $causer
-     * @return void
+     * @param  mixed  $causer
      */
     public function delete(Model $model, ?User $causer = null): void
     {

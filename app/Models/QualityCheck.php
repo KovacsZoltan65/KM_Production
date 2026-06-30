@@ -8,18 +8,20 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
  * @property int $production_task_id
  * @property int $checked_by
  * @property QualityCheckResult $result
- * @property \Illuminate\Support\Carbon $checked_at
+ * @property Carbon $checked_at
  * @property string|null $notes
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \App\Models\Employee|null $inspector
- * @property-read \App\Models\ProductionTask $productionTask
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read Employee|null $inspector
+ * @property-read ProductionTask $productionTask
+ *
  * @method static \Database\Factories\QualityCheckFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|QualityCheck newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|QualityCheck newQuery()
@@ -32,6 +34,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|QualityCheck whereProductionTaskId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|QualityCheck whereResult($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|QualityCheck whereUpdatedAt($value)
+ *
  * @mixin \Eloquent
  */
 #[Fillable([

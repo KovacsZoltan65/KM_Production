@@ -4,11 +4,13 @@ namespace App\Models;
 
 use Database\Factories\OperationSequenceFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
@@ -17,12 +19,13 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string $name
  * @property string|null $description
  * @property bool $is_active
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property \Illuminate\Support\Carbon|null $deleted_at
- * @property-read \App\Models\Item|null $item
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\OperationSequenceStep> $steps
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ * @property-read Item|null $item
+ * @property-read Collection<int, OperationSequenceStep> $steps
  * @property-read int|null $steps_count
+ *
  * @method static \Database\Factories\OperationSequenceFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|OperationSequence newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|OperationSequence newQuery()
@@ -39,6 +42,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|OperationSequence whereVersion($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|OperationSequence withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|OperationSequence withoutTrashed()
+ *
  * @mixin \Eloquent
  */
 #[Fillable([

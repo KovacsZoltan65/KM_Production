@@ -5,11 +5,13 @@ namespace App\Models;
 use App\Enums\GoodsReceiptStatus;
 use Database\Factories\GoodsReceiptFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
@@ -17,15 +19,16 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int|null $purchase_order_id
  * @property GoodsReceiptStatus $status
  * @property int|null $received_by
- * @property \Illuminate\Support\Carbon $received_at
+ * @property Carbon $received_at
  * @property string|null $notes
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property \Illuminate\Support\Carbon|null $deleted_at
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\GoodsReceiptItem> $items
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ * @property-read Collection<int, GoodsReceiptItem> $items
  * @property-read int|null $items_count
- * @property-read \App\Models\PurchaseOrder|null $purchaseOrder
- * @property-read \App\Models\User|null $receiver
+ * @property-read PurchaseOrder|null $purchaseOrder
+ * @property-read User|null $receiver
+ *
  * @method static \Database\Factories\GoodsReceiptFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GoodsReceipt newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GoodsReceipt newQuery()
@@ -42,6 +45,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GoodsReceipt whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GoodsReceipt withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GoodsReceipt withoutTrashed()
+ *
  * @mixin \Eloquent
  */
 #[Fillable([

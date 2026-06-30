@@ -12,9 +12,6 @@ class ProcurementDashboardController extends Controller
 {
     public function __construct(private readonly ProcurementDashboardService $service) {}
 
-    /**
-     * @return Response
-     */
     public function __invoke(): Response
     {
         $this->authorize('viewAny', PurchaseRequisition::class);

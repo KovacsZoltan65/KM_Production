@@ -13,10 +13,6 @@ class PermissionController extends Controller
 {
     public function __construct(private readonly PermissionRepositoryInterface $repository) {}
 
-    /**
-     * @param IndexRequest $request
-     * @return Response
-     */
     public function index(IndexRequest $request): Response
     {
         $this->authorize('viewAny', Permission::class);

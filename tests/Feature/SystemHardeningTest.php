@@ -2,11 +2,9 @@
 
 namespace Tests\Feature;
 
-use App\Enums\ItemInstanceStatus;
 use App\Enums\OperationTypeCode;
 use App\Enums\ProductionPlanStatus;
 use App\Enums\ProductionTaskStatus;
-use App\Enums\PurchaseRequisitionStatus;
 use App\Enums\QualityCheckResult;
 use App\Models\Bom;
 use App\Models\BomItem;
@@ -16,6 +14,7 @@ use App\Models\FactoryUnit;
 use App\Models\GoodsReceipt;
 use App\Models\GoodsReceiptItem;
 use App\Models\Item;
+use App\Models\ItemInstance;
 use App\Models\Location;
 use App\Models\MaterialRequirement;
 use App\Models\OperationSequence;
@@ -26,11 +25,7 @@ use App\Models\ProductionPlan;
 use App\Models\ProductionPlanItem;
 use App\Models\ProductionTask;
 use App\Models\ProfessionalRole;
-use App\Models\PurchaseRequisition;
-use App\Models\PurchaseRequisitionItem;
-use App\Models\SerialSequence;
 use App\Models\StockBalance;
-use App\Models\StockMovement;
 use App\Models\StockReservation;
 use App\Models\User;
 use App\Services\Admin\GoodsReceiptService;
@@ -96,7 +91,7 @@ class SystemHardeningTest extends TestCase
 
         app(ProductionTaskService::class)->generateFromOrder($order, $employee);
 
-        $serials = \App\Models\ItemInstance::query()
+        $serials = ItemInstance::query()
             ->where('production_order_id', $order->id)
             ->pluck('serial_number');
 

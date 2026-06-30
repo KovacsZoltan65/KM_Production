@@ -1,0 +1,84 @@
+Én így használnám a gyakorlatban
+1. Mindig külön maintenance branch
+
+    Soha ne a main ágon.
+
+    git checkout main
+    git pull
+
+    git checkout -b maintenance/test-suite-2026-06-29
+
+    Vagy ha heti rendszerességgel csinálod:
+
+    maintenance/test-suite-week-27
+
+2. Indítsd el Codexet
+
+    Nem kell mást írnod.
+
+    Egyszerűen:
+
+    ```prompt
+    Execute:
+
+    .kiro/prompts/maintenance/test-maintenance.md
+    Perform the entire maintenance workflow.
+    Fix everything you safely can.
+    Follow all project steering.
+    At the end produce the final maintenance report.
+    ```
+
+    A prompt már tartalmazza a teljes folyamatot.
+
+3. Codex dolgozik
+
+    A jó esetben ilyesmit fog csinálni:
+    ✓ php artisan test
+    ↓
+    talált 4 hibát
+    ↓
+    javította a factory-t
+    ↓
+    javította a migration-t
+    ↓
+    hozzáadott 2 regression tesztet
+    ↓
+    php artisan test
+    ↓
+    PASS
+    ↓
+    npm run test
+    ↓
+    PASS
+    ↓
+    Pint
+    ↓
+    PASS
+    ↓
+    Larastan
+    ↓
+    PASS
+
+4. Review
+
+    Te ilyenkor már nem a hibákat keresed.
+
+    Hanem ezt nézed:
+
+    - túl sok production code változott?
+    - megfelelő regression tesztek készültek?
+    - nem "csalta el" a teszteket?
+
+5. Commit
+    ```bash
+    git add .
+    git commit -m "Maintenance: stabilize test suite"
+    ```
+
+6. Merge
+    ```bash
+    Ha minden zöld:
+        git checkout main
+        git merge maintenance/test-suite-2026-06-29
+        git push
+    ```

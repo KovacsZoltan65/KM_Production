@@ -2,6 +2,7 @@
 
 namespace App\Repositories\Contracts;
 
+use App\Models\ProductionOrder;
 use App\Models\ProductionPlan;
 use Illuminate\Support\Collection;
 
@@ -22,7 +23,7 @@ interface ProductionPlanRepositoryInterface extends AdminRepositoryInterface
     public function findForShow(ProductionPlan $productionPlan): ProductionPlan;
 
     /**
-     * @return Collection<int, \App\Models\ProductionOrder>
+     * @return Collection<int, ProductionOrder>
      */
     public function generateProductionOrders(ProductionPlan $productionPlan, ?int $createdBy = null): Collection;
 

@@ -5,11 +5,13 @@ namespace App\Models;
 use App\Enums\ProductionPlanItemStatus;
 use Database\Factories\ProductionPlanItemFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
@@ -19,20 +21,21 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int|null $bom_id
  * @property int|null $operation_sequence_id
  * @property numeric $quantity
- * @property \Illuminate\Support\Carbon|null $planned_start_date
- * @property \Illuminate\Support\Carbon|null $planned_finish_date
+ * @property Carbon|null $planned_start_date
+ * @property Carbon|null $planned_finish_date
  * @property ProductionPlanItemStatus $status
  * @property string|null $notes
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property \Illuminate\Support\Carbon|null $deleted_at
- * @property-read \App\Models\CustomerOrderItem|null $customerOrderItem
- * @property-read \App\Models\Bom|null $bom
- * @property-read \App\Models\Item|null $item
- * @property-read \App\Models\OperationSequence|null $operationSequence
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ProductionOrder> $productionOrders
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ * @property-read CustomerOrderItem|null $customerOrderItem
+ * @property-read Bom|null $bom
+ * @property-read Item|null $item
+ * @property-read OperationSequence|null $operationSequence
+ * @property-read Collection<int, ProductionOrder> $productionOrders
  * @property-read int|null $production_orders_count
- * @property-read \App\Models\ProductionPlan|null $productionPlan
+ * @property-read ProductionPlan|null $productionPlan
+ *
  * @method static \Database\Factories\ProductionPlanItemFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ProductionPlanItem newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ProductionPlanItem newQuery()
@@ -52,6 +55,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ProductionPlanItem whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ProductionPlanItem withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ProductionPlanItem withoutTrashed()
+ *
  * @mixin \Eloquent
  */
 #[Fillable([

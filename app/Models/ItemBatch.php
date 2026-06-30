@@ -8,20 +8,22 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
  * @property int $item_id
  * @property string $batch_number
  * @property int|null $supplier_id
- * @property \Illuminate\Support\Carbon|null $received_at
- * @property \Illuminate\Support\Carbon|null $expires_at
+ * @property Carbon|null $received_at
+ * @property Carbon|null $expires_at
  * @property string|null $notes
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property \Illuminate\Support\Carbon|null $deleted_at
- * @property-read \App\Models\Item|null $item
- * @property-read \App\Models\Supplier|null $supplier
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ * @property-read Item|null $item
+ * @property-read Supplier|null $supplier
+ *
  * @method static \Database\Factories\ItemBatchFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ItemBatch newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ItemBatch newQuery()
@@ -39,6 +41,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ItemBatch whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ItemBatch withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ItemBatch withoutTrashed()
+ *
  * @mixin \Eloquent
  */
 #[Fillable([

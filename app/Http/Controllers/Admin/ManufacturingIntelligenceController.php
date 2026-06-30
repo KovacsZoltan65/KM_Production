@@ -26,10 +26,6 @@ class ManufacturingIntelligenceController extends Controller
         private readonly ProcurementRecommendationService $recommendations,
     ) {}
 
-    /**
-     * @param Request $request
-     * @return Response
-     */
     public function dashboard(Request $request): Response
     {
         $this->authorizeView($request);
@@ -39,10 +35,6 @@ class ManufacturingIntelligenceController extends Controller
         ]);
     }
 
-    /**
-     * @param Request $request
-     * @return Response
-     */
     public function bottlenecks(Request $request): Response
     {
         $this->authorizeView($request);
@@ -52,10 +44,6 @@ class ManufacturingIntelligenceController extends Controller
         ]);
     }
 
-    /**
-     * @param Request $request
-     * @return Response
-     */
     public function materialForecast(Request $request): Response
     {
         $this->authorizeView($request);
@@ -65,10 +53,6 @@ class ManufacturingIntelligenceController extends Controller
         ]);
     }
 
-    /**
-     * @param Request $request
-     * @return Response
-     */
     public function supplierPerformance(Request $request): Response
     {
         $this->authorizeView($request);
@@ -78,10 +62,6 @@ class ManufacturingIntelligenceController extends Controller
         ]);
     }
 
-    /**
-     * @param Request $request
-     * @return Response
-     */
     public function qualityTrends(Request $request): Response
     {
         $this->authorizeView($request);
@@ -91,10 +71,6 @@ class ManufacturingIntelligenceController extends Controller
         ]);
     }
 
-    /**
-     * @param Request $request
-     * @return Response
-     */
     public function risks(Request $request): Response
     {
         $this->authorizeView($request);
@@ -104,10 +80,6 @@ class ManufacturingIntelligenceController extends Controller
         ]);
     }
 
-    /**
-     * @param Request $request
-     * @return Response
-     */
     public function recommendations(Request $request): Response
     {
         abort_unless($request->user()?->can('intelligence.recommendations'), 403);
@@ -117,10 +89,6 @@ class ManufacturingIntelligenceController extends Controller
         ]);
     }
 
-    /**
-     * @param Request $request
-     * @return void
-     */
     private function authorizeView(Request $request): void
     {
         abort_unless($request->user()?->can('intelligence.view'), 403);

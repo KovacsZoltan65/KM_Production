@@ -17,10 +17,6 @@ class BomController extends Controller
 {
     public function __construct(private readonly BomAdminService $service) {}
 
-    /**
-     * @param IndexRequest $request
-     * @return Response
-     */
     public function index(IndexRequest $request): Response
     {
         $this->authorize('viewAny', Bom::class);
@@ -35,10 +31,6 @@ class BomController extends Controller
         ]);
     }
 
-    /**
-     * @param StoreBomRequest $request
-     * @return RedirectResponse
-     */
     public function store(StoreBomRequest $request): RedirectResponse
     {
         $this->service->create($request->validated(), $request->user());
@@ -46,11 +38,6 @@ class BomController extends Controller
         return back()->with('success', 'BOM created.');
     }
 
-    /**
-     * @param UpdateBomRequest $request
-     * @param Bom $bom
-     * @return RedirectResponse
-     */
     public function update(UpdateBomRequest $request, Bom $bom): RedirectResponse
     {
         $this->service->update($bom, $request->validated(), $request->user());
@@ -58,10 +45,6 @@ class BomController extends Controller
         return back()->with('success', 'BOM updated.');
     }
 
-    /**
-     * @param Bom $bom
-     * @return RedirectResponse
-     */
     public function destroy(Bom $bom): RedirectResponse
     {
         $this->authorize('delete', $bom);

@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
@@ -20,18 +21,19 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property numeric $reserved_quantity
  * @property StockReservationStatus $status
  * @property int|null $reserved_by
- * @property \Illuminate\Support\Carbon|null $reserved_at
- * @property \Illuminate\Support\Carbon|null $released_at
+ * @property Carbon|null $reserved_at
+ * @property Carbon|null $released_at
  * @property string|null $notes
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property \Illuminate\Support\Carbon|null $deleted_at
- * @property-read \App\Models\CustomerOrderItem|null $customerOrderItem
- * @property-read \App\Models\Item|null $item
- * @property-read \App\Models\ItemBatch|null $itemBatch
- * @property-read \App\Models\Location|null $location
- * @property-read \App\Models\ProductionOrder|null $productionOrder
- * @property-read \App\Models\User|null $reserver
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ * @property-read CustomerOrderItem|null $customerOrderItem
+ * @property-read Item|null $item
+ * @property-read ItemBatch|null $itemBatch
+ * @property-read Location|null $location
+ * @property-read ProductionOrder|null $productionOrder
+ * @property-read User|null $reserver
+ *
  * @method static \Database\Factories\StockReservationFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|StockReservation newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|StockReservation newQuery()
@@ -54,6 +56,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|StockReservation whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|StockReservation withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|StockReservation withoutTrashed()
+ *
  * @mixin \Eloquent
  */
 #[Fillable([

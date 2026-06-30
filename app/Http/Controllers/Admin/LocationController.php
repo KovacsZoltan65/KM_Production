@@ -18,10 +18,6 @@ class LocationController extends Controller
 {
     public function __construct(private readonly LocationAdminService $service) {}
 
-    /**
-     * @param IndexRequest $request
-     * @return Response
-     */
     public function index(IndexRequest $request): Response
     {
         $this->authorize('viewAny', Location::class);
@@ -39,10 +35,6 @@ class LocationController extends Controller
         ]);
     }
 
-    /**
-     * @param StoreLocationRequest $request
-     * @return RedirectResponse
-     */
     public function store(StoreLocationRequest $request): RedirectResponse
     {
         $this->service->create($request->validated(), $request->user());
@@ -50,11 +42,6 @@ class LocationController extends Controller
         return back()->with('success', 'Location created.');
     }
 
-    /**
-     * @param UpdateLocationRequest $request
-     * @param Location $location
-     * @return RedirectResponse
-     */
     public function update(UpdateLocationRequest $request, Location $location): RedirectResponse
     {
         $this->service->update($location, $request->validated(), $request->user());
@@ -62,10 +49,6 @@ class LocationController extends Controller
         return back()->with('success', 'Location updated.');
     }
 
-    /**
-     * @param Location $location
-     * @return RedirectResponse
-     */
     public function destroy(Location $location): RedirectResponse
     {
         $this->authorize('delete', $location);

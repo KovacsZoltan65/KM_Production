@@ -17,10 +17,6 @@ class ItemController extends Controller
 {
     public function __construct(private readonly ItemAdminService $service) {}
 
-    /**
-     * @param IndexRequest $request
-     * @return Response
-     */
     public function index(IndexRequest $request): Response
     {
         $this->authorize('viewAny', Item::class);
@@ -39,8 +35,6 @@ class ItemController extends Controller
 
     /**
      * Summary of store
-     * @param StoreItemRequest $request
-     * @return RedirectResponse
      */
     public function store(StoreItemRequest $request): RedirectResponse
     {
@@ -51,9 +45,6 @@ class ItemController extends Controller
 
     /**
      * Summary of update
-     * @param UpdateItemRequest $request
-     * @param Item $item
-     * @return RedirectResponse
      */
     public function update(UpdateItemRequest $request, Item $item): RedirectResponse
     {
@@ -64,8 +55,6 @@ class ItemController extends Controller
 
     /**
      * Summary of destroy
-     * @param Item $item
-     * @return RedirectResponse
      */
     public function destroy(Item $item): RedirectResponse
     {

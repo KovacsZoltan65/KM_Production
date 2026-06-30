@@ -23,10 +23,6 @@ class CapacityController extends Controller
         private readonly LeadTimeEstimator $estimator,
     ) {}
 
-    /**
-     * @param Request $request
-     * @return Response
-     */
     public function dashboard(Request $request): Response
     {
         $request->user()?->can('capacity.view') ?: abort(403);
@@ -34,10 +30,6 @@ class CapacityController extends Controller
         return Inertia::render('Admin/Capacity/Dashboard', $this->capacity->dashboard());
     }
 
-    /**
-     * @param Request $request
-     * @return Response
-     */
     public function factoryUnits(Request $request): Response
     {
         $request->user()?->can('capacity.view') ?: abort(403);
@@ -47,10 +39,6 @@ class CapacityController extends Controller
         ]);
     }
 
-    /**
-     * @param Request $request
-     * @return Response
-     */
     public function employees(Request $request): Response
     {
         $request->user()?->can('capacity.view') ?: abort(403);
@@ -60,10 +48,6 @@ class CapacityController extends Controller
         ]);
     }
 
-    /**
-     * @param Request $request
-     * @return Response
-     */
     public function schedule(Request $request): Response
     {
         $request->user()?->can('capacity.view') ?: abort(403);
@@ -75,10 +59,6 @@ class CapacityController extends Controller
         ]);
     }
 
-    /**
-     * @param ScheduleProductionOrderRequest $request
-     * @return RedirectResponse
-     */
     public function storeSchedule(ScheduleProductionOrderRequest $request): RedirectResponse
     {
         if ($request->boolean('override') && ! ($request->user()?->can('capacity.override') ?? false)) {
@@ -92,10 +72,6 @@ class CapacityController extends Controller
         return back()->with('success', 'Capacity schedule generated.');
     }
 
-    /**
-     * @param Request $request
-     * @return Response
-     */
     public function simulate(Request $request): Response
     {
         $request->user()?->can('capacity.view') ?: abort(403);
@@ -106,10 +82,6 @@ class CapacityController extends Controller
         ]);
     }
 
-    /**
-     * @param SimulateCapacityRequest $request
-     * @return Response
-     */
     public function runSimulation(SimulateCapacityRequest $request): Response
     {
         $customerOrder = CustomerOrder::query()->findOrFail($request->integer('customer_order_id'));

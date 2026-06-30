@@ -22,10 +22,6 @@ class CustomerOrderController extends Controller
 {
     public function __construct(private readonly CustomerOrderService $service) {}
 
-    /**
-     * @param IndexRequest $request
-     * @return Response
-     */
     public function index(IndexRequest $request): Response
     {
         $this->authorize('viewAny', CustomerOrder::class);
@@ -39,10 +35,6 @@ class CustomerOrderController extends Controller
         ]);
     }
 
-    /**
-     * @param CustomerOrder $customerOrder
-     * @return Response
-     */
     public function show(CustomerOrder $customerOrder): Response
     {
         $this->authorize('view', $customerOrder);
@@ -53,10 +45,6 @@ class CustomerOrderController extends Controller
         ]);
     }
 
-    /**
-     * @param StoreCustomerOrderRequest $request
-     * @return RedirectResponse
-     */
     public function store(StoreCustomerOrderRequest $request): RedirectResponse
     {
         $this->service->create($request->validated(), $request->user());
@@ -64,11 +52,6 @@ class CustomerOrderController extends Controller
         return back()->with('success', 'Customer order created.');
     }
 
-    /**
-     * @param UpdateCustomerOrderRequest $request
-     * @param CustomerOrder $customerOrder
-     * @return RedirectResponse
-     */
     public function update(UpdateCustomerOrderRequest $request, CustomerOrder $customerOrder): RedirectResponse
     {
         $this->service->update($customerOrder, $request->validated(), $request->user());
@@ -76,10 +59,6 @@ class CustomerOrderController extends Controller
         return back()->with('success', 'Customer order updated.');
     }
 
-    /**
-     * @param CustomerOrder $customerOrder
-     * @return RedirectResponse
-     */
     public function destroy(CustomerOrder $customerOrder): RedirectResponse
     {
         $this->authorize('delete', $customerOrder);
@@ -88,11 +67,6 @@ class CustomerOrderController extends Controller
         return back()->with('success', 'Customer order deleted.');
     }
 
-    /**
-     * @param ConfirmCustomerOrderRequest $request
-     * @param CustomerOrder $customerOrder
-     * @return RedirectResponse
-     */
     public function confirm(ConfirmCustomerOrderRequest $request, CustomerOrder $customerOrder): RedirectResponse
     {
         $this->service->confirm($customerOrder, $request->user());
@@ -100,11 +74,6 @@ class CustomerOrderController extends Controller
         return back()->with('success', 'Customer order confirmed.');
     }
 
-    /**
-     * @param CancelCustomerOrderRequest $request
-     * @param CustomerOrder $customerOrder
-     * @return RedirectResponse
-     */
     public function cancel(CancelCustomerOrderRequest $request, CustomerOrder $customerOrder): RedirectResponse
     {
         $this->service->cancel($customerOrder, $request->user());

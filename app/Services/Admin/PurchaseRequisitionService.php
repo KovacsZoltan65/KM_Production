@@ -14,7 +14,6 @@ use App\Models\User;
 use App\Repositories\Contracts\PurchaseRequisitionRepositoryInterface;
 use App\Services\AuditLogService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 

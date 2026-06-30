@@ -16,10 +16,6 @@ class SupplierController extends Controller
 {
     public function __construct(private readonly SupplierAdminService $service) {}
 
-    /**
-     * @param IndexRequest $request
-     * @return Response
-     */
     public function index(IndexRequest $request): Response
     {
         $this->authorize('viewAny', Supplier::class);
@@ -30,10 +26,6 @@ class SupplierController extends Controller
         ]);
     }
 
-    /**
-     * @param StoreSupplierRequest $request
-     * @return RedirectResponse
-     */
     public function store(StoreSupplierRequest $request): RedirectResponse
     {
         $this->service->create($request->validated(), $request->user());
@@ -41,11 +33,6 @@ class SupplierController extends Controller
         return back()->with('success', 'Supplier created.');
     }
 
-    /**
-     * @param UpdateSupplierRequest $request
-     * @param Supplier $supplier
-     * @return RedirectResponse
-     */
     public function update(UpdateSupplierRequest $request, Supplier $supplier): RedirectResponse
     {
         $this->service->update($supplier, $request->validated(), $request->user());
@@ -53,10 +40,6 @@ class SupplierController extends Controller
         return back()->with('success', 'Supplier updated.');
     }
 
-    /**
-     * @param Supplier $supplier
-     * @return RedirectResponse
-     */
     public function destroy(Supplier $supplier): RedirectResponse
     {
         $this->authorize('delete', $supplier);

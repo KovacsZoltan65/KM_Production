@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
@@ -21,12 +22,13 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string $unit
  * @property PurchaseRequisitionItemStatus $status
  * @property string|null $notes
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property \Illuminate\Support\Carbon|null $deleted_at
- * @property-read \App\Models\Item|null $item
- * @property-read \App\Models\MaterialRequirement|null $materialRequirement
- * @property-read \App\Models\PurchaseRequisition|null $purchaseRequisition
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ * @property-read Item|null $item
+ * @property-read MaterialRequirement|null $materialRequirement
+ * @property-read PurchaseRequisition|null $purchaseRequisition
+ *
  * @method static \Database\Factories\PurchaseRequisitionItemFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PurchaseRequisitionItem newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PurchaseRequisitionItem newQuery()
@@ -45,6 +47,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PurchaseRequisitionItem whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PurchaseRequisitionItem withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PurchaseRequisitionItem withoutTrashed()
+ *
  * @mixin \Eloquent
  */
 #[Fillable([

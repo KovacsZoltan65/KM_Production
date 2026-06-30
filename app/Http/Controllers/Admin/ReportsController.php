@@ -15,10 +15,6 @@ class ReportsController extends Controller
 {
     public function __construct(private readonly ReportingService $service) {}
 
-    /**
-     * @param IndexRequest $request
-     * @return Response
-     */
     public function customerOrders(IndexRequest $request): Response
     {
         $this->authorizeReports($request);
@@ -31,10 +27,6 @@ class ReportsController extends Controller
         ]);
     }
 
-    /**
-     * @param Request $request
-     * @return Response
-     */
     public function production(Request $request): Response
     {
         $this->authorizeReports($request);
@@ -44,10 +36,6 @@ class ReportsController extends Controller
         ]);
     }
 
-    /**
-     * @param Request $request
-     * @return Response
-     */
     public function inventory(Request $request): Response
     {
         $this->authorizeReports($request);
@@ -57,10 +45,6 @@ class ReportsController extends Controller
         ]);
     }
 
-    /**
-     * @param Request $request
-     * @return Response
-     */
     public function procurement(Request $request): Response
     {
         $this->authorizeReports($request);
@@ -70,10 +54,6 @@ class ReportsController extends Controller
         ]);
     }
 
-    /**
-     * @param Request $request
-     * @return Response
-     */
     public function quality(Request $request): Response
     {
         $this->authorizeReports($request);
@@ -83,10 +63,6 @@ class ReportsController extends Controller
         ]);
     }
 
-    /**
-     * @param Request $request
-     * @return Response
-     */
     public function shopFloor(Request $request): Response
     {
         $this->authorizeReports($request);
@@ -98,8 +74,6 @@ class ReportsController extends Controller
 
     /**
      * Summary of authorizeReports
-     * @param Request $request
-     * @return void
      */
     private function authorizeReports(Request $request): void
     {

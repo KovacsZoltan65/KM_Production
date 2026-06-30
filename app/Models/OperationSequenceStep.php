@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
@@ -18,12 +19,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $estimated_duration_minutes
  * @property bool $requires_quality_check
  * @property string|null $instructions
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \App\Models\FactoryUnit|null $factoryUnit
- * @property-read \App\Models\OperationSequence|null $operationSequence
- * @property-read \App\Models\OperationType|null $operationType
- * @property-read \App\Models\ProfessionalRole|null $professionalRole
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read FactoryUnit|null $factoryUnit
+ * @property-read OperationSequence|null $operationSequence
+ * @property-read OperationType|null $operationType
+ * @property-read ProfessionalRole|null $professionalRole
+ *
  * @method static \Database\Factories\OperationSequenceStepFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|OperationSequenceStep newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|OperationSequenceStep newQuery()
@@ -39,6 +41,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|OperationSequenceStep whereRequiresQualityCheck($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|OperationSequenceStep whereStepOrder($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|OperationSequenceStep whereUpdatedAt($value)
+ *
  * @mixin \Eloquent
  */
 #[Fillable([

@@ -5,10 +5,12 @@ namespace App\Models;
 use App\Enums\ItemInstanceStatus;
 use Database\Factories\ItemInstanceFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
@@ -18,15 +20,16 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int|null $current_location_id
  * @property ItemInstanceStatus $current_status
  * @property int|null $production_order_id
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ItemInstanceRelation> $childRelations
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read Collection<int, ItemInstanceRelation> $childRelations
  * @property-read int|null $child_relations_count
- * @property-read \App\Models\Location|null $currentLocation
- * @property-read \App\Models\FactoryUnit|null $factoryUnit
- * @property-read \App\Models\Item|null $item
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ItemInstanceRelation> $parentRelations
+ * @property-read Location|null $currentLocation
+ * @property-read FactoryUnit|null $factoryUnit
+ * @property-read Item|null $item
+ * @property-read Collection<int, ItemInstanceRelation> $parentRelations
  * @property-read int|null $parent_relations_count
+ *
  * @method static \Database\Factories\ItemInstanceFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ItemInstance newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ItemInstance newQuery()
@@ -40,6 +43,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ItemInstance whereProductionOrderId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ItemInstance whereSerialNumber($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ItemInstance whereUpdatedAt($value)
+ *
  * @mixin \Eloquent
  */
 #[Fillable([

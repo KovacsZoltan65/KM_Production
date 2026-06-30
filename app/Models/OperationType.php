@@ -5,10 +5,12 @@ namespace App\Models;
 use App\Enums\OperationTypeCode;
 use Database\Factories\OperationTypeFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
@@ -16,11 +18,12 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string $name
  * @property string|null $description
  * @property bool $is_active
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property \Illuminate\Support\Carbon|null $deleted_at
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\OperationSequenceStep> $operationSequenceSteps
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ * @property-read Collection<int, OperationSequenceStep> $operationSequenceSteps
  * @property-read int|null $operation_sequence_steps_count
+ *
  * @method static \Database\Factories\OperationTypeFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|OperationType newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|OperationType newQuery()
@@ -36,6 +39,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|OperationType whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|OperationType withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|OperationType withoutTrashed()
+ *
  * @mixin \Eloquent
  */
 #[Fillable([

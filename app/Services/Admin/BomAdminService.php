@@ -17,8 +17,6 @@ class BomAdminService
 
     /**
      * @param  array<string, mixed>  $filters
-     * @param int $perPage
-     * @return LengthAwarePaginator
      */
     public function paginateForAdminIndex(array $filters, int $perPage = 10): LengthAwarePaginator
     {
@@ -27,8 +25,7 @@ class BomAdminService
 
     /**
      * @param  array<string, mixed>  $payload
-     * @param mixed $causer
-     * @return Bom
+     * @param  mixed  $causer
      */
     public function create(array $payload, ?User $causer = null): Bom
     {
@@ -42,10 +39,8 @@ class BomAdminService
     }
 
     /**
-     * @param Bom $bom
      * @param  array<string, mixed>  $payload
-     * @param mixed $causer
-     * @return Bom
+     * @param  mixed  $causer
      */
     public function update(Bom $bom, array $payload, ?User $causer = null): Bom
     {
@@ -59,9 +54,7 @@ class BomAdminService
     }
 
     /**
-     * @param Bom $bom
-     * @param mixed $causer
-     * @return void
+     * @param  mixed  $causer
      */
     public function delete(Bom $bom, ?User $causer = null): void
     {
