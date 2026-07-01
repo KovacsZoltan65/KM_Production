@@ -36,14 +36,14 @@ class EmployeeController extends Controller
     {
         $this->service->create($request->validated(), $request->user());
 
-        return back()->with('success', 'Employee created.');
+        return back()->with('success', __('messages.created'));
     }
 
     public function update(UpdateEmployeeRequest $request, Employee $employee): RedirectResponse
     {
         $this->service->update($employee, $request->validated(), $request->user());
 
-        return back()->with('success', 'Employee updated.');
+        return back()->with('success', __('messages.updated'));
     }
 
     public function destroy(Employee $employee): RedirectResponse
@@ -51,6 +51,6 @@ class EmployeeController extends Controller
         $this->authorize('delete', $employee);
         $this->service->delete($employee, request()->user());
 
-        return back()->with('success', 'Employee deleted.');
+        return back()->with('success', __('messages.deleted'));
     }
 }

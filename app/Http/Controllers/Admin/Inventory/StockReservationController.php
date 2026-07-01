@@ -35,7 +35,7 @@ class StockReservationController extends Controller
     {
         $this->reservationService->release($stockReservation, $request->user());
 
-        return back()->with('success', 'Stock reservation released.');
+        return back()->with('success', __('inventory.stock_reservations.released'));
     }
 
     /**

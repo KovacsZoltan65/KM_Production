@@ -43,14 +43,14 @@ class UserController extends Controller
     {
         $this->service->create($request->validated(), $request->user());
 
-        return back()->with('success', 'User created.');
+        return back()->with('success', __('messages.created'));
     }
 
     public function update(UpdateUserRequest $request, User $user): RedirectResponse
     {
         $this->service->update($user, $request->validated(), $request->user());
 
-        return back()->with('success', 'User updated.');
+        return back()->with('success', __('messages.updated'));
     }
 
     public function destroy(User $user): RedirectResponse
@@ -58,6 +58,6 @@ class UserController extends Controller
         $this->authorize('delete', $user);
         $this->service->delete($user, request()->user());
 
-        return back()->with('success', 'User deleted.');
+        return back()->with('success', __('messages.deleted'));
     }
 }

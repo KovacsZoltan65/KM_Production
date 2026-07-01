@@ -10,6 +10,7 @@ import Select from 'primevue/select';
 import Tag from 'primevue/tag';
 import Toast from 'primevue/toast';
 import { useToast } from 'primevue/usetoast';
+import { trans } from 'laravel-vue-i18n';
 import { onMounted, ref, watch } from 'vue';
 
 const props = defineProps({ records: Object, filters: Object, statusOptions: Array, supplierOptions: Array });
@@ -31,22 +32,22 @@ watch(() => page.props.flash?.success, flash);
 </script>
 
 <template>
-    <Head title="Purchase Orders" />
+    <Head :title="trans('procurement.purchase_orders.title')" />
     <AdminLayout>
         <Toast />
         <div class="space-y-4">
-            <AdminPageHeader title="Purchase Orders" subtitle="Supplier commitments generated from approved requisitions." :can-create="false" />
+            <AdminPageHeader title="" title-key="procurement.purchase_orders.title" subtitle-key="procurement.purchase_orders.subtitle" :can-create="false" />
             <AdminSearchBar v-model="search" v-model:per-page="perPage" @search="reload(1)" />
             <div class="grid gap-3 rounded border border-slate-200 bg-white p-3 md:grid-cols-2">
-                <Select v-model="status" :options="statusOptions" option-label="label" option-value="value" placeholder="Status" show-clear @change="reload(1)" />
-                <Select v-model="supplierId" :options="supplierOptions" option-label="label" option-value="id" placeholder="Supplier" show-clear filter @change="reload(1)" />
+                <Select v-model="status" :options="statusOptions" option-label="label" option-value="value" :placeholder="trans('filters.status')" show-clear @change="reload(1)" />
+                <Select v-model="supplierId" :options="supplierOptions" option-label="label" option-value="id" :placeholder="trans('fields.supplier')" show-clear filter @change="reload(1)" />
             </div>
             <DataTable :value="records.data" lazy paginator :rows="records.per_page" :first="(records.current_page - 1) * records.per_page" :total-records="records.total" :sort-field="sortField" :sort-order="sortOrder" data-key="id" class="rounded border border-slate-200 bg-white" @page="(event) => { perPage = event.rows; reload(event.page + 1); }" @sort="(event) => { sortField = event.sortField; sortOrder = event.sortOrder; reload(1); }">
-                <Column field="order_number" header="Order" sortable><template #body="{ data }"><Link :href="route('admin.purchase-orders.show', data.id)" class="font-medium text-blue-700 hover:underline">{{ data.order_number }}</Link></template></Column>
-                <Column header="Supplier"><template #body="{ data }">{{ data.supplier?.name || '-' }}</template></Column>
-                <Column field="status" header="Status" sortable><template #body="{ data }"><Tag :value="data.status" :severity="severity(data.status)" /></template></Column>
-                <Column field="items_count" header="Items" />
-                <Column field="expected_delivery_date" header="Expected" sortable><template #body="{ data }">{{ dateValue(data.expected_delivery_date) }}</template></Column>
+                <Column field="order_number" :header="trans('fields.order')" sortable><template #body="{ data }"><Link :href="route('admin.purchase-orders.show', data.id)" class="font-medium text-blue-700 hover:underline">{{ data.order_number }}</Link></template></Column>
+                <Column :header="trans('fields.supplier')"><template #body="{ data }">{{ data.supplier?.name || '-' }}</template></Column>
+                <Column field="status" :header="trans('fields.status')" sortable><template #body="{ data }"><Tag :value="trans(`status.${data.status}`)" :severity="severity(data.status)" /></template></Column>
+                <Column field="items_count" :header="trans('fields.items')" />
+                <Column field="expected_delivery_date" :header="trans('fields.expected')" sortable><template #body="{ data }">{{ dateValue(data.expected_delivery_date) }}</template></Column>
             </DataTable>
         </div>
     </AdminLayout>

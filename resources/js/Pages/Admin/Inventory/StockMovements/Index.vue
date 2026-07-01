@@ -8,7 +8,8 @@ import Column from 'primevue/column';
 import DataTable from 'primevue/datatable';
 import DatePicker from 'primevue/datepicker';
 import Select from 'primevue/select';
-import { ref } from 'vue';
+import { trans } from 'laravel-vue-i18n';
+import { computed, ref } from 'vue';
 
 const props = defineProps({
     records: Object,
@@ -31,6 +32,10 @@ const sortOrder = ref((props.filters.direction || 'desc') === 'asc' ? 1 : -1);
 const formatDate = (value) => (value ? new Date(value).toLocaleString() : '-');
 const number = (value) => Number(value || 0).toFixed(3);
 const isoDate = (value) => (value ? value.toISOString().slice(0, 10) : undefined);
+const movementTypeChoices = computed(() => props.movementTypeOptions.map((option) => ({
+    ...option,
+    label: trans(`enum.stock_movement_type.${option.value}`),
+})));
 
 const query = (page = 1) => ({
     search: search.value || undefined,
@@ -51,34 +56,34 @@ const onSort = (event) => { sortField.value = event.sortField; sortOrder.value =
 </script>
 
 <template>
-    <Head title="Stock Movements" />
+    <Head :title="trans('inventory.stock_movements.title')" />
 
     <AdminLayout>
         <div class="space-y-4">
-            <AdminPageHeader title="Stock Movements" subtitle="Review stock movement history and source traces." :can-create="false" />
+            <AdminPageHeader title="" title-key="inventory.stock_movements.title" subtitle-key="inventory.stock_movements.subtitle" :can-create="false" />
             <AdminSearchBar v-model="search" v-model:per-page="perPage" @search="reload(1)" />
 
             <div class="grid gap-3 rounded border border-slate-200 bg-white p-3 md:grid-cols-5">
-                <Select v-model="movementType" :options="movementTypeOptions" option-label="label" option-value="value" placeholder="Movement type" show-clear @change="reload(1)" />
-                <Select v-model="itemId" :options="itemOptions" option-label="label" option-value="id" placeholder="Item" show-clear filter @change="reload(1)" />
-                <Select v-model="locationId" :options="locationOptions" option-label="label" option-value="id" placeholder="Location" show-clear filter @change="reload(1)" />
-                <DatePicker v-model="dateFrom" date-format="yy-mm-dd" placeholder="From" show-icon @date-select="reload(1)" />
-                <DatePicker v-model="dateTo" date-format="yy-mm-dd" placeholder="To" show-icon @date-select="reload(1)" />
+                <Select v-model="movementType" :options="movementTypeChoices" option-label="label" option-value="value" :placeholder="trans('filters.movement_type')" show-clear @change="reload(1)" />
+                <Select v-model="itemId" :options="itemOptions" option-label="label" option-value="id" :placeholder="trans('fields.item')" show-clear filter @change="reload(1)" />
+                <Select v-model="locationId" :options="locationOptions" option-label="label" option-value="id" :placeholder="trans('fields.location')" show-clear filter @change="reload(1)" />
+                <DatePicker v-model="dateFrom" date-format="yy-mm-dd" :placeholder="trans('filters.from')" show-icon @date-select="reload(1)" />
+                <DatePicker v-model="dateTo" date-format="yy-mm-dd" :placeholder="trans('filters.to')" show-icon @date-select="reload(1)" />
             </div>
 
             <DataTable :value="records.data" lazy paginator :rows="records.per_page" :first="(records.current_page - 1) * records.per_page" :total-records="records.total" :sort-field="sortField" :sort-order="sortOrder" data-key="id" class="rounded border border-slate-200 bg-white" @page="onPage" @sort="onSort">
-                <Column header="Item" field="item_id" sortable>
+                <Column :header="trans('fields.item')" field="item_id" sortable>
                     <template #body="{ data }">{{ data.item?.item_number }} - {{ data.item?.name }}</template>
                 </Column>
-                <Column header="Batch" field="item_batch_id"><template #body="{ data }">{{ data.item_batch?.batch_number || '-' }}</template></Column>
-                <Column header="Instance" field="item_instance_id"><template #body="{ data }">{{ data.item_instance?.serial_number || '-' }}</template></Column>
-                <Column header="From" field="from_location_id"><template #body="{ data }">{{ data.from_location?.code || '-' }}</template></Column>
-                <Column header="To" field="to_location_id"><template #body="{ data }">{{ data.to_location?.code || '-' }}</template></Column>
-                <Column header="Qty" field="quantity" sortable><template #body="{ data }">{{ number(data.quantity) }}</template></Column>
-                <Column header="Type" field="movement_type" sortable />
-                <Column header="Source"><template #body="{ data }">{{ data.source_type || '-' }} #{{ data.source_id || '-' }}</template></Column>
-                <Column header="By"><template #body="{ data }">{{ data.performer?.name || '-' }}</template></Column>
-                <Column header="At" field="performed_at" sortable><template #body="{ data }">{{ formatDate(data.performed_at) }}</template></Column>
+                <Column :header="trans('fields.batch')" field="item_batch_id"><template #body="{ data }">{{ data.item_batch?.batch_number || '-' }}</template></Column>
+                <Column :header="trans('fields.instance')" field="item_instance_id"><template #body="{ data }">{{ data.item_instance?.serial_number || '-' }}</template></Column>
+                <Column :header="trans('filters.from')" field="from_location_id"><template #body="{ data }">{{ data.from_location?.code || '-' }}</template></Column>
+                <Column :header="trans('filters.to')" field="to_location_id"><template #body="{ data }">{{ data.to_location?.code || '-' }}</template></Column>
+                <Column :header="trans('fields.quantity_short')" field="quantity" sortable><template #body="{ data }">{{ number(data.quantity) }}</template></Column>
+                <Column :header="trans('fields.type')" field="movement_type" sortable><template #body="{ data }">{{ trans(`enum.stock_movement_type.${data.movement_type}`) }}</template></Column>
+                <Column :header="trans('fields.source')"><template #body="{ data }">{{ data.source_type || '-' }} #{{ data.source_id || '-' }}</template></Column>
+                <Column :header="trans('fields.by')"><template #body="{ data }">{{ data.performer?.name || '-' }}</template></Column>
+                <Column :header="trans('fields.at')" field="performed_at" sortable><template #body="{ data }">{{ formatDate(data.performed_at) }}</template></Column>
             </DataTable>
         </div>
     </AdminLayout>

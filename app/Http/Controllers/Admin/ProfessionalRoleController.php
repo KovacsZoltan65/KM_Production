@@ -30,14 +30,14 @@ class ProfessionalRoleController extends Controller
     {
         $this->service->create($request->validated(), $request->user());
 
-        return back()->with('success', 'Professional role created.');
+        return back()->with('success', __('messages.created'));
     }
 
     public function update(UpdateProfessionalRoleRequest $request, ProfessionalRole $professionalRole): RedirectResponse
     {
         $this->service->update($professionalRole, $request->validated(), $request->user());
 
-        return back()->with('success', 'Professional role updated.');
+        return back()->with('success', __('messages.updated'));
     }
 
     public function destroy(ProfessionalRole $professionalRole): RedirectResponse
@@ -45,6 +45,6 @@ class ProfessionalRoleController extends Controller
         $this->authorize('delete', $professionalRole);
         $this->service->delete($professionalRole, request()->user());
 
-        return back()->with('success', 'Professional role deleted.');
+        return back()->with('success', __('messages.deleted'));
     }
 }

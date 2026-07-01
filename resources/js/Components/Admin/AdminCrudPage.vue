@@ -87,7 +87,9 @@ const optionItems = (field) => {
         }
 
         return {
-            label: field.optionLabel ? option[field.optionLabel] : option.label || option.name || option.code,
+            label: field.enumKey && (option.value ?? option.id)
+                ? trans(`${field.enumKey}.${option.value ?? option.id}`)
+                : field.optionLabel ? option[field.optionLabel] : option.label || option.name || option.code,
             value: field.optionValue ? option[field.optionValue] : option.value ?? option.id,
         };
     });

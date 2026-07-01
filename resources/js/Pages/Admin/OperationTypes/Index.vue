@@ -8,26 +8,27 @@ defineProps({
 });
 
 const columns = [
-    { field: 'code', header: 'Code' },
-    { field: 'name', header: 'Name' },
-    { field: 'description', header: 'Description' },
-    { field: 'is_active', header: 'Status', type: 'status' },
+    { field: 'code', headerKey: 'fields.code' },
+    { field: 'name', headerKey: 'fields.name' },
+    { field: 'description', headerKey: 'fields.description' },
+    { field: 'is_active', headerKey: 'fields.status', type: 'status' },
 ];
 
 const fields = [
-    { name: 'code', label: 'Code', type: 'select', options: 'operationTypeCodes' },
-    { name: 'name', label: 'Name', type: 'text' },
-    { name: 'description', label: 'Description', type: 'textarea' },
-    { name: 'is_active', label: 'Active', type: 'checkbox', default: true },
+    { name: 'code', labelKey: 'fields.code', type: 'select', options: 'operationTypeCodes' },
+    { name: 'name', labelKey: 'fields.name', type: 'text' },
+    { name: 'description', labelKey: 'fields.description', type: 'textarea' },
+    { name: 'is_active', labelKey: 'status.active', type: 'checkbox', default: true },
 ];
 </script>
 
 <template>
     <AdminCrudPage
-        title="Operation Types"
-        subtitle="Manage reusable manufacturing operation types."
+        title=""
+        title-key="master_data.operation_types.title"
+        subtitle-key="master_data.operation_types.subtitle"
         route-name="admin.operation-types"
-        create-label="Create operation type"
+        create-label-key="master_data.operation_types.create"
         :records="records"
         :filters="filters"
         :columns="columns"

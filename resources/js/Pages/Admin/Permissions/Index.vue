@@ -7,15 +7,16 @@ defineProps({
 });
 
 const columns = [
-    { field: 'name', header: 'Name' },
-    { field: 'guard_name', header: 'Guard' },
+    { field: 'name', headerKey: 'fields.name' },
+    { field: 'guard_name', headerKey: 'fields.guard' },
 ];
 </script>
 
 <template>
     <AdminCrudPage
-        title="Permissions"
-        subtitle="Read-only list of system permissions."
+        title=""
+        title-key="master_data.permissions.title"
+        subtitle-key="master_data.permissions.subtitle"
         route-name="admin.permissions"
         :records="records"
         :filters="filters"

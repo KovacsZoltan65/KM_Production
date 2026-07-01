@@ -40,7 +40,7 @@ class ItemController extends Controller
     {
         $this->service->create($request->validated(), $request->user());
 
-        return back()->with('success', 'Item created.');
+        return back()->with('success', __('messages.created'));
     }
 
     /**
@@ -50,7 +50,7 @@ class ItemController extends Controller
     {
         $this->service->update($item, $request->validated(), $request->user());
 
-        return back()->with('success', 'Item updated.');
+        return back()->with('success', __('messages.updated'));
     }
 
     /**
@@ -61,6 +61,6 @@ class ItemController extends Controller
         $this->authorize('delete', $item);
         $this->service->delete($item, request()->user());
 
-        return back()->with('success', 'Item deleted.');
+        return back()->with('success', __('messages.deleted'));
     }
 }

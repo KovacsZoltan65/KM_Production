@@ -1,5 +1,6 @@
 <script setup>
 import Tag from 'primevue/tag';
+import { trans } from 'laravel-vue-i18n';
 
 const props = defineProps({
     value: { type: String, default: 'normal' },
@@ -17,7 +18,7 @@ const severity = {
     unknown: 'secondary',
 };
 
-const label = (value) => String(value || 'normal').replaceAll('_', ' ');
+const label = (value) => trans(`status.${value || 'normal'}`);
 </script>
 
 <template>

@@ -7,25 +7,26 @@ defineProps({
 });
 
 const columns = [
-    { field: 'code', header: 'Code' },
-    { field: 'name', header: 'Name' },
-    { field: 'is_active', header: 'Status', type: 'status' },
+    { field: 'code', headerKey: 'fields.code' },
+    { field: 'name', headerKey: 'fields.name' },
+    { field: 'is_active', headerKey: 'fields.status', type: 'status' },
 ];
 
 const fields = [
-    { name: 'code', label: 'Code', type: 'text' },
-    { name: 'name', label: 'Name', type: 'text' },
-    { name: 'description', label: 'Description', type: 'textarea' },
-    { name: 'is_active', label: 'Active', type: 'checkbox', default: true },
+    { name: 'code', labelKey: 'fields.code', type: 'text' },
+    { name: 'name', labelKey: 'fields.name', type: 'text' },
+    { name: 'description', labelKey: 'fields.description', type: 'textarea' },
+    { name: 'is_active', labelKey: 'status.active', type: 'checkbox', default: true },
 ];
 </script>
 
 <template>
     <AdminCrudPage
-        title="Professional Roles"
-        subtitle="Manage professional employee roles separately from authorization roles."
+        title=""
+        title-key="master_data.professional_roles.title"
+        subtitle-key="master_data.professional_roles.subtitle"
         route-name="admin.professional-roles"
-        create-label="Create professional role"
+        create-label-key="master_data.professional_roles.create"
         :records="records"
         :filters="filters"
         :columns="columns"
