@@ -19,17 +19,21 @@ import Textarea from 'primevue/textarea';
 import Toast from 'primevue/toast';
 import { useConfirm } from 'primevue/useconfirm';
 import { useToast } from 'primevue/usetoast';
+import { trans } from 'laravel-vue-i18n';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 
 const props = defineProps({
     title: { type: String, required: true },
+    titleKey: { type: String, default: '' },
     subtitle: { type: String, default: '' },
+    subtitleKey: { type: String, default: '' },
     routeName: { type: String, required: true },
     records: { type: Object, required: true },
     filters: { type: Object, default: () => ({}) },
     columns: { type: Array, required: true },
     fields: { type: Array, default: () => [] },
-    createLabel: { type: String, default: 'Create' },
+    createLabel: { type: String, default: '' },
+    createLabelKey: { type: String, default: '' },
     readOnly: { type: Boolean, default: false },
     options: { type: Object, default: () => ({}) },
 });
@@ -46,7 +50,14 @@ const sortOrder = ref((props.filters.direction || 'asc') === 'desc' ? -1 : 1);
 const form = reactive({});
 const errors = ref({});
 
-const pageTitle = computed(() => (editingRecord.value ? `Edit ${props.title}` : props.createLabel));
+const resolvedTitle = computed(() => props.titleKey ? trans(props.titleKey) : props.title);
+const resolvedSubtitle = computed(() => props.subtitleKey ? trans(props.subtitleKey) : props.subtitle);
+const resolvedCreateLabel = computed(() => props.createLabelKey ? trans(props.createLabelKey) : props.createLabel || trans('actions.create'));
+const pageTitle = computed(() =>
+    editingRecord.value
+        ? trans('admin.crud.edit_title', { title: resolvedTitle.value })
+        : resolvedCreateLabel.value,
+);
 const indexRoute = computed(() => `${props.routeName}.index`);
 const storeRoute = computed(() => `${props.routeName}.store`);
 const updateRoute = computed(() => `${props.routeName}.update`);
@@ -159,8 +170,8 @@ const submit = () => {
 
 const destroyRecord = (record) => {
     confirm.require({
-        message: 'Delete this record?',
-        header: 'Confirm delete',
+        message: trans('admin.crud.confirm_delete_message'),
+        header: trans('admin.crud.confirm_delete_header'),
         icon: 'pi pi-exclamation-triangle',
         acceptClass: 'p-button-danger',
         accept: () => router.delete(route(destroyRoute.value, record.id), { preserveScroll: true }),
@@ -174,10 +185,16 @@ const resolveValue = (record, column) => {
 
     return column.field.split('.').reduce((value, key) => value?.[key], record);
 };
+
+const resolveColumnHeader = (column) => column.headerKey ? trans(column.headerKey) : column.header;
+const resolveFieldLabel = (field) => field.labelKey ? trans(field.labelKey) : field.label;
+const resolveCheckboxLabel = (field) => field.checkboxLabelKey
+    ? trans(field.checkboxLabelKey)
+    : field.checkboxLabel || resolveFieldLabel(field);
 </script>
 
 <template>
-    <Head :title="title" />
+    <Head :title="resolvedTitle" />
 
     <AdminLayout>
         <Toast />
@@ -185,9 +202,9 @@ const resolveValue = (record, column) => {
 
         <div class="space-y-4">
             <AdminPageHeader
-                :title="title"
-                :subtitle="subtitle"
-                :create-label="createLabel"
+                :title="resolvedTitle"
+                :subtitle="resolvedSubtitle"
+                :create-label="resolvedCreateLabel"
                 :can-create="!readOnly"
                 @create="openCreate"
             />
@@ -212,7 +229,7 @@ const resolveValue = (record, column) => {
                     v-for="column in columns"
                     :key="column.field"
                     :field="column.sortField || column.field"
-                    :header="column.header"
+                    :header="resolveColumnHeader(column)"
                     :sortable="column.sortable !== false"
                 >
                     <template #body="{ data }">
@@ -232,7 +249,7 @@ const resolveValue = (record, column) => {
         <Dialog v-model:visible="dialogVisible" modal :header="pageTitle" class="w-[min(42rem,calc(100vw-2rem))]">
             <form class="space-y-4" @submit.prevent="submit">
                 <div v-for="field in fields" :key="field.name" class="space-y-2">
-                    <label :for="field.name" class="text-sm font-medium">{{ field.label }}</label>
+                    <label :for="field.name" class="text-sm font-medium">{{ resolveFieldLabel(field) }}</label>
 
                     <InputText
                         v-if="['text', 'email', 'password', 'date', 'number'].includes(field.type)"
@@ -270,15 +287,15 @@ const resolveValue = (record, column) => {
                     />
                     <label v-else-if="field.type === 'checkbox'" class="flex items-center gap-2 text-sm">
                         <Checkbox v-model="form[field.name]" :input-id="field.name" binary />
-                        <span>{{ field.checkboxLabel || field.label }}</span>
+                        <span>{{ resolveCheckboxLabel(field) }}</span>
                     </label>
 
                     <p v-if="errors[field.name]" class="text-sm text-red-600">{{ errors[field.name] }}</p>
                 </div>
 
                 <div class="flex justify-end gap-2 pt-2">
-                    <Button type="button" label="Cancel" severity="secondary" outlined @click="dialogVisible = false" />
-                    <Button type="submit" label="Save" icon="pi pi-save" />
+                    <Button type="button" :label="trans('actions.cancel')" severity="secondary" outlined @click="dialogVisible = false" />
+                    <Button type="submit" :label="trans('actions.save')" icon="pi pi-save" />
                 </div>
             </form>
         </Dialog>

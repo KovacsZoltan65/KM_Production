@@ -1,7 +1,5 @@
 <?php
 
-use League\Fractal\Serializer\DataArraySerializer;
-
 /*
 |--------------------------------------------------------------------------
 | Prettus Repository Config
@@ -37,7 +35,8 @@ return [
         'params' => [
             'include' => 'include',
         ],
-        'serializer' => DataArraySerializer::class,
+        // The Fractal presenter is optional. When league/fractal is installed
+        // and a presenter is used, Prettus falls back to DataArraySerializer.
     ],
 
     /*

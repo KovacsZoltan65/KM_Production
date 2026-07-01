@@ -9,6 +9,7 @@ export const routes = {
     'profile.edit': '/profile',
     'profile.update': '/profile',
     'profile.password': '/password',
+    'preferences.locale': '/preferences/locale',
     logout: '/logout',
     'admin.dashboard': '/admin/dashboard',
     'admin.capacity.dashboard': '/admin/capacity/dashboard',

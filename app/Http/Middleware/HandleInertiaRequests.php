@@ -47,6 +47,13 @@ class HandleInertiaRequests extends Middleware
                     ->values()
                     ->all() ?? [],
             ],
+            'preferences' => [
+                'locale' => app()->getLocale(),
+                'availableLocales' => config('app.available_locales', [
+                    ['label' => 'Magyar', 'value' => 'hu'],
+                    ['label' => 'English', 'value' => 'en'],
+                ]),
+            ],
         ];
     }
 }
