@@ -6,6 +6,7 @@ import DataTable from 'primevue/datatable';
 import InputText from 'primevue/inputtext';
 import Select from 'primevue/select';
 import Textarea from 'primevue/textarea';
+import { trans } from 'laravel-vue-i18n';
 import { computed } from 'vue';
 
 const props = defineProps({
@@ -57,12 +58,12 @@ const fieldError = (index, field) => props.errors[`steps.${index}.${field}`];
 <template>
     <div class="space-y-3 rounded border border-slate-200 p-3">
         <div class="flex items-center justify-between gap-3">
-            <h3 class="text-sm font-semibold">Sequence steps</h3>
-            <Button type="button" label="Add step" icon="pi pi-plus" size="small" outlined @click="addRow" />
+            <h3 class="text-sm font-semibold">{{ trans('operation_sequences.steps.title') }}</h3>
+            <Button type="button" :label="trans('operation_sequences.steps.add')" icon="pi pi-plus" size="small" outlined @click="addRow" />
         </div>
 
         <DataTable :value="rows" data-key="step_order" class="text-sm">
-            <Column header="Order">
+            <Column :header="trans('fields.order')">
                 <template #body="{ data, index }">
                     <InputText
                         :model-value="data.step_order"
@@ -73,7 +74,7 @@ const fieldError = (index, field) => props.errors[`steps.${index}.${field}`];
                     <p v-if="fieldError(index, 'step_order')" class="mt-1 text-xs text-red-600">{{ fieldError(index, 'step_order') }}</p>
                 </template>
             </Column>
-            <Column header="Operation">
+            <Column :header="trans('fields.operation')">
                 <template #body="{ data, index }">
                     <Select
                         :model-value="data.operation_type_id"
@@ -87,7 +88,7 @@ const fieldError = (index, field) => props.errors[`steps.${index}.${field}`];
                     <p v-if="fieldError(index, 'operation_type_id')" class="mt-1 text-xs text-red-600">{{ fieldError(index, 'operation_type_id') }}</p>
                 </template>
             </Column>
-            <Column header="Unit">
+            <Column :header="trans('fields.factory_unit')">
                 <template #body="{ data, index }">
                     <Select
                         :model-value="data.factory_unit_id"
@@ -100,7 +101,7 @@ const fieldError = (index, field) => props.errors[`steps.${index}.${field}`];
                     />
                 </template>
             </Column>
-            <Column header="Role">
+            <Column :header="trans('fields.professional_role')">
                 <template #body="{ data, index }">
                     <Select
                         :model-value="data.professional_role_id"
@@ -113,7 +114,7 @@ const fieldError = (index, field) => props.errors[`steps.${index}.${field}`];
                     />
                 </template>
             </Column>
-            <Column header="Minutes">
+            <Column :header="trans('operation_sequences.fields.minutes')">
                 <template #body="{ data, index }">
                     <InputText
                         :model-value="data.estimated_duration_minutes"
@@ -123,7 +124,7 @@ const fieldError = (index, field) => props.errors[`steps.${index}.${field}`];
                     />
                 </template>
             </Column>
-            <Column header="QC">
+            <Column :header="trans('operation_sequences.fields.quality_check')">
                 <template #body="{ data, index }">
                     <Checkbox
                         :model-value="Boolean(data.requires_quality_check)"
@@ -132,7 +133,7 @@ const fieldError = (index, field) => props.errors[`steps.${index}.${field}`];
                     />
                 </template>
             </Column>
-            <Column header="Instructions">
+            <Column :header="trans('operation_sequences.fields.instructions')">
                 <template #body="{ data, index }">
                     <Textarea
                         :model-value="data.instructions"

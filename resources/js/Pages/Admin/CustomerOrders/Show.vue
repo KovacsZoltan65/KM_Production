@@ -10,6 +10,7 @@ import DataTable from 'primevue/datatable';
 import Toast from 'primevue/toast';
 import { useConfirm } from 'primevue/useconfirm';
 import { useToast } from 'primevue/usetoast';
+import { trans } from 'laravel-vue-i18n';
 import { onMounted, watch } from 'vue';
 
 const props = defineProps({
@@ -27,8 +28,8 @@ const canCancel = () => !['completed', 'cancelled'].includes(props.customerOrder
 
 const confirmOrder = () => {
     confirm.require({
-        message: `Confirm ${props.customerOrder.order_number}?`,
-        header: 'Confirm customer order',
+        message: trans('orders.confirm.confirm_message', { name: props.customerOrder.order_number }),
+        header: trans('orders.confirm.confirm_header'),
         icon: 'pi pi-check-circle',
         accept: () => router.patch(route('admin.customer-orders.confirm', props.customerOrder.id), {}, { preserveScroll: true }),
     });
@@ -36,8 +37,8 @@ const confirmOrder = () => {
 
 const cancelOrder = () => {
     confirm.require({
-        message: `Cancel ${props.customerOrder.order_number}?`,
-        header: 'Cancel customer order',
+        message: trans('orders.confirm.cancel_message', { name: props.customerOrder.order_number }),
+        header: trans('orders.confirm.cancel_header'),
         icon: 'pi pi-exclamation-triangle',
         acceptClass: 'p-button-danger',
         accept: () => router.patch(route('admin.customer-orders.cancel', props.customerOrder.id), {}, { preserveScroll: true }),
@@ -70,7 +71,7 @@ watch(
         <div class="space-y-4">
             <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div class="space-y-2">
-                    <Link :href="route('admin.customer-orders.index')" class="text-sm text-blue-700 hover:underline">Back to customer orders</Link>
+                    <Link :href="route('admin.customer-orders.index')" class="text-sm text-blue-700 hover:underline">{{ trans('orders.actions.back_to_orders') }}</Link>
                     <div class="flex flex-wrap items-center gap-3">
                         <h1 class="text-2xl font-semibold">{{ customerOrder.order_number }}</h1>
                         <CustomerOrderStatusBadge :status="customerOrder.status" />
@@ -78,58 +79,58 @@ watch(
                     <p class="text-sm text-slate-600">{{ customerOrder.customer?.code }} - {{ customerOrder.customer?.name }}</p>
                 </div>
                 <div class="flex gap-2">
-                    <Button v-if="canConfirm()" type="button" label="Confirm" icon="pi pi-check" severity="success" @click="confirmOrder" />
-                    <Button v-if="canCancel()" type="button" label="Cancel" icon="pi pi-ban" severity="warning" outlined @click="cancelOrder" />
+                    <Button v-if="canConfirm()" type="button" :label="trans('actions.confirm')" icon="pi pi-check" severity="success" @click="confirmOrder" />
+                    <Button v-if="canCancel()" type="button" :label="trans('actions.cancel')" icon="pi pi-ban" severity="warning" outlined @click="cancelOrder" />
                 </div>
             </div>
 
             <div class="grid gap-4 md:grid-cols-3">
                 <div class="rounded border border-slate-200 bg-white p-4">
-                    <div class="text-xs font-medium uppercase text-slate-500">Customer</div>
+                    <div class="text-xs font-medium uppercase text-slate-500">{{ trans('fields.customer') }}</div>
                     <div class="mt-1 font-medium">{{ customerOrder.customer?.name }}</div>
                 </div>
                 <div class="rounded border border-slate-200 bg-white p-4">
-                    <div class="text-xs font-medium uppercase text-slate-500">Requested delivery</div>
+                    <div class="text-xs font-medium uppercase text-slate-500">{{ trans('orders.fields.requested_delivery') }}</div>
                     <div class="mt-1 font-medium">{{ dateValue(customerOrder.requested_delivery_date) }}</div>
                 </div>
                 <div class="rounded border border-slate-200 bg-white p-4">
-                    <div class="text-xs font-medium uppercase text-slate-500">Items</div>
+                    <div class="text-xs font-medium uppercase text-slate-500">{{ trans('fields.items') }}</div>
                     <div class="mt-1 font-medium">{{ customerOrder.items_count }}</div>
                 </div>
             </div>
 
             <div class="rounded border border-slate-200 bg-white p-4">
-                <div class="mb-2 text-sm font-semibold">Notes</div>
+                <div class="mb-2 text-sm font-semibold">{{ trans('fields.notes') }}</div>
                 <p class="whitespace-pre-line text-sm text-slate-700">{{ customerOrder.notes || '-' }}</p>
             </div>
 
             <div class="rounded border border-slate-200 bg-white p-4">
-                <h2 class="mb-3 text-lg font-semibold">Order items</h2>
+                <h2 class="mb-3 text-lg font-semibold">{{ trans('orders.items.title') }}</h2>
                 <DataTable :value="customerOrder.items" data-key="id">
-                    <Column header="Item">
+                    <Column :header="trans('fields.item')">
                         <template #body="{ data }">{{ data.item?.item_number }} - {{ data.item?.name }}</template>
                     </Column>
-                    <Column field="quantity" header="Quantity" />
-                    <Column field="unit" header="Unit" />
-                    <Column field="status" header="Status">
+                    <Column field="quantity" :header="trans('fields.quantity')" />
+                    <Column field="unit" :header="trans('fields.unit')" />
+                    <Column field="status" :header="trans('fields.status')">
                         <template #body="{ data }"><CustomerOrderStatusBadge :status="data.status" /></template>
                     </Column>
-                    <Column field="notes" header="Notes" />
+                    <Column field="notes" :header="trans('fields.notes')" />
                 </DataTable>
             </div>
 
             <div class="grid gap-4 md:grid-cols-3">
                 <div class="rounded border border-slate-200 bg-white p-4">
-                    <h3 class="text-sm font-semibold">Production Plans</h3>
-                    <p class="mt-2 text-sm text-slate-500">Readonly preparation for production planning.</p>
+                    <h3 class="text-sm font-semibold">{{ trans('orders.related.production_plans') }}</h3>
+                    <p class="mt-2 text-sm text-slate-500">{{ trans('orders.related.production_plans_help') }}</p>
                 </div>
                 <div class="rounded border border-slate-200 bg-white p-4">
-                    <h3 class="text-sm font-semibold">Material Requirements</h3>
-                    <p class="mt-2 text-sm text-slate-500">Readonly preparation for material planning.</p>
+                    <h3 class="text-sm font-semibold">{{ trans('orders.related.material_requirements') }}</h3>
+                    <p class="mt-2 text-sm text-slate-500">{{ trans('orders.related.material_requirements_help') }}</p>
                 </div>
                 <div class="rounded border border-slate-200 bg-white p-4">
-                    <h3 class="text-sm font-semibold">Production Orders</h3>
-                    <p class="mt-2 text-sm text-slate-500">Readonly preparation for execution planning.</p>
+                    <h3 class="text-sm font-semibold">{{ trans('orders.related.production_orders') }}</h3>
+                    <p class="mt-2 text-sm text-slate-500">{{ trans('orders.related.production_orders_help') }}</p>
                 </div>
             </div>
         </div>

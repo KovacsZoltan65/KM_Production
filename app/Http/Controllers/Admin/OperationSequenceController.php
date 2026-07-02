@@ -50,14 +50,14 @@ class OperationSequenceController extends Controller
     {
         $this->service->create($request->validated(), $request->user());
 
-        return back()->with('success', 'Operation sequence created.');
+        return back()->with('success', __('operation_sequences.messages.created'));
     }
 
     public function update(UpdateOperationSequenceRequest $request, OperationSequence $operationSequence): RedirectResponse
     {
         $this->service->update($operationSequence, $request->validated(), $request->user());
 
-        return back()->with('success', 'Operation sequence updated.');
+        return back()->with('success', __('operation_sequences.messages.updated'));
     }
 
     public function destroy(OperationSequence $operationSequence): RedirectResponse
@@ -65,6 +65,6 @@ class OperationSequenceController extends Controller
         $this->authorize('delete', $operationSequence);
         $this->service->delete($operationSequence, request()->user());
 
-        return back()->with('success', 'Operation sequence deleted.');
+        return back()->with('success', __('operation_sequences.messages.deleted'));
     }
 }

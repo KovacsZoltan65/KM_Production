@@ -5,6 +5,7 @@ import DataTable from 'primevue/datatable';
 import InputText from 'primevue/inputtext';
 import Select from 'primevue/select';
 import Textarea from 'primevue/textarea';
+import { trans } from 'laravel-vue-i18n';
 import { computed } from 'vue';
 
 const props = defineProps({
@@ -45,14 +46,14 @@ const fieldError = (index, field) => props.errors[`items.${index}.${field}`];
 <template>
     <div class="space-y-3 rounded border border-slate-200 p-3">
         <div class="flex items-center justify-between gap-3">
-            <h3 class="text-sm font-semibold">Order items</h3>
-            <Button type="button" label="Add item" icon="pi pi-plus" size="small" outlined @click="addRow" />
+            <h3 class="text-sm font-semibold">{{ trans('orders.items.title') }}</h3>
+            <Button type="button" :label="trans('orders.items.add')" icon="pi pi-plus" size="small" outlined @click="addRow" />
         </div>
 
         <p v-if="errors.items" class="text-sm text-red-600">{{ errors.items }}</p>
 
         <DataTable :value="rows" class="text-sm">
-            <Column header="Item">
+            <Column :header="trans('fields.item')">
                 <template #body="{ data, index }">
                     <Select
                         :model-value="data.item_id"
@@ -66,7 +67,7 @@ const fieldError = (index, field) => props.errors[`items.${index}.${field}`];
                     <p v-if="fieldError(index, 'item_id')" class="mt-1 text-xs text-red-600">{{ fieldError(index, 'item_id') }}</p>
                 </template>
             </Column>
-            <Column header="Quantity">
+            <Column :header="trans('fields.quantity')">
                 <template #body="{ data, index }">
                     <InputText
                         :model-value="data.quantity"
@@ -77,13 +78,13 @@ const fieldError = (index, field) => props.errors[`items.${index}.${field}`];
                     <p v-if="fieldError(index, 'quantity')" class="mt-1 text-xs text-red-600">{{ fieldError(index, 'quantity') }}</p>
                 </template>
             </Column>
-            <Column header="Unit">
+            <Column :header="trans('fields.unit')">
                 <template #body="{ data, index }">
                     <InputText :model-value="data.unit" class="w-24" @update:model-value="updateRow(index, 'unit', $event)" />
                     <p v-if="fieldError(index, 'unit')" class="mt-1 text-xs text-red-600">{{ fieldError(index, 'unit') }}</p>
                 </template>
             </Column>
-            <Column header="Notes">
+            <Column :header="trans('fields.notes')">
                 <template #body="{ data, index }">
                     <Textarea :model-value="data.notes" rows="1" class="w-full" @update:model-value="updateRow(index, 'notes', $event)" />
                 </template>

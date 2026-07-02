@@ -62,7 +62,7 @@ class CustomerOrderService
 
     public function confirm(CustomerOrder $customerOrder, ?User $causer = null): CustomerOrder
     {
-        $this->ensureStatus($customerOrder, [CustomerOrderStatus::Draft], 'Only draft customer orders can be confirmed.');
+        $this->ensureStatus($customerOrder, [CustomerOrderStatus::Draft], __('orders.validation.only_draft_confirm'));
 
         return DB::transaction(function () use ($customerOrder, $causer): CustomerOrder {
             $customerOrder = $this->repository->confirm($customerOrder);
@@ -76,7 +76,7 @@ class CustomerOrderService
     {
         if (\in_array($customerOrder->status, [CustomerOrderStatus::Completed, CustomerOrderStatus::Cancelled], true)) {
             throw ValidationException::withMessages([
-                'status' => 'Completed or already cancelled customer orders cannot be cancelled.',
+                'status' => __('orders.validation.completed_cancelled_cannot_cancel'),
             ]);
         }
 
@@ -92,7 +92,7 @@ class CustomerOrderService
     {
         if (! \in_array($customerOrder->status, [CustomerOrderStatus::Draft, CustomerOrderStatus::Cancelled], true)) {
             throw ValidationException::withMessages([
-                'status' => 'Only draft or cancelled customer orders can be deleted.',
+                'status' => __('orders.validation.only_draft_cancelled_delete'),
             ]);
         }
 

@@ -18,6 +18,7 @@ import Textarea from 'primevue/textarea';
 import Toast from 'primevue/toast';
 import { useConfirm } from 'primevue/useconfirm';
 import { useToast } from 'primevue/usetoast';
+import { trans } from 'laravel-vue-i18n';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 
 const props = defineProps({
@@ -39,7 +40,7 @@ const errors = ref({});
 const form = reactive({ item_id: null, version: 1, name: '', description: '', is_active: true, items: [] });
 
 const itemChoices = computed(() => props.itemOptions.map((item) => ({ ...item, label: `${item.item_number} - ${item.name}` })));
-const dialogTitle = computed(() => (editingRecord.value ? 'Edit BOM' : 'Create BOM'));
+const dialogTitle = computed(() => (editingRecord.value ? trans('bom.dialogs.edit') : trans('bom.dialogs.create')));
 
 const resetForm = () => {
     Object.assign(form, { item_id: null, version: 1, name: '', description: '', is_active: true, items: [] });
@@ -110,8 +111,8 @@ const submit = () => {
 
 const destroyRecord = (record) => {
     confirm.require({
-        message: 'Delete this BOM?',
-        header: 'Confirm delete',
+        message: trans('bom.confirm.delete_message'),
+        header: trans('bom.confirm.delete_header'),
         icon: 'pi pi-exclamation-triangle',
         acceptClass: 'p-button-danger',
         accept: () => router.delete(route('admin.boms.destroy', record.id), { preserveScroll: true }),
@@ -135,14 +136,14 @@ watch(
 </script>
 
 <template>
-    <Head title="BOMs" />
+    <Head :title="trans('bom.title')" />
 
     <AdminLayout>
         <Toast />
         <ConfirmDialog />
 
         <div class="space-y-4">
-            <AdminPageHeader title="BOMs" subtitle="Manage bill of materials versions and component rows." create-label="Create BOM" @create="openCreate" />
+            <AdminPageHeader title="" title-key="bom.title" subtitle-key="bom.subtitle" create-label-key="bom.actions.create" @create="openCreate" />
             <AdminSearchBar v-model="search" v-model:per-page="perPage" @search="reload(1)" />
 
             <DataTable
@@ -159,15 +160,15 @@ watch(
                 @page="(event) => { perPage = event.rows; reload(event.page + 1); }"
                 @sort="(event) => { sortField = event.sortField; sortOrder = event.sortOrder; reload(1); }"
             >
-                <Column field="name" header="Name" sortable />
-                <Column field="item_id" header="Item" sortable>
+                <Column field="name" :header="trans('fields.name')" sortable />
+                <Column field="item_id" :header="trans('fields.item')" sortable>
                     <template #body="{ data }">{{ data.item?.item_number }} - {{ data.item?.name }}</template>
                 </Column>
-                <Column field="version" header="Version" sortable />
-                <Column header="Rows">
+                <Column field="version" :header="trans('fields.version')" sortable />
+                <Column :header="trans('fields.rows')">
                     <template #body="{ data }">{{ data.bom_items?.length || 0 }}</template>
                 </Column>
-                <Column field="is_active" header="Status" sortable>
+                <Column field="is_active" :header="trans('fields.status')" sortable>
                     <template #body="{ data }"><AdminStatusBadge :active="Boolean(data.is_active)" /></template>
                 </Column>
                 <Column header="" body-style="text-align: right; width: 7rem">
@@ -180,35 +181,35 @@ watch(
             <form class="space-y-4" @submit.prevent="submit">
                 <div class="grid gap-4 md:grid-cols-2">
                     <div class="space-y-2">
-                        <label for="item_id" class="text-sm font-medium">Item</label>
+                        <label for="item_id" class="text-sm font-medium">{{ trans('fields.item') }}</label>
                         <Select id="item_id" v-model="form.item_id" :options="itemChoices" option-label="label" option-value="id" filter class="w-full" />
                         <p v-if="errors.item_id" class="text-sm text-red-600">{{ errors.item_id }}</p>
                     </div>
                     <div class="space-y-2">
-                        <label for="version" class="text-sm font-medium">Version</label>
+                        <label for="version" class="text-sm font-medium">{{ trans('fields.version') }}</label>
                         <InputText id="version" v-model="form.version" type="number" class="w-full" />
                         <p v-if="errors.version" class="text-sm text-red-600">{{ errors.version }}</p>
                     </div>
                     <div class="space-y-2">
-                        <label for="name" class="text-sm font-medium">Name</label>
+                        <label for="name" class="text-sm font-medium">{{ trans('fields.name') }}</label>
                         <InputText id="name" v-model="form.name" class="w-full" />
                         <p v-if="errors.name" class="text-sm text-red-600">{{ errors.name }}</p>
                     </div>
                     <label class="flex items-center gap-2 pt-8 text-sm">
                         <input v-model="form.is_active" type="checkbox" class="h-4 w-4" />
-                        <span>Active</span>
+                        <span>{{ trans('status.active') }}</span>
                     </label>
                 </div>
                 <div class="space-y-2">
-                    <label for="description" class="text-sm font-medium">Description</label>
+                    <label for="description" class="text-sm font-medium">{{ trans('fields.description') }}</label>
                     <Textarea id="description" v-model="form.description" rows="2" class="w-full" />
                 </div>
 
                 <BomItemsEditor v-model="form.items" :item-options="itemOptions" :errors="errors" />
 
                 <div class="flex justify-end gap-2 pt-2">
-                    <Button type="button" label="Cancel" severity="secondary" outlined @click="dialogVisible = false" />
-                    <Button type="submit" label="Save" icon="pi pi-save" />
+                    <Button type="button" :label="trans('actions.cancel')" severity="secondary" outlined @click="dialogVisible = false" />
+                    <Button type="submit" :label="trans('actions.save')" icon="pi pi-save" />
                 </div>
             </form>
         </Dialog>

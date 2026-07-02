@@ -35,14 +35,14 @@ class BomController extends Controller
     {
         $this->service->create($request->validated(), $request->user());
 
-        return back()->with('success', 'BOM created.');
+        return back()->with('success', __('bom.messages.created'));
     }
 
     public function update(UpdateBomRequest $request, Bom $bom): RedirectResponse
     {
         $this->service->update($bom, $request->validated(), $request->user());
 
-        return back()->with('success', 'BOM updated.');
+        return back()->with('success', __('bom.messages.updated'));
     }
 
     public function destroy(Bom $bom): RedirectResponse
@@ -50,6 +50,6 @@ class BomController extends Controller
         $this->authorize('delete', $bom);
         $this->service->delete($bom, request()->user());
 
-        return back()->with('success', 'BOM deleted.');
+        return back()->with('success', __('bom.messages.deleted'));
     }
 }

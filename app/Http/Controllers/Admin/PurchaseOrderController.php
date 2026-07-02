@@ -48,14 +48,14 @@ class PurchaseOrderController extends Controller
     {
         $this->service->create($request->validated(), $request->user());
 
-        return back()->with('success', 'Purchase order created.');
+        return back()->with('success', __('procurement.purchase_orders.messages.created'));
     }
 
     public function update(UpdatePurchaseOrderRequest $request, PurchaseOrder $purchaseOrder): RedirectResponse
     {
         $this->service->update($purchaseOrder, $request->validated(), $request->user());
 
-        return back()->with('success', 'Purchase order updated.');
+        return back()->with('success', __('procurement.purchase_orders.messages.updated'));
     }
 
     public function destroy(PurchaseOrder $purchaseOrder): RedirectResponse
@@ -63,21 +63,21 @@ class PurchaseOrderController extends Controller
         $this->authorize('delete', $purchaseOrder);
         $this->service->delete($purchaseOrder, request()->user());
 
-        return back()->with('success', 'Purchase order deleted.');
+        return back()->with('success', __('procurement.purchase_orders.messages.deleted'));
     }
 
     public function approve(ApprovePurchaseOrderRequest $request, PurchaseOrder $purchaseOrder): RedirectResponse
     {
         $this->service->approve($purchaseOrder, $request->user());
 
-        return back()->with('success', 'Purchase order approved.');
+        return back()->with('success', __('procurement.purchase_orders.messages.approved'));
     }
 
     public function close(ClosePurchaseOrderRequest $request, PurchaseOrder $purchaseOrder): RedirectResponse
     {
         $this->service->close($purchaseOrder, $request->user());
 
-        return back()->with('success', 'Purchase order closed.');
+        return back()->with('success', __('procurement.purchase_orders.messages.closed'));
     }
 
     /**
@@ -87,7 +87,7 @@ class PurchaseOrderController extends Controller
     {
         return collect(PurchaseOrderStatus::cases())
             ->map(fn (PurchaseOrderStatus $status): array => [
-                'label' => str($status->value)->replace('_', ' ')->title()->toString(),
+                'label' => __("status.{$status->value}"),
                 'value' => $status->value,
             ])
             ->values()

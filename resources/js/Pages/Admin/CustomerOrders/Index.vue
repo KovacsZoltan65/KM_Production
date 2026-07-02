@@ -16,6 +16,7 @@ import Select from 'primevue/select';
 import Toast from 'primevue/toast';
 import { useConfirm } from 'primevue/useconfirm';
 import { useToast } from 'primevue/usetoast';
+import { trans } from 'laravel-vue-i18n';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 
 const props = defineProps({
@@ -39,7 +40,7 @@ const sortOrder = ref((props.filters.direction || 'asc') === 'desc' ? -1 : 1);
 const errors = ref({});
 const form = reactive({ customer_id: null, requested_delivery_date: null, notes: '', items: [] });
 
-const dialogTitle = computed(() => (editingRecord.value ? 'Edit customer order' : 'Create customer order'));
+const dialogTitle = computed(() => (editingRecord.value ? trans('orders.dialogs.edit') : trans('orders.dialogs.create')));
 
 const resetForm = () => {
     Object.assign(form, { customer_id: null, requested_delivery_date: null, notes: '', items: [] });
@@ -111,8 +112,8 @@ const submit = () => {
 
 const confirmOrder = (record) => {
     confirm.require({
-        message: `Confirm ${record.order_number}?`,
-        header: 'Confirm customer order',
+        message: trans('orders.confirm.confirm_message', { name: record.order_number }),
+        header: trans('orders.confirm.confirm_header'),
         icon: 'pi pi-check-circle',
         accept: () => router.patch(route('admin.customer-orders.confirm', record.id), {}, { preserveScroll: true }),
     });
@@ -120,8 +121,8 @@ const confirmOrder = (record) => {
 
 const cancelOrder = (record) => {
     confirm.require({
-        message: `Cancel ${record.order_number}?`,
-        header: 'Cancel customer order',
+        message: trans('orders.confirm.cancel_message', { name: record.order_number }),
+        header: trans('orders.confirm.cancel_header'),
         icon: 'pi pi-exclamation-triangle',
         acceptClass: 'p-button-danger',
         accept: () => router.patch(route('admin.customer-orders.cancel', record.id), {}, { preserveScroll: true }),
@@ -130,8 +131,8 @@ const cancelOrder = (record) => {
 
 const destroyRecord = (record) => {
     confirm.require({
-        message: `Delete ${record.order_number}?`,
-        header: 'Delete customer order',
+        message: trans('confirm.delete_named_message', { name: record.order_number }),
+        header: trans('orders.confirm.delete_header'),
         icon: 'pi pi-exclamation-triangle',
         acceptClass: 'p-button-danger',
         accept: () => router.delete(route('admin.customer-orders.destroy', record.id), { preserveScroll: true }),
@@ -161,7 +162,7 @@ watch(
 </script>
 
 <template>
-    <Head title="Customer Orders" />
+    <Head :title="trans('orders.title')" />
 
     <AdminLayout>
         <Toast />
@@ -169,16 +170,17 @@ watch(
 
         <div class="space-y-4">
             <AdminPageHeader
-                title="Customer Orders"
-                subtitle="Manage customer demand before production planning starts."
-                create-label="Create order"
+                title=""
+                title-key="orders.title"
+                subtitle-key="orders.subtitle"
+                create-label-key="orders.actions.create"
                 @create="openCreate"
             />
 
             <AdminSearchBar v-model="search" v-model:per-page="perPage" @search="reload(1)" />
 
             <div class="flex flex-col gap-2 rounded border border-slate-200 bg-white p-3 sm:flex-row sm:items-center">
-                <label for="status" class="text-sm font-medium text-slate-700">Status</label>
+                <label for="status" class="text-sm font-medium text-slate-700">{{ trans('fields.status') }}</label>
                 <Select
                     id="status"
                     v-model="status"
@@ -205,26 +207,26 @@ watch(
                 @page="(event) => { perPage = event.rows; reload(event.page + 1); }"
                 @sort="(event) => { sortField = event.sortField; sortOrder = event.sortOrder; reload(1); }"
             >
-                <Column field="order_number" header="Order number" sortable>
+                <Column field="order_number" :header="trans('orders.fields.order_number')" sortable>
                     <template #body="{ data }">
                         <Link :href="route('admin.customer-orders.show', data.id)" class="font-medium text-blue-700 hover:underline">
                             {{ data.order_number }}
                         </Link>
                     </template>
                 </Column>
-                <Column field="customer_id" header="Customer">
+                <Column field="customer_id" :header="trans('fields.customer')">
                     <template #body="{ data }">{{ data.customer?.code }} - {{ data.customer?.name }}</template>
                 </Column>
-                <Column field="status" header="Status" sortable>
+                <Column field="status" :header="trans('fields.status')" sortable>
                     <template #body="{ data }"><CustomerOrderStatusBadge :status="data.status" /></template>
                 </Column>
-                <Column field="requested_delivery_date" header="Delivery date" sortable>
+                <Column field="requested_delivery_date" :header="trans('orders.fields.delivery_date')" sortable>
                     <template #body="{ data }">{{ formatDate(data.requested_delivery_date) }}</template>
                 </Column>
-                <Column field="items_count" header="Items">
+                <Column field="items_count" :header="trans('fields.items')">
                     <template #body="{ data }">{{ data.items_count }}</template>
                 </Column>
-                <Column field="created_at" header="Created" sortable>
+                <Column field="created_at" :header="trans('fields.created')" sortable>
                     <template #body="{ data }">{{ formatDate(data.created_at) }}</template>
                 </Column>
                 <Column header="" body-style="text-align: right; min-width: 14rem">
@@ -237,7 +239,7 @@ watch(
                                 severity="success"
                                 text
                                 rounded
-                                aria-label="Confirm"
+                                :aria-label="trans('actions.confirm')"
                                 @click="confirmOrder(data)"
                             />
                             <Button
@@ -247,7 +249,7 @@ watch(
                                 severity="warning"
                                 text
                                 rounded
-                                aria-label="Cancel"
+                                :aria-label="trans('actions.cancel')"
                                 @click="cancelOrder(data)"
                             />
                             <AdminActionButtons :can-delete="canDelete(data)" @edit="openEdit(data)" @delete="destroyRecord(data)" />

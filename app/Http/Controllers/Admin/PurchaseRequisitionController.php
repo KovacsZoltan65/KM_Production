@@ -51,14 +51,14 @@ class PurchaseRequisitionController extends Controller
     {
         $this->service->create($request->validated(), $request->user());
 
-        return back()->with('success', 'Purchase requisition created.');
+        return back()->with('success', __('procurement.purchase_requisitions.messages.created'));
     }
 
     public function update(UpdatePurchaseRequisitionRequest $request, PurchaseRequisition $purchaseRequisition): RedirectResponse
     {
         $this->service->update($purchaseRequisition, $request->validated(), $request->user());
 
-        return back()->with('success', 'Purchase requisition updated.');
+        return back()->with('success', __('procurement.purchase_requisitions.messages.updated'));
     }
 
     public function destroy(PurchaseRequisition $purchaseRequisition): RedirectResponse
@@ -66,14 +66,14 @@ class PurchaseRequisitionController extends Controller
         $this->authorize('delete', $purchaseRequisition);
         $this->service->delete($purchaseRequisition, request()->user());
 
-        return back()->with('success', 'Purchase requisition deleted.');
+        return back()->with('success', __('procurement.purchase_requisitions.messages.deleted'));
     }
 
     public function approve(ApprovePurchaseRequisitionRequest $request, PurchaseRequisition $purchaseRequisition): RedirectResponse
     {
         $this->service->approve($purchaseRequisition, $request->user());
 
-        return back()->with('success', 'Purchase requisition approved.');
+        return back()->with('success', __('procurement.purchase_requisitions.messages.approved'));
     }
 
     public function generatePurchaseOrder(GeneratePurchaseOrderRequest $request, PurchaseRequisition $purchaseRequisition): RedirectResponse
@@ -85,7 +85,7 @@ class PurchaseRequisitionController extends Controller
             $request->user()
         );
 
-        return redirect()->route('admin.purchase-orders.show', $purchaseOrder)->with('success', 'Purchase order generated.');
+        return redirect()->route('admin.purchase-orders.show', $purchaseOrder)->with('success', __('procurement.purchase_requisitions.messages.purchase_order_generated'));
     }
 
     public function generateFromMaterialRequirements(IndexRequest $request): RedirectResponse
@@ -93,7 +93,7 @@ class PurchaseRequisitionController extends Controller
         $this->authorize('create', PurchaseRequisition::class);
         $requisition = $this->service->generateFromMaterialRequirements($request->user());
 
-        return redirect()->route('admin.purchase-requisitions.show', $requisition)->with('success', 'Purchase requisition generated.');
+        return redirect()->route('admin.purchase-requisitions.show', $requisition)->with('success', __('procurement.purchase_requisitions.messages.generated'));
     }
 
     /**
@@ -103,7 +103,7 @@ class PurchaseRequisitionController extends Controller
     {
         return collect(PurchaseRequisitionStatus::cases())
             ->map(fn (PurchaseRequisitionStatus $status): array => [
-                'label' => str($status->value)->replace('_', ' ')->title()->toString(),
+                'label' => __("status.{$status->value}"),
                 'value' => $status->value,
             ])
             ->values()

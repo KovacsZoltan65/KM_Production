@@ -84,7 +84,7 @@ class PurchaseRequisitionService
     public function approve(PurchaseRequisition $purchaseRequisition, ?User $causer = null): PurchaseRequisition
     {
         if (! \in_array($purchaseRequisition->status, [PurchaseRequisitionStatus::Draft, PurchaseRequisitionStatus::Requested], true)) {
-            throw ValidationException::withMessages(['status' => 'Only draft or requested requisitions can be approved.']);
+            throw ValidationException::withMessages(['status' => __('procurement.purchase_requisitions.validation.only_draft_requested_approve')]);
         }
 
         $purchaseRequisition->update(['status' => PurchaseRequisitionStatus::Approved->value]);
@@ -107,7 +107,7 @@ class PurchaseRequisitionService
                 ->get();
 
             if ($requirements->isEmpty()) {
-                throw ValidationException::withMessages(['requirements' => 'There are no missing material requirements to generate.']);
+                throw ValidationException::withMessages(['requirements' => __('procurement.purchase_requisitions.validation.no_missing_requirements')]);
             }
 
             $requisition = PurchaseRequisition::query()->create([
@@ -115,7 +115,7 @@ class PurchaseRequisitionService
                 'status' => PurchaseRequisitionStatus::Requested->value,
                 'requested_by' => $causer?->id,
                 'requested_at' => now(),
-                'notes' => 'Generated from missing material requirements.',
+                'notes' => __('procurement.purchase_requisitions.notes.generated_from_missing_requirements'),
             ]);
 
             $requirements
@@ -158,7 +158,7 @@ class PurchaseRequisitionService
                 ->firstOrFail();
 
             if ($purchaseRequisition->status !== PurchaseRequisitionStatus::Approved) {
-                throw ValidationException::withMessages(['status' => 'Purchase orders can only be generated from approved requisitions.']);
+                throw ValidationException::withMessages(['status' => __('procurement.purchase_requisitions.validation.only_approved_generate_po')]);
             }
 
             $purchaseRequisition->load('items');

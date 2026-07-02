@@ -49,14 +49,14 @@ class CustomerOrderController extends Controller
     {
         $this->service->create($request->validated(), $request->user());
 
-        return back()->with('success', 'Customer order created.');
+        return back()->with('success', __('orders.messages.created'));
     }
 
     public function update(UpdateCustomerOrderRequest $request, CustomerOrder $customerOrder): RedirectResponse
     {
         $this->service->update($customerOrder, $request->validated(), $request->user());
 
-        return back()->with('success', 'Customer order updated.');
+        return back()->with('success', __('orders.messages.updated'));
     }
 
     public function destroy(CustomerOrder $customerOrder): RedirectResponse
@@ -64,21 +64,21 @@ class CustomerOrderController extends Controller
         $this->authorize('delete', $customerOrder);
         $this->service->delete($customerOrder, request()->user());
 
-        return back()->with('success', 'Customer order deleted.');
+        return back()->with('success', __('orders.messages.deleted'));
     }
 
     public function confirm(ConfirmCustomerOrderRequest $request, CustomerOrder $customerOrder): RedirectResponse
     {
         $this->service->confirm($customerOrder, $request->user());
 
-        return back()->with('success', 'Customer order confirmed.');
+        return back()->with('success', __('orders.messages.confirmed'));
     }
 
     public function cancel(CancelCustomerOrderRequest $request, CustomerOrder $customerOrder): RedirectResponse
     {
         $this->service->cancel($customerOrder, $request->user());
 
-        return back()->with('success', 'Customer order cancelled.');
+        return back()->with('success', __('orders.messages.cancelled'));
     }
 
     /**
@@ -123,7 +123,7 @@ class CustomerOrderController extends Controller
     {
         return collect(CustomerOrderStatus::cases())
             ->map(fn (CustomerOrderStatus $status): array => [
-                'label' => str($status->value)->replace('_', ' ')->title()->toString(),
+                'label' => __("status.{$status->value}"),
                 'value' => $status->value,
             ])
             ->values()

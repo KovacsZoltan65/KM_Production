@@ -84,7 +84,7 @@ class PurchaseOrderService
     public function approve(PurchaseOrder $purchaseOrder, ?User $causer = null): PurchaseOrder
     {
         if ($purchaseOrder->status !== PurchaseOrderStatus::Draft) {
-            throw ValidationException::withMessages(['status' => 'Only draft purchase orders can be approved.']);
+            throw ValidationException::withMessages(['status' => __('procurement.purchase_orders.validation.only_draft_approve')]);
         }
 
         $purchaseOrder->update([
