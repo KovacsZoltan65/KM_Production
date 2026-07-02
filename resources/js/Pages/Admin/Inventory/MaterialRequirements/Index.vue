@@ -8,6 +8,7 @@ import Column from 'primevue/column';
 import DataTable from 'primevue/datatable';
 import Select from 'primevue/select';
 import Tag from 'primevue/tag';
+import { trans } from 'laravel-vue-i18n';
 import { ref } from 'vue';
 
 const props = defineProps({ records: Object, filters: Object, statusOptions: Array, itemOptions: Array, customerOrderOptions: Array });
@@ -28,27 +29,27 @@ const severity = (value) => ({ missing: 'danger', partially_available: 'warn', r
 </script>
 
 <template>
-    <Head title="Material Requirements" />
+    <Head :title="trans('inventory.material_requirements.title')" />
 
     <AdminLayout>
         <div class="space-y-4">
-            <AdminPageHeader title="Material Requirements" subtitle="Review BOM-driven material demand and availability." :can-create="false" />
+            <AdminPageHeader title="" title-key="inventory.material_requirements.title" subtitle-key="inventory.material_requirements.subtitle" :can-create="false" />
             <AdminSearchBar v-model="search" v-model:per-page="perPage" @search="reload(1)" />
             <div class="grid gap-3 rounded border border-slate-200 bg-white p-3 md:grid-cols-3">
-                <Select v-model="status" :options="statusOptions" option-label="label" option-value="value" placeholder="Status" show-clear @change="reload(1)" />
-                <Select v-model="requiredItemId" :options="itemOptions" option-label="label" option-value="id" placeholder="Required item" show-clear filter @change="reload(1)" />
-                <Select v-model="customerOrderId" :options="customerOrderOptions" option-label="label" option-value="id" placeholder="Customer order" show-clear filter @change="reload(1)" />
+                <Select v-model="status" :options="statusOptions" option-label="label" option-value="value" :placeholder="trans('filters.status')" show-clear @change="reload(1)" />
+                <Select v-model="requiredItemId" :options="itemOptions" option-label="label" option-value="id" :placeholder="trans('fields.required_item')" show-clear filter @change="reload(1)" />
+                <Select v-model="customerOrderId" :options="customerOrderOptions" option-label="label" option-value="id" :placeholder="trans('fields.customer_order')" show-clear filter @change="reload(1)" />
             </div>
 
             <DataTable :value="records.data" lazy paginator :rows="records.per_page" :first="(records.current_page - 1) * records.per_page" :total-records="records.total" :sort-field="sortField" :sort-order="sortOrder" data-key="id" class="rounded border border-slate-200 bg-white" @page="onPage" @sort="onSort">
-                <Column header="Customer order item"><template #body="{ data }">{{ data.customer_order_item?.customer_order?.order_number || '-' }}</template></Column>
-                <Column header="Required item" field="required_item_id" sortable><template #body="{ data }">{{ data.required_item?.item_number }} - {{ data.required_item?.name }}</template></Column>
-                <Column header="Required" field="required_quantity" sortable><template #body="{ data }">{{ number(data.required_quantity) }}</template></Column>
-                <Column header="Available" field="available_quantity" sortable><template #body="{ data }">{{ number(data.available_quantity) }}</template></Column>
-                <Column header="Reserved" field="reserved_quantity" sortable><template #body="{ data }">{{ number(data.reserved_quantity) }}</template></Column>
-                <Column header="Missing" field="missing_quantity" sortable><template #body="{ data }">{{ number(data.missing_quantity) }}</template></Column>
-                <Column header="Unit" field="unit" />
-                <Column header="Status" field="status" sortable><template #body="{ data }"><Tag :value="data.status" :severity="severity(data.status)" /></template></Column>
+                <Column :header="trans('fields.customer_order_item')"><template #body="{ data }">{{ data.customer_order_item?.customer_order?.order_number || '-' }}</template></Column>
+                <Column :header="trans('fields.required_item')" field="required_item_id" sortable><template #body="{ data }">{{ data.required_item?.item_number }} - {{ data.required_item?.name }}</template></Column>
+                <Column :header="trans('fields.required')" field="required_quantity" sortable><template #body="{ data }">{{ number(data.required_quantity) }}</template></Column>
+                <Column :header="trans('fields.available')" field="available_quantity" sortable><template #body="{ data }">{{ number(data.available_quantity) }}</template></Column>
+                <Column :header="trans('fields.reserved')" field="reserved_quantity" sortable><template #body="{ data }">{{ number(data.reserved_quantity) }}</template></Column>
+                <Column :header="trans('fields.missing')" field="missing_quantity" sortable><template #body="{ data }">{{ number(data.missing_quantity) }}</template></Column>
+                <Column :header="trans('fields.unit')" field="unit" />
+                <Column :header="trans('fields.status')" field="status" sortable><template #body="{ data }"><Tag :value="trans(`status.${data.status}`)" :severity="severity(data.status)" /></template></Column>
             </DataTable>
         </div>
     </AdminLayout>

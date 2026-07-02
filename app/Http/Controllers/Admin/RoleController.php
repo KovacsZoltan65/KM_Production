@@ -41,14 +41,14 @@ class RoleController extends Controller
     {
         $this->service->create($request->validated(), $request->user());
 
-        return back()->with('success', 'Role created.');
+        return back()->with('success', __('messages.created'));
     }
 
     public function update(UpdateRoleRequest $request, Role $role): RedirectResponse
     {
         $this->service->update($role, $request->validated(), $request->user());
 
-        return back()->with('success', 'Role updated.');
+        return back()->with('success', __('messages.updated'));
     }
 
     public function destroy(Role $role): RedirectResponse
@@ -56,6 +56,6 @@ class RoleController extends Controller
         $this->authorize('delete', $role);
         $this->service->delete($role, request()->user());
 
-        return back()->with('success', 'Role deleted.');
+        return back()->with('success', __('messages.deleted'));
     }
 }

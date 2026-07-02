@@ -7,29 +7,30 @@ defineProps({
 });
 
 const columns = [
-    { field: 'code', header: 'Code' },
-    { field: 'name', header: 'Name' },
-    { field: 'daily_capacity_minutes', header: 'Daily capacity' },
-    { field: 'shift_count', header: 'Shifts' },
-    { field: 'is_active', header: 'Status', type: 'status' },
+    { field: 'code', headerKey: 'fields.code' },
+    { field: 'name', headerKey: 'fields.name' },
+    { field: 'daily_capacity_minutes', headerKey: 'fields.daily_capacity' },
+    { field: 'shift_count', headerKey: 'fields.shifts' },
+    { field: 'is_active', headerKey: 'fields.status', type: 'status' },
 ];
 
 const fields = [
-    { name: 'code', label: 'Code', type: 'text' },
-    { name: 'name', label: 'Name', type: 'text' },
-    { name: 'description', label: 'Description', type: 'textarea' },
-    { name: 'daily_capacity_minutes', label: 'Daily capacity minutes', type: 'number' },
-    { name: 'shift_count', label: 'Shift count', type: 'number', default: 1 },
-    { name: 'is_active', label: 'Active', type: 'checkbox', default: true },
+    { name: 'code', labelKey: 'fields.code', type: 'text' },
+    { name: 'name', labelKey: 'fields.name', type: 'text' },
+    { name: 'description', labelKey: 'fields.description', type: 'textarea' },
+    { name: 'daily_capacity_minutes', labelKey: 'fields.daily_capacity_minutes', type: 'number' },
+    { name: 'shift_count', labelKey: 'fields.shift_count', type: 'number', default: 1 },
+    { name: 'is_active', labelKey: 'status.active', type: 'checkbox', default: true },
 ];
 </script>
 
 <template>
     <AdminCrudPage
-        title="Factory Units"
-        subtitle="Manage manufacturing units."
+        title=""
+        title-key="master_data.factory_units.title"
+        subtitle-key="master_data.factory_units.subtitle"
         route-name="admin.factory-units"
-        create-label="Create factory unit"
+        create-label-key="master_data.factory_units.create"
         :records="records"
         :filters="filters"
         :columns="columns"

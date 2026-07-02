@@ -30,14 +30,14 @@ class CustomerController extends Controller
     {
         $this->service->create($request->validated(), $request->user());
 
-        return back()->with('success', 'Customer created.');
+        return back()->with('success', __('messages.created'));
     }
 
     public function update(UpdateCustomerRequest $request, Customer $customer): RedirectResponse
     {
         $this->service->update($customer, $request->validated(), $request->user());
 
-        return back()->with('success', 'Customer updated.');
+        return back()->with('success', __('messages.updated'));
     }
 
     public function destroy(Customer $customer): RedirectResponse
@@ -45,6 +45,6 @@ class CustomerController extends Controller
         $this->authorize('delete', $customer);
         $this->service->delete($customer, request()->user());
 
-        return back()->with('success', 'Customer deleted.');
+        return back()->with('success', __('messages.deleted'));
     }
 }

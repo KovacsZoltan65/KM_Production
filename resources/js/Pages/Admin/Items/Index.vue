@@ -1,5 +1,6 @@
 <script setup>
 import AdminCrudPage from '@/Components/Admin/AdminCrudPage.vue';
+import { trans } from 'laravel-vue-i18n';
 
 defineProps({
     records: Object,
@@ -8,34 +9,35 @@ defineProps({
 });
 
 const columns = [
-    { field: 'item_number', header: 'Item number' },
-    { field: 'name', header: 'Name' },
-    { field: 'item_type', header: 'Type', format: (record) => record.item_type?.replaceAll('_', ' ') },
-    { field: 'unit', header: 'Unit' },
-    { field: 'requires_serial_number', header: 'Serial', format: (record) => (record.requires_serial_number ? 'Yes' : 'No') },
-    { field: 'is_active', header: 'Status', type: 'status' },
+    { field: 'item_number', headerKey: 'fields.item_number' },
+    { field: 'name', headerKey: 'fields.name' },
+    { field: 'item_type', headerKey: 'fields.type', format: (record) => trans(`enum.item_type.${record.item_type}`) },
+    { field: 'unit', headerKey: 'fields.unit' },
+    { field: 'requires_serial_number', headerKey: 'fields.serial', format: (record) => (record.requires_serial_number ? trans('common.yes') : trans('common.no')) },
+    { field: 'is_active', headerKey: 'fields.status', type: 'status' },
 ];
 
 const fields = [
-    { name: 'item_number', label: 'Item number', type: 'text' },
-    { name: 'name', label: 'Name', type: 'text' },
-    { name: 'item_type', label: 'Type', type: 'select', options: 'itemTypes', default: 'purchased_material' },
-    { name: 'unit', label: 'Unit', type: 'text' },
-    { name: 'width', label: 'Width', type: 'number' },
-    { name: 'length', label: 'Length', type: 'number' },
-    { name: 'thickness', label: 'Thickness', type: 'number' },
-    { name: 'diameter', label: 'Diameter', type: 'number' },
-    { name: 'requires_serial_number', label: 'Requires serial number', type: 'checkbox', default: false },
-    { name: 'is_active', label: 'Active', type: 'checkbox', default: true },
+    { name: 'item_number', labelKey: 'fields.item_number', type: 'text' },
+    { name: 'name', labelKey: 'fields.name', type: 'text' },
+    { name: 'item_type', labelKey: 'fields.type', type: 'select', options: 'itemTypes', enumKey: 'enum.item_type', default: 'purchased_material' },
+    { name: 'unit', labelKey: 'fields.unit', type: 'text' },
+    { name: 'width', labelKey: 'fields.width', type: 'number' },
+    { name: 'length', labelKey: 'fields.length', type: 'number' },
+    { name: 'thickness', labelKey: 'fields.thickness', type: 'number' },
+    { name: 'diameter', labelKey: 'fields.diameter', type: 'number' },
+    { name: 'requires_serial_number', labelKey: 'fields.requires_serial_number', type: 'checkbox', default: false },
+    { name: 'is_active', labelKey: 'status.active', type: 'checkbox', default: true },
 ];
 </script>
 
 <template>
     <AdminCrudPage
-        title="Items"
-        subtitle="Manage purchased materials and manufactured items."
+        title=""
+        title-key="master_data.items.title"
+        subtitle-key="master_data.items.subtitle"
         route-name="admin.items"
-        create-label="Create item"
+        create-label-key="master_data.items.create"
         :records="records"
         :filters="filters"
         :columns="columns"

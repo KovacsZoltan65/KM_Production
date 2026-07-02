@@ -1,5 +1,5 @@
 <script setup>
-import RiskBadge from '@/Components/RiskBadge.vue';
+import RiskBadge from "@/Components/RiskBadge.vue";
 
 defineProps({
     recommendation: { type: Object, required: true },
@@ -21,7 +21,8 @@ const number = (value) => Number(value || 0).toFixed(3);
             {{ number(recommendation.recommended_quantity) }} {{ recommendation.unit }}
         </div>
         <div class="mt-2 text-xs text-slate-500">
-            Related orders: {{ recommendation.related_customer_orders?.join(', ') || '-' }}
+            {{ $t("intelligence.related_orders") }}:
+            {{ recommendation.related_customer_orders?.join(", ") || "-" }}
         </div>
     </div>
 </template>

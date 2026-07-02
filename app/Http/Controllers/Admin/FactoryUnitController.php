@@ -30,14 +30,14 @@ class FactoryUnitController extends Controller
     {
         $this->service->create($request->validated(), $request->user());
 
-        return back()->with('success', 'Factory unit created.');
+        return back()->with('success', __('messages.created'));
     }
 
     public function update(UpdateFactoryUnitRequest $request, FactoryUnit $factoryUnit): RedirectResponse
     {
         $this->service->update($factoryUnit, $request->validated(), $request->user());
 
-        return back()->with('success', 'Factory unit updated.');
+        return back()->with('success', __('messages.updated'));
     }
 
     public function destroy(FactoryUnit $factoryUnit): RedirectResponse
@@ -45,6 +45,6 @@ class FactoryUnitController extends Controller
         $this->authorize('delete', $factoryUnit);
         $this->service->delete($factoryUnit, request()->user());
 
-        return back()->with('success', 'Factory unit deleted.');
+        return back()->with('success', __('messages.deleted'));
     }
 }

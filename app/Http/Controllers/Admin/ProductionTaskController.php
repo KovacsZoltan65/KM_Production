@@ -59,14 +59,14 @@ class ProductionTaskController extends Controller
     {
         $this->service->create($request->validated(), $request->user());
 
-        return redirect()->route('admin.production-tasks.index')->with('success', 'Production task created.');
+        return redirect()->route('admin.production-tasks.index')->with('success', __('production.tasks.messages.created'));
     }
 
     public function update(UpdateProductionTaskRequest $request, ProductionTask $productionTask): RedirectResponse
     {
         $this->service->update($productionTask, $request->validated(), $request->user());
 
-        return back()->with('success', 'Production task updated.');
+        return back()->with('success', __('production.tasks.messages.updated'));
     }
 
     public function destroy(ProductionTask $productionTask): RedirectResponse
@@ -74,7 +74,7 @@ class ProductionTaskController extends Controller
         $this->authorize('delete', $productionTask);
         $this->service->delete($productionTask, request()->user());
 
-        return redirect()->route('admin.production-tasks.index')->with('success', 'Production task deleted.');
+        return redirect()->route('admin.production-tasks.index')->with('success', __('production.tasks.messages.deleted'));
     }
 
     public function generateFromOrder(GenerateProductionTasksRequest $request): RedirectResponse
@@ -86,21 +86,21 @@ class ProductionTaskController extends Controller
             $request->user(),
         );
 
-        return back()->with('success', "{$count} production tasks generated.");
+        return back()->with('success', __('production.tasks.messages.generated', ['count' => $count]));
     }
 
     public function start(StartProductionTaskRequest $request, ProductionTask $productionTask): RedirectResponse
     {
         $this->service->start($productionTask, $request->user());
 
-        return back()->with('success', 'Production task started.');
+        return back()->with('success', __('production.tasks.messages.started'));
     }
 
     public function finish(FinishProductionTaskRequest $request, ProductionTask $productionTask): RedirectResponse
     {
         $this->service->finish($productionTask, $request->user());
 
-        return back()->with('success', 'Production task finished.');
+        return back()->with('success', __('production.tasks.messages.finished'));
     }
 
     /**
@@ -110,7 +110,7 @@ class ProductionTaskController extends Controller
     {
         return collect(ProductionTaskStatus::cases())
             ->map(fn (ProductionTaskStatus $status): array => [
-                'label' => str($status->value)->replace('_', ' ')->title()->toString(),
+                'label' => __("status.{$status->value}"),
                 'value' => $status->value,
             ])
             ->values()
@@ -213,7 +213,7 @@ class ProductionTaskController extends Controller
     {
         return collect(QualityCheckResult::cases())
             ->map(fn (QualityCheckResult $result): array => [
-                'label' => str($result->value)->replace('_', ' ')->title()->toString(),
+                'label' => __("enum.quality_check_result.{$result->value}"),
                 'value' => $result->value,
             ])
             ->all();

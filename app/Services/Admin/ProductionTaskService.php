@@ -27,11 +27,21 @@ class ProductionTaskService
     /**
      * @param  array<string, mixed>  $filters
      */
+
+    /**
+     * @param array $filters
+     * @param int $perPage
+     * @return LengthAwarePaginator
+     */
     public function paginateForAdminIndex(array $filters, int $perPage = 10): LengthAwarePaginator
     {
         return $this->productionTasks->paginateForExecution($filters, $perPage);
     }
 
+    /**
+     * @param ProductionTask $productionTask
+     * @return ProductionTask
+     */
     public function findForShow(ProductionTask $productionTask): ProductionTask
     {
         return $this->productionTasks->findForShow($productionTask);
@@ -79,11 +89,11 @@ class ProductionTaskService
             $productionOrder->load('operationSequence.steps.factoryUnit');
 
             if ($productionOrder->operationSequence->steps->isEmpty()) {
-                throw ValidationException::withMessages(['production_order_id' => 'The production order has no operation sequence steps.']);
+                throw ValidationException::withMessages(['production_order_id' => __('production.tasks.validation.missing_operation_steps')]);
             }
 
             if (ProductionTask::query()->where('production_order_id', $productionOrder->id)->exists()) {
-                throw ValidationException::withMessages(['production_order_id' => 'Production tasks have already been generated for this production order.']);
+                throw ValidationException::withMessages(['production_order_id' => __('production.tasks.validation.already_generated')]);
             }
 
             $steps = $productionOrder->operationSequence->steps->values();
@@ -130,7 +140,7 @@ class ProductionTaskService
     public function start(ProductionTask $productionTask, ?User $causer = null): ProductionTask
     {
         if ($productionTask->status !== ProductionTaskStatus::Ready) {
-            throw ValidationException::withMessages(['status' => 'Only ready production tasks can be started.']);
+            throw ValidationException::withMessages(['status' => __('production.tasks.validation.start_status')]);
         }
 
         return DB::transaction(function () use ($productionTask, $causer): ProductionTask {
@@ -157,7 +167,7 @@ class ProductionTaskService
     public function finish(ProductionTask $productionTask, ?User $causer = null): ProductionTask
     {
         if ($productionTask->status !== ProductionTaskStatus::InProgress) {
-            throw ValidationException::withMessages(['status' => 'Only in-progress production tasks can be finished.']);
+            throw ValidationException::withMessages(['status' => __('production.tasks.validation.finish_status')]);
         }
 
         return DB::transaction(function () use ($productionTask, $causer): ProductionTask {

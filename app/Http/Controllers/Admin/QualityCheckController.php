@@ -16,6 +16,6 @@ class QualityCheckController extends Controller
     {
         $this->service->store($productionTask, $request->validated(), $request->user());
 
-        return back()->with('success', 'Quality check recorded.');
+        return back()->with('success', __('quality.messages.recorded'));
     }
 }

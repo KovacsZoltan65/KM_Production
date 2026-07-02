@@ -39,14 +39,14 @@ class LocationController extends Controller
     {
         $this->service->create($request->validated(), $request->user());
 
-        return back()->with('success', 'Location created.');
+        return back()->with('success', __('messages.created'));
     }
 
     public function update(UpdateLocationRequest $request, Location $location): RedirectResponse
     {
         $this->service->update($location, $request->validated(), $request->user());
 
-        return back()->with('success', 'Location updated.');
+        return back()->with('success', __('messages.updated'));
     }
 
     public function destroy(Location $location): RedirectResponse
@@ -54,6 +54,6 @@ class LocationController extends Controller
         $this->authorize('delete', $location);
         $this->service->delete($location, request()->user());
 
-        return back()->with('success', 'Location deleted.');
+        return back()->with('success', __('messages.deleted'));
     }
 }

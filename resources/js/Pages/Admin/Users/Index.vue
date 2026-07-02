@@ -8,25 +8,26 @@ defineProps({
 });
 
 const columns = [
-    { field: 'name', header: 'Name' },
-    { field: 'email', header: 'Email' },
-    { field: 'roles', header: 'Roles', sortable: false, format: (record) => record.roles?.join(', ') || '-' },
+    { field: 'name', headerKey: 'fields.name' },
+    { field: 'email', headerKey: 'fields.email' },
+    { field: 'roles', headerKey: 'fields.roles', sortable: false, format: (record) => record.roles?.join(', ') || '-' },
 ];
 
 const fields = [
-    { name: 'name', label: 'Name', type: 'text' },
-    { name: 'email', label: 'Email', type: 'email' },
-    { name: 'password', label: 'Password', type: 'password' },
-    { name: 'roles', label: 'Roles', type: 'multiselect', options: 'roles', default: [] },
+    { name: 'name', labelKey: 'fields.name', type: 'text' },
+    { name: 'email', labelKey: 'fields.email', type: 'email' },
+    { name: 'password', labelKey: 'fields.password', type: 'password' },
+    { name: 'roles', labelKey: 'fields.roles', type: 'multiselect', options: 'roles', default: [] },
 ];
 </script>
 
 <template>
     <AdminCrudPage
-        title="Users"
-        subtitle="Manage application users and assigned authorization roles."
+        title=""
+        title-key="master_data.users.title"
+        subtitle-key="master_data.users.subtitle"
         route-name="admin.users"
-        create-label="Create user"
+        create-label-key="master_data.users.create"
         :records="records"
         :filters="filters"
         :options="options"

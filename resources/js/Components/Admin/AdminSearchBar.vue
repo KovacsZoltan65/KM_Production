@@ -2,6 +2,7 @@
 import Button from "primevue/button";
 import InputText from "primevue/inputtext";
 import Select from "primevue/select";
+import { trans } from "laravel-vue-i18n";
 
 defineProps({
     modelValue: { type: String, default: "" },
@@ -22,14 +23,14 @@ const perPageOptions = [10, 25, 50, 100];
             <InputText
                 :model-value="modelValue"
                 class="w-full pl-10"
-                placeholder="Search"
+                :placeholder="trans('common.search')"
                 @update:model-value="$emit('update:modelValue', $event)"
                 @keydown.enter="$emit('search')"
             />
         </div>
 
         <div class="flex items-center gap-2">
-            <span class="text-sm text-slate-600">Per page</span>
+            <span class="text-sm text-slate-600">{{ $t("common.per_page") }}</span>
             <Select
                 :model-value="perPage"
                 :options="perPageOptions"
@@ -40,7 +41,7 @@ const perPageOptions = [10, 25, 50, 100];
 
         <Button
             type="button"
-            label="Search"
+            :label="trans('actions.search')"
             icon="pi pi-search"
             outlined
             @click="$emit('search')"

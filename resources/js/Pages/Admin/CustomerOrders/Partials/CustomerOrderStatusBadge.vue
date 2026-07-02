@@ -1,20 +1,9 @@
 <script setup>
+import { trans } from 'laravel-vue-i18n';
+
 const props = defineProps({
     status: { type: String, required: true },
 });
-
-const labels = {
-    draft: 'Draft',
-    confirmed: 'Confirmed',
-    material_planning: 'Material planning',
-    waiting_for_material: 'Waiting for material',
-    ready_for_production: 'Ready for production',
-    in_production: 'In production',
-    quality_check: 'Quality check',
-    ready_to_ship: 'Ready to ship',
-    completed: 'Completed',
-    cancelled: 'Cancelled',
-};
 
 const tones = {
     draft: 'bg-slate-100 text-slate-700',
@@ -32,6 +21,6 @@ const tones = {
 
 <template>
     <span class="inline-flex rounded px-2 py-1 text-xs font-medium" :class="tones[props.status] || tones.draft">
-        {{ labels[props.status] || props.status }}
+        {{ trans(`status.${props.status}`) }}
     </span>
 </template>

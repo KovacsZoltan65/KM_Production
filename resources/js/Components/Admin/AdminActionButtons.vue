@@ -1,5 +1,6 @@
 <script setup>
 import Button from 'primevue/button';
+import { trans } from 'laravel-vue-i18n';
 
 defineProps({
     canEdit: { type: Boolean, default: true },
@@ -18,7 +19,7 @@ defineEmits(['edit', 'delete']);
             severity="secondary"
             text
             rounded
-            aria-label="Edit"
+            :aria-label="trans('actions.edit')"
             @click="$emit('edit')"
         />
         <Button
@@ -28,7 +29,7 @@ defineEmits(['edit', 'delete']);
             severity="danger"
             text
             rounded
-            aria-label="Delete"
+            :aria-label="trans('actions.delete')"
             @click="$emit('delete')"
         />
     </div>

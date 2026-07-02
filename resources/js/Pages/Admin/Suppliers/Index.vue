@@ -7,32 +7,33 @@ defineProps({
 });
 
 const columns = [
-    { field: 'code', header: 'Code' },
-    { field: 'name', header: 'Name' },
-    { field: 'tax_number', header: 'Tax number' },
-    { field: 'email', header: 'Email' },
-    { field: 'phone', header: 'Phone' },
-    { field: 'is_active', header: 'Status', type: 'status' },
+    { field: 'code', headerKey: 'fields.code' },
+    { field: 'name', headerKey: 'fields.name' },
+    { field: 'tax_number', headerKey: 'fields.tax_number' },
+    { field: 'email', headerKey: 'fields.email' },
+    { field: 'phone', headerKey: 'fields.phone' },
+    { field: 'is_active', headerKey: 'fields.status', type: 'status' },
 ];
 
 const fields = [
-    { name: 'code', label: 'Code', type: 'text' },
-    { name: 'name', label: 'Name', type: 'text' },
-    { name: 'tax_number', label: 'Tax number', type: 'text' },
-    { name: 'email', label: 'Email', type: 'email' },
-    { name: 'phone', label: 'Phone', type: 'text' },
-    { name: 'address', label: 'Address', type: 'textarea' },
-    { name: 'notes', label: 'Notes', type: 'textarea' },
-    { name: 'is_active', label: 'Active', type: 'checkbox', default: true },
+    { name: 'code', labelKey: 'fields.code', type: 'text' },
+    { name: 'name', labelKey: 'fields.name', type: 'text' },
+    { name: 'tax_number', labelKey: 'fields.tax_number', type: 'text' },
+    { name: 'email', labelKey: 'fields.email', type: 'email' },
+    { name: 'phone', labelKey: 'fields.phone', type: 'text' },
+    { name: 'address', labelKey: 'fields.address', type: 'textarea' },
+    { name: 'notes', labelKey: 'fields.notes', type: 'textarea' },
+    { name: 'is_active', labelKey: 'status.active', type: 'checkbox', default: true },
 ];
 </script>
 
 <template>
     <AdminCrudPage
-        title="Suppliers"
-        subtitle="Manage supplier master data."
+        title=""
+        title-key="master_data.suppliers.title"
+        subtitle-key="master_data.suppliers.subtitle"
         route-name="admin.suppliers"
-        create-label="Create supplier"
+        create-label-key="master_data.suppliers.create"
         :records="records"
         :filters="filters"
         :columns="columns"

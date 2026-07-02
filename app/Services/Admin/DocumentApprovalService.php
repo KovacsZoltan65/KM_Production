@@ -21,7 +21,7 @@ class DocumentApprovalService
                 ->firstOrFail();
 
             if ($document->approved) {
-                throw ValidationException::withMessages(['document' => 'This document is already approved.']);
+                throw ValidationException::withMessages(['document' => __('documents.validation.already_approved')]);
             }
 
             $document->update([

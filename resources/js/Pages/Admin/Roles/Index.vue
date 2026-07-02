@@ -8,22 +8,23 @@ defineProps({
 });
 
 const columns = [
-    { field: 'name', header: 'Name' },
-    { field: 'permissions', header: 'Permissions', sortable: false, format: (record) => record.permissions?.length || 0 },
+    { field: 'name', headerKey: 'fields.name' },
+    { field: 'permissions', headerKey: 'fields.permissions', sortable: false, format: (record) => record.permissions?.length || 0 },
 ];
 
 const fields = [
-    { name: 'name', label: 'Name', type: 'text' },
-    { name: 'permissions', label: 'Permissions', type: 'multiselect', options: 'permissions', default: [] },
+    { name: 'name', labelKey: 'fields.name', type: 'text' },
+    { name: 'permissions', labelKey: 'fields.permissions', type: 'multiselect', options: 'permissions', default: [] },
 ];
 </script>
 
 <template>
     <AdminCrudPage
-        title="Roles"
-        subtitle="Manage authorization roles and their permissions."
+        title=""
+        title-key="master_data.roles.title"
+        subtitle-key="master_data.roles.subtitle"
         route-name="admin.roles"
-        create-label="Create role"
+        create-label-key="master_data.roles.create"
         :records="records"
         :filters="filters"
         :options="options"

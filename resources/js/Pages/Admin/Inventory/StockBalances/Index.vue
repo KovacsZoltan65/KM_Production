@@ -9,21 +9,22 @@ defineProps({
 const number = (value) => Number(value || 0).toFixed(3);
 
 const columns = [
-    { field: 'item.item_number', header: 'Item number', sortable: false },
-    { field: 'item.name', header: 'Item', sortable: false },
-    { field: 'location.code', header: 'Location', sortable: false },
-    { field: 'item_batch.batch_number', header: 'Batch', sortable: false, format: (row) => row.item_batch?.batch_number || '-' },
-    { field: 'quantity', header: 'Quantity', format: (row) => number(row.quantity) },
-    { field: 'reserved_quantity', header: 'Reserved', sortable: false, format: (row) => number(row.reserved_quantity) },
-    { field: 'available_quantity', header: 'Available', sortable: false, format: (row) => number(row.available_quantity) },
-    { field: 'unit', header: 'Unit', sortable: false },
+    { field: 'item.item_number', headerKey: 'fields.item_number', sortable: false },
+    { field: 'item.name', headerKey: 'fields.item', sortable: false },
+    { field: 'location.code', headerKey: 'fields.location', sortable: false },
+    { field: 'item_batch.batch_number', headerKey: 'fields.batch', sortable: false, format: (row) => row.item_batch?.batch_number || '-' },
+    { field: 'quantity', headerKey: 'fields.quantity', format: (row) => number(row.quantity) },
+    { field: 'reserved_quantity', headerKey: 'fields.reserved', sortable: false, format: (row) => number(row.reserved_quantity) },
+    { field: 'available_quantity', headerKey: 'fields.available', sortable: false, format: (row) => number(row.available_quantity) },
+    { field: 'unit', headerKey: 'fields.unit', sortable: false },
 ];
 </script>
 
 <template>
     <AdminCrudPage
-        title="Stock Balances"
-        subtitle="Review current stock quantities, reservations, and availability."
+        title=""
+        title-key="inventory.stock_balances.title"
+        subtitle-key="inventory.stock_balances.subtitle"
         route-name="admin.inventory.stock-balances"
         :records="records"
         :filters="filters"

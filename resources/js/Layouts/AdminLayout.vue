@@ -6,234 +6,235 @@ import Button from "primevue/button";
 import Menu from "primevue/menu";
 import { computed, ref } from "vue";
 import { trans } from "laravel-vue-i18n";
+import TopbarLocaleSwitch from "@/Components/TopbarLocaleSwitch.vue";
 
 const page = usePage();
 const user = computed(() => page.props.auth?.user);
 const userMenu = ref();
 
-const menuItems = [
+const menuItems = computed(() => [
     {
-        label: "Profile",
+        label: trans("navigation.profile"),
         icon: "pi pi-user",
         command: () => router.visit(route("profile.edit")),
     },
     {
-        label: "Logout",
+        label: trans("navigation.logout"),
         icon: "pi pi-sign-out",
         command: () => router.post(route("logout")),
     },
-];
+]);
 
 const sidebarItems = computed(() => [
     {
-        label: trans("admin_dashboard.title"),
+        labelKey: "admin.dashboard.title",
         icon: "pi pi-home",
         href: route("admin.dashboard"),
     },
-    { label: "Users", icon: "pi pi-users", href: route("admin.users.index") },
-    { label: "Roles", icon: "pi pi-shield", href: route("admin.roles.index") },
-    { label: "Permissions", icon: "pi pi-key", href: route("admin.permissions.index") },
-    { label: "Employees", icon: "pi pi-id-card", href: route("admin.employees.index") },
+    { labelKey: "navigation.users", icon: "pi pi-users", href: route("admin.users.index") },
+    { labelKey: "navigation.roles", icon: "pi pi-shield", href: route("admin.roles.index") },
+    { labelKey: "navigation.permissions", icon: "pi pi-key", href: route("admin.permissions.index") },
+    { labelKey: "navigation.employees", icon: "pi pi-id-card", href: route("admin.employees.index") },
     {
-        label: "Factory Units",
+        labelKey: "navigation.factory_units",
         icon: "pi pi-building",
         href: route("admin.factory-units.index"),
     },
     {
-        label: "Locations",
+        labelKey: "navigation.locations",
         icon: "pi pi-map-marker",
         href: route("admin.locations.index"),
     },
     {
-        label: "Professional Roles",
+        labelKey: "navigation.professional_roles",
         icon: "pi pi-briefcase",
         href: route("admin.professional-roles.index"),
     },
-    { label: "Items", icon: "pi pi-box", href: route("admin.items.index") },
-    { label: "BOMs", icon: "pi pi-list-check", href: route("admin.boms.index") },
+    { labelKey: "navigation.items", icon: "pi pi-box", href: route("admin.items.index") },
+    { labelKey: "navigation.boms", icon: "pi pi-list-check", href: route("admin.boms.index") },
     {
-        label: "Operation Types",
+        labelKey: "navigation.operation_types",
         icon: "pi pi-cog",
         href: route("admin.operation-types.index"),
     },
     {
-        label: "Operation Sequences",
+        labelKey: "navigation.operation_sequences",
         icon: "pi pi-sitemap",
         href: route("admin.operation-sequences.index"),
     },
-    { label: "Business Partners", icon: "pi pi-address-book", disabled: true },
-    { label: "Customers", icon: "pi pi-user-plus", href: route("admin.customers.index") },
-    { label: "Suppliers", icon: "pi pi-truck", href: route("admin.suppliers.index") },
-    { label: "Sales", icon: "pi pi-shopping-cart", disabled: true },
+    { labelKey: "navigation.business_partners", icon: "pi pi-address-book", disabled: true },
+    { labelKey: "navigation.customers", icon: "pi pi-user-plus", href: route("admin.customers.index") },
+    { labelKey: "navigation.suppliers", icon: "pi pi-truck", href: route("admin.suppliers.index") },
+    { labelKey: "navigation.sales", icon: "pi pi-shopping-cart", disabled: true },
     {
-        label: "Customer Orders",
+        labelKey: "navigation.customer_orders",
         icon: "pi pi-file-edit",
         href: route("admin.customer-orders.index"),
     },
-    { label: "Planning", icon: "pi pi-calendar-clock", disabled: true },
+    { labelKey: "navigation.planning", icon: "pi pi-calendar-clock", disabled: true },
     {
-        label: "Production Plans",
+        labelKey: "navigation.production_plans",
         icon: "pi pi-calendar-plus",
         href: route("admin.production-plans.index"),
     },
     {
-        label: "Capacity Dashboard",
+        labelKey: "navigation.capacity_dashboard",
         icon: "pi pi-chart-pie",
         href: route("admin.capacity.dashboard"),
     },
     {
-        label: "Factory Capacity",
+        labelKey: "navigation.factory_capacity",
         icon: "pi pi-building-columns",
         href: route("admin.capacity.factory-units"),
     },
     {
-        label: "Employee Capacity",
+        labelKey: "navigation.employee_capacity",
         icon: "pi pi-users",
         href: route("admin.capacity.employees"),
     },
     {
-        label: "Capacity Schedule",
+        labelKey: "navigation.capacity_schedule",
         icon: "pi pi-calendar-clock",
         href: route("admin.capacity.schedule"),
     },
     {
-        label: "Capacity Simulation",
+        labelKey: "navigation.capacity_simulation",
         icon: "pi pi-sliders-h",
         href: route("admin.capacity.simulate"),
     },
-    { label: "Production", icon: "pi pi-cog", disabled: true },
+    { labelKey: "navigation.production", icon: "pi pi-cog", disabled: true },
     {
-        label: "Shop Floor",
+        labelKey: "navigation.shop_floor",
         icon: "pi pi-th-large",
         href: route("admin.shop-floor.index"),
     },
     {
-        label: "My Tasks",
+        labelKey: "navigation.my_tasks",
         icon: "pi pi-list-check",
         href: route("admin.shop-floor.my-tasks"),
     },
     {
-        label: "Production Tasks",
+        labelKey: "navigation.production_tasks",
         icon: "pi pi-play-circle",
         href: route("admin.production-tasks.index"),
     },
-    { label: "Inventory", icon: "pi pi-warehouse", disabled: true },
+    { labelKey: "navigation.inventory", icon: "pi pi-warehouse", disabled: true },
     {
-        label: "Stock Balances",
+        labelKey: "navigation.stock_balances",
         icon: "pi pi-box",
         href: route("admin.inventory.stock-balances.index"),
     },
     {
-        label: "Stock Movements",
+        labelKey: "navigation.stock_movements",
         icon: "pi pi-arrow-right-arrow-left",
         href: route("admin.inventory.stock-movements.index"),
     },
     {
-        label: "Reservations",
+        labelKey: "navigation.reservations",
         icon: "pi pi-lock",
         href: route("admin.inventory.stock-reservations.index"),
     },
     {
-        label: "Material Requirements",
+        labelKey: "navigation.material_requirements",
         icon: "pi pi-list",
         href: route("admin.inventory.material-requirements.index"),
     },
     {
-        label: "Shortages",
+        labelKey: "navigation.shortages",
         icon: "pi pi-exclamation-triangle",
         href: route("admin.inventory.shortages.index"),
     },
-    { label: "Procurement", icon: "pi pi-shopping-bag", disabled: true },
+    { labelKey: "navigation.procurement", icon: "pi pi-shopping-bag", disabled: true },
     {
-        label: "Procurement Dashboard",
+        labelKey: "navigation.procurement_dashboard",
         icon: "pi pi-chart-bar",
         href: route("admin.procurement.dashboard"),
     },
     {
-        label: "Purchase Requisitions",
+        labelKey: "navigation.purchase_requisitions",
         icon: "pi pi-list-check",
         href: route("admin.purchase-requisitions.index"),
     },
     {
-        label: "Purchase Orders",
+        labelKey: "navigation.purchase_orders",
         icon: "pi pi-shopping-cart",
         href: route("admin.purchase-orders.index"),
     },
     {
-        label: "Goods Receipts",
+        labelKey: "navigation.goods_receipts",
         icon: "pi pi-inbox",
         href: route("admin.goods-receipts.index"),
     },
-    { label: "Documents", icon: "pi pi-folder", disabled: true },
+    { labelKey: "navigation.documents", icon: "pi pi-folder", disabled: true },
     {
-        label: "Document Library",
+        labelKey: "navigation.document_library",
         icon: "pi pi-file",
         href: route("admin.documents.index"),
     },
-    { label: "Reports", icon: "pi pi-chart-line", disabled: true },
+    { labelKey: "navigation.reports", icon: "pi pi-chart-line", disabled: true },
     {
-        label: "Customer Orders Report",
+        labelKey: "navigation.customer_orders_report",
         icon: "pi pi-list",
         href: route("admin.reports.customer-orders"),
     },
     {
-        label: "Production Report",
+        labelKey: "navigation.production_report",
         icon: "pi pi-cog",
         href: route("admin.reports.production"),
     },
     {
-        label: "Inventory Report",
+        labelKey: "navigation.inventory_report",
         icon: "pi pi-warehouse",
         href: route("admin.reports.inventory"),
     },
     {
-        label: "Procurement Report",
+        labelKey: "navigation.procurement_report",
         icon: "pi pi-shopping-bag",
         href: route("admin.reports.procurement"),
     },
     {
-        label: "Quality Report",
+        labelKey: "navigation.quality_report",
         icon: "pi pi-check-circle",
         href: route("admin.reports.quality"),
     },
     {
-        label: "Shop Floor Report",
+        labelKey: "navigation.shop_floor_report",
         icon: "pi pi-th-large",
         href: route("admin.reports.shop-floor"),
     },
-    { label: "Intelligence", icon: "pi pi-sparkles", disabled: true },
+    { labelKey: "navigation.intelligence", icon: "pi pi-sparkles", disabled: true },
     {
-        label: "MI Dashboard",
+        labelKey: "navigation.mi_dashboard",
         icon: "pi pi-chart-pie",
         href: route("admin.intelligence.dashboard"),
     },
     {
-        label: "Bottlenecks",
+        labelKey: "navigation.bottlenecks",
         icon: "pi pi-exclamation-triangle",
         href: route("admin.intelligence.bottlenecks"),
     },
     {
-        label: "Material Forecast",
+        labelKey: "navigation.material_forecast",
         icon: "pi pi-box",
         href: route("admin.intelligence.material-forecast"),
     },
     {
-        label: "Supplier Performance",
+        labelKey: "navigation.supplier_performance",
         icon: "pi pi-truck",
         href: route("admin.intelligence.supplier-performance"),
     },
     {
-        label: "Quality Trends",
+        labelKey: "navigation.quality_trends",
         icon: "pi pi-chart-line",
         href: route("admin.intelligence.quality-trends"),
     },
     {
-        label: "Production Risks",
+        labelKey: "navigation.production_risks",
         icon: "pi pi-shield",
         href: route("admin.intelligence.risks"),
     },
     {
-        label: "Recommendations",
+        labelKey: "navigation.recommendations",
         icon: "pi pi-lightbulb",
         href: route("admin.intelligence.recommendations"),
     },
@@ -259,6 +260,8 @@ const isSidebarItemActive = (item) => {
     return !item.disabled && normalizePath(item.href) === activeSidebarHref.value;
 };
 
+const sidebarLabel = (item) => trans(item.labelKey);
+
 const toggleUserMenu = (event) => {
     userMenu.value.toggle(event);
 };
@@ -280,6 +283,7 @@ const toggleUserMenu = (event) => {
                 </Link>
 
                 <div class="flex items-center gap-3">
+                    <TopbarLocaleSwitch />
                     <div class="hidden text-right text-sm sm:block">
                         <div class="font-medium">{{ user?.name }}</div>
                         <div class="text-xs text-slate-500">{{ user?.email }}</div>
@@ -304,7 +308,7 @@ const toggleUserMenu = (event) => {
                     <component
                         :is="item.disabled ? 'span' : Link"
                         v-for="item in sidebarItems"
-                        :key="item.label"
+                        :key="item.labelKey"
                         :href="item.disabled ? undefined : item.href"
                         class="flex min-w-fit items-center gap-2 rounded px-3 py-2 text-sm font-medium"
                         :class="
@@ -317,7 +321,7 @@ const toggleUserMenu = (event) => {
                         :aria-current="isSidebarItemActive(item) ? 'page' : undefined"
                     >
                         <i :class="item.icon" />
-                        <span>{{ item.label }}</span>
+                        <span>{{ sidebarLabel(item) }}</span>
                     </component>
                 </nav>
             </aside>

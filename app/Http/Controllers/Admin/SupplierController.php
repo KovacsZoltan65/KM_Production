@@ -30,14 +30,14 @@ class SupplierController extends Controller
     {
         $this->service->create($request->validated(), $request->user());
 
-        return back()->with('success', 'Supplier created.');
+        return back()->with('success', __('messages.created'));
     }
 
     public function update(UpdateSupplierRequest $request, Supplier $supplier): RedirectResponse
     {
         $this->service->update($supplier, $request->validated(), $request->user());
 
-        return back()->with('success', 'Supplier updated.');
+        return back()->with('success', __('messages.updated'));
     }
 
     public function destroy(Supplier $supplier): RedirectResponse
@@ -45,6 +45,6 @@ class SupplierController extends Controller
         $this->authorize('delete', $supplier);
         $this->service->delete($supplier, request()->user());
 
-        return back()->with('success', 'Supplier deleted.');
+        return back()->with('success', __('messages.deleted'));
     }
 }

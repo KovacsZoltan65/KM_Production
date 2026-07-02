@@ -78,11 +78,18 @@ return [
     |
     */
 
-    'locale' => env('APP_LOCALE', 'en'),
+    'locale' => env('APP_LOCALE', 'hu'),
 
     'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),
 
-    'faker_locale' => env('APP_FAKER_LOCALE', 'en_US'),
+    'faker_locale' => env('APP_FAKER_LOCALE', 'hu_HU'),
+
+    'supported_locales' => ['hu', 'en'],
+
+    'available_locales' => [
+        ['label' => 'Magyar', 'value' => 'hu'],
+        ['label' => 'English', 'value' => 'en'],
+    ],
 
     /*
     |--------------------------------------------------------------------------

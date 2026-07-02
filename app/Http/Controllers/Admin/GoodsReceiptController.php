@@ -54,14 +54,14 @@ class GoodsReceiptController extends Controller
     {
         $goodsReceipt = $this->service->create($request->validated(), $request->user());
 
-        return redirect()->route('admin.goods-receipts.show', $goodsReceipt)->with('success', 'Goods receipt created.');
+        return redirect()->route('admin.goods-receipts.show', $goodsReceipt)->with('success', __('procurement.goods_receipts.messages.created'));
     }
 
     public function post(PostGoodsReceiptRequest $request, GoodsReceipt $goodsReceipt): RedirectResponse
     {
         $this->service->post($goodsReceipt, $request->user());
 
-        return back()->with('success', 'Goods receipt posted.');
+        return back()->with('success', __('procurement.goods_receipts.messages.posted'));
     }
 
     /**
@@ -71,7 +71,7 @@ class GoodsReceiptController extends Controller
     {
         return collect(GoodsReceiptStatus::cases())
             ->map(fn (GoodsReceiptStatus $status): array => [
-                'label' => str($status->value)->replace('_', ' ')->title()->toString(),
+                'label' => __("status.{$status->value}"),
                 'value' => $status->value,
             ])
             ->values()

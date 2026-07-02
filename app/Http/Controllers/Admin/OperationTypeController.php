@@ -37,14 +37,14 @@ class OperationTypeController extends Controller
     {
         $this->service->create($request->validated(), $request->user());
 
-        return back()->with('success', 'Operation type created.');
+        return back()->with('success', __('messages.created'));
     }
 
     public function update(UpdateOperationTypeRequest $request, OperationType $operationType): RedirectResponse
     {
         $this->service->update($operationType, $request->validated(), $request->user());
 
-        return back()->with('success', 'Operation type updated.');
+        return back()->with('success', __('messages.updated'));
     }
 
     public function destroy(OperationType $operationType): RedirectResponse
@@ -52,6 +52,6 @@ class OperationTypeController extends Controller
         $this->authorize('delete', $operationType);
         $this->service->delete($operationType, request()->user());
 
-        return back()->with('success', 'Operation type deleted.');
+        return back()->with('success', __('messages.deleted'));
     }
 }
