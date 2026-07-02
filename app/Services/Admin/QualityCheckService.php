@@ -25,7 +25,7 @@ class QualityCheckService
     public function store(ProductionTask $productionTask, array $attributes, ?User $causer = null): QualityCheck
     {
         if ($productionTask->status !== ProductionTaskStatus::WaitingForCheck) {
-            throw ValidationException::withMessages(['status' => 'Only tasks waiting for check can be quality checked.']);
+            throw ValidationException::withMessages(['status' => __('quality.validation.task_status')]);
         }
 
         return DB::transaction(function () use ($productionTask, $attributes, $causer): QualityCheck {

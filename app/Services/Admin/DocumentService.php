@@ -127,7 +127,7 @@ class DocumentService
             ->exists();
 
         if ($document->is_current && $hasNewerVersion) {
-            throw ValidationException::withMessages(['document' => 'The current document cannot be deleted while a newer version exists.']);
+            throw ValidationException::withMessages(['document' => __('documents.validation.current_delete_newer')]);
         }
 
         $this->documents->delete($document);
@@ -153,7 +153,7 @@ class DocumentService
         $path = $document->path ?? $document->file_path;
 
         if ($path === null || ! Storage::disk($disk)->exists($path)) {
-            throw ValidationException::withMessages(['document' => 'The document file is missing from storage.']);
+            throw ValidationException::withMessages(['document' => __('documents.validation.file_missing')]);
         }
 
         $this->auditLogService->log('document_downloaded', $document, [

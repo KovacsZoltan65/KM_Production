@@ -78,7 +78,7 @@ class GoodsReceiptService
                 ->firstOrFail();
 
             if ($goodsReceipt->status === GoodsReceiptStatus::Posted) {
-                throw ValidationException::withMessages(['status' => 'Posted goods receipts cannot be posted again.']);
+                throw ValidationException::withMessages(['status' => __('procurement.goods_receipts.validation.already_posted')]);
             }
 
             $goodsReceipt->load(['items', 'purchaseOrder.items']);

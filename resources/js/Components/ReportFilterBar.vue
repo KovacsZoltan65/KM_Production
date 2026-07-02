@@ -11,8 +11,8 @@ defineEmits(['apply', 'reset']);
                 <slot />
             </div>
             <div class="flex gap-2">
-                <Button type="button" label="Apply" icon="pi pi-filter" @click="$emit('apply')" />
-                <Button type="button" label="Reset" icon="pi pi-refresh" severity="secondary" outlined @click="$emit('reset')" />
+                <Button type="button" :label="$t('actions.apply')" icon="pi pi-filter" @click="$emit('apply')" />
+                <Button type="button" :label="$t('actions.reset')" icon="pi pi-refresh" severity="secondary" outlined @click="$emit('reset')" />
             </div>
         </div>
     </section>

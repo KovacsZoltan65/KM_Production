@@ -110,7 +110,7 @@ class ProductionTaskMaterialService
         $balance = $query->first();
 
         if ($balance === null) {
-            throw ValidationException::withMessages(['used_quantity' => 'Not enough stock is available for the requested material usage.']);
+            throw ValidationException::withMessages(['used_quantity' => __('production.materials.validation.insufficient_stock')]);
         }
 
         return $balance;
