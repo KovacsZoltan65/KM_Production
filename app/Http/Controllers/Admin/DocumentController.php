@@ -47,14 +47,14 @@ class DocumentController extends Controller
     {
         $document = $this->service->create($request->validated(), $request->file('file'), $request->user());
 
-        return redirect()->route('admin.documents.show', $document)->with('success', 'Document uploaded.');
+        return redirect()->route('admin.documents.show', $document)->with('success', __('documents.messages.uploaded'));
     }
 
     public function update(UpdateDocumentRequest $request, Document $document): RedirectResponse
     {
         $this->service->update($document, $request->validated(), $request->user());
 
-        return back()->with('success', 'Document updated.');
+        return back()->with('success', __('documents.messages.updated'));
     }
 
     public function destroy(Document $document): RedirectResponse
@@ -63,7 +63,7 @@ class DocumentController extends Controller
 
         $this->service->delete($document, request()->user());
 
-        return redirect()->route('admin.documents.index')->with('success', 'Document deleted.');
+        return redirect()->route('admin.documents.index')->with('success', __('documents.messages.deleted'));
     }
 
     public function download(Document $document): StreamedResponse
@@ -77,14 +77,14 @@ class DocumentController extends Controller
     {
         $this->service->approve($document, $request->user());
 
-        return back()->with('success', 'Document approved.');
+        return back()->with('success', __('documents.messages.approved'));
     }
 
     public function makeCurrent(MakeCurrentDocumentRequest $request, Document $document): RedirectResponse
     {
         $this->service->makeCurrent($document, $request->user());
 
-        return back()->with('success', 'Current document version changed.');
+        return back()->with('success', __('documents.messages.current_changed'));
     }
 
     /**
@@ -94,7 +94,7 @@ class DocumentController extends Controller
     {
         return collect(DocumentType::cases())
             ->map(fn (DocumentType $type): array => [
-                'label' => str($type->value)->replace('_', ' ')->title()->toString(),
+                'label' => __("enum.document_type.{$type->value}"),
                 'value' => $type->value,
             ])
             ->values()

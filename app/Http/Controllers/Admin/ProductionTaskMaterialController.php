@@ -16,6 +16,6 @@ class ProductionTaskMaterialController extends Controller
     {
         $this->service->store($productionTask, $request->validated(), $request->user());
 
-        return back()->with('success', 'Material usage recorded.');
+        return back()->with('success', __('production.materials.messages.recorded'));
     }
 }

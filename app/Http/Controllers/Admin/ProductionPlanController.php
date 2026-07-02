@@ -51,14 +51,14 @@ class ProductionPlanController extends Controller
     {
         $this->service->create($request->validated(), $request->user());
 
-        return back()->with('success', 'Production plan created.');
+        return back()->with('success', __('production.plans.messages.created'));
     }
 
     public function update(UpdateProductionPlanRequest $request, ProductionPlan $productionPlan): RedirectResponse
     {
         $this->service->update($productionPlan, $request->validated(), $request->user());
 
-        return back()->with('success', 'Production plan updated.');
+        return back()->with('success', __('production.plans.messages.updated'));
     }
 
     public function destroy(ProductionPlan $productionPlan): RedirectResponse
@@ -66,21 +66,21 @@ class ProductionPlanController extends Controller
         $this->authorize('delete', $productionPlan);
         $this->service->delete($productionPlan, request()->user());
 
-        return back()->with('success', 'Production plan deleted.');
+        return back()->with('success', __('production.plans.messages.deleted'));
     }
 
     public function approve(ApproveProductionPlanRequest $request, ProductionPlan $productionPlan): RedirectResponse
     {
         $this->service->approve($productionPlan, $request->user());
 
-        return back()->with('success', 'Production plan approved.');
+        return back()->with('success', __('production.plans.messages.approved'));
     }
 
     public function generateProductionOrders(GenerateProductionOrdersRequest $request, ProductionPlan $productionPlan): RedirectResponse
     {
         $this->service->generateProductionOrders($productionPlan, $request->user());
 
-        return back()->with('success', 'Production orders generated.');
+        return back()->with('success', __('production.plans.messages.orders_generated'));
     }
 
     /**
@@ -139,7 +139,7 @@ class ProductionPlanController extends Controller
     {
         return collect(ProductionPlanStatus::cases())
             ->map(fn (ProductionPlanStatus $status): array => [
-                'label' => str($status->value)->replace('_', ' ')->title()->toString(),
+                'label' => __("status.{$status->value}"),
                 'value' => $status->value,
             ])
             ->values()

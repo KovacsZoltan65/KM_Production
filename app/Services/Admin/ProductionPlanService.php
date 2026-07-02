@@ -103,7 +103,7 @@ class ProductionPlanService
     {
         if (! \in_array($productionPlan->status, [ProductionPlanStatus::Draft, ProductionPlanStatus::Calculated], true)) {
             throw ValidationException::withMessages([
-                'status' => 'Only draft or calculated production plans can be approved.',
+                'status' => __('production.plans.validation.approve_status'),
             ]);
         }
 
@@ -118,16 +118,16 @@ class ProductionPlanService
         $productionPlan = $this->repository->findForShow($productionPlan);
 
         if ($productionPlan->status !== ProductionPlanStatus::Approved) {
-            throw ValidationException::withMessages(['status' => 'Production orders can only be generated from approved production plans.']);
+            throw ValidationException::withMessages(['status' => __('production.plans.validation.generate_status')]);
         }
 
         foreach ($productionPlan->items as $item) {
             if ($item->bom_id === null) {
-                throw ValidationException::withMessages(['items' => 'Every production plan item must have a BOM before generating production orders.']);
+                throw ValidationException::withMessages(['items' => __('production.plans.validation.missing_bom')]);
             }
 
             if ($item->operation_sequence_id === null) {
-                throw ValidationException::withMessages(['items' => 'Every production plan item must have an operation sequence before generating production orders.']);
+                throw ValidationException::withMessages(['items' => __('production.plans.validation.missing_operation_sequence')]);
             }
         }
 
