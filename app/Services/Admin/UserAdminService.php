@@ -20,13 +20,13 @@ class UserAdminService extends AbstractAdminService
         /** @var User $model */
         if ($causer?->is($model)) {
             throw ValidationException::withMessages([
-                'user' => 'You cannot delete your own user account.',
+                'user' => __('master_data.users.validation.cannot_delete_self'),
             ]);
         }
 
         if ($model->hasRole('super-admin') && User::role('super-admin')->count() <= 1) {
             throw ValidationException::withMessages([
-                'user' => 'At least one super-admin user must remain.',
+                'user' => __('master_data.users.validation.super_admin_required'),
             ]);
         }
 

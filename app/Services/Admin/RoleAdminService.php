@@ -33,7 +33,7 @@ class RoleAdminService extends AbstractAdminService
         /** @var Role $model */
         if ($model->name === 'super-admin') {
             throw ValidationException::withMessages([
-                'role' => 'The super-admin role cannot be deleted.',
+                'role' => __('master_data.roles.validation.super_admin_cannot_delete'),
             ]);
         }
 

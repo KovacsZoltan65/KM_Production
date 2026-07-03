@@ -1,5 +1,5 @@
 <script setup>
-import Tag from 'primevue/tag';
+import Tag from "primevue/tag";
 
 defineProps({
     result: { type: Object, default: null },
@@ -7,25 +7,47 @@ defineProps({
 </script>
 
 <template>
-    <div v-if="result" class="grid gap-3 rounded border border-slate-200 bg-white p-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div
+        v-if="result"
+        class="grid gap-3 rounded border border-slate-200 bg-white p-4 sm:grid-cols-2 lg:grid-cols-3"
+    >
         <div>
-            <div class="text-xs uppercase text-slate-500">Estimated Start</div>
+            <div class="text-xs uppercase text-slate-500">
+                {{ $t("capacity.fields.estimated_start") }}
+            </div>
             <div class="font-medium">{{ result.estimatedStart }}</div>
         </div>
         <div>
-            <div class="text-xs uppercase text-slate-500">Estimated Finish</div>
+            <div class="text-xs uppercase text-slate-500">
+                {{ $t("capacity.fields.estimated_finish") }}
+            </div>
             <div class="font-medium">{{ result.estimatedFinish }}</div>
         </div>
         <div>
-            <div class="text-xs uppercase text-slate-500">Late</div>
-            <Tag :value="result.isLate ? `Yes, ${result.lateByMinutes} min` : 'No'" :severity="result.isLate ? 'danger' : 'success'" />
+            <div class="text-xs uppercase text-slate-500">
+                {{ $t("capacity.fields.late") }}
+            </div>
+            <Tag
+                :value="
+                    result.isLate
+                        ? $t('capacity.fields.late_minutes', {
+                              minutes: result.lateByMinutes,
+                          })
+                        : $t('common.no')
+                "
+                :severity="result.isLate ? 'danger' : 'success'"
+            />
         </div>
         <div>
-            <div class="text-xs uppercase text-slate-500">Critical Factory Unit</div>
+            <div class="text-xs uppercase text-slate-500">
+                {{ $t("capacity.fields.critical_factory_unit") }}
+            </div>
             <div class="font-medium">{{ result.criticalFactoryUnit }}</div>
         </div>
         <div>
-            <div class="text-xs uppercase text-slate-500">Critical Professional Role</div>
+            <div class="text-xs uppercase text-slate-500">
+                {{ $t("capacity.fields.critical_professional_role") }}
+            </div>
             <div class="font-medium">{{ result.criticalProfessionalRole }}</div>
         </div>
     </div>

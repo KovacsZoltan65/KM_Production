@@ -1,6 +1,6 @@
 <script setup>
-import AdminLayout from '@/Layouts/AdminLayout.vue';
-import FactoryLoadTable from '@/Components/FactoryLoadTable.vue';
+import AdminLayout from "@/Layouts/AdminLayout.vue";
+import FactoryLoadTable from "@/Components/FactoryLoadTable.vue";
 
 defineOptions({ layout: AdminLayout });
 
@@ -12,8 +12,12 @@ defineProps({
 <template>
     <section class="space-y-5">
         <div>
-            <h1 class="text-2xl font-semibold">Factory Unit Capacity</h1>
-            <p class="text-sm text-slate-500">Available minutes, reservations and utilization by unit.</p>
+            <h1 class="text-2xl font-semibold">
+                {{ $t("capacity.factory_units.title") }}
+            </h1>
+            <p class="text-sm text-slate-500">
+                {{ $t("capacity.factory_units.subtitle") }}
+            </p>
         </div>
         <FactoryLoadTable :loads="loads" />
     </section>

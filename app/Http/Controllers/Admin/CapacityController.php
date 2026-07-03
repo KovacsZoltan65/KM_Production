@@ -69,7 +69,7 @@ class CapacityController extends Controller
 
         $this->scheduler->schedule($productionOrder, $request->boolean('override'));
 
-        return back()->with('success', 'Capacity schedule generated.');
+        return back()->with('success', __('capacity.schedule.messages.generated'));
     }
 
     public function simulate(Request $request): Response

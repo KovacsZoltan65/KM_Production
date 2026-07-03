@@ -11,10 +11,7 @@ export function usePreferences() {
 
         return Array.isArray(locales) && locales.length > 0
             ? locales
-            : [
-                  { label: "Magyar", value: "hu" },
-                  { label: "English", value: "en" },
-              ];
+            : [{ value: "hu" }, { value: "en" }];
     });
 
     const locale = computed(

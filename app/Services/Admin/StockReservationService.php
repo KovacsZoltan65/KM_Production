@@ -82,7 +82,7 @@ class StockReservationService
     {
         if ($reservation->status !== StockReservationStatus::Active) {
             throw ValidationException::withMessages([
-                'reservation' => 'Only active reservations can be released.',
+                'reservation' => __('inventory.stock_reservations.validation.only_active_release'),
             ]);
         }
 

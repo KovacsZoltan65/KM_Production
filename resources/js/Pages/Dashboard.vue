@@ -9,14 +9,16 @@ const permissions = computed(() => page.props.auth?.permissions || []);
 </script>
 
 <template>
-    <Head title="Dashboard" />
+    <Head :title="$t('dashboard.title')" />
 
     <AdminLayout>
         <div class="space-y-6">
             <div>
-                <h1 class="text-2xl font-semibold">Dashboard</h1>
+                <h1 class="text-2xl font-semibold">
+                    {{ $t("dashboard.title") }}
+                </h1>
                 <p class="mt-1 text-sm text-slate-600">
-                    Authentication and permission foundation is active.
+                    {{ $t("dashboard.subtitle") }}
                 </p>
             </div>
 
@@ -25,7 +27,7 @@ const permissions = computed(() => page.props.auth?.permissions || []);
                     <h2
                         class="text-sm font-semibold uppercase tracking-wide text-slate-500"
                     >
-                        Roles
+                        {{ $t("fields.roles") }}
                     </h2>
                     <div class="mt-3 flex flex-wrap gap-2">
                         <span
@@ -35,8 +37,10 @@ const permissions = computed(() => page.props.auth?.permissions || []);
                         >
                             {{ role }}
                         </span>
-                        <span v-if="roles.length === 0" class="text-sm text-slate-500"
-                            >No roles assigned.</span
+                        <span
+                            v-if="roles.length === 0"
+                            class="text-sm text-slate-500"
+                            >{{ $t("dashboard.no_roles_assigned") }}</span
                         >
                     </div>
                 </section>
@@ -45,9 +49,11 @@ const permissions = computed(() => page.props.auth?.permissions || []);
                     <h2
                         class="text-sm font-semibold uppercase tracking-wide text-slate-500"
                     >
-                        Permissions
+                        {{ $t("fields.permissions") }}
                     </h2>
-                    <p class="mt-3 text-3xl font-semibold">{{ permissions.length }}</p>
+                    <p class="mt-3 text-3xl font-semibold">
+                        {{ permissions.length }}
+                    </p>
                 </section>
             </div>
         </div>

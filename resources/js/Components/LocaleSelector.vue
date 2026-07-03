@@ -1,15 +1,13 @@
 <script setup>
 import Select from "primevue/select";
+import { trans } from "laravel-vue-i18n";
 import { computed } from "vue";
 
 const props = defineProps({
     modelValue: { type: String, default: "hu" },
     options: {
         type: Array,
-        default: () => [
-            { label: "Magyar", value: "hu" },
-            { label: "English", value: "en" },
-        ],
+        default: () => [{ value: "hu" }, { value: "en" }],
     },
     placeholder: { type: String, default: "" },
 });
@@ -23,12 +21,19 @@ const selectedLocale = computed({
         emit("change", value);
     },
 });
+
+const resolvedOptions = computed(() =>
+    props.options.map((option) => ({
+        ...option,
+        label: option.label || trans(`common.locales.${option.value}`),
+    })),
+);
 </script>
 
 <template>
     <Select
         v-model="selectedLocale"
-        :options="options"
+        :options="resolvedOptions"
         option-label="label"
         option-value="value"
         :placeholder="placeholder"
