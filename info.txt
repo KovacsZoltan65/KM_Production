@@ -2,6 +2,7 @@ php artisan optimize:clear
 php artisan cache:clear
 php artisan migrate:fresh --seed
 Developer: Reload Window
+npm run i18n:check
 
 Futtassa ezt a parancsot a Facades automatikus kiegészítésének létrehozásához. Ez létrehozza az _ide_helper.php fájlt.
     php artisan ide-helper:generate

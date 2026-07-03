@@ -28,15 +28,11 @@ defineProps({ task: Object });
         </div>
         <div class="mt-4 grid gap-2 text-sm text-slate-700">
             <div>
-                <span class="text-slate-500"
-                    >{{ $t("fields.operation") }}:</span
-                >
+                <span class="text-slate-500">{{ $t("fields.operation") }}:</span>
                 {{ task.operation_sequence_step?.operation_type?.name }}
             </div>
             <div>
-                <span class="text-slate-500"
-                    >{{ $t("fields.factory_unit") }}:</span
-                >
+                <span class="text-slate-500">{{ $t("fields.factory_unit") }}:</span>
                 {{ task.operation_sequence_step?.factory_unit?.code }}
             </div>
             <div>

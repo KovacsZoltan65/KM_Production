@@ -1,7 +1,7 @@
 <script setup>
-import DataTable from 'primevue/datatable';
-import Column from 'primevue/column';
-import Tag from 'primevue/tag';
+import DataTable from "primevue/datatable";
+import Column from "primevue/column";
+import Tag from "primevue/tag";
 
 defineProps({
     rows: { type: Array, default: () => [] },
@@ -19,7 +19,9 @@ defineProps({
         </Column>
         <Column field="employee" header="Employee" />
         <Column field="status" header="Status">
-            <template #body="{ data }"><Tag :value="data.status" severity="info" /></template>
+            <template #body="{ data }"
+                ><Tag :value="data.status" severity="info"
+            /></template>
         </Column>
     </DataTable>
 </template>

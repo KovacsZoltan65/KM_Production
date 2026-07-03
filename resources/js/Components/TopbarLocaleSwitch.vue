@@ -11,7 +11,7 @@ const localeOptions = computed(() =>
     availableLocales.value.map((option) => ({
         ...option,
         label: trans(`common.locales.${option.value}`),
-    })),
+    }))
 );
 
 watch(locale, (value) => {
@@ -26,7 +26,9 @@ const changeLocale = async (value) => {
 
 <template>
     <div class="flex items-center gap-2">
-        <span class="hidden text-xs font-medium uppercase tracking-wide text-slate-500 sm:inline">
+        <span
+            class="hidden text-xs font-medium uppercase tracking-wide text-slate-500 sm:inline"
+        >
             {{ $t("common.language") }}
         </span>
         <LocaleSelector

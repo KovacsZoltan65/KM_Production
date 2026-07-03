@@ -2,13 +2,13 @@
 defineProps({
     label: { type: String, required: true },
     value: { type: Number, default: 0 },
-    detail: { type: String, default: '' },
+    detail: { type: String, default: "" },
 });
 
 const toneFor = (value) => {
-    if (value >= 90) return 'border-red-200 bg-red-50 text-red-700';
-    if (value >= 70) return 'border-amber-200 bg-amber-50 text-amber-700';
-    return 'border-emerald-200 bg-emerald-50 text-emerald-700';
+    if (value >= 90) return "border-red-200 bg-red-50 text-red-700";
+    if (value >= 70) return "border-amber-200 bg-amber-50 text-amber-700";
+    return "border-emerald-200 bg-emerald-50 text-emerald-700";
 };
 </script>
 

@@ -15,7 +15,7 @@ const colors = [
     "#64748b",
 ];
 const total = computed(() =>
-    props.rows.reduce((sum, row) => sum + Number(row.value || 0), 0),
+    props.rows.reduce((sum, row) => sum + Number(row.value || 0), 0)
 );
 const segments = computed(() => {
     let offset = 0;
@@ -63,9 +63,7 @@ const label = (value) => String(value || "").replaceAll("_", " ");
                     :stroke-dashoffset="segment.dashoffset"
                 />
             </svg>
-            <div
-                class="absolute inset-0 grid place-items-center text-xl font-semibold"
-            >
+            <div class="absolute inset-0 grid place-items-center text-xl font-semibold">
                 {{ total }}
             </div>
         </div>

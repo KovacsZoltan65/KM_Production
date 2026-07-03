@@ -1,13 +1,13 @@
 <script setup>
-import Button from 'primevue/button';
-import { trans } from 'laravel-vue-i18n';
+import Button from "primevue/button";
+import { trans } from "laravel-vue-i18n";
 
 defineProps({
     canEdit: { type: Boolean, default: true },
     canDelete: { type: Boolean, default: true },
 });
 
-defineEmits(['edit', 'delete']);
+defineEmits(["edit", "delete"]);
 </script>
 
 <template>
