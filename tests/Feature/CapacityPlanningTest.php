@@ -176,7 +176,7 @@ class CapacityPlanningTest extends TestCase
     public function test_lead_time_estimate_returns_dates_and_late_flag(): void
     {
         $order = CustomerOrder::query()->firstOrFail();
-        $order->update(['requested_delivery_date' => now()->subDay()->toDateString()]);
+        $order->update(['requested_delivery_date' => '2026-06-30']);
 
         $estimate = app(LeadTimeEstimator::class)->estimate($order);
 
