@@ -3,9 +3,11 @@
 namespace App\Services\Admin;
 
 use App\Models\CustomerOrder;
+use App\Models\ProductionOrder;
 use App\Repositories\Contracts\CapacityRepositoryInterface;
 use App\Services\AuditLogService;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
 
 class LeadTimeEstimator
@@ -22,7 +24,7 @@ class LeadTimeEstimator
     public function estimate(CustomerOrder $order, bool $audit = false): array
     {
         $productionOrders = $this->capacity->productionOrdersForCustomerOrder($order);
-        $tasks = $productionOrders->flatMap(fn ($productionOrder) => $this->capacity->tasksForProductionOrder($productionOrder));
+        $tasks = $this->tasksForProductionOrders($productionOrders);
         $cursor = $productionOrders
             ->pluck('planned_start_date')
             ->filter()
@@ -78,6 +80,20 @@ class LeadTimeEstimator
         }
 
         return $result;
+    }
+
+    /**
+     * @param  EloquentCollection<int, ProductionOrder>  $productionOrders
+     */
+    private function tasksForProductionOrders(EloquentCollection $productionOrders): Collection
+    {
+        return $productionOrders->flatMap(function (ProductionOrder $productionOrder): Collection {
+            if ($productionOrder->relationLoaded('productionTasks')) {
+                return $productionOrder->productionTasks;
+            }
+
+            return $this->capacity->tasksForProductionOrder($productionOrder);
+        });
     }
 
     private function criticalFactoryUnit(Collection $tasks): string

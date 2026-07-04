@@ -9,11 +9,13 @@ use App\Models\ProductionOrder;
 use App\Models\ProductionTask;
 use App\Models\User;
 use App\Services\Admin\CapacityPlanningService;
+use App\Services\Admin\CapacitySlotFinder;
 use App\Services\Admin\LeadTimeEstimator;
 use App\Services\Admin\SchedulingService;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Spatie\Activitylog\Models\Activity;
 use Tests\TestCase;
 
@@ -205,6 +207,32 @@ class CapacityPlanningTest extends TestCase
         $this->assertSame($first->toArray(), $second->toArray());
     }
 
+    public function test_capacity_dashboard_query_count_is_bounded(): void
+    {
+        Cache::flush();
+
+        $queries = $this->countQueries(fn (): array => app(CapacityPlanningService::class)->dashboard());
+
+        $this->assertLessThan(20, $queries);
+    }
+
+    public function test_slot_finding_reuses_calendar_queries(): void
+    {
+        CapacityReservation::query()->delete();
+
+        $task = ProductionTask::query()->with('operationSequenceStep')->firstOrFail();
+        $factoryUnitId = $task->operationSequenceStep->factory_unit_id;
+        $finder = app(CapacitySlotFinder::class);
+
+        $queries = $this->countQueries(function () use ($finder, $factoryUnitId, $task): void {
+            $finder->findSlot($factoryUnitId, now()->startOfDay()->addHours(8), 30, $task->id);
+            $finder->findSlot($factoryUnitId, now()->startOfDay()->addHours(9), 30, $task->id);
+            $finder->findSlot($factoryUnitId, now()->startOfDay()->addHours(10), 30, $task->id);
+        });
+
+        $this->assertLessThan(3, $queries);
+    }
+
     public function test_schedule_and_simulation_are_audited(): void
     {
         $order = ProductionOrder::query()->firstOrFail();
@@ -254,5 +282,17 @@ class CapacityPlanningTest extends TestCase
         $user->assignRole($role);
 
         return $user;
+    }
+
+    private function countQueries(callable $callback): int
+    {
+        $queries = 0;
+        DB::listen(static function () use (&$queries): void {
+            $queries++;
+        });
+
+        $callback();
+
+        return $queries;
     }
 }

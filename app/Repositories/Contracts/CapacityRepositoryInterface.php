@@ -47,6 +47,11 @@ interface CapacityRepositoryInterface
 
     public function nextFactoryReservationOverlap(int $factoryUnitId, CarbonInterface $from, CarbonInterface $until, ?int $ignoreProductionTaskId = null): ?CapacityReservation;
 
+    /**
+     * @return EloquentCollection<int, CapacityReservation>
+     */
+    public function factoryReservationsForHorizon(int $factoryUnitId, CarbonInterface $from, CarbonInterface $until): EloquentCollection;
+
     public function createOrUpdateReservation(array $attributes, array $values): CapacityReservation;
 
     /**

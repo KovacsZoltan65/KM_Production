@@ -30,6 +30,7 @@ class CapacityRepository implements CapacityRepositoryInterface
             ->keyBy('factory_unit_id');
 
         return FactoryUnit::query()
+            ->with(['calendars' => fn ($query) => $query->where('is_working_day', true)])
             ->where('is_active', true)
             ->orderBy('name')
             ->get()
@@ -66,7 +67,7 @@ class CapacityRepository implements CapacityRepositoryInterface
             ->keyBy('employee_id');
 
         return Employee::query()
-            ->with('professionalRole')
+            ->with(['professionalRole', 'workCalendars'])
             ->where('is_active', true)
             ->orderBy('name')
             ->get()
@@ -173,6 +174,17 @@ class CapacityRepository implements CapacityRepositoryInterface
             ->first();
     }
 
+    public function factoryReservationsForHorizon(int $factoryUnitId, CarbonInterface $from, CarbonInterface $until): EloquentCollection
+    {
+        return CapacityReservation::query()
+            ->where('factory_unit_id', $factoryUnitId)
+            ->where('status', '!=', 'cancelled')
+            ->where('reserved_from', '<', $until)
+            ->where('reserved_until', '>', $from)
+            ->orderBy('reserved_until')
+            ->get();
+    }
+
     public function createOrUpdateReservation(array $attributes, array $values): CapacityReservation
     {
         return CapacityReservation::query()->updateOrCreate($attributes, $values);
@@ -182,7 +194,18 @@ class CapacityRepository implements CapacityRepositoryInterface
     {
         return ProductionOrder::query()
             ->whereHas('customerOrderItem', fn ($query) => $query->where('customer_order_id', $customerOrder->id))
-            ->with(['productionTasks.operationSequenceStep.factoryUnit', 'productionTasks.employee'])
+            ->with([
+                'productionTasks' => fn ($query) => $query
+                    ->with([
+                        'employee',
+                        'operationSequenceStep.factoryUnit',
+                        'operationSequenceStep.professionalRole',
+                        'operationSequenceStep.operationType',
+                    ])
+                    ->join('operation_sequence_steps', 'operation_sequence_steps.id', '=', 'production_tasks.operation_sequence_step_id')
+                    ->orderBy('operation_sequence_steps.step_order')
+                    ->select('production_tasks.*'),
+            ])
             ->get();
     }
 
@@ -193,11 +216,13 @@ class CapacityRepository implements CapacityRepositoryInterface
 
     private function factoryAvailableMinutes(FactoryUnit $factoryUnit, CarbonInterface $from, CarbonInterface $until): int
     {
-        $calendars = FactoryUnitCalendar::query()
-            ->where('factory_unit_id', $factoryUnit->id)
-            ->where('is_working_day', true)
-            ->get()
-            ->keyBy('weekday');
+        $calendars = $factoryUnit->relationLoaded('calendars')
+            ? $factoryUnit->calendars->where('is_working_day', true)->keyBy('weekday')
+            : FactoryUnitCalendar::query()
+                ->where('factory_unit_id', $factoryUnit->id)
+                ->where('is_working_day', true)
+                ->get()
+                ->keyBy('weekday');
 
         if ($calendars->isEmpty()) {
             return (int) ($factoryUnit->daily_capacity_minutes ?? 480) * max(1, $from->diffInDays($until));
@@ -218,9 +243,11 @@ class CapacityRepository implements CapacityRepositoryInterface
 
     private function employeeWorkingMinutes(Employee $employee, CarbonInterface $from, CarbonInterface $until): int
     {
-        $calendars = $employee->workCalendars()
-            ->get()
-            ->keyBy('weekday');
+        $calendars = $employee->relationLoaded('workCalendars')
+            ? $employee->workCalendars->keyBy('weekday')
+            : $employee->workCalendars()
+                ->get()
+                ->keyBy('weekday');
 
         if ($calendars->isEmpty()) {
             return 450 * max(1, $from->diffInDays($until));
