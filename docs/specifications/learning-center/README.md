@@ -13,6 +13,10 @@ A Learning Center a KM_Production beépített tudás- és asszisztenciamodulja. 
 
 Ez a dokumentációs mappa a Learning Center v1.0 munkaspecifikációs struktúrája. A tartalom jelenleg tudatosan vázlatos, de minden dokumentumnak világos felelőssége van, hogy a későbbi tervezés, implementáció és tesztelés duplikált vagy ellentmondó tudás nélkül bővülhessen.
 
+A [Knowledge Unit Specification v1.0](knowledge-unit.md) részletes fogalmi modellje elkészült. Ez rögzíti a Learning Center alapegységének tartalmát, nézeteit, életciklusát, verziózását, kapcsolatait, határait és nyitott kérdéseit.
+
+A [KM_Production Knowledge Graph Specification](../../architecture/knowledge-graph.md) projekt szintű architektúraként készült el. A Knowledge Graph nem kizárólag Learning Center dokumentum: a teljes KM_Production tudásrétegét írja le, amelyet a Learning Center, az AI asszisztencia, a dokumentáció, a hibakeresés, a későbbi tesztelési gondolkodás és analitika is használhat.
+
 ## Alapelvek
 
 - A Learning Center egy közös tudásbázist használ egyetlen igazságforrásként.
@@ -44,7 +48,8 @@ A Context Engine felel a futásidejű kontextusért: aktuális oldal, felhaszná
 
 - Kezdd a [vízióval](vision.md), ha a modul célját és hosszú távú szerepét keresed.
 - Olvasd el a [Knowledge Unit](knowledge-unit.md) specifikációt, ha a Learning Center alapegységét kell megérteni.
-- Folytasd a [Knowledge Graph](knowledge-graph.md) dokumentummal, ha a tudásegységek kapcsolatrendszere érdekel.
+- Folytasd a projekt szintű [Knowledge Graph architektúrával](../../architecture/knowledge-graph.md), ha a teljes KM_Production tudáshálója érdekel.
+- Használd a Learning Center [Knowledge Graph](knowledge-graph.md) dokumentumát, ha a gráf Learning Center-specifikus nézetét keresed.
 - Nézd meg a [Context Engine](context-engine.md) specifikációt, ha az oldal-, jogosultság- és állapotfüggő segítség döntési logikáját keresed.
 - Használd a [decisions.md](decisions.md) dokumentumot az elfogadott architekturális döntések visszakeresésére.
 - A projekt egészére vonatkozó nyelvi és lokalizációs szabályokat a [projektkonvenciók](../../architecture/project-conventions.md) és az [ADR-011](decisions.md#adr-011-projekt-nyelvi-es-lokalizacios-konvenciok) rögzíti.
@@ -54,7 +59,7 @@ A Context Engine felel a futásidejű kontextusért: aktuális oldal, felhaszná
 - [vision.md](vision.md): a Learning Center hosszú távú termékvíziója.
 - [architecture.md](architecture.md): magas szintű modularchitektúra és határok.
 - [knowledge-unit.md](knowledge-unit.md): a Learning Center alapegysége és fogalmi tudásmodellje.
-- [knowledge-graph.md](knowledge-graph.md): tudásháló, kapcsolatok, ajánlások és AI navigáció.
+- [knowledge-graph.md](knowledge-graph.md): a projekt szintű Knowledge Graph Learning Center-specifikus nézete.
 - [knowledge-engine.md](knowledge-engine.md): tudásforrás, tartalomtípusok, publikálás és visszakeresés.
 - [learning-engine.md](learning-engine.md): leckék, előrehaladás, ajánlások és adaptív tanulási viselkedés.
 - [context-engine.md](context-engine.md): oldal-, felhasználó-, jogosultság- és állapotfüggő súgóválasztás.
@@ -75,7 +80,7 @@ A Context Engine felel a futásidejű kontextusért: aktuális oldal, felhaszná
 
 A v1.0 a strukturális alapokra fókuszáljon:
 
-- Knowledge Unit fogalmi modell és tartalmi governance.
+- Knowledge Unit Specification v1.0 fogalmi modell és tartalmi governance.
 - Knowledge Graph kapcsolatok előkészítése.
 - Tudásmodell és dokumentációs struktúra.
 - Oldalszintű asszisztenciaszint tárolása és megjelenítése.
@@ -98,6 +103,7 @@ A v1.0 a strukturális alapokra fókuszáljon:
 
 - [Vízió](vision.md)
 - [Architektúra](architecture.md)
+- [Projekt szintű Knowledge Graph](../../architecture/knowledge-graph.md)
 - [Knowledge Unit](knowledge-unit.md)
 - [Knowledge Graph](knowledge-graph.md)
 - [Knowledge Engine](knowledge-engine.md)
