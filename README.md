@@ -4,9 +4,12 @@ KM_Production is a Laravel, Vue, and Inertia Manufacturing Execution System for 
 
 ## Documentation
 
+- [Kezdő felhasználói útmutató](docs/user-guides/kezdo-felhasznaloi-utmutato/README.md)
+- [Telepítés utáni első lépések](docs/user-guides/telepites-utani-elso-lepesek.md)
 - [Getting started](docs/getting-started.md)
 - [Architecture](docs/architecture.md)
 - [Knowledge Graph architecture](docs/architecture/knowledge-graph.md)
+- [Course Model Specification](docs/architecture/course-model.md)
 - [Projektkonvenciók](docs/architecture/project-conventions.md)
 - [Manufacturing domain](docs/manufacturing.md)
 - [Deployment](docs/deployment.md)
@@ -29,3 +32,10 @@ AI agents should start with [AGENTS.md](AGENTS.md), then follow the layered navi
 - PrimeVue 4
 - Tailwind CSS 4
 - Vite
+
+## Architecture Milestones
+
+| Date       | Milestone                  | Description                                                                               |
+| ---------- | -------------------------- | ----------------------------------------------------------------------------------------- |
+| 2026-07-04 | Learning Center Foundation | Initial Learning Center architecture, Knowledge Unit, Context Engine, project conventions |
+| 2026-07-04 | Knowledge Layer Foundation | Knowledge Graph promoted to project-wide architecture                                     |

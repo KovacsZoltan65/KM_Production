@@ -371,12 +371,81 @@ A Knowledge Graph nem helyettesíti az adatbázis kapcsolatokat, jogosultsági r
 - Hogyan kapcsolódjon az AI-hoz: retrieval indexként, kontextusszűrőként vagy választervezési térként?
 - Milyen szabályok alapján válhat egy gráfkapcsolat AI által olvasható forrássá?
 
+## ADR-014: Course Model
+
+### Státusz
+
+Accepted
+
+### Kontextus
+
+A KM_Production felhasználói dokumentációja elkezdett moduláris, kezdőbarát útmutatókká alakulni. A `docs/user-guides/` struktúrában már megjelentek olyan Markdown fejezetek, amelyek természetes módon Lessonként értelmezhetők, de a Learning Center még nem rendelkezett stabil Course Model fogalmi specifikációval.
+
+A Learning Center hosszú távon nemcsak statikus dokumentációt jelenít meg, hanem Guided Course tananyagokat, szerepköralapú Learning Pathokat, oldalspecifikus súgót, AI válaszokat, tooltippeket és későbbi videós vagy interaktív oktatást is támogathat. Ehhez tisztázni kellett, hogyan kapcsolódik egymáshoz a Business Ontology, Knowledge Graph, Knowledge Unit, Lesson, Course, Learning Path és Learning Center.
+
+Fontos határ, hogy ez a döntés nem jelenti a jelenlegi `docs/user-guides/` könyvtár átszervezését, és nem vezet be alkalmazáskódot vagy adatbázistervet.
+
+### Döntés
+
+Elfogadjuk a [Course Model Specification](../../architecture/course-model.md) projekt szintű átmeneti architekturális dokumentumot.
+
+A Course Model a következő fogalmi hierarchiát rögzíti:
+
+```txt
+Business Ontology
+↓
+Knowledge Graph
+↓
+Knowledge Unit
+↓
+Lesson
+↓
+Course
+↓
+Learning Path
+↓
+Learning Center
+```
+
+A Lesson egy konkrét, ellenőrizhető felhasználói célra vezető tanulási egység. A Course több Lessonből álló, összefüggő tananyag. A Learning Path szerepkörhöz vagy hosszabb tanulási célhoz igazított útvonal, amely több Course-t vagy Lessont is összefűzhet.
+
+A jelenlegi Markdown felhasználói útmutatók megtarthatják a jelenlegi helyüket és formájukat, miközben Course/Lesson szinten értelmezhetők. A későbbi Learning Center ezekből a dokumentumokból és a hozzájuk kapcsolódó Knowledge Unitokból építhet interaktív tanulási élményt.
+
+### Következmények
+
+A felhasználói dokumentációt a jövőben úgy érdemes írni, hogy később egyértelműen azonosíthatók legyenek benne a Lesson céljai, előfeltételei, gyakorlati feladatai, ellenőrző listái és kapcsolódó Knowledge Unitjai.
+
+A Course Model nem helyettesíti a Knowledge Unit modellt vagy a Knowledge Graphot, hanem tanulási réteget épít föléjük. Ugyanaz a Knowledge Unit több Lessonben is újrafelhasználható, és egy Lesson több Knowledge Unitot is tartalmazhat.
+
+A Learning Center implementáció később építhet Course, Lesson és Learning Path metaadatokra, de ez a döntés önmagában nem határoz meg adatbázissémát, Eloquent modelleket, Vue komponenseket vagy automatikus AI működést.
+
+A Zero State és Guided Course szemlélet dokumentált kapcsolatot kap: az üres rendszer képernyői később Lesson ajánlásokat adhatnak, a Guided Course pedig a felhasználót valós üzleti eredményig vezetheti.
+
+### Nyitott kérdések
+
+- Mekkora legyen egy Lesson ideális mérete?
+- Mekkora legyen egy Course ideális mérete?
+- Egy Lesson hány Knowledge Unitot tartalmazhat?
+- Mikor számít egy Lesson teljesítettnek?
+- Legyen-e automatikus haladáskövetés v1.0-ban?
+- Milyen adatok alapján jelöljön a rendszer automatikusan késznek egy Lesson lépést?
+- Generálhat-e AI gyakorlati feladatokat, vagy csak javasolhat emberi review után?
+- Mikor válhat egy AI által generált feladat publikált tananyaggá?
+- Hogyan kapcsolódjanak videók a Lessonökhöz?
+- Kell-e külön vizsga vagy tudásellenőrzés?
+- Kell-e bizonyítvány Course vagy Learning Path teljesítése után?
+- Legyen-e gamification, például jelvény, pont vagy szint?
+- Hogyan kezeljük a Course verziókat, ha a felület vagy workflow változik?
+- Ki felel egy Course szakmai karbantartásáért?
+- Hol legyen a Course és Lesson metaadatok elsődleges forrása: Markdownban, adatbázisban vagy hibrid módon?
+
 ## Kapcsolódó témák
 
 - [Vízió](vision.md)
 - [Architektúra](architecture.md)
 - [Projektkonvenciók](../../architecture/project-conventions.md)
 - [Projekt szintű Knowledge Graph](../../architecture/knowledge-graph.md)
+- [Course Model Specification](../../architecture/course-model.md)
 - [Knowledge Unit](knowledge-unit.md)
 - [Knowledge Graph](knowledge-graph.md)
 - [Knowledge Engine](knowledge-engine.md)

@@ -16,6 +16,7 @@ php artisan ide-helper:meta - PhpStorm metafájl
 
 php artisan migrate:fresh --env=testing
 php artisan migrate:fresh --seed --env=testing
+php artisan migrate:fresh --seed --seeder=AdminUserSeeder
 
 php artisan key:generate --env=testing
 
