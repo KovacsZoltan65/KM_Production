@@ -107,6 +107,7 @@ export const routes = {
     'admin.production-tasks.quality-checks.store': '/admin/production-tasks/{productionTask}/quality-checks',
     'admin.shop-floor.index': '/admin/shop-floor',
     'admin.shop-floor.my-tasks': '/admin/shop-floor/my-tasks',
+    'admin.inventory.index': '/admin/inventory',
     'admin.inventory.stock-balances.index': '/admin/inventory/stock-balances',
     'admin.inventory.stock-movements.index': '/admin/inventory/stock-movements',
     'admin.inventory.stock-reservations.index': '/admin/inventory/stock-reservations',

@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\DocumentController as AdminDocumentController;
 use App\Http\Controllers\Admin\EmployeeController as AdminEmployeeController;
 use App\Http\Controllers\Admin\FactoryUnitController as AdminFactoryUnitController;
 use App\Http\Controllers\Admin\GoodsReceiptController as AdminGoodsReceiptController;
+use App\Http\Controllers\Admin\Inventory\InventoryController as AdminInventoryController;
 use App\Http\Controllers\Admin\Inventory\MaterialRequirementController as AdminMaterialRequirementController;
 use App\Http\Controllers\Admin\Inventory\ShortageController as AdminShortageController;
 use App\Http\Controllers\Admin\Inventory\StockBalanceController as AdminStockBalanceController;
@@ -63,6 +64,7 @@ Route::middleware(['auth', 'verified'])
             ->group(function (): void {
                 Route::get('dashboard', [AdminCapacityController::class, 'dashboard'])->name('dashboard');
                 Route::get('factory-units', [AdminCapacityController::class, 'factoryUnits'])->name('factory-units');
+                // Dolgozók
                 Route::get('employees', [AdminCapacityController::class, 'employees'])->name('employees');
                 Route::get('schedule', [AdminCapacityController::class, 'schedule'])->name('schedule');
                 Route::post('schedule', [AdminCapacityController::class, 'storeSchedule'])->name('schedule.store');
@@ -93,6 +95,7 @@ Route::middleware(['auth', 'verified'])
         Route::resource('users', AdminUserController::class)->only(['index', 'store', 'update', 'destroy']);
         Route::resource('roles', AdminRoleController::class)->only(['index', 'store', 'update', 'destroy']);
         Route::resource('permissions', AdminPermissionController::class)->only(['index']);
+        // Dolgozók
         Route::resource('employees', AdminEmployeeController::class)->only(['index', 'store', 'update', 'destroy']);
         Route::resource('factory-units', AdminFactoryUnitController::class)
             ->parameters(['factory-units' => 'factoryUnit'])
@@ -143,6 +146,7 @@ Route::middleware(['auth', 'verified'])
         Route::prefix('inventory')
             ->name('inventory.')
             ->group(function (): void {
+                Route::get('/', [AdminInventoryController::class, 'index'])->name('index');
                 Route::get('stock-balances', [AdminStockBalanceController::class, 'index'])->name('stock-balances.index');
                 Route::get('stock-movements', [AdminStockMovementController::class, 'index'])->name('stock-movements.index');
                 Route::patch('stock-reservations/{stockReservation}/release', [AdminStockReservationController::class, 'release'])

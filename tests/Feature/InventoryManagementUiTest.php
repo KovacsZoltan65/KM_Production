@@ -49,6 +49,25 @@ class InventoryManagementUiTest extends TestCase
             ->assertInertia(fn (AssertableInertia $page) => $page->component('Admin/Inventory/StockBalances/Index'));
     }
 
+    public function test_super_admin_can_access_inventory_dashboard(): void
+    {
+        $user = $this->verifiedUser('super-admin');
+
+        $this->actingAs($user)
+            ->get(route('admin.inventory.index'))
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page->component('Admin/Inventory/Index'));
+    }
+
+    public function test_user_without_permission_cannot_access_inventory_dashboard(): void
+    {
+        $user = $this->verifiedUser();
+
+        $this->actingAs($user)
+            ->get(route('admin.inventory.index'))
+            ->assertForbidden();
+    }
+
     public function test_user_without_permission_cannot_access_inventory_page(): void
     {
         $user = $this->verifiedUser();

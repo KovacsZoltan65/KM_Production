@@ -165,7 +165,7 @@ const sidebarItems = computed(() => [
     {
         labelKey: "navigation.inventory",
         icon: "pi pi-warehouse",
-        disabled: false,
+        href: route("admin.inventory.index"),
     },
     {
         labelKey: "navigation.stock_balances",
@@ -314,13 +314,16 @@ const activeSidebarHref = computed(() => {
         .map((item) => normalizePath(item.href))
         .filter(
             (href) =>
-                currentPath.value === href || currentPath.value.startsWith(`${href}/`)
+                currentPath.value === href ||
+                currentPath.value.startsWith(`${href}/`),
         )
         .sort((first, second) => second.length - first.length)[0];
 });
 
 const isSidebarItemActive = (item) => {
-    return !item.disabled && normalizePath(item.href) === activeSidebarHref.value;
+    return (
+        !item.disabled && normalizePath(item.href) === activeSidebarHref.value
+    );
 };
 
 const sidebarLabel = (item) => trans(item.labelKey);
@@ -362,7 +365,10 @@ const toggleUserMenu = (event) => {
                         aria-label="Open user menu"
                         @click="toggleUserMenu"
                     >
-                        <Avatar :label="user?.name?.slice(0, 1) || 'U'" shape="circle" />
+                        <Avatar
+                            :label="user?.name?.slice(0, 1) || 'U'"
+                            shape="circle"
+                        />
                     </Button>
                     <Menu ref="userMenu" :model="menuItems" popup />
                 </div>
@@ -388,10 +394,12 @@ const toggleUserMenu = (event) => {
                             item.disabled
                                 ? 'cursor-not-allowed text-slate-400'
                                 : isSidebarItemActive(item)
-                                ? 'bg-blue-50 text-blue-700 shadow-sm ring-1 ring-blue-100'
-                                : 'text-slate-700 hover:bg-slate-100'
+                                  ? 'bg-blue-50 text-blue-700 shadow-sm ring-1 ring-blue-100'
+                                  : 'text-slate-700 hover:bg-slate-100'
                         "
-                        :aria-current="isSidebarItemActive(item) ? 'page' : undefined"
+                        :aria-current="
+                            isSidebarItemActive(item) ? 'page' : undefined
+                        "
                     >
                         <i :class="item.icon" />
                         <span>{{ sidebarLabel(item) }}</span>
@@ -399,7 +407,9 @@ const toggleUserMenu = (event) => {
                 </nav>
             </aside>
 
-            <main class="min-h-0 min-w-0 overflow-x-hidden overflow-y-auto p-4 sm:p-6">
+            <main
+                class="min-h-0 min-w-0 overflow-x-hidden overflow-y-auto p-4 sm:p-6"
+            >
                 <slot />
             </main>
         </div>

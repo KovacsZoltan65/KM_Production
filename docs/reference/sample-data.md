@@ -46,6 +46,12 @@ A kiindulási állapot teljesen üres adatbázis. Egyetlen kivétel van: az `Adm
 
 Nincs még gyártási egység, hely, dolgozó, vevő, beszállító, cikk, BOM, műveletsor, rendelés, készlet vagy dokumentum. Ezért az első használatnál az adatokat egymásra épülő sorrendben kell létrehozni.
 
+## Inventory modul
+
+Az Inventory modul kezdőoldala az **Admin → Inventory** menüpontból, a
+`/admin/inventory` URL-en érhető el. Innen nyithatók meg a készletegyenlegek,
+készletmozgások, készletfoglalások, anyagszükségletek és hiányok oldalai.
+
 ```
 ## Teljes indulási sorrend
 ```
