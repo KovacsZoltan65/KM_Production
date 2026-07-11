@@ -31,10 +31,26 @@ const sidebarItems = computed(() => [
         icon: "pi pi-home",
         href: route("admin.dashboard"),
     },
-    { labelKey: "navigation.users", icon: "pi pi-users", href: route("admin.users.index") },
-    { labelKey: "navigation.roles", icon: "pi pi-shield", href: route("admin.roles.index") },
-    { labelKey: "navigation.permissions", icon: "pi pi-key", href: route("admin.permissions.index") },
-    { labelKey: "navigation.employees", icon: "pi pi-id-card", href: route("admin.employees.index") },
+    {
+        labelKey: "navigation.users",
+        icon: "pi pi-users",
+        href: route("admin.users.index"),
+    },
+    {
+        labelKey: "navigation.roles",
+        icon: "pi pi-shield",
+        href: route("admin.roles.index"),
+    },
+    {
+        labelKey: "navigation.permissions",
+        icon: "pi pi-key",
+        href: route("admin.permissions.index"),
+    },
+    {
+        labelKey: "navigation.employees",
+        icon: "pi pi-id-card",
+        href: route("admin.employees.index"),
+    },
     {
         labelKey: "navigation.factory_units",
         icon: "pi pi-building",
@@ -50,8 +66,16 @@ const sidebarItems = computed(() => [
         icon: "pi pi-briefcase",
         href: route("admin.professional-roles.index"),
     },
-    { labelKey: "navigation.items", icon: "pi pi-box", href: route("admin.items.index") },
-    { labelKey: "navigation.boms", icon: "pi pi-list-check", href: route("admin.boms.index") },
+    {
+        labelKey: "navigation.items",
+        icon: "pi pi-box",
+        href: route("admin.items.index"),
+    },
+    {
+        labelKey: "navigation.boms",
+        icon: "pi pi-list-check",
+        href: route("admin.boms.index"),
+    },
     {
         labelKey: "navigation.operation_types",
         icon: "pi pi-cog",
@@ -62,16 +86,36 @@ const sidebarItems = computed(() => [
         icon: "pi pi-sitemap",
         href: route("admin.operation-sequences.index"),
     },
-    { labelKey: "navigation.business_partners", icon: "pi pi-address-book", disabled: true },
-    { labelKey: "navigation.customers", icon: "pi pi-user-plus", href: route("admin.customers.index") },
-    { labelKey: "navigation.suppliers", icon: "pi pi-truck", href: route("admin.suppliers.index") },
-    { labelKey: "navigation.sales", icon: "pi pi-shopping-cart", disabled: true },
+    {
+        labelKey: "navigation.business_partners",
+        icon: "pi pi-address-book",
+        disabled: true,
+    },
+    {
+        labelKey: "navigation.customers",
+        icon: "pi pi-user-plus",
+        href: route("admin.customers.index"),
+    },
+    {
+        labelKey: "navigation.suppliers",
+        icon: "pi pi-truck",
+        href: route("admin.suppliers.index"),
+    },
+    {
+        labelKey: "navigation.sales",
+        icon: "pi pi-shopping-cart",
+        disabled: true,
+    },
     {
         labelKey: "navigation.customer_orders",
         icon: "pi pi-file-edit",
         href: route("admin.customer-orders.index"),
     },
-    { labelKey: "navigation.planning", icon: "pi pi-calendar-clock", disabled: true },
+    {
+        labelKey: "navigation.planning",
+        icon: "pi pi-calendar-clock",
+        disabled: true,
+    },
     {
         labelKey: "navigation.production_plans",
         icon: "pi pi-calendar-plus",
@@ -118,7 +162,11 @@ const sidebarItems = computed(() => [
         icon: "pi pi-play-circle",
         href: route("admin.production-tasks.index"),
     },
-    { labelKey: "navigation.inventory", icon: "pi pi-warehouse", disabled: true },
+    {
+        labelKey: "navigation.inventory",
+        icon: "pi pi-warehouse",
+        disabled: false,
+    },
     {
         labelKey: "navigation.stock_balances",
         icon: "pi pi-box",
@@ -144,7 +192,11 @@ const sidebarItems = computed(() => [
         icon: "pi pi-exclamation-triangle",
         href: route("admin.inventory.shortages.index"),
     },
-    { labelKey: "navigation.procurement", icon: "pi pi-shopping-bag", disabled: true },
+    {
+        labelKey: "navigation.procurement",
+        icon: "pi pi-shopping-bag",
+        disabled: true,
+    },
     {
         labelKey: "navigation.procurement_dashboard",
         icon: "pi pi-chart-bar",
@@ -171,7 +223,11 @@ const sidebarItems = computed(() => [
         icon: "pi pi-file",
         href: route("admin.documents.index"),
     },
-    { labelKey: "navigation.reports", icon: "pi pi-chart-line", disabled: true },
+    {
+        labelKey: "navigation.reports",
+        icon: "pi pi-chart-line",
+        disabled: true,
+    },
     {
         labelKey: "navigation.customer_orders_report",
         icon: "pi pi-list",
@@ -202,7 +258,11 @@ const sidebarItems = computed(() => [
         icon: "pi pi-th-large",
         href: route("admin.reports.shop-floor"),
     },
-    { labelKey: "navigation.intelligence", icon: "pi pi-sparkles", disabled: true },
+    {
+        labelKey: "navigation.intelligence",
+        icon: "pi pi-sparkles",
+        disabled: true,
+    },
     {
         labelKey: "navigation.mi_dashboard",
         icon: "pi pi-chart-pie",
@@ -252,7 +312,10 @@ const activeSidebarHref = computed(() => {
     return sidebarItems.value
         .filter((item) => !item.disabled && item.href)
         .map((item) => normalizePath(item.href))
-        .filter((href) => currentPath.value === href || currentPath.value.startsWith(`${href}/`))
+        .filter(
+            (href) =>
+                currentPath.value === href || currentPath.value.startsWith(`${href}/`)
+        )
         .sort((first, second) => second.length - first.length)[0];
 });
 
@@ -268,8 +331,10 @@ const toggleUserMenu = (event) => {
 </script>
 
 <template>
-    <div class="min-h-screen bg-slate-50 text-slate-900">
-        <header class="sticky top-0 z-20 border-b border-slate-200 bg-white">
+    <div
+        class="flex h-screen min-h-0 flex-col overflow-hidden bg-slate-50 text-slate-900"
+    >
+        <header class="z-20 shrink-0 border-b border-slate-200 bg-white">
             <div class="flex h-14 items-center justify-between px-4 sm:px-6">
                 <Link
                     :href="route('admin.dashboard')"
@@ -286,7 +351,9 @@ const toggleUserMenu = (event) => {
                     <TopbarLocaleSwitch />
                     <div class="hidden text-right text-sm sm:block">
                         <div class="font-medium">{{ user?.name }}</div>
-                        <div class="text-xs text-slate-500">{{ user?.email }}</div>
+                        <div class="text-xs text-slate-500">
+                            {{ user?.email }}
+                        </div>
                     </div>
                     <Button
                         type="button"
@@ -302,9 +369,15 @@ const toggleUserMenu = (event) => {
             </div>
         </header>
 
-        <div class="grid min-h-[calc(100vh-3.5rem)] grid-cols-1 md:grid-cols-[15rem_1fr]">
-            <aside class="border-b border-slate-200 bg-white md:border-b-0 md:border-r">
-                <nav class="flex gap-1 overflow-x-auto p-3 md:block">
+        <div
+            class="grid min-h-0 flex-1 grid-cols-1 grid-rows-[auto_minmax(0,1fr)] overflow-hidden md:grid-cols-[15rem_minmax(0,1fr)] md:grid-rows-1"
+        >
+            <aside
+                class="min-h-0 overflow-hidden border-b border-slate-200 bg-white md:h-full md:border-r md:border-b-0"
+            >
+                <nav
+                    class="flex gap-1 overflow-x-auto overflow-y-hidden p-3 md:block md:h-full md:overflow-x-hidden md:overflow-y-auto"
+                >
                     <component
                         :is="item.disabled ? 'span' : Link"
                         v-for="item in sidebarItems"
@@ -315,8 +388,8 @@ const toggleUserMenu = (event) => {
                             item.disabled
                                 ? 'cursor-not-allowed text-slate-400'
                                 : isSidebarItemActive(item)
-                                    ? 'bg-blue-50 text-blue-700 shadow-sm ring-1 ring-blue-100'
-                                    : 'text-slate-700 hover:bg-slate-100'
+                                ? 'bg-blue-50 text-blue-700 shadow-sm ring-1 ring-blue-100'
+                                : 'text-slate-700 hover:bg-slate-100'
                         "
                         :aria-current="isSidebarItemActive(item) ? 'page' : undefined"
                     >
@@ -326,7 +399,7 @@ const toggleUserMenu = (event) => {
                 </nav>
             </aside>
 
-            <main class="p-4 sm:p-6">
+            <main class="min-h-0 min-w-0 overflow-x-hidden overflow-y-auto p-4 sm:p-6">
                 <slot />
             </main>
         </div>

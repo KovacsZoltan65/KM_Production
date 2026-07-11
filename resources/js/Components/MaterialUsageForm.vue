@@ -1,9 +1,9 @@
 <script setup>
+import UnitSelect from "@/Components/Admin/UnitSelect.vue";
 import { route } from "@/Utils/routes";
 import { useForm } from "@inertiajs/vue3";
 import Button from "primevue/button";
 import InputNumber from "primevue/inputnumber";
-import InputText from "primevue/inputtext";
 import Select from "primevue/select";
 import Textarea from "primevue/textarea";
 import { watch } from "vue";
@@ -74,7 +74,17 @@ const submit = () => {
             :max-fraction-digits="3"
             :placeholder="$t('fields.used_quantity')"
         />
-        <InputText v-model="form.unit" :placeholder="$t('fields.unit')" />
+        <div>
+            <UnitSelect
+                v-model="form.unit"
+                :placeholder="$t('fields.unit')"
+                :invalid="Boolean(form.errors.unit)"
+                required
+            />
+            <p v-if="form.errors.unit" class="mt-1 text-sm text-red-600">
+                {{ form.errors.unit }}
+            </p>
+        </div>
         <Textarea
             v-model="form.notes"
             rows="1"

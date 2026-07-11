@@ -1,5 +1,7 @@
 <script setup>
 import Button from "primevue/button";
+import IconField from "primevue/iconfield";
+import InputIcon from "primevue/inputicon";
 import InputText from "primevue/inputtext";
 import Select from "primevue/select";
 import { trans } from "laravel-vue-i18n";
@@ -18,19 +20,23 @@ const perPageOptions = [10, 25, 50, 100];
     <div
         class="flex flex-col gap-3 rounded border border-slate-200 bg-white p-3 sm:flex-row sm:items-center"
     >
-        <div class="relative w-full flex-1">
-            <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
-            <InputText
-                :model-value="modelValue"
-                class="w-full pl-10"
-                :placeholder="trans('common.search')"
-                @update:model-value="$emit('update:modelValue', $event)"
-                @keydown.enter="$emit('search')"
-            />
+        <div class="w-full flex-1">
+            <IconField class="w-full">
+                <InputIcon class="pi pi-search text-slate-400" />
+                <InputText
+                    :model-value="modelValue"
+                    class="w-full"
+                    :placeholder="trans('common.search')"
+                    @update:model-value="$emit('update:modelValue', $event)"
+                    @keydown.enter="$emit('search')"
+                />
+            </IconField>
         </div>
 
         <div class="flex items-center gap-2">
-            <span class="text-sm text-slate-600">{{ $t("common.per_page") }}</span>
+            <span class="text-sm text-slate-600">{{
+                $t("common.per_page")
+            }}</span>
             <Select
                 :model-value="perPage"
                 :options="perPageOptions"

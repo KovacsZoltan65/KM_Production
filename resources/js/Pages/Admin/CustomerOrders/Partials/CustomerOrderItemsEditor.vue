@@ -1,4 +1,5 @@
 <script setup>
+import UnitSelect from '@/Components/Admin/UnitSelect.vue';
 import Button from 'primevue/button';
 import Column from 'primevue/column';
 import DataTable from 'primevue/datatable';
@@ -80,7 +81,13 @@ const fieldError = (index, field) => props.errors[`items.${index}.${field}`];
             </Column>
             <Column :header="trans('fields.unit')">
                 <template #body="{ data, index }">
-                    <InputText :model-value="data.unit" class="w-24" @update:model-value="updateRow(index, 'unit', $event)" />
+                    <UnitSelect
+                        :model-value="data.unit"
+                        class="w-24"
+                        :invalid="Boolean(fieldError(index, 'unit'))"
+                        required
+                        @update:model-value="updateRow(index, 'unit', $event)"
+                    />
                     <p v-if="fieldError(index, 'unit')" class="mt-1 text-xs text-red-600">{{ fieldError(index, 'unit') }}</p>
                 </template>
             </Column>
