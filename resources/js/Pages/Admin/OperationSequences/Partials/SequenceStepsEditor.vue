@@ -68,6 +68,7 @@ const fieldError = (index, field) => props.errors[`steps.${index}.${field}`];
                     <InputText
                         :model-value="data.step_order"
                         type="number"
+                        :invalid="Boolean(fieldError(index, 'step_order'))"
                         class="w-20"
                         @update:model-value="updateRow(index, 'step_order', $event)"
                     />
@@ -82,6 +83,7 @@ const fieldError = (index, field) => props.errors[`steps.${index}.${field}`];
                         option-label="label"
                         option-value="id"
                         filter
+                        :invalid="Boolean(fieldError(index, 'operation_type_id'))"
                         class="w-44"
                         @update:model-value="updateRow(index, 'operation_type_id', $event)"
                     />
@@ -96,9 +98,13 @@ const fieldError = (index, field) => props.errors[`steps.${index}.${field}`];
                         option-label="label"
                         option-value="id"
                         filter
+                        :invalid="Boolean(fieldError(index, 'factory_unit_id'))"
                         class="w-40"
                         @update:model-value="updateRow(index, 'factory_unit_id', $event)"
                     />
+                    <p v-if="fieldError(index, 'factory_unit_id')" class="mt-1 text-xs text-red-600">
+                        {{ fieldError(index, 'factory_unit_id') }}
+                    </p>
                 </template>
             </Column>
             <Column :header="trans('fields.professional_role')">
@@ -109,9 +115,13 @@ const fieldError = (index, field) => props.errors[`steps.${index}.${field}`];
                         option-label="label"
                         option-value="id"
                         filter
+                        :invalid="Boolean(fieldError(index, 'professional_role_id'))"
                         class="w-40"
                         @update:model-value="updateRow(index, 'professional_role_id', $event)"
                     />
+                    <p v-if="fieldError(index, 'professional_role_id')" class="mt-1 text-xs text-red-600">
+                        {{ fieldError(index, 'professional_role_id') }}
+                    </p>
                 </template>
             </Column>
             <Column :header="trans('operation_sequences.fields.minutes')">
@@ -119,9 +129,13 @@ const fieldError = (index, field) => props.errors[`steps.${index}.${field}`];
                     <InputText
                         :model-value="data.estimated_duration_minutes"
                         type="number"
+                        :invalid="Boolean(fieldError(index, 'estimated_duration_minutes'))"
                         class="w-24"
                         @update:model-value="updateRow(index, 'estimated_duration_minutes', $event)"
                     />
+                    <p v-if="fieldError(index, 'estimated_duration_minutes')" class="mt-1 text-xs text-red-600">
+                        {{ fieldError(index, 'estimated_duration_minutes') }}
+                    </p>
                 </template>
             </Column>
             <Column :header="trans('operation_sequences.fields.quality_check')">

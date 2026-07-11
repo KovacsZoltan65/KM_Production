@@ -11,9 +11,8 @@ class InitialInstallationSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            AdminUserSeeder::class,
             RolesAndPermissionsSeeder::class,
-            //SettingsSeeder::class,
+            AdminUserSeeder::class,
         ]);
     }
 }

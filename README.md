@@ -4,6 +4,8 @@ KM_Production is a Laravel, Vue, and Inertia Manufacturing Execution System for 
 
 ## Documentation
 
+- Reference
+    - [Sample Data](docs/reference/sample-data.md)
 - [Kezdő felhasználói útmutató](docs/user-guides/kezdo-felhasznaloi-utmutato/README.md)
 - [Telepítés utáni első lépések](docs/user-guides/telepites-utani-elso-lepesek.md)
 - [Getting started](docs/getting-started.md)
