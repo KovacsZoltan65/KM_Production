@@ -5,10 +5,13 @@ namespace App\Services;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 
+/** A Spatie activity log egységes alkalmazási auditbejegyzéseit készíti. */
 class AuditLogService
 {
     /**
-     * @param  array<string, mixed>  $properties
+     * Rögzíti a modellhez kapcsolódó üzleti eseményt és kiegészítő adatokat.
+     *
+     * @param  array<string, mixed>  $properties  Az auditbejegyzés metaadatai.
      */
     public function log(
         string $event,

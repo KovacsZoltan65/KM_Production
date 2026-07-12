@@ -9,6 +9,11 @@ use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 
+/**
+ * Szabad gyáregységi kapacitásablakot keres a munkanaptár és foglalások alapján.
+ *
+ * A lekérdezéseket példányon belül gyorsítótárazza; foglalást nem hoz létre.
+ */
 class CapacitySlotFinder
 {
     /**
@@ -17,14 +22,19 @@ class CapacitySlotFinder
     private array $calendarCache = [];
 
     /**
-     * @var array<int, array{from: CarbonImmutable, until: CarbonImmutable, reservations: EloquentCollection}>
+     * @var array<int, array{from: CarbonImmutable, until: CarbonImmutable,
+     *     reservations: EloquentCollection}>
      */
     private array $reservationCache = [];
 
     public function __construct(private readonly CapacityRepositoryInterface $capacity) {}
 
     /**
+     * Megkeresi az első ütközésmentes munkaidőablakot a tervezési horizonton.
+     *
      * @return array{0: CarbonImmutable, 1: CarbonImmutable}
+     *
+     * @throws \RuntimeException Ha 180 napon belül nem található szabad időablak.
      */
     public function findSlot(
         int $factoryUnitId,
@@ -72,6 +82,9 @@ class CapacitySlotFinder
         throw new \RuntimeException('No available capacity slot was found in the planning horizon.');
     }
 
+    /**
+     * Gyorsítótárazva lekéri a gyáregység adott hétköznapra érvényes naptárát.
+     */
     private function factoryCalendarFor(int $factoryUnitId, int $weekday): ?FactoryUnitCalendar
     {
         $key = "{$factoryUnitId}:{$weekday}";
@@ -83,6 +96,9 @@ class CapacitySlotFinder
         return $this->calendarCache[$key];
     }
 
+    /**
+     * Visszaadja az időablakkal ütköző első, figyelembe veendő foglalást.
+     */
     private function nextFactoryReservationOverlap(
         int $factoryUnitId,
         CarbonInterface $from,
@@ -97,6 +113,11 @@ class CapacitySlotFinder
             );
     }
 
+    /**
+     * Visszaadja a gyáregység gyorsítótárazott foglalásait a tervezési horizontra.
+     *
+     * @return EloquentCollection A kapacitásfoglalások.
+     */
     private function factoryReservationsFor(int $factoryUnitId, CarbonInterface $from, CarbonInterface $until): EloquentCollection
     {
         $from = CarbonImmutable::parse($from);
@@ -121,6 +142,9 @@ class CapacitySlotFinder
         return $this->reservationCache[$factoryUnitId]['reservations'];
     }
 
+    /**
+     * Megállapítja, hogy a naptárbejegyzés munkanapot jelöl-e.
+     */
     private function isWorkingCalendar(?FactoryUnitCalendar $calendar): bool
     {
         return $calendar !== null && $calendar->is_working_day;

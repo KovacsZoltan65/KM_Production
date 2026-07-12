@@ -17,6 +17,11 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * A beszerzési igények létrehozását, jóváhagyását és rendelésre váltását kezeli.
+ *
+ * Az összetett írásokat tranzakcióban végzi, és a fontos műveleteket auditnaplózza.
+ */
 class PurchaseRequisitionService
 {
     public function __construct(

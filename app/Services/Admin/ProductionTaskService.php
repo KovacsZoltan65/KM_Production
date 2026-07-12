@@ -17,6 +17,12 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * A gyártási feladatok létrehozását, végrehajtását és továbbléptetését koordinálja.
+ *
+ * Kezeli a sorozatszámokat és állapotátmeneteket, a kritikus műveleteket
+ * tranzakcióban hajtja végre és auditnaplózza.
+ */
 class ProductionTaskService
 {
     public function __construct(
@@ -26,22 +32,13 @@ class ProductionTaskService
 
     /**
      * @param  array<string, mixed>  $filters
-     */
-
-    /**
-     * @param array $filters
-     * @param int $perPage
-     * @return LengthAwarePaginator
+     * @return LengthAwarePaginator<int, ProductionTask>
      */
     public function paginateForAdminIndex(array $filters, int $perPage = 10): LengthAwarePaginator
     {
         return $this->productionTasks->paginateForExecution($filters, $perPage);
     }
 
-    /**
-     * @param ProductionTask $productionTask
-     * @return ProductionTask
-     */
     public function findForShow(ProductionTask $productionTask): ProductionTask
     {
         return $this->productionTasks->findForShow($productionTask);

@@ -8,9 +8,16 @@ use App\Models\User;
 use App\Repositories\Contracts\CustomerOrderRepositoryInterface;
 use App\Services\AuditLogService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * A vevői rendelések létrehozását, módosítását és állapotváltásait koordinálja.
+ *
+ * A perzisztenciát repository-ra delegálja, a módosító műveleteket
+ * tranzakcióban végzi és auditnaplózza.
+ */
 class CustomerOrderService
 {
     public function __construct(
@@ -19,20 +26,36 @@ class CustomerOrderService
     ) {}
 
     /**
-     * @param  array<string, mixed>  $filters
+     * Visszaadja a vevői rendelések szűrt és lapozott adminisztrációs listáját.
+     *
+     * @param  array{search?: string|null, status?: string|null, sort?: string|null,
+     *     direction?: string|null}  $filters  Az alkalmazandó listaszűrők.
+     * @return LengthAwarePaginator<int, Model> A lapozott rendelések.
      */
     public function paginateForAdminIndex(array $filters, int $perPage = 10): LengthAwarePaginator
     {
         return $this->repository->paginateForAdminIndex($filters, $perPage);
     }
 
+    /**
+     * Betölti a rendelés adatlapjához szükséges kapcsolatokat és darabszámokat.
+     */
     public function findForShow(CustomerOrder $customerOrder): CustomerOrder
     {
         return $this->repository->findForShow($customerOrder);
     }
 
     /**
-     * @param  array<string, mixed>  $payload
+     * Létrehozza a vevői rendelést a validált tételsorokkal együtt.
+     *
+     * A repository tranzakcióban menti a fejlécet és a tételeket, majd a
+     * szolgáltatás auditnaplózza a létrehozást.
+     *
+     * @param  array{customer_id: int, requested_delivery_date?: string|null,
+     *     notes?: string|null, items: list<array{item_id: int,
+     *     quantity: int|float|string, unit: string, notes?: string|null}>}  $payload
+     *     A validált rendelési adatok.
+     * @param  User|null  $causer  A műveletet végrehajtó felhasználó.
      */
     public function create(array $payload, ?User $causer = null): CustomerOrder
     {
@@ -47,7 +70,13 @@ class CustomerOrderService
     }
 
     /**
-     * @param  array<string, mixed>  $payload
+     * Frissíti a vevői rendelést, és teljesen újraépíti annak tételsorait.
+     *
+     * @param  array{customer_id: int, requested_delivery_date?: string|null,
+     *     notes?: string|null, items: list<array{item_id: int,
+     *     quantity: int|float|string, unit: string, notes?: string|null}>}  $payload
+     *     A validált rendelési adatok.
+     * @param  User|null  $causer  A műveletet végrehajtó felhasználó.
      */
     public function update(CustomerOrder $customerOrder, array $payload, ?User $causer = null): CustomerOrder
     {
@@ -60,6 +89,13 @@ class CustomerOrderService
         return $customerOrder;
     }
 
+    /**
+     * Megerősíti a piszkozat állapotú vevői rendelést.
+     *
+     * A tranzakció rögzíti a megerősítés időpontját és auditbejegyzést készít.
+     *
+     * @throws ValidationException Ha a rendelés nem piszkozat állapotú.
+     */
     public function confirm(CustomerOrder $customerOrder, ?User $causer = null): CustomerOrder
     {
         $this->ensureStatus($customerOrder, [CustomerOrderStatus::Draft], __('orders.validation.only_draft_confirm'));
@@ -72,6 +108,11 @@ class CustomerOrderService
         });
     }
 
+    /**
+     * Visszavonja a még nem lezárt vevői rendelést.
+     *
+     * @throws ValidationException Ha a rendelés már teljesített vagy visszavont.
+     */
     public function cancel(CustomerOrder $customerOrder, ?User $causer = null): CustomerOrder
     {
         if (\in_array($customerOrder->status, [CustomerOrderStatus::Completed, CustomerOrderStatus::Cancelled], true)) {
@@ -88,6 +129,11 @@ class CustomerOrderService
         });
     }
 
+    /**
+     * Törli a piszkozat vagy visszavont állapotú vevői rendelést.
+     *
+     * @throws ValidationException Ha a rendelés állapota nem engedi a törlést.
+     */
     public function delete(CustomerOrder $customerOrder, ?User $causer = null): void
     {
         if (! \in_array($customerOrder->status, [CustomerOrderStatus::Draft, CustomerOrderStatus::Cancelled], true)) {
@@ -101,8 +147,12 @@ class CustomerOrderService
     }
 
     /**
-     * @param  array<string, mixed>  $payload
-     * @return array<int, array<string, mixed>>
+     * A validált tételsorokat repository-kompatibilis attribútumokká alakítja.
+     *
+     * @param  array{items?: list<array{item_id: int, quantity: int|float|string,
+     *     unit: string, notes?: string|null}>}  $payload  A rendelési payload.
+     * @return list<array{item_id: int, quantity: int|float|string, unit: string,
+     *     notes: string|null}> A normalizált tételsorok.
      */
     private function itemsFromPayload(array $payload): array
     {
@@ -117,6 +167,13 @@ class CustomerOrderService
             ->all();
     }
 
+    /**
+     * Ellenőrzi, hogy a rendelés állapota szerepel-e az engedélyezett állapotok között.
+     *
+     * @param  list<CustomerOrderStatus>  $allowedStatuses  Az elfogadott állapotok.
+     *
+     * @throws ValidationException Ha az aktuális állapot nem engedélyezett.
+     */
     private function ensureStatus(CustomerOrder $customerOrder, array $allowedStatuses, string $message): void
     {
         if (! \in_array($customerOrder->status, $allowedStatuses, true)) {

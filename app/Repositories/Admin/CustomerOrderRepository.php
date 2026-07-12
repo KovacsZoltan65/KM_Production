@@ -7,8 +7,10 @@ use App\Models\CustomerOrder;
 use App\Repositories\Contracts\CustomerOrderRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
+/** A vevői rendelések szűrését és tételsorokkal együtt történő perzisztenciáját kezeli. */
 class CustomerOrderRepository extends AbstractAdminRepository implements CustomerOrderRepositoryInterface
 {
     protected string $modelClass = CustomerOrder::class;
@@ -18,7 +20,11 @@ class CustomerOrderRepository extends AbstractAdminRepository implements Custome
     protected array $with = ['customer', 'items.item'];
 
     /**
-     * @param  array<string, mixed>  $filters
+     * A rendelésszámban és vevőadatokban kereshető, lapozott listát ad vissza.
+     *
+     * @param  array{search?: string|null, status?: string|null, sort?: string|null,
+     *     direction?: string|null}  $filters  Az alkalmazandó szűrők.
+     * @return LengthAwarePaginator<int, Model> A lapozott rendelések.
      */
     public function paginateForAdminIndex(array $filters, int $perPage = 10): LengthAwarePaginator
     {
@@ -102,6 +108,9 @@ class CustomerOrderRepository extends AbstractAdminRepository implements Custome
         return $customerOrder->refresh()->load(['customer', 'items.item'])->loadCount('items');
     }
 
+    /**
+     * Sorzárolás mellett előállítja a következő éves vevőirendelés-számot.
+     */
     private function nextOrderNumber(): string
     {
         $year = now()->format('Y');

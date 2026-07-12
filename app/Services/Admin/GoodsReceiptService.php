@@ -17,6 +17,12 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * Az áruátvételek létrehozását és készletmozgásokkal történő könyvelését koordinálja.
+ *
+ * A kapcsolódó rekordokat egy tranzakciós egységben kezeli, megőrizve a
+ * készletmozgások nyomon követhetőségét és auditját.
+ */
 class GoodsReceiptService
 {
     public function __construct(

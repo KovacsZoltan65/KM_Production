@@ -13,8 +13,15 @@ use App\Repositories\Contracts\ManufacturingIntelligenceRepositoryInterface;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * A gyártási intelligencia riportjaihoz szükséges adatbázis-aggregációk tárháza.
+ *
+ * Olvasási célú, adatbázisfüggetlenül összeállított mutatókat szolgáltat;
+ * üzleti állapotváltoztatást nem végez.
+ */
 class ManufacturingIntelligenceRepository implements ManufacturingIntelligenceRepositoryInterface
 {
+    /** @return array{rows: list<array<string, mixed>>} A gyáregységek terhelési mutatói. */
     public function bottlenecks(): array
     {
         $reserved = DB::table('capacity_reservations')
@@ -92,6 +99,7 @@ class ManufacturingIntelligenceRepository implements ManufacturingIntelligenceRe
         })->values()->all()];
     }
 
+    /** @return array{rows: list<array<string, mixed>>} A cikkek készletkockázati mutatói. */
     public function materialForecast(): array
     {
         $stock = DB::table('stock_balances')
@@ -139,6 +147,7 @@ class ManufacturingIntelligenceRepository implements ManufacturingIntelligenceRe
         })->values()->all()];
     }
 
+    /** @return array{rows: list<array<string, mixed>>} A beszállítók teljesítménymutatói. */
     public function supplierPerformance(): array
     {
         $deliveryDays = $this->daysBetween('purchase_orders.ordered_at', 'goods_receipts.received_at');
@@ -180,6 +189,7 @@ class ManufacturingIntelligenceRepository implements ManufacturingIntelligenceRe
         })->values()->all()];
     }
 
+    /** @return array{rows: list<array<string, mixed>>} A cikkek minőségügyi trendjei. */
     public function qualityTrends(): array
     {
         $rows = DB::table('quality_checks')
@@ -227,6 +237,7 @@ class ManufacturingIntelligenceRepository implements ManufacturingIntelligenceRe
         })->values()->all()];
     }
 
+    /** @return array{rows: list<array<string, mixed>>} A vevői rendelések kockázati sorai. */
     public function productionRisks(): array
     {
         $materialShortages = DB::table('material_requirements')
@@ -297,6 +308,7 @@ class ManufacturingIntelligenceRepository implements ManufacturingIntelligenceRe
         })->values()->all()];
     }
 
+    /** @return array{rows: list<array<string, mixed>>} A hiányokra épülő beszerzési javaslatok. */
     public function procurementRecommendations(): array
     {
         $openPurchaseOrders = DB::table('purchase_order_items')
@@ -342,6 +354,11 @@ class ManufacturingIntelligenceRepository implements ManufacturingIntelligenceRe
         })->filter(fn (array $row): bool => $row['recommended_quantity'] > 0)->values()->all()];
     }
 
+    /**
+     * Összesíti a lezárt gyártási rendelések határidő-pontosságát.
+     *
+     * @return array<string, bool|float|int|string> A pontossági mutatók vagy az adathiány jelzése.
+     */
     public function leadTimeAccuracy(): array
     {
         $delayExpression = $this->daysBetween('production_orders.planned_finish_date', 'production_orders.finished_at');
@@ -367,6 +384,7 @@ class ManufacturingIntelligenceRepository implements ManufacturingIntelligenceRe
         ];
     }
 
+    /** A kihasználtsági értéket szűk keresztmetszeti státusszá alakítja. */
     private function bottleneckStatus(float $utilization): string
     {
         return match (true) {
@@ -376,6 +394,7 @@ class ManufacturingIntelligenceRepository implements ManufacturingIntelligenceRe
         };
     }
 
+    /** A becsült készletnapokból készletkockázati szintet számít. */
     private function stockRisk(?float $days): string
     {
         return match (true) {
@@ -386,6 +405,7 @@ class ManufacturingIntelligenceRepository implements ManufacturingIntelligenceRe
         };
     }
 
+    /** A kockázati pontszámot üzleti kockázati szintté alakítja. */
     private function riskLevel(int $score): string
     {
         return match (true) {
@@ -395,6 +415,7 @@ class ManufacturingIntelligenceRepository implements ManufacturingIntelligenceRe
         };
     }
 
+    /** Összehasonlítja a jelenlegi és korábbi hibaarányt. */
     private function trend(?float $recentRate, ?float $previousRate): string
     {
         if ($recentRate === null || $previousRate === null) {
@@ -412,6 +433,7 @@ class ManufacturingIntelligenceRepository implements ManufacturingIntelligenceRe
         return 'stable';
     }
 
+    /** Adatbázis-driverhez illeszkedő perckülönbség-kifejezést készít. */
     private function minutesBetween(string $start, string $end): string
     {
         return DB::connection()->getDriverName() === 'sqlite'
@@ -419,6 +441,7 @@ class ManufacturingIntelligenceRepository implements ManufacturingIntelligenceRe
             : "TIMESTAMPDIFF(MINUTE, {$start}, {$end})";
     }
 
+    /** Adatbázis-driverhez illeszkedő napkülönbség-kifejezést készít. */
     private function daysBetween(string $start, string $end): string
     {
         return DB::connection()->getDriverName() === 'sqlite'
@@ -426,6 +449,7 @@ class ManufacturingIntelligenceRepository implements ManufacturingIntelligenceRe
             : "DATEDIFF({$end}, {$start})";
     }
 
+    /** Adatbázis-driverhez illeszkedő egyedi összefűzési kifejezést készít. */
     private function groupConcat(string $column): string
     {
         return DB::connection()->getDriverName() === 'sqlite'

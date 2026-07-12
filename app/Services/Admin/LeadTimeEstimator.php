@@ -4,6 +4,7 @@ namespace App\Services\Admin;
 
 use App\Models\CustomerOrder;
 use App\Models\ProductionOrder;
+use App\Models\ProductionTask;
 use App\Repositories\Contracts\CapacityRepositoryInterface;
 use App\Services\AuditLogService;
 use Carbon\CarbonImmutable;
@@ -19,7 +20,14 @@ class LeadTimeEstimator
     ) {}
 
     /**
-     * @return array<string, mixed>
+     * Megbecsüli a vevői rendelés gyártási időablakát és késési kockázatát.
+     *
+     * A kapcsolódó gyártási feladatokhoz szabad kapacitásablakokat keres. Az
+     * eredményt kérésre auditnaplózza, de foglalást nem hoz létre.
+     *
+     * @return array{estimatedStart: string, estimatedFinish: string, isLate: bool,
+     *     lateByMinutes: int, criticalFactoryUnit: string,
+     *     criticalProfessionalRole: string} A számított átfutásibecslés.
      */
     public function estimate(CustomerOrder $order, bool $audit = false): array
     {
@@ -84,6 +92,7 @@ class LeadTimeEstimator
 
     /**
      * @param  EloquentCollection<int, ProductionOrder>  $productionOrders
+     * @return Collection<int, ProductionTask> A rendelések sorrendbe állított feladatai.
      */
     private function tasksForProductionOrders(EloquentCollection $productionOrders): Collection
     {
@@ -96,6 +105,11 @@ class LeadTimeEstimator
         });
     }
 
+    /**
+     * Meghatározza a legtöbb tervezett időt igénylő gyáregységet.
+     *
+     * @param  Collection<int, ProductionTask>  $tasks  A vizsgált feladatok.
+     */
     private function criticalFactoryUnit(Collection $tasks): string
     {
         return $tasks
@@ -105,6 +119,11 @@ class LeadTimeEstimator
             ->first() ?? '-';
     }
 
+    /**
+     * Meghatározza a legtöbb tervezett időt igénylő szakmai szerepkört.
+     *
+     * @param  Collection<int, ProductionTask>  $tasks  A vizsgált feladatok.
+     */
     private function criticalProfessionalRole(Collection $tasks): string
     {
         return $tasks

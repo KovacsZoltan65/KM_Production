@@ -8,6 +8,11 @@ use App\Repositories\Contracts\OperationSequenceRepositoryInterface;
 use App\Services\AuditLogService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
+/**
+ * A műveletsorok és verziózott lépéseik adminisztrációs folyamatait koordinálja.
+ *
+ * Az összetett mentést repository-ra delegálja, a változásokat auditnaplózza.
+ */
 class OperationSequenceAdminService
 {
     public function __construct(

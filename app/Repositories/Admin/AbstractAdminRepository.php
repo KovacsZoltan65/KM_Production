@@ -7,6 +7,12 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Az adminisztrációs listázás és alap perzisztencia közös implementációja.
+ *
+ * A konkrét repository-k adják meg a modellhez tartozó kereshető, rendezhető
+ * és előtöltendő mezőket; üzleti döntéseket ez az osztály nem végez.
+ */
 abstract class AbstractAdminRepository implements AdminRepositoryInterface
 {
     /**
@@ -30,7 +36,14 @@ abstract class AbstractAdminRepository implements AdminRepositoryInterface
     protected array $with = [];
 
     /**
-     * @param  array<string, mixed>  $filters
+     * Összeállítja és végrehajtja az adminisztrációs lapozott lekérdezést.
+     *
+     * A keresést a konkrét repository mezőlistájára, a rendezést pedig az
+     * engedélyezett oszlopokra korlátozza.
+     *
+     * @param  array<string, mixed>  $filters  A keresési és rendezési szűrők.
+     * @param  int  $perPage  Az oldalanként visszaadott rekordok száma.
+     * @return LengthAwarePaginator<int, Model> A lapozott modellpéldányok.
      */
     public function paginateForAdminIndex(array $filters, int $perPage = 10): LengthAwarePaginator
     {
@@ -57,7 +70,10 @@ abstract class AbstractAdminRepository implements AdminRepositoryInterface
     }
 
     /**
-     * @param  array<string, mixed>  $attributes
+     * Létrehoz egy modellpéldányt a megadott attribútumokból.
+     *
+     * @param  array<string, mixed>  $attributes  A perzisztálandó attribútumok.
+     * @return Model A létrehozott modell.
      */
     public function create(array $attributes): Model
     {
@@ -65,7 +81,11 @@ abstract class AbstractAdminRepository implements AdminRepositoryInterface
     }
 
     /**
-     * @param  array<string, mixed>  $attributes
+     * Frissíti a modellt, majd az adatbázisból újratöltve adja vissza.
+     *
+     * @param  Model  $model  A módosítandó modell.
+     * @param  array<string, mixed>  $attributes  A mentendő attribútumok.
+     * @return Model A frissített modell.
      */
     public function update(Model $model, array $attributes): Model
     {
@@ -74,13 +94,20 @@ abstract class AbstractAdminRepository implements AdminRepositoryInterface
         return $model->refresh();
     }
 
+    /**
+     * Törli a megadott modellpéldányt.
+     *
+     * @param  Model  $model  A törlendő modell.
+     */
     public function delete(Model $model): void
     {
         $model->delete();
     }
 
     /**
-     * @return Builder<Model>
+     * Létrehozza a konkrét modell alaplekérdezését az előtöltésekkel.
+     *
+     * @return Builder<Model> Az Eloquent alaplekérdezés.
      */
     protected function query(): Builder
     {

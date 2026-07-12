@@ -17,6 +17,15 @@ class ItemController extends Controller
 {
     public function __construct(private readonly ItemAdminService $service) {}
 
+    /**
+     * Megjeleníti a cikkek adminisztrációs listaoldalát.
+     *
+     * Az ItemPolicy `viewAny` metódusa ellenőrzi a hozzáférést. Az oldal a
+     * szűrt, lapozott cikkeket, az aktuális szűrőket és a cikktípusokat kapja.
+     *
+     * @param  IndexRequest  $request  A validált listaoldali kérés.
+     * @return Response Inertia válasz a cikkek index oldalához.
+     */
     public function index(IndexRequest $request): Response
     {
         $this->authorize('viewAny', Item::class);
@@ -34,7 +43,13 @@ class ItemController extends Controller
     }
 
     /**
-     * Summary of store
+     * Létrehoz egy új cikket.
+     *
+     * A StoreItemRequest validál és az ItemPolicy `create` műveletével
+     * engedélyez. Az ItemAdminService menti és auditnaplózza a cikket.
+     *
+     * @param  StoreItemRequest  $request  A validált és engedélyezett kérés.
+     * @return RedirectResponse Visszairányítás sikeres létrehozási üzenettel.
      */
     public function store(StoreItemRequest $request): RedirectResponse
     {
@@ -44,7 +59,14 @@ class ItemController extends Controller
     }
 
     /**
-     * Summary of update
+     * Frissíti a megadott cikket.
+     *
+     * Az UpdateItemRequest validál és az ItemPolicy `update` műveletével
+     * engedélyez. Az ItemAdminService menti és auditnaplózza a változásokat.
+     *
+     * @param  UpdateItemRequest  $request  A validált és engedélyezett kérés.
+     * @param  Item  $item  A módosítandó cikk.
+     * @return RedirectResponse Visszairányítás sikeres módosítási üzenettel.
      */
     public function update(UpdateItemRequest $request, Item $item): RedirectResponse
     {
@@ -54,7 +76,13 @@ class ItemController extends Controller
     }
 
     /**
-     * Summary of destroy
+     * Törli a megadott cikket.
+     *
+     * Az ItemPolicy `delete` metódusa ellenőrzi a hozzáférést. Az
+     * ItemAdminService törli és a végrehajtó felhasználóhoz köti az auditot.
+     *
+     * @param  Item  $item  A törlendő cikk.
+     * @return RedirectResponse Visszairányítás sikeres törlési üzenettel.
      */
     public function destroy(Item $item): RedirectResponse
     {

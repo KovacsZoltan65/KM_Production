@@ -8,6 +8,11 @@ use App\Models\User;
 use App\Repositories\Contracts\ProductionTaskRepositoryInterface;
 use Illuminate\Support\Collection;
 
+/**
+ * A műhelyszintű végrehajtási nézet feladat- és összesítő adatait állítja elő.
+ *
+ * Olvasási célú szolgáltatás; a végrehajtási állapotokat nem módosítja.
+ */
 class ShopFloorService
 {
     public function __construct(private readonly ProductionTaskRepositoryInterface $productionTasks) {}

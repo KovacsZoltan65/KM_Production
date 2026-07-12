@@ -7,6 +7,12 @@ use JsonException;
 use Symfony\Component\Process\Exception\ProcessTimedOutException;
 use Symfony\Component\Process\Process;
 
+/**
+ * A Laravel alkalmazás és a Python AI-adapter közötti folyamatkommunikációt kezeli.
+ *
+ * Strukturált JSON-kéréseket küld, ellenőrzi a válaszformátumot és technikai
+ * hibát jelez; adatbázis-műveletet nem végez.
+ */
 class PythonAiEngineService
 {
     private const ENGINE = 'python-ai-engine';

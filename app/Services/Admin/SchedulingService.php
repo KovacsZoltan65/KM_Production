@@ -10,6 +10,12 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * A gyártási feladatok kapacitásalapú ütemezését koordinálja.
+ *
+ * A szabad időablakok keresését külön komponensre, a foglalások kezelését
+ * repository-ra delegálja, majd érvényteleníti a kapacitási gyorsítótárat.
+ */
 class SchedulingService
 {
     public function __construct(

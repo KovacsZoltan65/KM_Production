@@ -13,6 +13,12 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * A termelési tervek és a belőlük képzett gyártási rendelések folyamatát kezeli.
+ *
+ * A tervtételek mentését repository-ra delegálja, az állapotváltásokat és
+ * generálást tranzakcióban hajtja végre és auditnaplózza.
+ */
 class ProductionPlanService
 {
     public function __construct(

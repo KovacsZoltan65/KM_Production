@@ -9,6 +9,11 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
+/**
+ * Az AI-feldolgozások futási telemetriáját és összesített minőségi mutatóit kezeli.
+ *
+ * A feldolgozási eredményekből auditálható futásrekordokat és riportadatokat képez.
+ */
 class AiProcessingTelemetryService
 {
     private const MAX_STRING_LENGTH = 500;

@@ -27,6 +27,15 @@ class ProductionTaskController extends Controller
 {
     public function __construct(private readonly ProductionTaskService $service) {}
 
+    /**
+     * Megjeleníti a gyártási feladatok adminisztrációs listaoldalát.
+     *
+     * A ProductionTaskPolicy `viewAny` metódusa engedélyez. Az oldal a
+     * lapozott rekordok mellett a szűréshez és szerkesztéshez szükséges opciókat kapja.
+     *
+     * @param  IndexRequest  $request  A validált listaoldali kérés.
+     * @return Response Inertia válasz a gyártási feladatok index oldalához.
+     */
     public function index(IndexRequest $request): Response
     {
         $this->authorize('viewAny', ProductionTask::class);
@@ -42,6 +51,15 @@ class ProductionTaskController extends Controller
         ]);
     }
 
+    /**
+     * Megjeleníti a kiválasztott gyártási feladat adatlapját.
+     *
+     * A ProductionTaskPolicy `view` metódusa engedélyez, a részletes rekordot
+     * a ProductionTaskService tölti be a kapcsolódó választási listák mellé.
+     *
+     * @param  ProductionTask  $productionTask  A megjelenítendő feladat.
+     * @return Response Inertia válasz a gyártási feladat adatlapjához.
+     */
     public function show(ProductionTask $productionTask): Response
     {
         $this->authorize('view', $productionTask);
@@ -55,6 +73,15 @@ class ProductionTaskController extends Controller
         ]);
     }
 
+    /**
+     * Létrehoz egy új gyártási feladatot.
+     *
+     * A StoreProductionTaskRequest validál és engedélyez. A
+     * ProductionTaskService menti és auditnaplózza a feladatot.
+     *
+     * @param  StoreProductionTaskRequest  $request  A validált és engedélyezett kérés.
+     * @return RedirectResponse Átirányítás a gyártási feladatok listájára.
+     */
     public function store(StoreProductionTaskRequest $request): RedirectResponse
     {
         $this->service->create($request->validated(), $request->user());
@@ -62,6 +89,16 @@ class ProductionTaskController extends Controller
         return redirect()->route('admin.production-tasks.index')->with('success', __('production.tasks.messages.created'));
     }
 
+    /**
+     * Frissíti a megadott gyártási feladatot.
+     *
+     * Az UpdateProductionTaskRequest validál és engedélyez, a Service pedig
+     * menti és auditnaplózza a módosításokat.
+     *
+     * @param  UpdateProductionTaskRequest  $request  A validált és engedélyezett kérés.
+     * @param  ProductionTask  $productionTask  A módosítandó feladat.
+     * @return RedirectResponse Visszairányítás sikeres módosítási üzenettel.
+     */
     public function update(UpdateProductionTaskRequest $request, ProductionTask $productionTask): RedirectResponse
     {
         $this->service->update($productionTask, $request->validated(), $request->user());
@@ -69,6 +106,15 @@ class ProductionTaskController extends Controller
         return back()->with('success', __('production.tasks.messages.updated'));
     }
 
+    /**
+     * Törli a megadott gyártási feladatot.
+     *
+     * A ProductionTaskPolicy `delete` metódusa engedélyez. A Service törli és
+     * a végrehajtó felhasználóhoz kapcsolva auditnaplózza a rekordot.
+     *
+     * @param  ProductionTask  $productionTask  A törlendő feladat.
+     * @return RedirectResponse Átirányítás a gyártási feladatok listájára.
+     */
     public function destroy(ProductionTask $productionTask): RedirectResponse
     {
         $this->authorize('delete', $productionTask);
@@ -77,6 +123,15 @@ class ProductionTaskController extends Controller
         return redirect()->route('admin.production-tasks.index')->with('success', __('production.tasks.messages.deleted'));
     }
 
+    /**
+     * Legenerálja egy gyártási rendelés végrehajtási feladatait.
+     *
+     * A GenerateProductionTasksRequest validál és engedélyez. A Service a
+     * megadott rendeléshez és dolgozóhoz létrehozza, majd auditnaplózza a feladatokat.
+     *
+     * @param  GenerateProductionTasksRequest  $request  A validált és engedélyezett kérés.
+     * @return RedirectResponse Visszairányítás a létrehozott feladatok számával.
+     */
     public function generateFromOrder(GenerateProductionTasksRequest $request): RedirectResponse
     {
         $payload = $request->validated();
@@ -89,6 +144,16 @@ class ProductionTaskController extends Controller
         return back()->with('success', __('production.tasks.messages.generated', ['count' => $count]));
     }
 
+    /**
+     * Elindítja a megadott gyártási feladat végrehajtását.
+     *
+     * A StartProductionTaskRequest végzi az engedélyezést. A Service ellenőrzi
+     * az állapotot, rögzíti az indítást és auditnaplózza a műveletet.
+     *
+     * @param  StartProductionTaskRequest  $request  Az engedélyezett kérés.
+     * @param  ProductionTask  $productionTask  Az elindítandó feladat.
+     * @return RedirectResponse Visszairányítás sikeres indítási üzenettel.
+     */
     public function start(StartProductionTaskRequest $request, ProductionTask $productionTask): RedirectResponse
     {
         $this->service->start($productionTask, $request->user());
@@ -96,6 +161,16 @@ class ProductionTaskController extends Controller
         return back()->with('success', __('production.tasks.messages.started'));
     }
 
+    /**
+     * Befejezi a megadott gyártási feladat végrehajtását.
+     *
+     * A FinishProductionTaskRequest végzi az engedélyezést. A Service kezeli
+     * az állapotátmenetet, a következő lépést és a művelet auditnaplózását.
+     *
+     * @param  FinishProductionTaskRequest  $request  Az engedélyezett kérés.
+     * @param  ProductionTask  $productionTask  A befejezendő feladat.
+     * @return RedirectResponse Visszairányítás sikeres befejezési üzenettel.
+     */
     public function finish(FinishProductionTaskRequest $request, ProductionTask $productionTask): RedirectResponse
     {
         $this->service->finish($productionTask, $request->user());
@@ -104,7 +179,9 @@ class ProductionTaskController extends Controller
     }
 
     /**
-     * @return array<int, array{label: string, value: string}>
+     * Összeállítja a gyártási feladatállapotok választási listáját.
+     *
+     * @return array<int, array{label: string, value: string}> A lokalizált állapotopciók.
      */
     private function statusOptions(): array
     {
@@ -118,7 +195,9 @@ class ProductionTaskController extends Controller
     }
 
     /**
-     * @return array[]
+     * Összeállítja az aktív dolgozók választási listáját.
+     *
+     * @return array<int, array{id: int, label: string}> A dolgozóopciók.
      */
     private function employeeOptions(): array
     {
@@ -134,7 +213,9 @@ class ProductionTaskController extends Controller
     }
 
     /**
-     * @return array[]
+     * Összeállítja a gyártási rendelések választási listáját.
+     *
+     * @return array<int, array{id: int, label: string}> A rendelésopciók.
      */
     private function productionOrderOptions(): array
     {
@@ -146,7 +227,9 @@ class ProductionTaskController extends Controller
     }
 
     /**
-     * @return array[]
+     * Összeállítja a legutóbbi egyedi cikkpéldányok választási listáját.
+     *
+     * @return array<int, array{id: int, label: string}> A cikkpéldány-opciók.
      */
     private function itemInstanceOptions(): array
     {
@@ -159,7 +242,11 @@ class ProductionTaskController extends Controller
     }
 
     /**
-     * @return array[]
+     * Összeállítja a műveletsor-lépések választási listáját.
+     *
+     * A lépések címkéjébe a sorrendet, művelettípust és gyáregységet foglalja.
+     *
+     * @return array<int, array{id: int, label: string}> A műveletlépés-opciók.
      */
     private function operationStepOptions(): array
     {
@@ -176,7 +263,9 @@ class ProductionTaskController extends Controller
     }
 
     /**
-     * @return array[]
+     * Összeállítja a feladathoz választható cikkek listáját.
+     *
+     * @return array<int, array{id: int, unit: string, label: string}> A cikkopciók.
      */
     private function itemOptions(): array
     {
@@ -192,7 +281,9 @@ class ProductionTaskController extends Controller
     }
 
     /**
-     * @return array[]
+     * Összeállítja a helyek választási listáját.
+     *
+     * @return array<int, array{id: int, label: string}> A helyopciók.
      */
     private function locationOptions(): array
     {
@@ -207,7 +298,9 @@ class ProductionTaskController extends Controller
     }
 
     /**
-     * @return array<int, array{label: string, value: string}>
+     * Összeállítja a minőségellenőrzési eredmények választási listáját.
+     *
+     * @return array<int, array{label: string, value: string}> A lokalizált eredményopciók.
      */
     private function qualityResultOptions(): array
     {

@@ -17,7 +17,11 @@ use Illuminate\Support\Collection;
 class CapacityRepository implements CapacityRepositoryInterface
 {
     /**
-     * @return Collection<int, array<string, mixed>>
+     * Összesíti az aktív gyáregységek elérhető és lefoglalt kapacitását.
+     *
+     * @return Collection<int, array{id: int, factory_unit: string, code: string,
+     *     available_minutes: int, reserved_minutes: int, utilization: float,
+     *     current_queue: int, status: string}> A gyáregységek terhelése.
      */
     public function factoryUnitLoads(CarbonInterface $from, CarbonInterface $until): Collection
     {
@@ -53,7 +57,11 @@ class CapacityRepository implements CapacityRepositoryInterface
     }
 
     /**
-     * @return Collection<int, array<string, mixed>>
+     * Összesíti az aktív dolgozók munkaidejét és lefoglalt kapacitását.
+     *
+     * @return Collection<int, array{id: int, employee: string, professional_role: string,
+     *     working_minutes: int, reserved_minutes: int, utilization: float,
+     *     assigned_tasks: int, status: string}> A dolgozók terhelése.
      */
     public function employeeLoads(CarbonInterface $from, CarbonInterface $until): Collection
     {
@@ -90,7 +98,11 @@ class CapacityRepository implements CapacityRepositoryInterface
     }
 
     /**
-     * @return Collection<int, array<string, mixed>>
+     * Az időszak foglalásait a kapacitásütemező soraira alakítja.
+     *
+     * @return Collection<int, covariant array{id: int, factory_unit: string,
+     *     production_task: non-falsy-string, start: mixed, finish: mixed,
+     *     duration: int<0, max>, employee: string, status: string}> Az ütemezési sorok.
      */
     public function scheduleRows(CarbonInterface $from, CarbonInterface $until): Collection
     {
@@ -214,6 +226,9 @@ class CapacityRepository implements CapacityRepositoryInterface
         return CapacityReservation::query()->count();
     }
 
+    /**
+     * Meghatározza a gyáregység munkanaptár szerinti elérhető perceit.
+     */
     private function factoryAvailableMinutes(FactoryUnit $factoryUnit, CarbonInterface $from, CarbonInterface $until): int
     {
         $calendars = $factoryUnit->relationLoaded('calendars')
@@ -241,6 +256,9 @@ class CapacityRepository implements CapacityRepositoryInterface
         return (int) $minutes;
     }
 
+    /**
+     * Meghatározza a dolgozó munkanaptár szerinti elérhető perceit.
+     */
     private function employeeWorkingMinutes(Employee $employee, CarbonInterface $from, CarbonInterface $until): int
     {
         $calendars = $employee->relationLoaded('workCalendars')
@@ -266,6 +284,9 @@ class CapacityRepository implements CapacityRepositoryInterface
         return (int) $minutes;
     }
 
+    /**
+     * A kihasználtsági százalékot frontend-státuszkóddá alakítja.
+     */
     private function utilizationStatus(float $utilization): string
     {
         return match (true) {

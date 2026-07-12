@@ -15,6 +15,12 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
+/**
+ * A dokumentumok tárolását, verziózását, letöltését és feldolgozását koordinálja.
+ *
+ * A metaadat-lekérdezést repository-ra, a jóváhagyást és verzióváltást célzott
+ * szolgáltatásokra delegálja, a dokumentumműveleteket pedig auditnaplózza.
+ */
 class DocumentService
 {
     public function __construct(

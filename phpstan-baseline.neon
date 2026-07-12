@@ -115,30 +115,6 @@ parameters:
 			path: app/Repositories/Admin/CapacityRepository.php
 
 		-
-			message: '#^Method App\\Repositories\\Admin\\CapacityRepository\:\:employeeLoads\(\) should return Illuminate\\Support\\Collection\<int, array\<string, mixed\>\> but returns Illuminate\\Support\\Collection\<int, array\{id\: int, employee\: string, professional_role\: string, working_minutes\: int, reserved_minutes\: int, utilization\: float, assigned_tasks\: int, status\: string\}\>\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Repositories/Admin/CapacityRepository.php
-
-		-
-			message: '#^Method App\\Repositories\\Admin\\CapacityRepository\:\:factoryUnitLoads\(\) should return Illuminate\\Support\\Collection\<int, array\<string, mixed\>\> but returns Illuminate\\Support\\Collection\<int, array\{id\: int, factory_unit\: string, code\: string, available_minutes\: int, reserved_minutes\: int, utilization\: float, current_queue\: int, status\: string\}\>\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Repositories/Admin/CapacityRepository.php
-
-		-
-			message: '#^Method App\\Repositories\\Admin\\CapacityRepository\:\:scheduleRows\(\) should return Illuminate\\Support\\Collection\<int, array\<string, mixed\>\> but returns Illuminate\\Support\\Collection\<int, array\{id\: int, factory_unit\: string, production_task\: non\-falsy\-string, start\: mixed, finish\: mixed, duration\: int\<0, max\>, employee\: string, status\: string\}\>\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Repositories/Admin/CapacityRepository.php
-
-		-
-			message: '#^Method App\\Services\\Admin\\CapacityPlanningService\:\:ordersLikelyToMissDeadline\(\) should return Illuminate\\Support\\Collection\<int, array\<string, mixed\>\> but returns Illuminate\\Support\\Collection\<int, array\{id\: int, order_number\: string, requested_delivery_date\: string\|null, estimated_finish\: mixed, late_by_minutes\: mixed, critical_factory_unit\: mixed\}\>\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Services/Admin/CapacityPlanningService.php
-
-		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$version\.$#'
 			identifier: property.notFound
 			count: 1

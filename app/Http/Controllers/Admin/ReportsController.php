@@ -15,6 +15,15 @@ class ReportsController extends Controller
 {
     public function __construct(private readonly ReportingService $service) {}
 
+    /**
+     * Megjeleníti a vevői rendelések összesítő riportját.
+     *
+     * A `reports.view` jogosultság hiányában 403 választ ad. A riportot a
+     * ReportingService állítja össze a validált szűrők alapján.
+     *
+     * @param  IndexRequest  $request  A validált riportkérés.
+     * @return Response Inertia válasz a riporttal és választási listákkal.
+     */
     public function customerOrders(IndexRequest $request): Response
     {
         $this->authorizeReports($request);
@@ -27,6 +36,15 @@ class ReportsController extends Controller
         ]);
     }
 
+    /**
+     * Megjeleníti a gyártási összesítő riportot.
+     *
+     * A hozzáféréshez `reports.view` jogosultság szükséges; ennek hiánya
+     * 403 választ eredményez. Az adatokat a ReportingService szolgáltatja.
+     *
+     * @param  Request  $request  Az aktuális HTTP kérés.
+     * @return Response Inertia válasz a gyártási riporttal.
+     */
     public function production(Request $request): Response
     {
         $this->authorizeReports($request);
@@ -36,6 +54,15 @@ class ReportsController extends Controller
         ]);
     }
 
+    /**
+     * Megjeleníti a készlet-összesítő riportot.
+     *
+     * A `reports.view` jogosultságot közvetlen ellenőrzés érvényesíti, az
+     * összesített készletadatokat pedig a ReportingService biztosítja.
+     *
+     * @param  Request  $request  Az aktuális HTTP kérés.
+     * @return Response Inertia válasz a készletriporttal.
+     */
     public function inventory(Request $request): Response
     {
         $this->authorizeReports($request);
@@ -45,6 +72,15 @@ class ReportsController extends Controller
         ]);
     }
 
+    /**
+     * Megjeleníti a beszerzési összesítő riportot.
+     *
+     * A `reports.view` jogosultság hiányában 403 választ ad. A megjelenített
+     * beszerzési mutatókat a ReportingService állítja össze.
+     *
+     * @param  Request  $request  Az aktuális HTTP kérés.
+     * @return Response Inertia válasz a beszerzési riporttal.
+     */
     public function procurement(Request $request): Response
     {
         $this->authorizeReports($request);
@@ -54,6 +90,15 @@ class ReportsController extends Controller
         ]);
     }
 
+    /**
+     * Megjeleníti a minőségügyi összesítő riportot.
+     *
+     * A `reports.view` jogosultság hiányában 403 választ ad, a riport
+     * adatkészletét pedig a ReportingService szolgáltatja.
+     *
+     * @param  Request  $request  Az aktuális HTTP kérés.
+     * @return Response Inertia válasz a minőségügyi riporttal.
+     */
     public function quality(Request $request): Response
     {
         $this->authorizeReports($request);
@@ -63,6 +108,15 @@ class ReportsController extends Controller
         ]);
     }
 
+    /**
+     * Megjeleníti a műhelyszintű összesítő riportot.
+     *
+     * A hozzáféréshez `reports.view` jogosultság szükséges. A
+     * ReportingService állítja elő a műhely állapotát összegző adatokat.
+     *
+     * @param  Request  $request  Az aktuális HTTP kérés.
+     * @return Response Inertia válasz a műhelyriporttal.
+     */
     public function shopFloor(Request $request): Response
     {
         $this->authorizeReports($request);
@@ -73,7 +127,9 @@ class ReportsController extends Controller
     }
 
     /**
-     * Summary of authorizeReports
+     * Ellenőrzi a riportok megtekintési jogosultságát.
+     *
+     * @param  Request  $request  A hitelesített felhasználót tartalmazó kérés.
      */
     private function authorizeReports(Request $request): void
     {
@@ -81,7 +137,12 @@ class ReportsController extends Controller
     }
 
     /**
-     * @return array[]
+     * Összeállítja a vevői rendelésállapotok választási listáját.
+     *
+     * A CustomerOrderStatus enum értékeiből a frontend szűrőjéhez készít
+     * megjelenítési címkéket és technikai értékeket.
+     *
+     * @return array<int, array{label: string, value: string}> Az állapotopciók.
      */
     private function customerOrderStatusOptions(): array
     {
@@ -95,7 +156,12 @@ class ReportsController extends Controller
     }
 
     /**
-     * @return array[]
+     * Összeállítja a választható vevők listáját.
+     *
+     * A Customer rekordokat név szerint rendezi, majd a riport szűrője által
+     * használt azonosító–címke párokká alakítja.
+     *
+     * @return array<int, array{id: int, label: string}> A vevőopciók.
      */
     private function customerOptions(): array
     {

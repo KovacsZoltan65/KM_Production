@@ -7,14 +7,20 @@ use App\Models\CustomerOrder;
 interface CustomerOrderRepositoryInterface extends AdminRepositoryInterface
 {
     /**
-     * @param  array<string, mixed>  $attributes
-     * @param  array<int, array<string, mixed>>  $items
+     * Létrehozza a rendelést és annak tételsorait egyetlen műveleti egységben.
+     *
+     * @param  array<string, mixed>  $attributes  A rendelés fejlécadatai.
+     * @param  list<array{item_id: int, quantity: int|float|string, unit: string,
+     *     notes: string|null}>  $items  A létrehozandó tételsorok.
      */
     public function createWithItems(array $attributes, array $items): CustomerOrder;
 
     /**
-     * @param  array<string, mixed>  $attributes
-     * @param  array<int, array<string, mixed>>  $items
+     * Frissíti a rendelést, és a megadott készletre cseréli a tételsorait.
+     *
+     * @param  array<string, mixed>  $attributes  A módosítandó fejlécadatok.
+     * @param  list<array{item_id: int, quantity: int|float|string, unit: string,
+     *     notes: string|null}>  $items  Az új tételsorok.
      */
     public function updateWithItems(CustomerOrder $customerOrder, array $attributes, array $items): CustomerOrder;
 

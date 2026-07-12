@@ -12,6 +12,12 @@ use App\Services\AuditLogService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * A gyártási feladatok minőségellenőrzését és eredményfüggő állapotváltásait kezeli.
+ *
+ * Az ellenőrzési rekordot, a feladat továbbléptetését és az auditot egy
+ * tranzakciós folyamatban koordinálja.
+ */
 class QualityCheckService
 {
     public function __construct(

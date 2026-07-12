@@ -13,6 +13,12 @@ use App\Services\AuditLogService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * A gyártási anyagok készletfoglalását és felszabadítását koordinálja.
+ *
+ * A készletegyenlegeket nem módosítja közvetlenül; a foglalási rekordok
+ * konzisztenciáját tranzakcióval és auditnaplózással biztosítja.
+ */
 class StockReservationService
 {
     public function __construct(

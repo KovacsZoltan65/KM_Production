@@ -11,6 +11,11 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * A beszerzési rendelések életciklusát és auditált állapotváltásait koordinálja.
+ *
+ * A részletes lekérdezéseket repository-ra delegálja; készletkönyvelést nem végez.
+ */
 class PurchaseOrderService
 {
     public function __construct(

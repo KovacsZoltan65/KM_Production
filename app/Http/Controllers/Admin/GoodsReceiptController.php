@@ -21,6 +21,15 @@ class GoodsReceiptController extends Controller
 {
     public function __construct(private readonly GoodsReceiptService $service) {}
 
+    /**
+     * Megjeleníti az áruátvételek adminisztrációs listaoldalát.
+     *
+     * A GoodsReceiptPolicy `viewAny` metódusa ellenőrzi a hozzáférést. Az
+     * oldal megkapja a lapozott rekordokat, szűrőket és választási listákat.
+     *
+     * @param  IndexRequest  $request  A validált listaoldali kérés.
+     * @return Response Inertia válasz az áruátvételek index oldalához.
+     */
     public function index(IndexRequest $request): Response
     {
         $this->authorize('viewAny', GoodsReceipt::class);
@@ -36,7 +45,13 @@ class GoodsReceiptController extends Controller
     }
 
     /**
-     * Summary of show
+     * Megjeleníti a kiválasztott áruátvétel részletes adatlapját.
+     *
+     * A GoodsReceiptPolicy `view` metódusa ellenőrzi a hozzáférést, a
+     * kapcsolatokkal betöltött rekordot a GoodsReceiptService biztosítja.
+     *
+     * @param  GoodsReceipt  $goodsReceipt  A megjelenítendő áruátvétel.
+     * @return Response Inertia válasz az áruátvétel adatlapjához.
      */
     public function show(GoodsReceipt $goodsReceipt): Response
     {
@@ -48,7 +63,13 @@ class GoodsReceiptController extends Controller
     }
 
     /**
-     * Summary of store
+     * Létrehoz egy új áruátvételt.
+     *
+     * A StoreGoodsReceiptRequest validálja és engedélyezi a kérést. A
+     * GoodsReceiptService tranzakcióban menti és auditnaplózza az átvételt.
+     *
+     * @param  StoreGoodsReceiptRequest  $request  A validált és engedélyezett kérés.
+     * @return RedirectResponse Átirányítás a létrehozott áruátvétel adatlapjára.
      */
     public function store(StoreGoodsReceiptRequest $request): RedirectResponse
     {
@@ -57,6 +78,16 @@ class GoodsReceiptController extends Controller
         return redirect()->route('admin.goods-receipts.show', $goodsReceipt)->with('success', __('procurement.goods_receipts.messages.created'));
     }
 
+    /**
+     * Könyveli a megadott áruátvételt és annak készletmozgásait.
+     *
+     * A PostGoodsReceiptRequest végzi a jogosultság-ellenőrzést. A
+     * GoodsReceiptService hajtja végre és auditnaplózza a könyvelési folyamatot.
+     *
+     * @param  PostGoodsReceiptRequest  $request  Az engedélyezett kérés.
+     * @param  GoodsReceipt  $goodsReceipt  A könyvelendő áruátvétel.
+     * @return RedirectResponse Visszairányítás sikeres könyvelési üzenettel.
+     */
     public function post(PostGoodsReceiptRequest $request, GoodsReceipt $goodsReceipt): RedirectResponse
     {
         $this->service->post($goodsReceipt, $request->user());
@@ -65,7 +96,12 @@ class GoodsReceiptController extends Controller
     }
 
     /**
-     * @return array[]
+     * Összeállítja az áruátvételi állapotok választási listáját.
+     *
+     * A GoodsReceiptStatus enum értékeiből lokalizált címke–érték párokat
+     * készít a frontend szűrői és űrlapmezői számára.
+     *
+     * @return array<int, array{label: string, value: string}> Az állapotopciók.
      */
     private function statusOptions(): array
     {
@@ -79,7 +115,12 @@ class GoodsReceiptController extends Controller
     }
 
     /**
-     * @return Collection<int, array>|\Illuminate\Database\Eloquent\Collection<int, array>
+     * Összeállítja a választható beszerzési rendelések listáját.
+     *
+     * A rendeléseket a beszállítóval együtt tölti be, és a frontend számára
+     * azonosítót, rendelésszámot és beszállítói nevet tartalmazó címkét készít.
+     *
+     * @return Collection<int, array{id: int, label: non-falsy-string}> A rendelésopciók.
      */
     private function purchaseOrderOptions(): Collection
     {
@@ -94,7 +135,12 @@ class GoodsReceiptController extends Controller
     }
 
     /**
-     * @return Collection<int, array>|\Illuminate\Database\Eloquent\Collection<int, array>
+     * Összeállítja az átvételhez választható cikkek listáját.
+     *
+     * A cikkeket cikkszám szerint rendezi, majd azonosítóval, mértékegységgel
+     * és összetett megjelenítési címkével adja át a frontendnek.
+     *
+     * @return Collection<int, array{id: int, unit: string, label: non-falsy-string}> A cikkopciók.
      */
     private function itemOptions(): Collection
     {
@@ -109,7 +155,12 @@ class GoodsReceiptController extends Controller
     }
 
     /**
-     * @return Collection<int, array>|\Illuminate\Database\Eloquent\Collection<int, array>
+     * Összeállítja az átvételi helyek választási listáját.
+     *
+     * A Location rekordokat kód szerint rendezi, majd azonosító–címke
+     * párokká alakítja a frontend helyválasztó mezőihez.
+     *
+     * @return Collection<int, array{id: int, label: non-falsy-string}> A helyopciók.
      */
     private function locationOptions(): Collection
     {

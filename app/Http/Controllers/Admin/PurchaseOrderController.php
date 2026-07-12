@@ -22,6 +22,15 @@ class PurchaseOrderController extends Controller
 {
     public function __construct(private readonly PurchaseOrderService $service) {}
 
+    /**
+     * Megjeleníti a beszerzési rendelések adminisztrációs listaoldalát.
+     *
+     * A PurchaseOrderPolicy `viewAny` metódusa ellenőrzi a hozzáférést. Az
+     * oldal lapozott rekordokat, szűrőket és választási listákat kap.
+     *
+     * @param  IndexRequest  $request  A validált listaoldali kérés.
+     * @return Response Inertia válasz a beszerzési rendelések index oldalához.
+     */
     public function index(IndexRequest $request): Response
     {
         $this->authorize('viewAny', PurchaseOrder::class);
@@ -35,6 +44,15 @@ class PurchaseOrderController extends Controller
         ]);
     }
 
+    /**
+     * Megjeleníti a kiválasztott beszerzési rendelés adatlapját.
+     *
+     * A PurchaseOrderPolicy `view` metódusa engedélyez, a részletesen
+     * betöltött rendelést pedig a PurchaseOrderService biztosítja.
+     *
+     * @param  PurchaseOrder  $purchaseOrder  A megjelenítendő rendelés.
+     * @return Response Inertia válasz a beszerzési rendelés adatlapjához.
+     */
     public function show(PurchaseOrder $purchaseOrder): Response
     {
         $this->authorize('view', $purchaseOrder);
@@ -44,6 +62,15 @@ class PurchaseOrderController extends Controller
         ]);
     }
 
+    /**
+     * Létrehoz egy új beszerzési rendelést.
+     *
+     * A StorePurchaseOrderRequest validál és engedélyez. A
+     * PurchaseOrderService tranzakcióban menti és auditnaplózza a rendelést.
+     *
+     * @param  StorePurchaseOrderRequest  $request  A validált és engedélyezett kérés.
+     * @return RedirectResponse Visszairányítás sikeres létrehozási üzenettel.
+     */
     public function store(StorePurchaseOrderRequest $request): RedirectResponse
     {
         $this->service->create($request->validated(), $request->user());
@@ -51,6 +78,16 @@ class PurchaseOrderController extends Controller
         return back()->with('success', __('procurement.purchase_orders.messages.created'));
     }
 
+    /**
+     * Frissíti a megadott beszerzési rendelést.
+     *
+     * Az UpdatePurchaseOrderRequest végzi a validálást és engedélyezést. A
+     * PurchaseOrderService menti és auditnaplózza a módosításokat.
+     *
+     * @param  UpdatePurchaseOrderRequest  $request  A validált és engedélyezett kérés.
+     * @param  PurchaseOrder  $purchaseOrder  A módosítandó rendelés.
+     * @return RedirectResponse Visszairányítás sikeres módosítási üzenettel.
+     */
     public function update(UpdatePurchaseOrderRequest $request, PurchaseOrder $purchaseOrder): RedirectResponse
     {
         $this->service->update($purchaseOrder, $request->validated(), $request->user());
@@ -58,6 +95,15 @@ class PurchaseOrderController extends Controller
         return back()->with('success', __('procurement.purchase_orders.messages.updated'));
     }
 
+    /**
+     * Törli a megadott beszerzési rendelést.
+     *
+     * A PurchaseOrderPolicy `delete` metódusa ellenőrzi a hozzáférést. A
+     * PurchaseOrderService törli és auditnaplózza a rekordot.
+     *
+     * @param  PurchaseOrder  $purchaseOrder  A törlendő rendelés.
+     * @return RedirectResponse Visszairányítás sikeres törlési üzenettel.
+     */
     public function destroy(PurchaseOrder $purchaseOrder): RedirectResponse
     {
         $this->authorize('delete', $purchaseOrder);
@@ -66,6 +112,16 @@ class PurchaseOrderController extends Controller
         return back()->with('success', __('procurement.purchase_orders.messages.deleted'));
     }
 
+    /**
+     * Jóváhagyja a megadott beszerzési rendelést.
+     *
+     * Az ApprovePurchaseOrderRequest ellenőrzi a művelet jogosultságát, a
+     * PurchaseOrderService pedig végrehajtja és auditnaplózza az állapotváltást.
+     *
+     * @param  ApprovePurchaseOrderRequest  $request  Az engedélyezett kérés.
+     * @param  PurchaseOrder  $purchaseOrder  A jóváhagyandó rendelés.
+     * @return RedirectResponse Visszairányítás sikeres jóváhagyási üzenettel.
+     */
     public function approve(ApprovePurchaseOrderRequest $request, PurchaseOrder $purchaseOrder): RedirectResponse
     {
         $this->service->approve($purchaseOrder, $request->user());
@@ -73,6 +129,16 @@ class PurchaseOrderController extends Controller
         return back()->with('success', __('procurement.purchase_orders.messages.approved'));
     }
 
+    /**
+     * Lezárja a megadott beszerzési rendelést.
+     *
+     * A ClosePurchaseOrderRequest végzi az engedélyezést. A
+     * PurchaseOrderService ellenőrzi, végrehajtja és auditnaplózza a lezárást.
+     *
+     * @param  ClosePurchaseOrderRequest  $request  Az engedélyezett kérés.
+     * @param  PurchaseOrder  $purchaseOrder  A lezárandó rendelés.
+     * @return RedirectResponse Visszairányítás sikeres lezárási üzenettel.
+     */
     public function close(ClosePurchaseOrderRequest $request, PurchaseOrder $purchaseOrder): RedirectResponse
     {
         $this->service->close($purchaseOrder, $request->user());
@@ -81,7 +147,9 @@ class PurchaseOrderController extends Controller
     }
 
     /**
-     * @return array[]
+     * Összeállítja a beszerzési rendelésállapotok választási listáját.
+     *
+     * @return array<int, array{label: string, value: string}> A lokalizált állapotopciók.
      */
     private function statusOptions(): array
     {
@@ -95,7 +163,11 @@ class PurchaseOrderController extends Controller
     }
 
     /**
-     * @return Collection<int, array>
+     * Összeállítja az aktív beszállítók választási listáját.
+     *
+     * A Supplier rekordokból összetett kód–név címkéket készít a frontendnek.
+     *
+     * @return Collection<int, array{id: int, label: non-falsy-string}> A beszállítóopciók.
      */
     private function supplierOptions(): Collection
     {
@@ -110,7 +182,9 @@ class PurchaseOrderController extends Controller
     }
 
     /**
-     * @return Collection<int, array>
+     * Összeállítja a rendeléshez választható cikkek listáját.
+     *
+     * @return Collection<int, array{id: int, unit: string, label: non-falsy-string}> A cikkopciók.
      */
     private function itemOptions(): Collection
     {

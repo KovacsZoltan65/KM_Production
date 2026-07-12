@@ -15,7 +15,34 @@ class CapacityPlanningService
     ) {}
 
     /**
-     * @return array<string, mixed>
+     * Összeállítja és rövid időre gyorsítótárazza a kapacitási irányítópultot.
+     *
+     * @return array{
+     *     summary: array{
+     *         current_factory_load: int,
+     *         employee_load: int,
+     *         overloaded_factory_units: int,
+     *         available_capacity: int,
+     *         delayed_production_orders: int,
+     *         average_utilization: float,
+     *         average_lead_time: float
+     *     },
+     *     top_overloaded_factory_units: Collection<int, array{id: int, factory_unit: string,
+     *         code: string, available_minutes: int, reserved_minutes: int,
+     *         utilization: float, current_queue: int, status: string}>,
+     *     top_busiest_employees: Collection<int, array{id: int, employee: string,
+     *         professional_role: string, working_minutes: int, reserved_minutes: int,
+     *         utilization: float, assigned_tasks: int, status: string}>,
+     *     orders_likely_to_miss_deadline: Collection<int, array{id: int, order_number: string,
+     *         requested_delivery_date: string, estimated_finish: string,
+     *         late_by_minutes: positive-int, critical_factory_unit: string}>,
+     *     factory_loads: Collection<int, array{id: int, factory_unit: string, code: string,
+     *         available_minutes: int, reserved_minutes: int, utilization: float,
+     *         current_queue: int, status: string}>,
+     *     employee_loads: Collection<int, array{id: int, employee: string,
+     *         professional_role: string, working_minutes: int, reserved_minutes: int,
+     *         utilization: float, assigned_tasks: int, status: string}>
+     * } A kapacitási összesítések és kiemelt listák.
      */
     public function dashboard(): array
     {
@@ -53,7 +80,11 @@ class CapacityPlanningService
     }
 
     /**
-     * @return Collection<int, array<string, mixed>>
+     * Visszaadja a következő hét gyorsítótárazott gyáregység-terhelését.
+     *
+     * @return Collection<int, array{id: int, factory_unit: string, code: string,
+     *     available_minutes: int, reserved_minutes: int, utilization: float,
+     *     current_queue: int, status: string}> A gyáregységek terhelési sorai.
      */
     public function factoryUnitLoads(): Collection
     {
@@ -65,7 +96,11 @@ class CapacityPlanningService
     }
 
     /**
-     * @return Collection<int, array<string, mixed>>
+     * Visszaadja a következő hét gyorsítótárazott dolgozói terhelését.
+     *
+     * @return Collection<int, array{id: int, employee: string, professional_role: string,
+     *     working_minutes: int, reserved_minutes: int, utilization: float,
+     *     assigned_tasks: int, status: string}> A dolgozók terhelési sorai.
      */
     public function employeeLoads(): Collection
     {
@@ -77,7 +112,11 @@ class CapacityPlanningService
     }
 
     /**
-     * @return Collection<int, array<string, mixed>>
+     * Visszaadja a kapacitásütemezés gyorsítótárazott sorait.
+     *
+     * @return Collection<int, covariant array{id: int, factory_unit: string,
+     *     production_task: non-falsy-string, start: mixed, finish: mixed,
+     *     duration: int<0, max>, employee: string, status: string}> Az ütemezési sorok.
      */
     public function scheduleRows(): Collection
     {
@@ -104,6 +143,9 @@ class CapacityPlanningService
         return $this->capacity->customerOrderOptions();
     }
 
+    /**
+     * Érvényteleníti a kapacitástervezés összes gyorsítótár-bejegyzését.
+     */
     public function forgetCapacityCache(): void
     {
         Cache::forget('capacity.dashboard');
@@ -113,7 +155,11 @@ class CapacityPlanningService
     }
 
     /**
-     * @return Collection<int, array<string, mixed>>
+     * Kiválasztja az öt legnagyobb késési kockázatú vevői rendelést.
+     *
+     * @return Collection<int, array{id: int, order_number: string,
+     *     requested_delivery_date: string, estimated_finish: string,
+     *     late_by_minutes: positive-int, critical_factory_unit: string}> A kockázatos rendelések.
      */
     private function ordersLikelyToMissDeadline(): Collection
     {

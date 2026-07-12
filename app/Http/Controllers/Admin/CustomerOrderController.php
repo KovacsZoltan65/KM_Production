@@ -22,6 +22,18 @@ class CustomerOrderController extends Controller
 {
     public function __construct(private readonly CustomerOrderService $service) {}
 
+    /**
+     * Megjeleníti a vevői rendelések adminisztrációs listaoldalát.
+     *
+     * A hozzáférést a CustomerOrderPolicy `viewAny` metódusa ellenőrzi.
+     * Az oldal számára átadja:
+     * - a vevői rendelések szűrt és lapozott listáját;
+     * - az aktuálisan alkalmazott szűrőket;
+     * - a vevők, cikkek és állapotok választható listáját.
+     *
+     * @param  IndexRequest  $request  A validált listaoldali kérés.
+     * @return Response Inertia válasz a vevői rendelések index oldalához.
+     */
     public function index(IndexRequest $request): Response
     {
         $this->authorize('viewAny', CustomerOrder::class);
@@ -35,6 +47,16 @@ class CustomerOrderController extends Controller
         ]);
     }
 
+    /**
+     * Megjeleníti egy vevői rendelés részletes adatait.
+     *
+     * A hozzáférést a CustomerOrderPolicy `view` metódusa ellenőrzi.
+     * Az oldal számára átadja a rendelés részletes adatait, valamint
+     * az elérhető állapotváltozásokhoz szükséges állapotlistát.
+     *
+     * @param  CustomerOrder  $customerOrder  A megjelenítendő vevői rendelés.
+     * @return Response Inertia válasz a rendelés adatlapjához.
+     */
     public function show(CustomerOrder $customerOrder): Response
     {
         $this->authorize('view', $customerOrder);
@@ -45,6 +67,20 @@ class CustomerOrderController extends Controller
         ]);
     }
 
+    /**
+     * Létrehoz egy új vevői rendelést.
+     *
+     * A bemenetet a StoreCustomerOrderRequest validálja és jogosultság
+     * szempontjából is ellenőrzi. A létrehozás üzleti logikáját a
+     * CustomerOrderService végzi, amely a naplózáshoz megkapja a
+     * műveletet végrehajtó felhasználót is.
+     *
+     * Sikeres mentés után visszatér az előző oldalra, és egy
+     * sikerüzenetet jelenít meg.
+     *
+     * @param  StoreCustomerOrderRequest  $request  A validált HTTP kérés.
+     * @return RedirectResponse Visszairányítás az előző oldalra.
+     */
     public function store(StoreCustomerOrderRequest $request): RedirectResponse
     {
         $this->service->create($request->validated(), $request->user());
@@ -52,6 +88,21 @@ class CustomerOrderController extends Controller
         return back()->with('success', __('orders.messages.created'));
     }
 
+    /**
+     * Frissíti egy meglévő vevői rendelés adatait.
+     *
+     * A bemenetet az UpdateCustomerOrderRequest validálja és
+     * jogosultság szempontjából is ellenőrzi. A módosítás üzleti
+     * logikáját a CustomerOrderService végzi, amely a naplózáshoz
+     * megkapja a műveletet végrehajtó felhasználót is.
+     *
+     * Sikeres mentés után visszatér az előző oldalra, és egy
+     * sikerüzenetet jelenít meg.
+     *
+     * @param  UpdateCustomerOrderRequest  $request
+     * @param  CustomerOrder               $customerOrder
+     * @return RedirectResponse
+     */
     public function update(UpdateCustomerOrderRequest $request, CustomerOrder $customerOrder): RedirectResponse
     {
         $this->service->update($customerOrder, $request->validated(), $request->user());
@@ -59,6 +110,21 @@ class CustomerOrderController extends Controller
         return back()->with('success', __('orders.messages.updated'));
     }
 
+    /**
+     * Törli a megadott vevői rendelést.
+     *
+     * A művelet előtt a CustomerOrderPolicy `delete` metódusa
+     * ellenőrzi, hogy a bejelentkezett felhasználó jogosult-e
+     * a rendelés törlésére. A törlés üzleti logikáját a
+     * CustomerOrderService végzi, amely a naplózáshoz megkapja
+     * a műveletet végrehajtó felhasználót is.
+     *
+     * Sikeres törlés után visszatér az előző oldalra, és egy
+     * sikerüzenetet jelenít meg.
+     *
+     * @param  CustomerOrder  $customerOrder  A törlendő rendelés.
+     * @return RedirectResponse
+     */
     public function destroy(CustomerOrder $customerOrder): RedirectResponse
     {
         $this->authorize('delete', $customerOrder);
@@ -67,6 +133,20 @@ class CustomerOrderController extends Controller
         return back()->with('success', __('orders.messages.deleted'));
     }
 
+    /**
+     * Jóváhagyja a megadott vevői rendelést.
+     *
+     * A bemenetet a ConfirmCustomerOrderRequest validálja és
+     * jogosultság szempontjából is ellenőrzi. A jóváhagyás üzleti
+     * logikáját a CustomerOrderService végzi.
+     *
+     * Sikeres jóváhagyás után visszatér az előző oldalra, és egy
+     * sikerüzenetet jelenít meg.
+     *
+     * @param  ConfirmCustomerOrderRequest  $request
+     * @param  CustomerOrder                $customerOrder
+     * @return RedirectResponse
+     */
     public function confirm(ConfirmCustomerOrderRequest $request, CustomerOrder $customerOrder): RedirectResponse
     {
         $this->service->confirm($customerOrder, $request->user());
@@ -74,6 +154,20 @@ class CustomerOrderController extends Controller
         return back()->with('success', __('orders.messages.confirmed'));
     }
 
+    /**
+     * Visszavonja a megadott vevői rendelést.
+     *
+     * A bemenetet a CancelCustomerOrderRequest validálja és
+     * jogosultság szempontjából is ellenőrzi. A visszavonás üzleti
+     * logikáját a CustomerOrderService végzi.
+     *
+     * Sikeres művelet után visszatér az előző oldalra, és egy
+     * sikerüzenetet jelenít meg.
+     *
+     * @param  CancelCustomerOrderRequest  $request
+     * @param  CustomerOrder               $customerOrder
+     * @return RedirectResponse
+     */
     public function cancel(CancelCustomerOrderRequest $request, CustomerOrder $customerOrder): RedirectResponse
     {
         $this->service->cancel($customerOrder, $request->user());
@@ -82,6 +176,8 @@ class CustomerOrderController extends Controller
     }
 
     /**
+     * Visszaadja az aktív vevők listáját a kiválasztómezőkhöz.
+     *
      * @return Collection<int, array{id: int, code: string, name: string, label: string}>
      */
     private function customerOptions(): Collection
