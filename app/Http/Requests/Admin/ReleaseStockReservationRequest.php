@@ -2,17 +2,31 @@
 
 namespace App\Http\Requests\Admin;
 
+use Illuminate\Contracts\Validation\Rule;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * A következő üzleti művelethez kapcsolódó HTTP-kérést kezeli: készletfoglalás feloldásához.
+ */
 class ReleaseStockReservationRequest extends FormRequest
 {
+    /**
+     * Meghatározza, hogy a felhasználó jogosult-e a következő művelet kérésére: készletfoglalás feloldásához.
+     *
+     * A Laravel Gate-en keresztül a `release` képességet ellenőrzi a `stockReservation` route-paraméter értékén.
+     */
     public function authorize(): bool
     {
         return $this->user()->can('release', $this->route('stockReservation'));
     }
 
     /**
-     * @return array<string, mixed>
+     * Visszaadja a következő művelet bemeneti adatainak validációs szabályait: készletfoglalás feloldásához.
+     *
+     * A művelet nem fogad külön bemeneti mezőt.
+     *
+     * @return array<string, ValidationRule|Rule|array<int, ValidationRule|Rule|string>|string>
      */
     public function rules(): array
     {

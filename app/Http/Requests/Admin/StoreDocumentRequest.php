@@ -5,18 +5,29 @@ namespace App\Http\Requests\Admin;
 use App\Enums\DocumentType;
 use App\Models\Document;
 use App\Support\DocumentableRegistry;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
+/**
+ * A következő üzleti művelethez kapcsolódó HTTP-kérést kezeli: dokumentum létrehozásához.
+ */
 class StoreDocumentRequest extends FormRequest
 {
+    /**
+     * Meghatározza, hogy a felhasználó jogosult-e a következő művelet kérésére: dokumentum létrehozásához.
+     *
+     * A Laravel Gate-en keresztül a DocumentPolicy `create` képességét ellenőrzi a Document modellen.
+     */
     public function authorize(): bool
     {
         return $this->user()->can('create', Document::class);
     }
 
     /**
-     * @return array<string, mixed>
+     * Visszaadja a következő művelet bemeneti adatainak validációs szabályait: dokumentum létrehozásához.
+     *
+     * @return array<string, ValidationRule|\Illuminate\Contracts\Validation\Rule|array<int, ValidationRule|\Illuminate\Contracts\Validation\Rule|string>|string>
      */
     public function rules(): array
     {

@@ -4,18 +4,29 @@ namespace App\Http\Requests\Admin;
 
 use App\Enums\ItemType;
 use App\Models\Item;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
+/**
+ * A következő üzleti művelethez kapcsolódó HTTP-kérést kezeli: cikk módosításához.
+ */
 class UpdateItemRequest extends FormRequest
 {
+    /**
+     * Meghatározza, hogy a felhasználó jogosult-e a következő művelet kérésére: cikk módosításához.
+     *
+     * A Laravel Gate-en keresztül a `update` képességet ellenőrzi a `item` route-paraméter értékén.
+     */
     public function authorize(): bool
     {
         return $this->user()->can('update', $this->route('item'));
     }
 
     /**
-     * @return array<string, mixed>
+     * Visszaadja a következő művelet bemeneti adatainak validációs szabályait: cikk módosításához.
+     *
+     * @return array<string, ValidationRule|\Illuminate\Contracts\Validation\Rule|array<int, ValidationRule|\Illuminate\Contracts\Validation\Rule|string>|string>
      */
     public function rules(): array
     {

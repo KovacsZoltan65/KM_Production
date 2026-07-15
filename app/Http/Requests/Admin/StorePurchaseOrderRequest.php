@@ -3,15 +3,30 @@
 namespace App\Http\Requests\Admin;
 
 use App\Models\PurchaseOrder;
+use Illuminate\Contracts\Validation\Rule;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * A következő üzleti művelethez kapcsolódó HTTP-kérést kezeli: beszerzési rendelés létrehozásához.
+ */
 class StorePurchaseOrderRequest extends FormRequest
 {
+    /**
+     * Meghatározza, hogy a felhasználó jogosult-e a következő művelet kérésére: beszerzési rendelés létrehozásához.
+     *
+     * A Laravel Gate-en keresztül a PurchaseOrderPolicy `create` képességét ellenőrzi a PurchaseOrder modellen.
+     */
     public function authorize(): bool
     {
         return $this->user()->can('create', PurchaseOrder::class);
     }
 
+    /**
+     * Visszaadja a következő művelet bemeneti adatainak validációs szabályait: beszerzési rendelés létrehozásához.
+     *
+     * @return array<string, ValidationRule|Rule|array<int, ValidationRule|Rule|string>|string>
+     */
     public function rules(): array
     {
         return [

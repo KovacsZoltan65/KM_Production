@@ -3,18 +3,29 @@
 namespace App\Http\Requests\Admin;
 
 use App\Models\OperationSequence;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
+/**
+ * A következő üzleti művelethez kapcsolódó HTTP-kérést kezeli: műveletsor létrehozásához.
+ */
 class StoreOperationSequenceRequest extends FormRequest
 {
+    /**
+     * Meghatározza, hogy a felhasználó jogosult-e a következő művelet kérésére: műveletsor létrehozásához.
+     *
+     * A Laravel Gate-en keresztül a OperationSequencePolicy `create` képességét ellenőrzi a OperationSequence modellen.
+     */
     public function authorize(): bool
     {
         return $this->user()->can('create', OperationSequence::class);
     }
 
     /**
-     * @return array<string, mixed>
+     * Visszaadja a következő művelet bemeneti adatainak validációs szabályait: műveletsor létrehozásához.
+     *
+     * @return array<string, ValidationRule|\Illuminate\Contracts\Validation\Rule|array<int, ValidationRule|\Illuminate\Contracts\Validation\Rule|string>|string>
      */
     public function rules(): array
     {

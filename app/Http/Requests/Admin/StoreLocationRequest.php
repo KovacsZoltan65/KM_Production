@@ -4,16 +4,30 @@ namespace App\Http\Requests\Admin;
 
 use App\Enums\LocationType;
 use App\Models\Location;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
+/**
+ * A következő üzleti művelethez kapcsolódó HTTP-kérést kezeli: hely létrehozásához.
+ */
 class StoreLocationRequest extends FormRequest
 {
+    /**
+     * Meghatározza, hogy a felhasználó jogosult-e a következő művelet kérésére: hely létrehozásához.
+     *
+     * A Laravel Gate-en keresztül a LocationPolicy `create` képességét ellenőrzi a Location modellen.
+     */
     public function authorize(): bool
     {
         return $this->user()->can('create', Location::class);
     }
 
+    /**
+     * Visszaadja a következő művelet bemeneti adatainak validációs szabályait: hely létrehozásához.
+     *
+     * @return array<string, ValidationRule|\Illuminate\Contracts\Validation\Rule|array<int, ValidationRule|\Illuminate\Contracts\Validation\Rule|string>|string>
+     */
     public function rules(): array
     {
         return [

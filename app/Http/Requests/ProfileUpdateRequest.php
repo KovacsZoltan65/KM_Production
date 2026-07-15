@@ -7,12 +7,15 @@ use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
+/**
+ * A következő üzleti művelethez kapcsolódó HTTP-kérést kezeli: felhasználói profil módosítása.
+ */
 class ProfileUpdateRequest extends FormRequest
 {
     /**
-     * Get the validation rules that apply to the request.
+     * Visszaadja a következő művelet bemeneti adatainak validációs szabályait: felhasználói profil módosítása.
      *
-     * @return array<string, ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|\Illuminate\Contracts\Validation\Rule|array<int, ValidationRule|\Illuminate\Contracts\Validation\Rule|string>|string>
      */
     public function rules(): array
     {

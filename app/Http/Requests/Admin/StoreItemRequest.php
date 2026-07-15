@@ -4,18 +4,29 @@ namespace App\Http\Requests\Admin;
 
 use App\Enums\ItemType;
 use App\Models\Item;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
+/**
+ * A következő üzleti művelethez kapcsolódó HTTP-kérést kezeli: cikk létrehozásához.
+ */
 class StoreItemRequest extends FormRequest
 {
+    /**
+     * Meghatározza, hogy a felhasználó jogosult-e a következő művelet kérésére: cikk létrehozásához.
+     *
+     * A Laravel Gate-en keresztül a ItemPolicy `create` képességét ellenőrzi a Item modellen.
+     */
     public function authorize(): bool
     {
         return $this->user()->can('create', Item::class);
     }
 
     /**
-     * @return array<string, mixed>
+     * Visszaadja a következő művelet bemeneti adatainak validációs szabályait: cikk létrehozásához.
+     *
+     * @return array<string, ValidationRule|\Illuminate\Contracts\Validation\Rule|array<int, ValidationRule|\Illuminate\Contracts\Validation\Rule|string>|string>
      */
     public function rules(): array
     {

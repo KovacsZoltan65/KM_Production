@@ -3,18 +3,29 @@
 namespace App\Http\Requests\Admin;
 
 use App\Models\OperationSequence;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
+/**
+ * A következő üzleti művelethez kapcsolódó HTTP-kérést kezeli: műveletsor módosításához.
+ */
 class UpdateOperationSequenceRequest extends FormRequest
 {
+    /**
+     * Meghatározza, hogy a felhasználó jogosult-e a következő művelet kérésére: műveletsor módosításához.
+     *
+     * A Laravel Gate-en keresztül a `update` képességet ellenőrzi a `operationSequence` route-paraméter értékén.
+     */
     public function authorize(): bool
     {
         return $this->user()->can('update', $this->route('operationSequence'));
     }
 
     /**
-     * @return array<string, mixed>
+     * Visszaadja a következő művelet bemeneti adatainak validációs szabályait: műveletsor módosításához.
+     *
+     * @return array<string, ValidationRule|\Illuminate\Contracts\Validation\Rule|array<int, ValidationRule|\Illuminate\Contracts\Validation\Rule|string>|string>
      */
     public function rules(): array
     {

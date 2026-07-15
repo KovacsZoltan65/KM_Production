@@ -3,17 +3,29 @@
 namespace App\Http\Requests\Admin;
 
 use App\Models\Employee;
+use Illuminate\Contracts\Validation\Rule;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * A következő üzleti művelethez kapcsolódó HTTP-kérést kezeli: alkalmazott létrehozásához.
+ */
 class StoreEmployeeRequest extends FormRequest
 {
+    /**
+     * Meghatározza, hogy a felhasználó jogosult-e a következő művelet kérésére: alkalmazott létrehozásához.
+     *
+     * A Laravel Gate-en keresztül a EmployeePolicy `create` képességét ellenőrzi a Employee modellen.
+     */
     public function authorize(): bool
     {
         return $this->user()->can('create', Employee::class);
     }
 
     /**
-     * @return array<string, mixed>
+     * Visszaadja a következő művelet bemeneti adatainak validációs szabályait: alkalmazott létrehozásához.
+     *
+     * @return array<string, ValidationRule|Rule|array<int, ValidationRule|Rule|string>|string>
      */
     public function rules(): array
     {

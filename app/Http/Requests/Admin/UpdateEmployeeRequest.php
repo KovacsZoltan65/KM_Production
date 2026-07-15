@@ -3,18 +3,29 @@
 namespace App\Http\Requests\Admin;
 
 use App\Models\Employee;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
+/**
+ * A következő üzleti művelethez kapcsolódó HTTP-kérést kezeli: alkalmazott módosításához.
+ */
 class UpdateEmployeeRequest extends FormRequest
 {
+    /**
+     * Meghatározza, hogy a felhasználó jogosult-e a következő művelet kérésére: alkalmazott módosításához.
+     *
+     * A Laravel Gate-en keresztül a `update` képességet ellenőrzi a `employee` route-paraméter értékén.
+     */
     public function authorize(): bool
     {
         return $this->user()->can('update', $this->route('employee'));
     }
 
     /**
-     * @return array<string, mixed>
+     * Visszaadja a következő művelet bemeneti adatainak validációs szabályait: alkalmazott módosításához.
+     *
+     * @return array<string, ValidationRule|\Illuminate\Contracts\Validation\Rule|array<int, ValidationRule|\Illuminate\Contracts\Validation\Rule|string>|string>
      */
     public function rules(): array
     {

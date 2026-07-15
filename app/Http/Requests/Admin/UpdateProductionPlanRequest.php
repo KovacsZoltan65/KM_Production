@@ -2,17 +2,29 @@
 
 namespace App\Http\Requests\Admin;
 
+use Illuminate\Contracts\Validation\Rule;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * A következő üzleti művelethez kapcsolódó HTTP-kérést kezeli: termelési terv módosításához.
+ */
 class UpdateProductionPlanRequest extends FormRequest
 {
+    /**
+     * Meghatározza, hogy a felhasználó jogosult-e a következő művelet kérésére: termelési terv módosításához.
+     *
+     * A Laravel Gate-en keresztül a `update` képességet ellenőrzi a `productionPlan` route-paraméter értékén.
+     */
     public function authorize(): bool
     {
         return $this->user()->can('update', $this->route('productionPlan'));
     }
 
     /**
-     * @return array<string, mixed>
+     * Visszaadja a következő művelet bemeneti adatainak validációs szabályait: termelési terv módosításához.
+     *
+     * @return array<string, ValidationRule|Rule|array<int, ValidationRule|Rule|string>|string>
      */
     public function rules(): array
     {

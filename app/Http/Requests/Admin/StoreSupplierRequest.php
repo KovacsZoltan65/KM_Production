@@ -3,17 +3,29 @@
 namespace App\Http\Requests\Admin;
 
 use App\Models\Supplier;
+use Illuminate\Contracts\Validation\Rule;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * A következő üzleti művelethez kapcsolódó HTTP-kérést kezeli: beszállító létrehozásához.
+ */
 class StoreSupplierRequest extends FormRequest
 {
+    /**
+     * Meghatározza, hogy a felhasználó jogosult-e a következő művelet kérésére: beszállító létrehozásához.
+     *
+     * A Laravel Gate-en keresztül a SupplierPolicy `create` képességét ellenőrzi a Supplier modellen.
+     */
     public function authorize(): bool
     {
         return $this->user()->can('create', Supplier::class);
     }
 
     /**
-     * @return array<string, mixed>
+     * Visszaadja a következő művelet bemeneti adatainak validációs szabályait: beszállító létrehozásához.
+     *
+     * @return array<string, ValidationRule|Rule|array<int, ValidationRule|Rule|string>|string>
      */
     public function rules(): array
     {

@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Auth;
 
 use Illuminate\Auth\Events\Lockout;
+use Illuminate\Contracts\Validation\Rule;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
@@ -10,10 +11,15 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * A következő üzleti művelethez kapcsolódó HTTP-kérést kezeli: bejelentkezés.
+ */
 class LoginRequest extends FormRequest
 {
     /**
-     * Determine if the user is authorized to make this request.
+     * Meghatározza, hogy a felhasználó jogosult-e a következő művelet kérésére: bejelentkezés.
+     *
+     * A kéréshez nem végez külön jogosultsági ellenőrzést; minden elérő felhasználót engedélyez.
      */
     public function authorize(): bool
     {
@@ -21,9 +27,9 @@ class LoginRequest extends FormRequest
     }
 
     /**
-     * Get the validation rules that apply to the request.
+     * Visszaadja a következő művelet bemeneti adatainak validációs szabályait: bejelentkezés.
      *
-     * @return array<string, ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|Rule|array<int, ValidationRule|Rule|string>|string>
      */
     public function rules(): array
     {
@@ -35,9 +41,9 @@ class LoginRequest extends FormRequest
     }
 
     /**
-     * Attempt to authenticate the request's credentials.
+     * Megkísérli a hitelesítést a validált bejelentkezési adatokkal és kezeli a próbálkozásszámlálót.
      *
-     * @throws ValidationException
+     * @throws ValidationException Sikertelen hitelesítés esetén.
      */
     public function authenticate(): void
     {
@@ -55,9 +61,9 @@ class LoginRequest extends FormRequest
     }
 
     /**
-     * Ensure the login request is not rate limited.
+     * Elutasítja a bejelentkezést, ha az e-mail- és IP-alapú próbálkozási korlát betelt.
      *
-     * @throws ValidationException
+     * @throws ValidationException Túllépett próbálkozási korlát esetén.
      */
     public function ensureIsNotRateLimited(): void
     {
@@ -78,7 +84,9 @@ class LoginRequest extends FormRequest
     }
 
     /**
-     * Get the rate limiting throttle key for the request.
+     * Előállítja a normalizált e-mail-címből és IP-címből képzett korlátozási kulcsot.
+     *
+     * @return non-empty-string
      */
     public function throttleKey(): string
     {

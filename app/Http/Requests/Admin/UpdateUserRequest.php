@@ -3,20 +3,31 @@
 namespace App\Http\Requests\Admin;
 
 use App\Models\User;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 use Spatie\Permission\Models\Role;
 
+/**
+ * A következő üzleti művelethez kapcsolódó HTTP-kérést kezeli: felhasználó módosításához.
+ */
 class UpdateUserRequest extends FormRequest
 {
+    /**
+     * Meghatározza, hogy a felhasználó jogosult-e a következő művelet kérésére: felhasználó módosításához.
+     *
+     * A Laravel Gate-en keresztül a `update` képességet ellenőrzi a `user` route-paraméter értékén.
+     */
     public function authorize(): bool
     {
         return $this->user()->can('update', $this->route('user'));
     }
 
     /**
-     * @return array<string, mixed>
+     * Visszaadja a következő művelet bemeneti adatainak validációs szabályait: felhasználó módosításához.
+     *
+     * @return array<string, ValidationRule|\Illuminate\Contracts\Validation\Rule|array<int, ValidationRule|\Illuminate\Contracts\Validation\Rule|string>|string>
      */
     public function rules(): array
     {

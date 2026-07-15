@@ -3,15 +3,28 @@
 namespace App\Http\Requests\Admin;
 
 use App\Models\GoodsReceipt;
+use Illuminate\Contracts\Validation\Rule;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * A következő üzleti művelethez kapcsolódó HTTP-kérést kezeli: áruátvétel létrehozásához.
+ */
 class StoreGoodsReceiptRequest extends FormRequest
 {
+    /**
+     * Meghatározza, hogy a felhasználó jogosult-e a következő művelet kérésére: áruátvétel létrehozásához.
+     *
+     * A Laravel Gate-en keresztül a GoodsReceiptPolicy `create` képességét ellenőrzi a GoodsReceipt modellen.
+     */
     public function authorize(): bool
     {
         return $this->user()->can('create', GoodsReceipt::class);
     }
 
+    /**
+     * A régi `received_quantity` mezőt a kanonikus `quantity` mezőre normalizálja validálás előtt.
+     */
     protected function prepareForValidation(): void
     {
         $items = collect($this->input('items', []))
@@ -27,6 +40,11 @@ class StoreGoodsReceiptRequest extends FormRequest
         $this->merge(['items' => $items]);
     }
 
+    /**
+     * Visszaadja a következő művelet bemeneti adatainak validációs szabályait: áruátvétel létrehozásához.
+     *
+     * @return array<string, ValidationRule|Rule|array<int, ValidationRule|Rule|string>|string>
+     */
     public function rules(): array
     {
         return [
