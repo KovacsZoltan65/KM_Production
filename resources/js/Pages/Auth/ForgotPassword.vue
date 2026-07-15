@@ -5,6 +5,12 @@ import { Head, useForm } from "@inertiajs/vue3";
 import Button from "primevue/button";
 import InputText from "primevue/inputtext";
 
+/**
+ * A komponens bemeneti tulajdonságai.
+ * @typedef {Object} Props
+ * @property {string|null} status A(z) status bemeneti értéke.
+ */
+/** @type {Props} */
 defineProps({
     status: String,
 });

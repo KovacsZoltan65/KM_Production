@@ -5,6 +5,24 @@ import Column from "primevue/column";
 import DataTable from "primevue/datatable";
 import Tag from "primevue/tag";
 
+/**
+ * Készletriport sora.
+ * @typedef {Object} InventoryReportRow
+ * @property {string} item A cikk megnevezése.
+ * @property {string} location A raktárhely megnevezése.
+ * @property {number} current_stock Az aktuális készlet.
+ * @property {number} reserved A lefoglalt mennyiség.
+ * @property {number} available A szabad mennyiség.
+ * @property {number} batch_count A készlettételek száma.
+ * @property {boolean} is_shortage Jelzi a készlethiányt.
+ */
+
+/**
+ * A komponens bemeneti tulajdonságai.
+ * @typedef {Object} Props
+ * @property {{ rows: InventoryReportRow[] }} report A készletriport.
+ */
+/** @type {Props} */
 defineProps({ report: { type: Object, required: true } });
 </script>
 
@@ -26,14 +44,26 @@ defineProps({ report: { type: Object, required: true } });
                 class="rounded border border-slate-200 bg-white"
             >
                 <Column field="item" :header="$t('fields.item')" sortable />
-                <Column field="location" :header="$t('fields.location')" sortable />
+                <Column
+                    field="location"
+                    :header="$t('fields.location')"
+                    sortable
+                />
                 <Column
                     field="current_stock"
                     :header="$t('fields.current_stock')"
                     sortable
                 />
-                <Column field="reserved" :header="$t('fields.reserved')" sortable />
-                <Column field="available" :header="$t('fields.available')" sortable>
+                <Column
+                    field="reserved"
+                    :header="$t('fields.reserved')"
+                    sortable
+                />
+                <Column
+                    field="available"
+                    :header="$t('fields.available')"
+                    sortable
+                >
                     <template #body="{ data }">
                         <Tag
                             v-if="data.is_shortage"
@@ -43,7 +73,11 @@ defineProps({ report: { type: Object, required: true } });
                         <span v-else>{{ data.available }}</span>
                     </template>
                 </Column>
-                <Column field="batch_count" :header="$t('fields.batch_count')" sortable />
+                <Column
+                    field="batch_count"
+                    :header="$t('fields.batch_count')"
+                    sortable
+                />
             </DataTable>
         </div>
     </AdminLayout>

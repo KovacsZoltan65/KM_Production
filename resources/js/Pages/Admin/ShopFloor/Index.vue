@@ -3,6 +3,22 @@ import ShopFloorTaskCard from "@/Components/ShopFloorTaskCard.vue";
 import AdminLayout from "@/Layouts/AdminLayout.vue";
 import { Head } from "@inertiajs/vue3";
 
+/**
+ * Műhelyszintű gyártási feladat.
+ * @typedef {Object} ShopFloorTask
+ * @property {number} id A feladat azonosítója.
+ * @property {string} status A feladat állapota.
+ * @property {{serial_number: string}|null} item_instance A gyártott példány.
+ * @property {{order_number: string}|null} production_order A gyártási rendelés.
+ * @property {{operation_type: {name: string}|null, factory_unit: {code: string}|null}|null} operation_sequence_step A végrehajtandó műveleti lépés.
+ * @property {{name: string}|null} employee A hozzárendelt alkalmazott.
+ */
+/**
+ * A komponens bemeneti tulajdonságai.
+ * @typedef {Object} Props
+ * @property {ShopFloorTask[]} tasks A megjelenített gyártási feladatok.
+ */
+/** @type {Props} */
 defineProps({ tasks: Array });
 </script>
 

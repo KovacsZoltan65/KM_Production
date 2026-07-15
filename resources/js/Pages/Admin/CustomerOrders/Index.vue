@@ -1,24 +1,72 @@
 <script setup>
-import AdminActionButtons from '@/Components/Admin/AdminActionButtons.vue';
-import AdminPageHeader from '@/Components/Admin/AdminPageHeader.vue';
-import AdminSearchBar from '@/Components/Admin/AdminSearchBar.vue';
-import AdminLayout from '@/Layouts/AdminLayout.vue';
-import CustomerOrderForm from '@/Pages/Admin/CustomerOrders/Partials/CustomerOrderForm.vue';
-import CustomerOrderStatusBadge from '@/Pages/Admin/CustomerOrders/Partials/CustomerOrderStatusBadge.vue';
-import { route } from '@/Utils/routes';
-import { Head, Link, router, usePage } from '@inertiajs/vue3';
-import Button from 'primevue/button';
-import Column from 'primevue/column';
-import ConfirmDialog from 'primevue/confirmdialog';
-import DataTable from 'primevue/datatable';
-import Dialog from 'primevue/dialog';
-import Select from 'primevue/select';
-import Toast from 'primevue/toast';
-import { useConfirm } from 'primevue/useconfirm';
-import { useToast } from 'primevue/usetoast';
-import { trans } from 'laravel-vue-i18n';
-import { computed, onMounted, reactive, ref, watch } from 'vue';
+import AdminActionButtons from "@/Components/Admin/AdminActionButtons.vue";
+import AdminPageHeader from "@/Components/Admin/AdminPageHeader.vue";
+import AdminSearchBar from "@/Components/Admin/AdminSearchBar.vue";
+import AdminLayout from "@/Layouts/AdminLayout.vue";
+import CustomerOrderForm from "@/Pages/Admin/CustomerOrders/Partials/CustomerOrderForm.vue";
+import CustomerOrderStatusBadge from "@/Pages/Admin/CustomerOrders/Partials/CustomerOrderStatusBadge.vue";
+import { route } from "@/Utils/routes";
+import { Head, Link, router, usePage } from "@inertiajs/vue3";
+import Button from "primevue/button";
+import Column from "primevue/column";
+import ConfirmDialog from "primevue/confirmdialog";
+import DataTable from "primevue/datatable";
+import Dialog from "primevue/dialog";
+import Select from "primevue/select";
+import Toast from "primevue/toast";
+import { useConfirm } from "primevue/useconfirm";
+import { useToast } from "primevue/usetoast";
+import { trans } from "laravel-vue-i18n";
+import { computed, onMounted, reactive, ref, watch } from "vue";
 
+/** @typedef {{id: number, code: string, name: string}} Customer */
+/** @typedef {{id: number, item_number: string, name: string, unit: string}} Item */
+/** @typedef {{id: number, item_id: number, quantity: string, unit: string, status: string, notes: string|null, item: Item|null}} CustomerOrderItem */
+/**
+ * Lapozott vevői rendelés.
+ * @typedef {Object} CustomerOrderRecord
+ * @property {number} id A rendelés azonosítója.
+ * @property {string} order_number A rendelési szám.
+ * @property {number} customer_id A vevő azonosítója.
+ * @property {string} status A rendelés állapota.
+ * @property {string|null} requested_delivery_date A kért szállítási dátum.
+ * @property {string|null} notes A rendelés megjegyzése.
+ * @property {string|null} created_at A létrehozás időpontja.
+ * @property {Customer|null} customer A kapcsolódó vevő.
+ * @property {CustomerOrderItem[]} items A rendelés tételei.
+ * @property {number} items_count A tételek száma.
+ */
+/** @typedef {{id: number, code: string, name: string, label: string}} CustomerOption */
+/** @typedef {{id: number, item_number: string, name: string, unit: string, label: string}} ItemOption */
+/** @typedef {{label: string, value: string}} StatusOption */
+/**
+ * Lapozott Inertia-adathalmaz.
+ * @typedef {Object} PaginatedResult
+ * @property {CustomerOrderRecord[]} data Az aktuális oldal rekordjai.
+ * @property {number} current_page Az aktuális oldalszám.
+ * @property {number} per_page Az oldalankénti elemszám.
+ * @property {number} total A teljes elemszám.
+ * @property {number} last_page Az utolsó oldalszám.
+ */
+/**
+ * Listaoldal szerveroldali szűrői.
+ * @typedef {Object} PageFilters
+ * @property {string} [search] A keresőkifejezés.
+ * @property {number|string} [per_page] Az oldalankénti elemszám.
+ * @property {string} [sort] A rendezett mező.
+ * @property {'asc'|'desc'} [direction] A rendezés iránya.
+ * @property {string|number|null} [status] Az állapotszűrő.
+ */
+/**
+ * A komponens bemeneti tulajdonságai.
+ * @typedef {Object} Props
+ * @property {PaginatedResult} records A lapozott vevői rendelések.
+ * @property {PageFilters} filters Az aktív listaszűrők.
+ * @property {CustomerOption[]} customerOptions A választható vevők.
+ * @property {ItemOption[]} itemOptions A választható cikkek.
+ * @property {StatusOption[]} statusOptions A választható rendelésállapotok.
+ */
+/** @type {Props} */
 const props = defineProps({
     records: Object,
     filters: Object,
@@ -32,18 +80,34 @@ const toast = useToast();
 const confirm = useConfirm();
 const dialogVisible = ref(false);
 const editingRecord = ref(null);
-const search = ref(props.filters.search || '');
+const search = ref(props.filters.search || "");
 const status = ref(props.filters.status || null);
-const perPage = ref(Number(props.filters.per_page || props.records.per_page || 10));
-const sortField = ref(props.filters.sort || 'id');
-const sortOrder = ref((props.filters.direction || 'asc') === 'desc' ? -1 : 1);
+const perPage = ref(
+    Number(props.filters.per_page || props.records.per_page || 10),
+);
+const sortField = ref(props.filters.sort || "id");
+const sortOrder = ref((props.filters.direction || "asc") === "desc" ? -1 : 1);
 const errors = ref({});
-const form = reactive({ customer_id: null, requested_delivery_date: null, notes: '', items: [] });
+const form = reactive({
+    customer_id: null,
+    requested_delivery_date: null,
+    notes: "",
+    items: [],
+});
 
-const dialogTitle = computed(() => (editingRecord.value ? trans('orders.dialogs.edit') : trans('orders.dialogs.create')));
+const dialogTitle = computed(() =>
+    editingRecord.value
+        ? trans("orders.dialogs.edit")
+        : trans("orders.dialogs.create"),
+);
 
 const resetForm = () => {
-    Object.assign(form, { customer_id: null, requested_delivery_date: null, notes: '', items: [] });
+    Object.assign(form, {
+        customer_id: null,
+        requested_delivery_date: null,
+        notes: "",
+        items: [],
+    });
     errors.value = {};
 };
 
@@ -79,13 +143,16 @@ const query = (pageNumber = props.records.current_page || 1) => ({
     search: search.value || undefined,
     status: status.value || undefined,
     sort: sortField.value || undefined,
-    direction: sortOrder.value === -1 ? 'desc' : 'asc',
+    direction: sortOrder.value === -1 ? "desc" : "asc",
     per_page: perPage.value,
     page: pageNumber,
 });
 
 const reload = (pageNumber = 1) => {
-    router.get(route('admin.customer-orders.index'), query(pageNumber), { preserveState: true, replace: true });
+    router.get(route("admin.customer-orders.index"), query(pageNumber), {
+        preserveState: true,
+        replace: true,
+    });
 };
 
 const submit = () => {
@@ -103,51 +170,79 @@ const submit = () => {
     };
 
     if (editingRecord.value) {
-        router.put(route('admin.customer-orders.update', editingRecord.value.id), payload, callbacks);
+        router.put(
+            route("admin.customer-orders.update", editingRecord.value.id),
+            payload,
+            callbacks,
+        );
         return;
     }
 
-    router.post(route('admin.customer-orders.store'), payload, callbacks);
+    router.post(route("admin.customer-orders.store"), payload, callbacks);
 };
 
 const confirmOrder = (record) => {
     confirm.require({
-        message: trans('orders.confirm.confirm_message', { name: record.order_number }),
-        header: trans('orders.confirm.confirm_header'),
-        icon: 'pi pi-check-circle',
-        accept: () => router.patch(route('admin.customer-orders.confirm', record.id), {}, { preserveScroll: true }),
+        message: trans("orders.confirm.confirm_message", {
+            name: record.order_number,
+        }),
+        header: trans("orders.confirm.confirm_header"),
+        icon: "pi pi-check-circle",
+        accept: () =>
+            router.patch(
+                route("admin.customer-orders.confirm", record.id),
+                {},
+                { preserveScroll: true },
+            ),
     });
 };
 
 const cancelOrder = (record) => {
     confirm.require({
-        message: trans('orders.confirm.cancel_message', { name: record.order_number }),
-        header: trans('orders.confirm.cancel_header'),
-        icon: 'pi pi-exclamation-triangle',
-        acceptClass: 'p-button-danger',
-        accept: () => router.patch(route('admin.customer-orders.cancel', record.id), {}, { preserveScroll: true }),
+        message: trans("orders.confirm.cancel_message", {
+            name: record.order_number,
+        }),
+        header: trans("orders.confirm.cancel_header"),
+        icon: "pi pi-exclamation-triangle",
+        acceptClass: "p-button-danger",
+        accept: () =>
+            router.patch(
+                route("admin.customer-orders.cancel", record.id),
+                {},
+                { preserveScroll: true },
+            ),
     });
 };
 
 const destroyRecord = (record) => {
     confirm.require({
-        message: trans('confirm.delete_named_message', { name: record.order_number }),
-        header: trans('orders.confirm.delete_header'),
-        icon: 'pi pi-exclamation-triangle',
-        acceptClass: 'p-button-danger',
-        accept: () => router.delete(route('admin.customer-orders.destroy', record.id), { preserveScroll: true }),
+        message: trans("confirm.delete_named_message", {
+            name: record.order_number,
+        }),
+        header: trans("orders.confirm.delete_header"),
+        icon: "pi pi-exclamation-triangle",
+        acceptClass: "p-button-danger",
+        accept: () =>
+            router.delete(route("admin.customer-orders.destroy", record.id), {
+                preserveScroll: true,
+            }),
     });
 };
 
-const canConfirm = (record) => record.status === 'draft';
-const canCancel = (record) => !['completed', 'cancelled'].includes(record.status);
-const canDelete = (record) => ['draft', 'cancelled'].includes(record.status);
+const canConfirm = (record) => record.status === "draft";
+const canCancel = (record) =>
+    !["completed", "cancelled"].includes(record.status);
+const canDelete = (record) => ["draft", "cancelled"].includes(record.status);
 
-const formatDate = (value) => dateValue(value) || '-';
+const formatDate = (value) => dateValue(value) || "-";
 
 onMounted(() => {
     if (page.props.flash?.success) {
-        toast.add({ severity: 'success', summary: page.props.flash.success, life: 2500 });
+        toast.add({
+            severity: "success",
+            summary: page.props.flash.success,
+            life: 2500,
+        });
     }
 });
 
@@ -155,7 +250,7 @@ watch(
     () => page.props.flash?.success,
     (message) => {
         if (message) {
-            toast.add({ severity: 'success', summary: message, life: 2500 });
+            toast.add({ severity: "success", summary: message, life: 2500 });
         }
     },
 );
@@ -177,10 +272,20 @@ watch(
                 @create="openCreate"
             />
 
-            <AdminSearchBar v-model="search" v-model:per-page="perPage" @search="reload(1)" />
+            <AdminSearchBar
+                v-model="search"
+                v-model:per-page="perPage"
+                @search="reload(1)"
+            />
 
-            <div class="flex flex-col gap-2 rounded border border-slate-200 bg-white p-3 sm:flex-row sm:items-center">
-                <label for="status" class="text-sm font-medium text-slate-700">{{ trans('fields.status') }}</label>
+            <div
+                class="flex flex-col gap-2 rounded border border-slate-200 bg-white p-3 sm:flex-row sm:items-center"
+            >
+                <label
+                    for="status"
+                    class="text-sm font-medium text-slate-700"
+                    >{{ trans("fields.status") }}</label
+                >
                 <Select
                     id="status"
                     v-model="status"
@@ -204,32 +309,74 @@ watch(
                 :sort-order="sortOrder"
                 data-key="id"
                 class="rounded border border-slate-200 bg-white"
-                @page="(event) => { perPage = event.rows; reload(event.page + 1); }"
-                @sort="(event) => { sortField = event.sortField; sortOrder = event.sortOrder; reload(1); }"
+                @page="
+                    (event) => {
+                        perPage = event.rows;
+                        reload(event.page + 1);
+                    }
+                "
+                @sort="
+                    (event) => {
+                        sortField = event.sortField;
+                        sortOrder = event.sortOrder;
+                        reload(1);
+                    }
+                "
             >
-                <Column field="order_number" :header="trans('orders.fields.order_number')" sortable>
+                <Column
+                    field="order_number"
+                    :header="trans('orders.fields.order_number')"
+                    sortable
+                >
                     <template #body="{ data }">
-                        <Link :href="route('admin.customer-orders.show', data.id)" class="font-medium text-blue-700 hover:underline">
+                        <Link
+                            :href="route('admin.customer-orders.show', data.id)"
+                            class="font-medium text-blue-700 hover:underline"
+                        >
                             {{ data.order_number }}
                         </Link>
                     </template>
                 </Column>
                 <Column field="customer_id" :header="trans('fields.customer')">
-                    <template #body="{ data }">{{ data.customer?.code }} - {{ data.customer?.name }}</template>
+                    <template #body="{ data }"
+                        >{{ data.customer?.code }} -
+                        {{ data.customer?.name }}</template
+                    >
                 </Column>
-                <Column field="status" :header="trans('fields.status')" sortable>
-                    <template #body="{ data }"><CustomerOrderStatusBadge :status="data.status" /></template>
+                <Column
+                    field="status"
+                    :header="trans('fields.status')"
+                    sortable
+                >
+                    <template #body="{ data }"
+                        ><CustomerOrderStatusBadge :status="data.status"
+                    /></template>
                 </Column>
-                <Column field="requested_delivery_date" :header="trans('orders.fields.delivery_date')" sortable>
-                    <template #body="{ data }">{{ formatDate(data.requested_delivery_date) }}</template>
+                <Column
+                    field="requested_delivery_date"
+                    :header="trans('orders.fields.delivery_date')"
+                    sortable
+                >
+                    <template #body="{ data }">{{
+                        formatDate(data.requested_delivery_date)
+                    }}</template>
                 </Column>
                 <Column field="items_count" :header="trans('fields.items')">
                     <template #body="{ data }">{{ data.items_count }}</template>
                 </Column>
-                <Column field="created_at" :header="trans('fields.created')" sortable>
-                    <template #body="{ data }">{{ formatDate(data.created_at) }}</template>
+                <Column
+                    field="created_at"
+                    :header="trans('fields.created')"
+                    sortable
+                >
+                    <template #body="{ data }">{{
+                        formatDate(data.created_at)
+                    }}</template>
                 </Column>
-                <Column header="" body-style="text-align: right; min-width: 14rem">
+                <Column
+                    header=""
+                    body-style="text-align: right; min-width: 14rem"
+                >
                     <template #body="{ data }">
                         <div class="flex justify-end gap-1">
                             <Button
@@ -252,14 +399,23 @@ watch(
                                 :aria-label="trans('actions.cancel')"
                                 @click="cancelOrder(data)"
                             />
-                            <AdminActionButtons :can-delete="canDelete(data)" @edit="openEdit(data)" @delete="destroyRecord(data)" />
+                            <AdminActionButtons
+                                :can-delete="canDelete(data)"
+                                @edit="openEdit(data)"
+                                @delete="destroyRecord(data)"
+                            />
                         </div>
                     </template>
                 </Column>
             </DataTable>
         </div>
 
-        <Dialog v-model:visible="dialogVisible" modal :header="dialogTitle" class="w-[min(70rem,calc(100vw-2rem))]">
+        <Dialog
+            v-model:visible="dialogVisible"
+            modal
+            :header="dialogTitle"
+            class="w-[min(70rem,calc(100vw-2rem))]"
+        >
             <CustomerOrderForm
                 :form="form"
                 :customer-options="customerOptions"

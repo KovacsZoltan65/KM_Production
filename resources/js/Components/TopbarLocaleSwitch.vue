@@ -11,13 +11,18 @@ const localeOptions = computed(() =>
     availableLocales.value.map((option) => ({
         ...option,
         label: trans(`common.locales.${option.value}`),
-    }))
+    })),
 );
 
 watch(locale, (value) => {
     selectedLocale.value = value;
 });
 
+/**
+ * Betölti és eltárolja a kiválasztott alkalmazásnyelvet.
+ * @param {string} value A kiválasztott nyelvkód.
+ * @returns {Promise<void>}
+ */
 const changeLocale = async (value) => {
     selectedLocale.value = value;
     await setLocale(value);

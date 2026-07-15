@@ -15,6 +15,37 @@ import Toast from "primevue/toast";
 import { useToast } from "primevue/usetoast";
 import { onMounted, ref, watch } from "vue";
 
+/** @typedef {{label: string, value: string}} StatusOption */
+/** @typedef {{id: number, label: string}} EntityOption */
+/** @typedef {{id: number, status: string, item_instance: {serial_number: string}|null, production_order: {order_number: string}|null, operation_sequence_step: {step_order: number, operation_type: {name: string}|null}|null, employee: {name: string}|null}} ProductionTaskRecord */
+/**
+ * Lapozott Inertia-adathalmaz.
+ * @typedef {Object} PaginatedResult
+ * @property {ProductionTaskRecord[]} data Az aktuális oldal gyártási feladatai.
+ * @property {number} current_page Az aktuális oldalszám.
+ * @property {number} per_page Az oldalankénti elemszám.
+ * @property {number} total A teljes elemszám.
+ * @property {number} last_page Az utolsó oldalszám.
+ */
+/**
+ * Listaoldal szerveroldali szűrői.
+ * @typedef {Object} PageFilters
+ * @property {string} [search] A keresőkifejezés.
+ * @property {number|string} [per_page] Az oldalankénti elemszám.
+ * @property {string} [sort] A rendezett mező.
+ * @property {'asc'|'desc'} [direction] A rendezés iránya.
+ * @property {string|number|null} [status] Az állapotszűrő.
+ */
+/**
+ * A komponens bemeneti tulajdonságai.
+ * @typedef {Object} Props
+ * @property {PaginatedResult} records A lapozott gyártási feladatok.
+ * @property {PageFilters} filters Az aktív listaszűrők.
+ * @property {StatusOption[]} statusOptions A választható feladatállapotok.
+ * @property {EntityOption[]} employeeOptions A választható munkatársak.
+ * @property {EntityOption[]} productionOrderOptions A választható gyártási rendelések.
+ */
+/** @type {Props} */
 const props = defineProps({
     records: Object,
     filters: Object,
@@ -28,9 +59,11 @@ const toast = useToast();
 const search = ref(props.filters.search || "");
 const status = ref(props.filters.status || null);
 const employeeId = ref(
-    props.filters.employee_id ? Number(props.filters.employee_id) : null
+    props.filters.employee_id ? Number(props.filters.employee_id) : null,
 );
-const perPage = ref(Number(props.filters.per_page || props.records.per_page || 10));
+const perPage = ref(
+    Number(props.filters.per_page || props.records.per_page || 10),
+);
 const sortField = ref(props.filters.sort || "id");
 const sortOrder = ref((props.filters.direction || "desc") === "asc" ? 1 : -1);
 const generateVisible = ref(false);
@@ -132,7 +165,9 @@ watch(() => page.props.flash?.success, flash);
                 <Column :header="$t('fields.serial')"
                     ><template #body="{ data }"
                         ><Link
-                            :href="route('admin.production-tasks.show', data.id)"
+                            :href="
+                                route('admin.production-tasks.show', data.id)
+                            "
                             class="font-medium text-blue-700 hover:underline"
                             >{{ data.item_instance?.serial_number }}</Link
                         ></template
@@ -146,7 +181,9 @@ watch(() => page.props.flash?.success, flash);
                 <Column :header="$t('fields.operation')"
                     ><template #body="{ data }"
                         >{{ data.operation_sequence_step?.step_order }}.
-                        {{ data.operation_sequence_step?.operation_type?.name }}</template
+                        {{
+                            data.operation_sequence_step?.operation_type?.name
+                        }}</template
                     ></Column
                 >
                 <Column :header="$t('fields.employee')"
@@ -156,13 +193,16 @@ watch(() => page.props.flash?.success, flash);
                 >
                 <Column field="status" :header="$t('fields.status')" sortable
                     ><template #body="{ data }"
-                        ><ProductionTaskStatusBadge :status="data.status" /></template
+                        ><ProductionTaskStatusBadge
+                            :status="data.status" /></template
                 ></Column>
                 <Column header="" body-style="text-align:right"
                     ><template #body="{ data }"
                         ><Button
                             as="a"
-                            :href="route('admin.production-tasks.show', data.id)"
+                            :href="
+                                route('admin.production-tasks.show', data.id)
+                            "
                             type="button"
                             icon="pi pi-eye"
                             text

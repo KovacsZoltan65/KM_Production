@@ -6,6 +6,13 @@ import Button from "primevue/button";
 import Checkbox from "primevue/checkbox";
 import InputText from "primevue/inputtext";
 
+/**
+ * A komponens bemeneti tulajdonságai.
+ * @typedef {Object} Props
+ * @property {boolean} canResetPassword A(z) canResetPassword bemeneti értéke.
+ * @property {string|null} status A(z) status bemeneti értéke.
+ */
+/** @type {Props} */
 defineProps({
     canResetPassword: Boolean,
     status: String,
@@ -30,8 +37,12 @@ const submit = () => {
     <GuestLayout>
         <form class="space-y-5" @submit.prevent="submit">
             <div>
-                <h1 class="text-xl font-semibold">{{ $t("auth.login.title") }}</h1>
-                <p class="mt-1 text-sm text-slate-600">{{ $t("auth.login.subtitle") }}</p>
+                <h1 class="text-xl font-semibold">
+                    {{ $t("auth.login.title") }}
+                </h1>
+                <p class="mt-1 text-sm text-slate-600">
+                    {{ $t("auth.login.subtitle") }}
+                </p>
             </div>
 
             <p

@@ -1,4 +1,10 @@
 <script setup>
+/**
+ * A komponens bemeneti tulajdonságai.
+ * @typedef {Object} Props
+ * @property {string|null} title A(z) title bemeneti értéke.
+ */
+/** @type {Props} */
 defineProps({
     title: { type: String, required: true },
 });

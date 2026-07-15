@@ -11,6 +11,33 @@ import Toast from "primevue/toast";
 import { useToast } from "primevue/usetoast";
 import { onMounted, watch } from "vue";
 
+/**
+ * Megjelenített dokumentum.
+ * @typedef {Object} DocumentRecord
+ * @property {number} id A dokumentum azonosítója.
+ * @property {string} title A dokumentum címe.
+ * @property {string|null} description A dokumentum leírása.
+ * @property {boolean} is_current Jelzi az aktuális verziót.
+ * @property {boolean} approved Jelzi a jóváhagyást.
+ */
+/**
+ * Dokumentumverzió a verzióelőzményben.
+ * @typedef {Object} DocumentVersion
+ * @property {number} id A dokumentum azonosítója.
+ * @property {number} version A verziószám.
+ * @property {string|null} original_filename Az eredeti fájlnév.
+ * @property {boolean} is_current Jelzi az aktuális verziót.
+ * @property {boolean} approved Jelzi a jóváhagyást.
+ * @property {string|null} created_at A létrehozás időpontja.
+ * @property {{name: string}|null} uploader A feltöltő felhasználó.
+ */
+/**
+ * A komponens bemeneti tulajdonságai.
+ * @typedef {Object} Props
+ * @property {DocumentRecord} document A megjelenített dokumentum.
+ * @property {DocumentVersion[]} versions A dokumentum verzióelőzménye.
+ */
+/** @type {Props} */
 const props = defineProps({
     document: { type: Object, required: true },
     versions: { type: Array, required: true },
@@ -33,7 +60,7 @@ const approve = () => {
     router.patch(
         route("admin.documents.approve", props.document.id),
         {},
-        { preserveScroll: true }
+        { preserveScroll: true },
     );
 };
 
@@ -41,7 +68,7 @@ const makeCurrent = () => {
     router.patch(
         route("admin.documents.make-current", props.document.id),
         {},
-        { preserveScroll: true }
+        { preserveScroll: true },
     );
 };
 
@@ -69,7 +96,9 @@ watch(() => page.props.flash?.success, flash);
                         class="text-sm text-blue-700 hover:underline"
                         >{{ $t("documents.back") }}</Link
                     >
-                    <h1 class="mt-1 text-2xl font-semibold">{{ document.title }}</h1>
+                    <h1 class="mt-1 text-2xl font-semibold">
+                        {{ document.title }}
+                    </h1>
                 </div>
                 <div class="flex flex-wrap gap-2">
                     <a
@@ -120,7 +149,11 @@ watch(() => page.props.flash?.success, flash);
                         <label class="text-sm font-medium text-slate-700">{{
                             $t("fields.notes")
                         }}</label>
-                        <Textarea v-model="form.notes" rows="4" class="w-full" />
+                        <Textarea
+                            v-model="form.notes"
+                            rows="4"
+                            class="w-full"
+                        />
                     </div>
                     <div class="flex justify-end">
                         <Button

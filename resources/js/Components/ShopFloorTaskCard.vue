@@ -4,6 +4,22 @@ import ProductionTaskStatusBadge from "@/Components/ProductionTaskStatusBadge.vu
 import { route } from "@/Utils/routes";
 import { Link } from "@inertiajs/vue3";
 
+/**
+ * Műhelyszintű gyártási feladat.
+ * @typedef {Object} ShopFloorTask
+ * @property {number} id A feladat azonosítója.
+ * @property {string} status A feladat állapota.
+ * @property {{serial_number: string}|null} item_instance A gyártott példány.
+ * @property {{order_number: string}|null} production_order A gyártási rendelés.
+ * @property {{operation_type: {name: string}|null, factory_unit: {code: string}|null}|null} operation_sequence_step A végrehajtandó műveleti lépés.
+ * @property {{name: string}|null} employee A hozzárendelt alkalmazott.
+ */
+/**
+ * A komponens bemeneti tulajdonságai.
+ * @typedef {Object} Props
+ * @property {ShopFloorTask} task A műhelyben megjelenített gyártási feladat.
+ */
+/** @type {Props} */
 defineProps({ task: Object });
 </script>
 
@@ -28,11 +44,15 @@ defineProps({ task: Object });
         </div>
         <div class="mt-4 grid gap-2 text-sm text-slate-700">
             <div>
-                <span class="text-slate-500">{{ $t("fields.operation") }}:</span>
+                <span class="text-slate-500"
+                    >{{ $t("fields.operation") }}:</span
+                >
                 {{ task.operation_sequence_step?.operation_type?.name }}
             </div>
             <div>
-                <span class="text-slate-500">{{ $t("fields.factory_unit") }}:</span>
+                <span class="text-slate-500"
+                    >{{ $t("fields.factory_unit") }}:</span
+                >
                 {{ task.operation_sequence_step?.factory_unit?.code }}
             </div>
             <div>

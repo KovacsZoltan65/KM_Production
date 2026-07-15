@@ -9,12 +9,28 @@ import Textarea from "primevue/textarea";
 import { trans } from "laravel-vue-i18n";
 import { computed } from "vue";
 
+/** @typedef {{item_id: number|null, quantity: number|string, unit: string, notes: string}} BomItemInput */
+/** @typedef {{id: number, item_number: string, name: string, unit: string}} ItemOption */
+/**
+ * A komponens bemeneti tulajdonságai.
+ * @typedef {Object} Props
+ * @property {BomItemInput[]} modelValue A szerkesztett darabjegyzéksorok.
+ * @property {ItemOption[]} itemOptions A választható cikkek.
+ * @property {Object.<string, string>} errors A tételmezők validációs hibái.
+ */
+/** @type {Props} */
 const props = defineProps({
     modelValue: { type: Array, default: () => [] },
     itemOptions: { type: Array, default: () => [] },
     errors: { type: Object, default: () => ({}) },
 });
 
+/**
+ * A komponens által kibocsátott események.
+ * @typedef {Object} Emits
+ * @property {(event: 'update:modelValue', value: BomItemInput[]) => void} updateModelValue A darabjegyzéksorok módosítási eseménye.
+ */
+/** @type {Emits} */
 const emit = defineEmits(["update:modelValue"]);
 
 const rows = computed({
@@ -26,16 +42,19 @@ const itemChoices = computed(() =>
     props.itemOptions.map((item) => ({
         ...item,
         label: `${item.item_number} - ${item.name}`,
-    }))
+    })),
 );
 
 const addRow = () => {
-    rows.value = [...rows.value, { item_id: null, quantity: 1, unit: "", notes: "" }];
+    rows.value = [
+        ...rows.value,
+        { item_id: null, quantity: 1, unit: "", notes: "" },
+    ];
 };
 
 const updateRow = (index, key, value) => {
     rows.value = rows.value.map((row, rowIndex) =>
-        rowIndex === index ? { ...row, [key]: value } : row
+        rowIndex === index ? { ...row, [key]: value } : row,
     );
 };
 
@@ -49,7 +68,9 @@ const fieldError = (index, field) => props.errors[`items.${index}.${field}`];
 <template>
     <div class="space-y-3 rounded border border-slate-200 p-3">
         <div class="flex items-center justify-between gap-3">
-            <h3 class="text-sm font-semibold">{{ trans("bom.items.title") }}</h3>
+            <h3 class="text-sm font-semibold">
+                {{ trans("bom.items.title") }}
+            </h3>
             <Button
                 type="button"
                 :label="trans('bom.items.add')"
@@ -61,7 +82,7 @@ const fieldError = (index, field) => props.errors[`items.${index}.${field}`];
         </div>
 
         <DataTable :value="rows" data-key="item_id" class="text-sm">
-            <!-- Item Column -->
+            <!-- Alapanyag -->
             <Column :header="trans('fields.item')">
                 <template #body="{ data, index }">
                     <Select
@@ -71,7 +92,9 @@ const fieldError = (index, field) => props.errors[`items.${index}.${field}`];
                         option-value="id"
                         filter
                         class="w-full"
-                        @update:model-value="updateRow(index, 'item_id', $event)"
+                        @update:model-value="
+                            updateRow(index, 'item_id', $event)
+                        "
                     />
                     <p
                         v-if="fieldError(index, 'item_id')"
@@ -82,14 +105,16 @@ const fieldError = (index, field) => props.errors[`items.${index}.${field}`];
                 </template>
             </Column>
 
-            <!-- Quantity Column -->
+            <!-- Mennyiség -->
             <Column :header="trans('fields.quantity')">
                 <template #body="{ data, index }">
                     <InputText
                         :model-value="data.quantity"
                         type="number"
                         class="w-24"
-                        @update:model-value="updateRow(index, 'quantity', $event)"
+                        @update:model-value="
+                            updateRow(index, 'quantity', $event)
+                        "
                     />
                     <p
                         v-if="fieldError(index, 'quantity')"
@@ -100,7 +125,7 @@ const fieldError = (index, field) => props.errors[`items.${index}.${field}`];
                 </template>
             </Column>
 
-            <!-- Unit Column -->
+            <!-- Mértékegység -->
             <Column :header="trans('fields.unit')">
                 <template #body="{ data, index }">
                     <UnitSelect
@@ -110,13 +135,16 @@ const fieldError = (index, field) => props.errors[`items.${index}.${field}`];
                         required
                         @update:model-value="updateRow(index, 'unit', $event)"
                     />
-                    <p v-if="fieldError(index, 'unit')" class="mt-1 text-xs text-red-600">
+                    <p
+                        v-if="fieldError(index, 'unit')"
+                        class="mt-1 text-xs text-red-600"
+                    >
                         {{ fieldError(index, "unit") }}
                     </p>
                 </template>
             </Column>
 
-            <!-- Notes Column -->
+            <!-- Megjegyzés -->
             <Column :header="trans('fields.notes')">
                 <template #body="{ data, index }">
                     <Textarea
@@ -128,7 +156,7 @@ const fieldError = (index, field) => props.errors[`items.${index}.${field}`];
                 </template>
             </Column>
 
-            <!-- Actions Column -->
+            <!-- Sorműveletek -->
             <Column header="" body-style="text-align: right; width: 4rem">
                 <template #body="{ index }">
                     <Button

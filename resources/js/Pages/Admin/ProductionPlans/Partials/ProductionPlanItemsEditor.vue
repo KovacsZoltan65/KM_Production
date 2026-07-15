@@ -7,6 +7,17 @@ import Select from "primevue/select";
 import Textarea from "primevue/textarea";
 import { computed } from "vue";
 
+/** @typedef {{id: number, item_id: number, label: string}} ItemDefinitionOption */
+/** @typedef {{id?: number, item_id: number, item_label: string, quantity: number|string, bom_id: number|null, operation_sequence_id: number|null, planned_start_date: string|null, planned_finish_date: string|null, status: string, notes: string|null}} ProductionPlanItemInput */
+/**
+ * A komponens bemeneti tulajdonságai.
+ * @typedef {Object} Props
+ * @property {ProductionPlanItemInput[]} modelValue A szerkesztett tervtételek.
+ * @property {ItemDefinitionOption[]} bomOptions A választható darabjegyzékek.
+ * @property {ItemDefinitionOption[]} operationSequenceOptions A választható műveletsorok.
+ * @property {Object.<string, string>} errors A tételmezők validációs hibái.
+ */
+/** @type {Props} */
 const props = defineProps({
     modelValue: { type: Array, default: () => [] },
     bomOptions: { type: Array, default: () => [] },
@@ -14,6 +25,12 @@ const props = defineProps({
     errors: { type: Object, default: () => ({}) },
 });
 
+/**
+ * A komponens által kibocsátott események.
+ * @typedef {Object} Emits
+ * @property {(event: 'update:modelValue', value: ProductionPlanItemInput[]) => void} updateModelValue A tervtételek módosítási eseménye.
+ */
+/** @type {Emits} */
 const emit = defineEmits(["update:modelValue"]);
 
 const rows = computed({
@@ -23,7 +40,7 @@ const rows = computed({
 
 const updateRow = (index, key, value) => {
     rows.value = rows.value.map((row, rowIndex) =>
-        rowIndex === index ? { ...row, [key]: value } : row
+        rowIndex === index ? { ...row, [key]: value } : row,
     );
 };
 
@@ -34,12 +51,16 @@ const optionsForItem = (options, itemId) =>
 
 <template>
     <div class="space-y-3 rounded border border-slate-200 p-3">
-        <h3 class="text-sm font-semibold">{{ $t("production.plans.items") }}</h3>
+        <h3 class="text-sm font-semibold">
+            {{ $t("production.plans.items") }}
+        </h3>
         <DataTable :value="rows" class="text-sm">
             <Column :header="$t('fields.item')">
                 <template #body="{ data }">
                     <div class="font-medium">{{ data.item_label }}</div>
-                    <div class="text-xs text-slate-500">{{ data.quantity }}</div>
+                    <div class="text-xs text-slate-500">
+                        {{ data.quantity }}
+                    </div>
                 </template>
             </Column>
             <Column :header="$t('fields.bom')">
@@ -65,7 +86,12 @@ const optionsForItem = (options, itemId) =>
                 <template #body="{ data, index }">
                     <Select
                         :model-value="data.operation_sequence_id"
-                        :options="optionsForItem(operationSequenceOptions, data.item_id)"
+                        :options="
+                            optionsForItem(
+                                operationSequenceOptions,
+                                data.item_id,
+                            )
+                        "
                         option-label="label"
                         option-value="id"
                         show-clear

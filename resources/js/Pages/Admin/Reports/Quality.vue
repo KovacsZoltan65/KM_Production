@@ -5,6 +5,23 @@ import Column from "primevue/column";
 import DataTable from "primevue/datatable";
 import ProgressBar from "primevue/progressbar";
 
+/**
+ * Minőségügyi riport sora.
+ * @typedef {Object} QualityReportRow
+ * @property {string} production_order A gyártási rendelés száma.
+ * @property {number} quality_checks A minőségellenőrzések száma.
+ * @property {number} accepted Az elfogadott ellenőrzések száma.
+ * @property {number} rejected Az elutasított ellenőrzések száma.
+ * @property {number} rework Az utómunkát igénylő ellenőrzések száma.
+ * @property {number} acceptance_rate Az elfogadási arány százalékban.
+ */
+
+/**
+ * A komponens bemeneti tulajdonságai.
+ * @typedef {Object} Props
+ * @property {{ rows: QualityReportRow[] }} report A minőségügyi riport.
+ */
+/** @type {Props} */
 defineProps({ report: { type: Object, required: true } });
 </script>
 
@@ -13,7 +30,9 @@ defineProps({ report: { type: Object, required: true } });
     <AdminLayout>
         <div class="space-y-4">
             <div>
-                <h1 class="text-2xl font-semibold">{{ $t("reports.quality.title") }}</h1>
+                <h1 class="text-2xl font-semibold">
+                    {{ $t("reports.quality.title") }}
+                </h1>
                 <p class="mt-1 text-sm text-slate-600">
                     {{ $t("reports.quality.subtitle") }}
                 </p>

@@ -6,11 +6,26 @@ import InputText from "primevue/inputtext";
 import Select from "primevue/select";
 import { trans } from "laravel-vue-i18n";
 
+/**
+ * A komponens bemeneti tulajdonságai.
+ * @typedef {Object} Props
+ * @property {string|null} modelValue A(z) modelValue bemeneti értéke.
+ * @property {number|null} perPage A(z) perPage bemeneti értéke.
+ */
+/** @type {Props} */
 defineProps({
     modelValue: { type: String, default: "" },
     perPage: { type: Number, default: 10 },
 });
 
+/**
+ * A komponens által kibocsátott események.
+ * @typedef {Object} Emits
+ * @property {(event: 'update:modelValue', value: unknown) => void} updateModelValue A(z) update:modelValue esemény.
+ * @property {(event: 'update:perPage', value: unknown) => void} updatePerPage A(z) update:perPage esemény.
+ * @property {(event: 'search') => void} search A(z) search esemény.
+ */
+/** @type {Emits} */
 defineEmits(["update:modelValue", "update:perPage", "search"]);
 
 const perPageOptions = [10, 25, 50, 100];

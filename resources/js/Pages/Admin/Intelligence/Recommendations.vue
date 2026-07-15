@@ -3,6 +3,24 @@ import RecommendationCard from "@/Components/RecommendationCard.vue";
 import AdminLayout from "@/Layouts/AdminLayout.vue";
 import { Head } from "@inertiajs/vue3";
 
+/**
+ * Beszerzési ajánlás.
+ * @typedef {Object} ProcurementRecommendation
+ * @property {number} item_id A cikk azonosítója.
+ * @property {string} item A cikk megnevezése.
+ * @property {string} unit A mértékegység.
+ * @property {number} recommended_quantity A javasolt beszerzési mennyiség.
+ * @property {string} reason A javaslat indoklása.
+ * @property {'critical'|'warning'} risk_level A kockázati szint.
+ * @property {string[]} related_customer_orders A kapcsolódó vevői rendelések.
+ */
+
+/**
+ * A komponens bemeneti tulajdonságai.
+ * @typedef {Object} Props
+ * @property {{ rows: ProcurementRecommendation[] }} recommendations A beszerzési ajánlások.
+ */
+/** @type {Props} */
 defineProps({ recommendations: { type: Object, required: true } });
 </script>
 

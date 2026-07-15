@@ -1,6 +1,12 @@
 <script setup>
 import Tag from "primevue/tag";
 
+/**
+ * A komponens bemeneti tulajdonságai.
+ * @typedef {Object} Props
+ * @property {string|null} value A(z) value bemeneti értéke.
+ */
+/** @type {Props} */
 const props = defineProps({
     value: { type: String, default: "stable" },
 });

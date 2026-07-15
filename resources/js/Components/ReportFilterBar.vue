@@ -1,6 +1,13 @@
 <script setup>
 import Button from "primevue/button";
 
+/**
+ * A komponens által kibocsátott események.
+ * @typedef {Object} Emits
+ * @property {(event: 'apply') => void} apply A(z) apply esemény.
+ * @property {(event: 'reset') => void} reset A(z) reset esemény.
+ */
+/** @type {Emits} */
 defineEmits(["apply", "reset"]);
 </script>
 

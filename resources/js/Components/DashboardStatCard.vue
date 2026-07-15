@@ -1,9 +1,18 @@
 <script setup>
+/**
+ * A komponens bemeneti tulajdonságai.
+ * @typedef {Object} Props
+ * @property {string|null} label A(z) label bemeneti értéke.
+ * @property {number|null} value A(z) value bemeneti értéke.
+ * @property {string|null} icon A(z) icon bemeneti értéke.
+ * @property {string|null} tone A(z) tone bemeneti értéke.
+ */
+/** @type {Props} */
 defineProps({
     label: { type: String, required: true },
     value: { type: [Number, String], required: true },
-    icon: { type: String, default: 'pi pi-chart-bar' },
-    tone: { type: String, default: 'blue' },
+    icon: { type: String, default: "pi pi-chart-bar" },
+    tone: { type: String, default: "blue" },
 });
 </script>
 
@@ -11,8 +20,12 @@ defineProps({
     <section class="rounded border border-slate-200 bg-white p-4">
         <div class="flex items-center justify-between gap-3">
             <div>
-                <div class="text-sm font-medium text-slate-500">{{ label }}</div>
-                <div class="mt-2 text-2xl font-semibold text-slate-900">{{ value }}</div>
+                <div class="text-sm font-medium text-slate-500">
+                    {{ label }}
+                </div>
+                <div class="mt-2 text-2xl font-semibold text-slate-900">
+                    {{ value }}
+                </div>
             </div>
             <div
                 class="grid h-10 w-10 place-items-center rounded text-lg"

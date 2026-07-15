@@ -3,8 +3,17 @@ import AdminLayout from "@/Layouts/AdminLayout.vue";
 import { Head, usePage } from "@inertiajs/vue3";
 import { computed } from "vue";
 
+/**
+ * A közös jogosultsági Inertia propok.
+ * @typedef {Object} SharedAuth
+ * @property {string[]} roles A felhasználó szerepkörei.
+ * @property {string[]} permissions A felhasználó jogosultságai.
+ */
+
 const page = usePage();
+/** @type {import('vue').ComputedRef<string[]>} */
 const roles = computed(() => page.props.auth?.roles || []);
+/** @type {import('vue').ComputedRef<string[]>} */
 const permissions = computed(() => page.props.auth?.permissions || []);
 </script>
 

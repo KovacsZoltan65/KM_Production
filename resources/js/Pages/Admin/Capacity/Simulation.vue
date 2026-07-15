@@ -9,6 +9,32 @@ import { ref } from "vue";
 
 defineOptions({ layout: AdminLayout });
 
+/**
+ * Választható vevői rendelés.
+ * @typedef {Object} CustomerOrderOption
+ * @property {number} id A vevői rendelés azonosítója.
+ * @property {string} label A rendelés megjelenített felirata.
+ */
+
+/**
+ * Kapacitásszimuláció eredménye.
+ * @typedef {Object} SimulationResult
+ * @property {string} estimatedStart A becsült kezdés.
+ * @property {string} estimatedFinish A becsült befejezés.
+ * @property {boolean} isLate Jelzi a várható késést.
+ * @property {number} lateByMinutes A várható késés percben.
+ * @property {string} criticalFactoryUnit A kritikus gyártóegység.
+ * @property {string} criticalProfessionalRole A kritikus szakmai szerepkör.
+ */
+
+/**
+ * A komponens bemeneti tulajdonságai.
+ * @typedef {Object} Props
+ * @property {CustomerOrderOption[]} customerOrders A választható vevői rendelések.
+ * @property {number|null} [selectedCustomerOrderId] A kiválasztott rendelés azonosítója.
+ * @property {SimulationResult|null} result A szimuláció eredménye.
+ */
+/** @type {Props} */
 const props = defineProps({
     customerOrders: { type: Array, default: () => [] },
     selectedCustomerOrderId: { type: Number, default: null },

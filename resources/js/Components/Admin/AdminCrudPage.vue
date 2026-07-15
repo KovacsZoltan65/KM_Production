@@ -18,6 +18,51 @@ import { useToast } from "primevue/usetoast";
 import { trans } from "laravel-vue-i18n";
 import { computed, onMounted, reactive, ref, watch } from "vue";
 
+/**
+ * Választható listaelem.
+ * @typedef {Object} SelectOption
+ * @property {number|string} [id] Az elem azonosítója.
+ * @property {number|string|boolean} [value] Az elem értéke.
+ * @property {string} [label] Az elem felirata.
+ * @property {string} [name] Az elem neve.
+ * @property {string} [code] Az elem kódja.
+ */
+/**
+ * Lapozott Inertia-adathalmaz.
+ * @typedef {Object} PaginatedResult
+ * @property {Object[]} data Az aktuális oldal rekordjai.
+ * @property {number} current_page Az aktuális oldalszám.
+ * @property {number} per_page Az oldalankénti elemszám.
+ * @property {number} total A teljes elemszám.
+ * @property {number} last_page Az utolsó oldalszám.
+ */
+/**
+ * Listaoldal szerveroldali szűrői.
+ * @typedef {Object} PageFilters
+ * @property {string} [search] A keresőkifejezés.
+ * @property {number|string} [per_page] Az oldalankénti elemszám.
+ * @property {string} [sort] A rendezett mező.
+ * @property {'asc'|'desc'} [direction] A rendezés iránya.
+ * @property {string|number|null} [status] Az állapotszűrő.
+ */
+/**
+ * A komponens bemeneti tulajdonságai.
+ * @typedef {Object} Props
+ * @property {string|null} title A(z) title bemeneti értéke.
+ * @property {string|null} titleKey A(z) titleKey bemeneti értéke.
+ * @property {string|null} subtitle A(z) subtitle bemeneti értéke.
+ * @property {string|null} subtitleKey A(z) subtitleKey bemeneti értéke.
+ * @property {string|null} routeName A(z) routeName bemeneti értéke.
+ * @property {PaginatedResult} records A(z) records bemeneti értéke.
+ * @property {PageFilters} filters A(z) filters bemeneti értéke.
+ * @property {Object[]} columns A(z) columns bemeneti értéke.
+ * @property {Object[]} fields A(z) fields bemeneti értéke.
+ * @property {string|null} createLabel A(z) createLabel bemeneti értéke.
+ * @property {string|null} createLabelKey A(z) createLabelKey bemeneti értéke.
+ * @property {boolean} readOnly A(z) readOnly bemeneti értéke.
+ * @property {Object.<string, SelectOption[]>} options A(z) options bemeneti értéke.
+ */
+/** @type {Props} */
 const props = defineProps({
     title: { type: String, required: true },
     titleKey: { type: String, default: "" },

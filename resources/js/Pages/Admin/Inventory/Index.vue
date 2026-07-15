@@ -5,6 +5,16 @@ import { Head, Link } from "@inertiajs/vue3";
 import Button from "primevue/button";
 import Card from "primevue/card";
 
+/**
+ * A készletmodul navigációs kártyája.
+ * @typedef {Object} InventorySection
+ * @property {string} titleKey A cím fordítási kulcsa.
+ * @property {string} descriptionKey A leírás fordítási kulcsa.
+ * @property {string} icon A PrimeIcons osztályneve.
+ * @property {string} routeName A cél útvonal neve.
+ */
+
+/** @type {InventorySection[]} */
 const sections = [
     {
         titleKey: "inventory.dashboard.stock_balances",

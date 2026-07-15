@@ -8,10 +8,37 @@ import { computed, ref } from "vue";
 import { trans } from "laravel-vue-i18n";
 import TopbarLocaleSwitch from "@/Components/TopbarLocaleSwitch.vue";
 
+/**
+ * A közösen megosztott bejelentkezett felhasználó.
+ * @typedef {Object} AuthenticatedUser
+ * @property {number} id A felhasználó azonosítója.
+ * @property {string} name A felhasználó neve.
+ * @property {string} email A felhasználó e-mail-címe.
+ * @property {string|null} email_verified_at Az e-mail megerősítésének időpontja.
+ */
+/**
+ * A felhasználói felugró menü eleme.
+ * @typedef {Object} UserMenuItem
+ * @property {string} label A menüpont felirata.
+ * @property {string} icon A PrimeIcons osztályneve.
+ * @property {() => void} command A menüpont művelete.
+ */
+
+/**
+ * Az admin oldalsáv navigációs eleme.
+ * @typedef {Object} NavigationItem
+ * @property {string} labelKey A felirat fordítási kulcsa.
+ * @property {string} icon A PrimeIcons osztályneve.
+ * @property {string} [href] A cél útvonala.
+ * @property {boolean} [disabled] Jelzi a csoportcímként megjelenő elemet.
+ */
+
 const page = usePage();
+/** @type {import('vue').ComputedRef<AuthenticatedUser|null>} */
 const user = computed(() => page.props.auth?.user);
 const userMenu = ref();
 
+/** @type {import('vue').ComputedRef<UserMenuItem[]>} */
 const menuItems = computed(() => [
     {
         label: trans("navigation.profile"),
@@ -25,6 +52,7 @@ const menuItems = computed(() => [
     },
 ]);
 
+/** @type {import('vue').ComputedRef<NavigationItem[]>} */
 const sidebarItems = computed(() => [
     {
         labelKey: "admin.dashboard.title",
@@ -300,6 +328,11 @@ const sidebarItems = computed(() => [
     },
 ]);
 
+/**
+ * URL-ből lekérdezés és töredék nélküli útvonalat képez.
+ * @param {string|null|undefined} url A normalizálandó URL.
+ * @returns {string} A normalizált útvonal.
+ */
 const normalizePath = (url) => {
     const path = String(url || "/").split(/[?#]/)[0];
 
@@ -320,14 +353,29 @@ const activeSidebarHref = computed(() => {
         .sort((first, second) => second.length - first.length)[0];
 });
 
+/**
+ * Megállapítja, hogy az oldalsávelem az aktív útvonalra mutat-e.
+ * @param {NavigationItem} item A vizsgált navigációs elem.
+ * @returns {boolean} Igaz, ha az elem aktív.
+ */
 const isSidebarItemActive = (item) => {
     return (
         !item.disabled && normalizePath(item.href) === activeSidebarHref.value
     );
 };
 
+/**
+ * Feloldja az oldalsávelem lokalizált feliratát.
+ * @param {NavigationItem} item A feliratozandó navigációs elem.
+ * @returns {string} A lokalizált felirat.
+ */
 const sidebarLabel = (item) => trans(item.labelKey);
 
+/**
+ * Megnyitja vagy bezárja a felhasználói felugró menüt.
+ * @param {Event} event A menüt kiváltó felhasználói esemény.
+ * @returns {void}
+ */
 const toggleUserMenu = (event) => {
     userMenu.value.toggle(event);
 };

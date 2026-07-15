@@ -8,11 +8,27 @@ import Message from "primevue/message";
 import Select from "primevue/select";
 import Textarea from "primevue/textarea";
 
+/** @typedef {{label: string, value: string}} DocumentTypeOption */
+/** @typedef {{label: string, value: string, class: string}} DocumentableTypeOption */
+/**
+ * A komponens bemeneti tulajdonságai.
+ * @typedef {Object} Props
+ * @property {DocumentTypeOption[]} documentTypeOptions A választható dokumentumtípusok.
+ * @property {DocumentableTypeOption[]} documentableTypeOptions A kapcsolható entitástípusok.
+ */
+/** @type {Props} */
 const props = defineProps({
     documentTypeOptions: { type: Array, required: true },
     documentableTypeOptions: { type: Array, required: true },
 });
 
+/**
+ * A komponens által kibocsátott események.
+ * @typedef {Object} Emits
+ * @property {(event: 'uploaded') => void} uploaded A(z) uploaded esemény.
+ * @property {(event: 'cancel') => void} cancel A(z) cancel esemény.
+ */
+/** @type {Emits} */
 const emit = defineEmits(["uploaded", "cancel"]);
 
 const form = useForm({
@@ -55,9 +71,12 @@ const submit = () => {
                     :placeholder="$t('documents.placeholders.select_type')"
                     class="w-full"
                 />
-                <Message v-if="form.errors.document_type" severity="error" size="small">{{
-                    form.errors.document_type
-                }}</Message>
+                <Message
+                    v-if="form.errors.document_type"
+                    severity="error"
+                    size="small"
+                    >{{ form.errors.document_type }}</Message
+                >
             </div>
 
             <div class="space-y-1">
@@ -105,9 +124,12 @@ const submit = () => {
                     $t("fields.title")
                 }}</label>
                 <InputText v-model="form.title" class="w-full" />
-                <Message v-if="form.errors.title" severity="error" size="small">{{
-                    form.errors.title
-                }}</Message>
+                <Message
+                    v-if="form.errors.title"
+                    severity="error"
+                    size="small"
+                    >{{ form.errors.title }}</Message
+                >
             </div>
         </div>
 

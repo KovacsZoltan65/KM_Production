@@ -1,6 +1,12 @@
 <script setup>
 import Tag from "primevue/tag";
 
+/**
+ * A komponens bemeneti tulajdonságai.
+ * @typedef {Object} Props
+ * @property {{ criticalFactoryUnit?: string, criticalProfessionalRole?: string, estimatedFinish?: string, estimatedStart?: string, isLate?: boolean, lateByMinutes?: number }} result A kapacitásszimuláció eredménye.
+ */
+/** @type {Props} */
 defineProps({
     result: { type: Object, default: null },
 });

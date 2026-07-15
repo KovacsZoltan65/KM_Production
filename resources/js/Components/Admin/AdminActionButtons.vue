@@ -2,11 +2,25 @@
 import Button from "primevue/button";
 import { trans } from "laravel-vue-i18n";
 
+/**
+ * A komponens bemeneti tulajdonságai.
+ * @typedef {Object} Props
+ * @property {boolean} canEdit A(z) canEdit bemeneti értéke.
+ * @property {boolean} canDelete A(z) canDelete bemeneti értéke.
+ */
+/** @type {Props} */
 defineProps({
     canEdit: { type: Boolean, default: true },
     canDelete: { type: Boolean, default: true },
 });
 
+/**
+ * A komponens által kibocsátott események.
+ * @typedef {Object} Emits
+ * @property {(event: 'edit') => void} edit A(z) edit esemény.
+ * @property {(event: 'delete') => void} delete A(z) delete esemény.
+ */
+/** @type {Emits} */
 defineEmits(["edit", "delete"]);
 </script>
 

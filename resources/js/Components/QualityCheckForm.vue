@@ -5,6 +5,16 @@ import Button from "primevue/button";
 import Select from "primevue/select";
 import Textarea from "primevue/textarea";
 
+/** @typedef {{id: number, label: string}} EmployeeOption */
+/** @typedef {{label: string, value: string}} QualityResultOption */
+/**
+ * A komponens bemeneti tulajdonságai.
+ * @typedef {Object} Props
+ * @property {{ id: number }} productionTask A gyártási feladat azonosítója.
+ * @property {EmployeeOption[]} employeeOptions A választható ellenőrök.
+ * @property {QualityResultOption[]} qualityResultOptions A választható eredmények.
+ */
+/** @type {Props} */
 const props = defineProps({
     productionTask: Object,
     employeeOptions: Array,
@@ -19,11 +29,14 @@ const form = useForm({
 
 const submit = () => {
     form.post(
-        route("admin.production-tasks.quality-checks.store", props.productionTask.id),
+        route(
+            "admin.production-tasks.quality-checks.store",
+            props.productionTask.id,
+        ),
         {
             preserveScroll: true,
             onSuccess: () => form.reset("notes"),
-        }
+        },
     );
 };
 </script>

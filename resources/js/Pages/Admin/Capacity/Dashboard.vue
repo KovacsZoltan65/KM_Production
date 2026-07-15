@@ -6,6 +6,54 @@ import FactoryLoadTable from "@/Components/FactoryLoadTable.vue";
 
 defineOptions({ layout: AdminLayout });
 
+/**
+ * Gyártóegység kapacitásterhelése.
+ * @typedef {Object} FactoryLoad
+ * @property {number} id A gyártóegység azonosítója.
+ * @property {string} factory_unit A gyártóegység neve.
+ * @property {string} code A gyártóegység kódja.
+ * @property {number} available_minutes A rendelkezésre álló idő percben.
+ * @property {number} reserved_minutes A lefoglalt idő percben.
+ * @property {number} utilization A kihasználtság százalékban.
+ * @property {number} current_queue A várakozó feladatok száma.
+ * @property {string} status A terhelési állapot.
+ */
+
+/**
+ * Munkatársi kapacitásterhelés.
+ * @typedef {Object} EmployeeLoad
+ * @property {number} id A munkatárs azonosítója.
+ * @property {string} employee A munkatárs neve.
+ * @property {string} professional_role A szakmai szerepkör neve.
+ * @property {number} working_minutes A munkaidő percben.
+ * @property {number} reserved_minutes A lefoglalt idő percben.
+ * @property {number} utilization A kihasználtság százalékban.
+ * @property {number} assigned_tasks A kiosztott feladatok száma.
+ * @property {string} status A terhelési állapot.
+ */
+
+/**
+ * Határidőkockázatos vevői rendelés.
+ * @typedef {Object} AtRiskOrder
+ * @property {number} id A rendelés azonosítója.
+ * @property {string} order_number A rendelési szám.
+ * @property {string} requested_delivery_date A kért szállítási dátum.
+ * @property {string} estimated_finish A becsült befejezés.
+ * @property {number} late_by_minutes A várható késés percben.
+ * @property {string} critical_factory_unit A kritikus gyártóegység.
+ */
+
+/**
+ * A komponens bemeneti tulajdonságai.
+ * @typedef {Object} Props
+ * @property {{ current_factory_load: number, employee_load: number, overloaded_factory_units: number, available_capacity: number, delayed_production_orders: number, average_utilization: number, average_lead_time: number }} summary A kapacitási összesítő mutatói.
+ * @property {FactoryLoad[]} top_overloaded_factory_units A legterheltebb gyártóegységek.
+ * @property {EmployeeLoad[]} top_busiest_employees A legterheltebb munkatársak.
+ * @property {AtRiskOrder[]} orders_likely_to_miss_deadline A várhatóan késő rendelések.
+ * @property {FactoryLoad[]} factory_loads A gyártóegységek terhelése.
+ * @property {EmployeeLoad[]} employee_loads A munkatársak terhelése.
+ */
+/** @type {Props} */
 defineProps({
     summary: { type: Object, required: true },
     top_overloaded_factory_units: { type: Array, default: () => [] },

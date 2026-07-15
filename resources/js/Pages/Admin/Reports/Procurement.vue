@@ -4,6 +4,22 @@ import { Head } from "@inertiajs/vue3";
 import Column from "primevue/column";
 import DataTable from "primevue/datatable";
 
+/**
+ * Beszerzési riport sora.
+ * @typedef {Object} ProcurementReportRow
+ * @property {string} supplier A beszállító neve.
+ * @property {number} purchase_orders A beszerzési rendelések száma.
+ * @property {number} open A nyitott rendelések száma.
+ * @property {number} closed A lezárt rendelések száma.
+ * @property {number} goods_receipts_pending A függő áruátvételek száma.
+ */
+
+/**
+ * A komponens bemeneti tulajdonságai.
+ * @typedef {Object} Props
+ * @property {{ rows: ProcurementReportRow[] }} report A beszerzési riport.
+ */
+/** @type {Props} */
 defineProps({ report: { type: Object, required: true } });
 </script>
 
@@ -24,7 +40,11 @@ defineProps({ report: { type: Object, required: true } });
                 data-key="supplier"
                 class="rounded border border-slate-200 bg-white"
             >
-                <Column field="supplier" :header="$t('fields.supplier')" sortable />
+                <Column
+                    field="supplier"
+                    :header="$t('fields.supplier')"
+                    sortable
+                />
                 <Column
                     field="purchase_orders"
                     :header="$t('navigation.purchase_orders')"

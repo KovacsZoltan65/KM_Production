@@ -5,6 +5,13 @@ import { Head, useForm } from "@inertiajs/vue3";
 import Button from "primevue/button";
 import InputText from "primevue/inputtext";
 
+/**
+ * A komponens bemeneti tulajdonságai.
+ * @typedef {Object} Props
+ * @property {string|null} email A(z) email bemeneti értéke.
+ * @property {string|null} token A(z) token bemeneti értéke.
+ */
+/** @type {Props} */
 const props = defineProps({
     email: String,
     token: String,
@@ -29,7 +36,9 @@ const submit = () => {
 
     <GuestLayout>
         <form class="space-y-5" @submit.prevent="submit">
-            <h1 class="text-xl font-semibold">{{ $t("auth.reset_password.title") }}</h1>
+            <h1 class="text-xl font-semibold">
+                {{ $t("auth.reset_password.title") }}
+            </h1>
 
             <div class="space-y-2">
                 <label for="email" class="text-sm font-medium">{{
@@ -64,9 +73,11 @@ const submit = () => {
             </div>
 
             <div class="space-y-2">
-                <label for="password_confirmation" class="text-sm font-medium">{{
-                    $t("fields.confirm_password")
-                }}</label>
+                <label
+                    for="password_confirmation"
+                    class="text-sm font-medium"
+                    >{{ $t("fields.confirm_password") }}</label
+                >
                 <InputText
                     id="password_confirmation"
                     v-model="form.password_confirmation"

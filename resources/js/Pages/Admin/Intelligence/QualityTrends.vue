@@ -5,6 +5,24 @@ import { Head } from "@inertiajs/vue3";
 import Column from "primevue/column";
 import DataTable from "primevue/datatable";
 
+/**
+ * Minőségügyi trendsor.
+ * @typedef {Object} QualityTrendRow
+ * @property {string} item A cikk megnevezése.
+ * @property {string} production_order A gyártási rendelés száma.
+ * @property {number} accepted_count Az elfogadott ellenőrzések száma.
+ * @property {number} rework_count Az utómunkát igénylő ellenőrzések száma.
+ * @property {number} rejected_count Az elutasított ellenőrzések száma.
+ * @property {number} defect_rate A hibaarány százalékban.
+ * @property {'up'|'down'|'flat'} trend A hibaarány trendje.
+ */
+
+/**
+ * A komponens bemeneti tulajdonságai.
+ * @typedef {Object} Props
+ * @property {{ rows: QualityTrendRow[] }} trends A minőségügyi trendek.
+ */
+/** @type {Props} */
 defineProps({ trends: { type: Object, required: true } });
 </script>
 

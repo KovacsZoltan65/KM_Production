@@ -2,6 +2,12 @@
 import Tag from "primevue/tag";
 import { trans } from "laravel-vue-i18n";
 
+/**
+ * A komponens bemeneti tulajdonságai.
+ * @typedef {Object} Props
+ * @property {string|null} value A(z) value bemeneti értéke.
+ */
+/** @type {Props} */
 const props = defineProps({
     value: { type: String, default: "normal" },
 });

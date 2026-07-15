@@ -4,6 +4,24 @@ import Column from "primevue/column";
 import DataTable from "primevue/datatable";
 import ProgressBar from "primevue/progressbar";
 
+/**
+ * Kapacitási szűk keresztmetszet sora.
+ * @typedef {Object} BottleneckRow
+ * @property {string} factory_unit A gyártóegység neve.
+ * @property {number} reserved_minutes A lefoglalt idő percben.
+ * @property {number} available_minutes A rendelkezésre álló idő percben.
+ * @property {number} utilization_percent A kihasználtság százalékban.
+ * @property {number} queue_length A várakozó feladatok száma.
+ * @property {number} average_task_duration Az átlagos feladatidő percben.
+ * @property {number} late_related_orders A kapcsolódó késő rendelések száma.
+ * @property {string} status A kockázati állapot.
+ */
+/**
+ * A komponens bemeneti tulajdonságai.
+ * @typedef {Object} Props
+ * @property {BottleneckRow[]} rows A megjelenített szűk keresztmetszetek.
+ */
+/** @type {Props} */
 defineProps({
     rows: { type: Array, default: () => [] },
 });
@@ -56,7 +74,9 @@ defineProps({
             sortable
         />
         <Column field="status" :header="$t('fields.status')" sortable>
-            <template #body="{ data }"><RiskBadge :value="data.status" /></template>
+            <template #body="{ data }"
+                ><RiskBadge :value="data.status"
+            /></template>
         </Column>
     </DataTable>
 </template>

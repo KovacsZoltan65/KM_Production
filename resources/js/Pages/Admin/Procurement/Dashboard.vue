@@ -5,6 +5,30 @@ import { Head, Link } from "@inertiajs/vue3";
 import Column from "primevue/column";
 import DataTable from "primevue/datatable";
 
+/**
+ * Hiányzó anyag összesített sora.
+ * @typedef {Object} MissingMaterial
+ * @property {number} item_id A cikk azonosítója.
+ * @property {string} item_number A cikkszám.
+ * @property {string} name A cikk megnevezése.
+ * @property {number} missing_quantity A hiányzó mennyiség.
+ * @property {string} unit A mértékegység.
+ */
+/**
+ * A beszerzési irányítópult mutatói.
+ * @typedef {Object} ProcurementMetrics
+ * @property {number} open_purchase_orders A nyitott beszerzési rendelések száma.
+ * @property {number} open_requisitions A nyitott beszerzési igények száma.
+ * @property {number} pending_goods_receipts A függő áruátvételek száma.
+ * @property {number} shortages_count A hiányok száma.
+ * @property {MissingMaterial[]} top_missing_materials A legnagyobb anyaghiányok.
+ */
+/**
+ * A komponens bemeneti tulajdonságai.
+ * @typedef {Object} Props
+ * @property {ProcurementMetrics} metrics A beszerzési irányítópult mutatói.
+ */
+/** @type {Props} */
 defineProps({ metrics: Object });
 
 const number = (value) => Number(value || 0).toFixed(3);

@@ -4,6 +4,23 @@ import { route } from "@/Utils/routes";
 import { Link, router } from "@inertiajs/vue3";
 import Button from "primevue/button";
 
+/**
+ * Dokumentumverzió a verzióelőzményben.
+ * @typedef {Object} DocumentVersion
+ * @property {number} id A dokumentum azonosítója.
+ * @property {number} version A verziószám.
+ * @property {string|null} original_filename Az eredeti fájlnév.
+ * @property {boolean} is_current Jelzi az aktuális verziót.
+ * @property {boolean} approved Jelzi a jóváhagyást.
+ * @property {string|null} created_at A létrehozás időpontja.
+ * @property {{name: string}|null} uploader A feltöltő felhasználó.
+ */
+/**
+ * A komponens bemeneti tulajdonságai.
+ * @typedef {Object} Props
+ * @property {DocumentVersion[]} versions A dokumentum verzióelőzménye.
+ */
+/** @type {Props} */
 const props = defineProps({
     versions: { type: Array, required: true },
 });
@@ -12,7 +29,7 @@ const makeCurrent = (document) => {
     router.patch(
         route("admin.documents.make-current", document.id),
         {},
-        { preserveScroll: true }
+        { preserveScroll: true },
     );
 };
 </script>
@@ -33,7 +50,8 @@ const makeCurrent = (document) => {
                         :href="route('admin.documents.show', document.id)"
                         class="font-medium text-blue-700 hover:underline"
                     >
-                        v{{ document.version }} - {{ document.original_filename }}
+                        v{{ document.version }} -
+                        {{ document.original_filename }}
                     </Link>
                     <div class="mt-1 text-sm text-slate-600">
                         {{ document.uploader?.name || "-" }} ·

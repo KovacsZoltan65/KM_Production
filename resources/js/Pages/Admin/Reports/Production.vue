@@ -6,6 +6,27 @@ import DataTable from "primevue/datatable";
 import ProgressBar from "primevue/progressbar";
 import Tag from "primevue/tag";
 
+/**
+ * Gyártási riport sora.
+ * @typedef {Object} ProductionReportRow
+ * @property {number} id A gyártási rendelés azonosítója.
+ * @property {string} production_order A gyártási rendelés száma.
+ * @property {string} product A termék neve.
+ * @property {string} status A rendelés állapota.
+ * @property {string} factory_unit A gyártóegység neve.
+ * @property {string|null} planned_start A tervezett kezdés.
+ * @property {string|null} planned_finish A tervezett befejezés.
+ * @property {number} completed_tasks A befejezett feladatok száma.
+ * @property {number} all_tasks Az összes feladat száma.
+ * @property {number} completed_percent A készültség százalékban.
+ */
+
+/**
+ * A komponens bemeneti tulajdonságai.
+ * @typedef {Object} Props
+ * @property {{ rows: ProductionReportRow[] }} report A gyártási riport.
+ */
+/** @type {Props} */
 defineProps({ report: { type: Object, required: true } });
 const typeLabel = (value) => String(value || "").replaceAll("_", " ");
 </script>
@@ -32,7 +53,11 @@ const typeLabel = (value) => String(value || "").replaceAll("_", " ");
                     :header="$t('fields.production_order')"
                     sortable
                 />
-                <Column field="product" :header="$t('fields.product')" sortable />
+                <Column
+                    field="product"
+                    :header="$t('fields.product')"
+                    sortable
+                />
                 <Column field="status" :header="$t('fields.status')" sortable
                     ><template #body="{ data }"
                         ><Tag
@@ -60,9 +85,12 @@ const typeLabel = (value) => String(value || "").replaceAll("_", " ");
                 >
                     <template #body="{ data }">
                         <div class="min-w-40">
-                            <ProgressBar :value="Number(data.completed_percent)" />
+                            <ProgressBar
+                                :value="Number(data.completed_percent)"
+                            />
                             <div class="mt-1 text-xs text-slate-600">
-                                {{ data.completed_tasks }} / {{ data.all_tasks }}
+                                {{ data.completed_tasks }} /
+                                {{ data.all_tasks }}
                             </div>
                         </div>
                     </template>

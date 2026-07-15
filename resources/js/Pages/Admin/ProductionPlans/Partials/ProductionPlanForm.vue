@@ -5,6 +5,20 @@ import InputText from "primevue/inputtext";
 import Select from "primevue/select";
 import Textarea from "primevue/textarea";
 
+/** @typedef {{id: number, order_number: string, customer_name: string, label: string}} CustomerOrderOption */
+/** @typedef {{id: number, item_id: number, label: string}} ItemDefinitionOption */
+/** @typedef {{id?: number, item_id: number, item_label: string, quantity: number|string, bom_id: number|null, operation_sequence_id: number|null, planned_start_date: string|null, planned_finish_date: string|null, status: string, notes: string|null}} ProductionPlanItemInput */
+/**
+ * A komponens bemeneti tulajdonságai.
+ * @typedef {Object} Props
+ * @property {{ customer_order_id: number|null, items: ProductionPlanItemInput[], notes: string, planned_finish_date: string|null, planned_start_date: string|null }} form A gyártási terv űrlapállapota.
+ * @property {CustomerOrderOption[]} customerOrderOptions A választható vevői rendelések.
+ * @property {ItemDefinitionOption[]} bomOptions A választható darabjegyzékek.
+ * @property {ItemDefinitionOption[]} operationSequenceOptions A választható műveletsorok.
+ * @property {Object.<string, string>} errors Az űrlap validációs hibái.
+ * @property {boolean} isEditing Jelzi a szerkesztési állapotot.
+ */
+/** @type {Props} */
 defineProps({
     form: { type: Object, required: true },
     customerOrderOptions: { type: Array, default: () => [] },
@@ -14,6 +28,13 @@ defineProps({
     isEditing: { type: Boolean, default: false },
 });
 
+/**
+ * A komponens által kibocsátott események.
+ * @typedef {Object} Emits
+ * @property {(event: 'submit') => void} submit A(z) submit esemény.
+ * @property {(event: 'cancel') => void} cancel A(z) cancel esemény.
+ */
+/** @type {Emits} */
 defineEmits(["submit", "cancel"]);
 </script>
 
@@ -59,7 +80,10 @@ defineEmits(["submit", "cancel"]);
                     type="date"
                     class="w-full"
                 />
-                <p v-if="errors.planned_finish_date" class="text-sm text-red-600">
+                <p
+                    v-if="errors.planned_finish_date"
+                    class="text-sm text-red-600"
+                >
                     {{ errors.planned_finish_date }}
                 </p>
             </div>
@@ -88,7 +112,11 @@ defineEmits(["submit", "cancel"]);
                 outlined
                 @click="$emit('cancel')"
             />
-            <Button type="submit" :label="$t('actions.save')" icon="pi pi-save" />
+            <Button
+                type="submit"
+                :label="$t('actions.save')"
+                icon="pi pi-save"
+            />
         </div>
     </form>
 </template>

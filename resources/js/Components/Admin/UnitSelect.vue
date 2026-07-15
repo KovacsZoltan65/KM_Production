@@ -8,6 +8,18 @@ defineOptions({
     inheritAttrs: false,
 });
 
+/**
+ * A komponens bemeneti tulajdonságai.
+ * @typedef {Object} Props
+ * @property {string|null} modelValue A kiválasztott mértékegység.
+ * @property {string} id A mező HTML-azonosítója.
+ * @property {string} label A mező felirata.
+ * @property {string} placeholder A választó helyőrzője.
+ * @property {boolean} invalid Jelzi az érvénytelen értéket.
+ * @property {boolean} disabled Jelzi a letiltott állapotot.
+ * @property {boolean} required Jelzi a kötelező mezőt.
+ */
+/** @type {Props} */
 const props = defineProps({
     modelValue: { type: String, default: null },
     id: { type: String, default: "unit" },
@@ -18,6 +30,12 @@ const props = defineProps({
     required: { type: Boolean, default: false },
 });
 
+/**
+ * A komponens által kibocsátott események.
+ * @typedef {Object} Emits
+ * @property {(event: 'update:modelValue', value: string|null) => void} updateModelValue A mértékegység módosítási eseménye.
+ */
+/** @type {Emits} */
 const emit = defineEmits(["update:modelValue"]);
 
 const value = computed({
@@ -25,7 +43,9 @@ const value = computed({
     set: (nextValue) => emit("update:modelValue", nextValue),
 });
 
-const resolvedPlaceholder = computed(() => props.placeholder || trans("fields.unit"));
+const resolvedPlaceholder = computed(
+    () => props.placeholder || trans("fields.unit"),
+);
 </script>
 
 <template>

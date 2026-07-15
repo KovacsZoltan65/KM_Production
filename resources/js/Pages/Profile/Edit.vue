@@ -6,12 +6,28 @@ import Button from "primevue/button";
 import InputText from "primevue/inputtext";
 import { computed } from "vue";
 
+/**
+ * A közösen megosztott bejelentkezett felhasználó.
+ * @typedef {Object} AuthenticatedUser
+ * @property {number} id A felhasználó azonosítója.
+ * @property {string} name A felhasználó neve.
+ * @property {string} email A felhasználó e-mail-címe.
+ * @property {string|null} email_verified_at Az e-mail megerősítésének időpontja.
+ */
+/**
+ * A profiloldal bemeneti tulajdonságai.
+ * @typedef {Object} Props
+ * @property {boolean} mustVerifyEmail Kötelező-e az e-mail-cím megerősítése.
+ * @property {string|null} status A legutóbbi profil- vagy jelszóművelet állapota.
+ */
+/** @type {Props} */
 defineProps({
     mustVerifyEmail: Boolean,
     status: String,
 });
 
 const page = usePage();
+/** @type {import('vue').ComputedRef<AuthenticatedUser>} */
 const user = computed(() => page.props.auth.user);
 
 const profileForm = useForm({
@@ -46,8 +62,12 @@ const updatePassword = () => {
     <AdminLayout>
         <div class="max-w-3xl space-y-6">
             <div>
-                <h1 class="text-2xl font-semibold">{{ $t("profile.title") }}</h1>
-                <p class="mt-1 text-sm text-slate-600">{{ $t("profile.subtitle") }}</p>
+                <h1 class="text-2xl font-semibold">
+                    {{ $t("profile.title") }}
+                </h1>
+                <p class="mt-1 text-sm text-slate-600">
+                    {{ $t("profile.subtitle") }}
+                </p>
             </div>
 
             <section class="rounded border border-slate-200 bg-white p-5">
@@ -66,7 +86,10 @@ const updatePassword = () => {
                             class="w-full"
                             autocomplete="name"
                         />
-                        <p v-if="profileForm.errors.name" class="text-sm text-red-600">
+                        <p
+                            v-if="profileForm.errors.name"
+                            class="text-sm text-red-600"
+                        >
                             {{ profileForm.errors.name }}
                         </p>
                     </div>
@@ -82,13 +105,18 @@ const updatePassword = () => {
                             class="w-full"
                             autocomplete="username"
                         />
-                        <p v-if="profileForm.errors.email" class="text-sm text-red-600">
+                        <p
+                            v-if="profileForm.errors.email"
+                            class="text-sm text-red-600"
+                        >
                             {{ profileForm.errors.email }}
                         </p>
                     </div>
 
                     <p
-                        v-if="mustVerifyEmail && user.email_verified_at === null"
+                        v-if="
+                            mustVerifyEmail && user.email_verified_at === null
+                        "
                         class="text-sm text-amber-700"
                     >
                         {{ $t("profile.email_unverified") }}
@@ -105,12 +133,16 @@ const updatePassword = () => {
 
             <section class="rounded border border-slate-200 bg-white p-5">
                 <form class="space-y-4" @submit.prevent="updatePassword">
-                    <h2 class="text-base font-semibold">{{ $t("profile.password") }}</h2>
+                    <h2 class="text-base font-semibold">
+                        {{ $t("profile.password") }}
+                    </h2>
 
                     <div class="space-y-2">
-                        <label for="current_password" class="text-sm font-medium">{{
-                            $t("fields.current_password")
-                        }}</label>
+                        <label
+                            for="current_password"
+                            class="text-sm font-medium"
+                            >{{ $t("fields.current_password") }}</label
+                        >
                         <InputText
                             id="current_password"
                             v-model="passwordForm.current_password"
@@ -144,9 +176,11 @@ const updatePassword = () => {
                     </div>
 
                     <div class="space-y-2">
-                        <label for="password_confirmation" class="text-sm font-medium">{{
-                            $t("fields.confirm_password")
-                        }}</label>
+                        <label
+                            for="password_confirmation"
+                            class="text-sm font-medium"
+                            >{{ $t("fields.confirm_password") }}</label
+                        >
                         <InputText
                             id="password_confirmation"
                             v-model="passwordForm.password_confirmation"

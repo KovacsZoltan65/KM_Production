@@ -13,6 +13,43 @@ import { useConfirm } from "primevue/useconfirm";
 import { useToast } from "primevue/usetoast";
 import { computed, onMounted, watch } from "vue";
 
+/**
+ * Gyártási tervből létrehozott gyártási rendelés.
+ * @typedef {Object} ProductionOrder
+ * @property {number} id A rendelés azonosítója.
+ * @property {string} order_number A rendelés száma.
+ * @property {string} status A rendelés állapota.
+ * @property {number|string} quantity A gyártandó mennyiség.
+ * @property {{item_number: string, name: string}|null} item A gyártandó cikk.
+ */
+/**
+ * Gyártási terv tétele.
+ * @typedef {Object} ProductionPlanItem
+ * @property {number} id A tétel azonosítója.
+ * @property {number|string} quantity A tervezett mennyiség.
+ * @property {string} status A tétel állapota.
+ * @property {{item_number: string, name: string}|null} item A gyártandó cikk.
+ * @property {{version: number, name: string}|null} bom A kapcsolódó darabjegyzék.
+ * @property {{version: number, name: string}|null} operation_sequence A kapcsolódó műveletsor.
+ * @property {ProductionOrder[]} production_orders A létrehozott gyártási rendelések.
+ */
+/**
+ * Megjelenített gyártási terv.
+ * @typedef {Object} ProductionPlanRecord
+ * @property {number} id A terv azonosítója.
+ * @property {string} plan_number A terv száma.
+ * @property {string} status A terv állapota.
+ * @property {string|null} planned_start_date A tervezett kezdés.
+ * @property {string|null} planned_finish_date A tervezett befejezés.
+ * @property {{order_number: string, customer: {name: string}|null}|null} customer_order A kapcsolódó vevői rendelés.
+ * @property {ProductionPlanItem[]} items A terv tételei.
+ */
+/**
+ * A komponens bemeneti tulajdonságai.
+ * @typedef {Object} Props
+ * @property {ProductionPlanRecord} productionPlan A megjelenített gyártási terv.
+ */
+/** @type {Props} */
 const props = defineProps({
     productionPlan: Object,
 });
@@ -23,10 +60,10 @@ const confirm = useConfirm();
 
 const dateValue = (value) => (value ? String(value).slice(0, 10) : "-");
 const canApprove = computed(() =>
-    ["draft", "calculated"].includes(props.productionPlan.status)
+    ["draft", "calculated"].includes(props.productionPlan.status),
 );
 const productionOrders = computed(() =>
-    props.productionPlan.items.flatMap((item) => item.production_orders || [])
+    props.productionPlan.items.flatMap((item) => item.production_orders || []),
 );
 
 const approvePlan = () => {
@@ -38,9 +75,12 @@ const approvePlan = () => {
         icon: "pi pi-check-circle",
         accept: () =>
             router.patch(
-                route("admin.production-plans.approve", props.productionPlan.id),
+                route(
+                    "admin.production-plans.approve",
+                    props.productionPlan.id,
+                ),
                 {},
-                { preserveScroll: true }
+                { preserveScroll: true },
             ),
     });
 };
@@ -56,17 +96,21 @@ const generateProductionOrders = () => {
             router.post(
                 route(
                     "admin.production-plans.generate-production-orders",
-                    props.productionPlan.id
+                    props.productionPlan.id,
                 ),
                 {},
-                { preserveScroll: true }
+                { preserveScroll: true },
             ),
     });
 };
 
 onMounted(() => {
     if (page.props.flash?.success) {
-        toast.add({ severity: "success", summary: page.props.flash.success, life: 2500 });
+        toast.add({
+            severity: "success",
+            summary: page.props.flash.success,
+            life: 2500,
+        });
     }
 });
 
@@ -76,7 +120,7 @@ watch(
         if (message) {
             toast.add({ severity: "success", summary: message, life: 2500 });
         }
-    }
+    },
 );
 </script>
 
@@ -101,7 +145,9 @@ watch(
                         <h1 class="text-2xl font-semibold">
                             {{ productionPlan.plan_number }}
                         </h1>
-                        <ProductionPlanStatusBadge :status="productionPlan.status" />
+                        <ProductionPlanStatusBadge
+                            :status="productionPlan.status"
+                        />
                     </div>
                     <p class="text-sm text-slate-600">
                         {{ productionPlan.customer_order?.order_number }} -
@@ -168,7 +214,9 @@ watch(
                     <Column field="quantity" :header="$t('fields.quantity')" />
                     <Column :header="$t('fields.bom')">
                         <template #body="{ data }">{{
-                            data.bom ? `V${data.bom.version} - ${data.bom.name}` : "-"
+                            data.bom
+                                ? `V${data.bom.version} - ${data.bom.name}`
+                                : "-"
                         }}</template>
                     </Column>
                     <Column :header="$t('fields.operation_sequence')">

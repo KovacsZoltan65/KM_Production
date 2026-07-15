@@ -1,4 +1,12 @@
 <script setup>
+/**
+ * A komponens bemeneti tulajdonságai.
+ * @typedef {Object} Props
+ * @property {string|null} label A(z) label bemeneti értéke.
+ * @property {number|null} value A(z) value bemeneti értéke.
+ * @property {string|null} detail A(z) detail bemeneti értéke.
+ */
+/** @type {Props} */
 defineProps({
     label: { type: String, required: true },
     value: { type: Number, default: 0 },

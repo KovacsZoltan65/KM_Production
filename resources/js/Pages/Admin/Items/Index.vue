@@ -2,6 +2,34 @@
 import AdminCrudPage from "@/Components/Admin/AdminCrudPage.vue";
 import { trans } from "laravel-vue-i18n";
 
+/** @typedef {{id: number, item_number: string, name: string, item_type: string, unit: string, width: string|number|null, length: string|number|null, thickness: string|number|null, diameter: string|number|null, requires_serial_number: boolean, is_active: boolean}} ItemRecord */
+/** @typedef {{label: string, value: string}} ItemTypeOption */
+/**
+ * Lapozott Inertia-adathalmaz.
+ * @typedef {Object} PaginatedResult
+ * @property {ItemRecord[]} data Az aktuális oldal cikkei.
+ * @property {number} current_page Az aktuális oldalszám.
+ * @property {number} per_page Az oldalankénti elemszám.
+ * @property {number} total A teljes elemszám.
+ * @property {number} last_page Az utolsó oldalszám.
+ */
+/**
+ * Listaoldal szerveroldali szűrői.
+ * @typedef {Object} PageFilters
+ * @property {string} [search] A keresőkifejezés.
+ * @property {number|string} [per_page] Az oldalankénti elemszám.
+ * @property {string} [sort] A rendezett mező.
+ * @property {'asc'|'desc'} [direction] A rendezés iránya.
+ * @property {string|number|null} [status] Az állapotszűrő.
+ */
+/**
+ * A komponens bemeneti tulajdonságai.
+ * @typedef {Object} Props
+ * @property {PaginatedResult} records A(z) records bemeneti értéke.
+ * @property {PageFilters} filters A(z) filters bemeneti értéke.
+ * @property {ItemTypeOption[]} itemTypes A választható cikktípusok.
+ */
+/** @type {Props} */
 defineProps({
     records: Object,
     filters: Object,

@@ -1,14 +1,26 @@
 <script setup>
-import Button from 'primevue/button';
-import Checkbox from 'primevue/checkbox';
-import Column from 'primevue/column';
-import DataTable from 'primevue/datatable';
-import InputText from 'primevue/inputtext';
-import Select from 'primevue/select';
-import Textarea from 'primevue/textarea';
-import { trans } from 'laravel-vue-i18n';
-import { computed } from 'vue';
+import Button from "primevue/button";
+import Checkbox from "primevue/checkbox";
+import Column from "primevue/column";
+import DataTable from "primevue/datatable";
+import InputText from "primevue/inputtext";
+import Select from "primevue/select";
+import Textarea from "primevue/textarea";
+import { trans } from "laravel-vue-i18n";
+import { computed } from "vue";
 
+/** @typedef {{id: number, code: string, name: string}} CodedOption */
+/** @typedef {{step_order: number, operation_type_id: number|null, factory_unit_id: number|null, professional_role_id: number|null, estimated_duration_minutes: number, setup_time_minutes: number, queue_time_minutes: number, is_subcontracted: boolean, instructions: string}} SequenceStepInput */
+/**
+ * A komponens bemeneti tulajdonságai.
+ * @typedef {Object} Props
+ * @property {SequenceStepInput[]} modelValue A szerkesztett műveletsor-lépések.
+ * @property {CodedOption[]} operationTypeOptions A választható művelettípusok.
+ * @property {CodedOption[]} factoryUnitOptions A választható gyártóegységek.
+ * @property {CodedOption[]} professionalRoleOptions A választható szakmai szerepkörök.
+ * @property {Object.<string, string>} errors A lépésmezők validációs hibái.
+ */
+/** @type {Props} */
 const props = defineProps({
     modelValue: { type: Array, default: () => [] },
     operationTypeOptions: { type: Array, default: () => [] },
@@ -17,17 +29,30 @@ const props = defineProps({
     errors: { type: Object, default: () => ({}) },
 });
 
-const emit = defineEmits(['update:modelValue']);
+/**
+ * A komponens által kibocsátott események.
+ * @typedef {Object} Emits
+ * @property {(event: 'update:modelValue', value: SequenceStepInput[]) => void} updateModelValue A műveletsor-lépések módosítási eseménye.
+ */
+/** @type {Emits} */
+const emit = defineEmits(["update:modelValue"]);
 
 const rows = computed({
     get: () => props.modelValue,
-    set: (value) => emit('update:modelValue', value),
+    set: (value) => emit("update:modelValue", value),
 });
 
-const labelOptions = (items) => items.map((item) => ({ ...item, label: `${item.code} - ${item.name}` }));
-const operationTypeChoices = computed(() => labelOptions(props.operationTypeOptions));
-const factoryUnitChoices = computed(() => labelOptions(props.factoryUnitOptions));
-const professionalRoleChoices = computed(() => labelOptions(props.professionalRoleOptions));
+const labelOptions = (items) =>
+    items.map((item) => ({ ...item, label: `${item.code} - ${item.name}` }));
+const operationTypeChoices = computed(() =>
+    labelOptions(props.operationTypeOptions),
+);
+const factoryUnitChoices = computed(() =>
+    labelOptions(props.factoryUnitOptions),
+);
+const professionalRoleChoices = computed(() =>
+    labelOptions(props.professionalRoleOptions),
+);
 
 const addRow = () => {
     rows.value = [
@@ -39,13 +64,15 @@ const addRow = () => {
             professional_role_id: null,
             estimated_duration_minutes: 30,
             requires_quality_check: false,
-            instructions: '',
+            instructions: "",
         },
     ];
 };
 
 const updateRow = (index, key, value) => {
-    rows.value = rows.value.map((row, rowIndex) => (rowIndex === index ? { ...row, [key]: value } : row));
+    rows.value = rows.value.map((row, rowIndex) =>
+        rowIndex === index ? { ...row, [key]: value } : row,
+    );
 };
 
 const removeRow = (index) => {
@@ -58,8 +85,17 @@ const fieldError = (index, field) => props.errors[`steps.${index}.${field}`];
 <template>
     <div class="space-y-3 rounded border border-slate-200 p-3">
         <div class="flex items-center justify-between gap-3">
-            <h3 class="text-sm font-semibold">{{ trans('operation_sequences.steps.title') }}</h3>
-            <Button type="button" :label="trans('operation_sequences.steps.add')" icon="pi pi-plus" size="small" outlined @click="addRow" />
+            <h3 class="text-sm font-semibold">
+                {{ trans("operation_sequences.steps.title") }}
+            </h3>
+            <Button
+                type="button"
+                :label="trans('operation_sequences.steps.add')"
+                icon="pi pi-plus"
+                size="small"
+                outlined
+                @click="addRow"
+            />
         </div>
 
         <DataTable :value="rows" data-key="step_order" class="text-sm">
@@ -70,9 +106,16 @@ const fieldError = (index, field) => props.errors[`steps.${index}.${field}`];
                         type="number"
                         :invalid="Boolean(fieldError(index, 'step_order'))"
                         class="w-20"
-                        @update:model-value="updateRow(index, 'step_order', $event)"
+                        @update:model-value="
+                            updateRow(index, 'step_order', $event)
+                        "
                     />
-                    <p v-if="fieldError(index, 'step_order')" class="mt-1 text-xs text-red-600">{{ fieldError(index, 'step_order') }}</p>
+                    <p
+                        v-if="fieldError(index, 'step_order')"
+                        class="mt-1 text-xs text-red-600"
+                    >
+                        {{ fieldError(index, "step_order") }}
+                    </p>
                 </template>
             </Column>
             <Column :header="trans('fields.operation')">
@@ -83,11 +126,20 @@ const fieldError = (index, field) => props.errors[`steps.${index}.${field}`];
                         option-label="label"
                         option-value="id"
                         filter
-                        :invalid="Boolean(fieldError(index, 'operation_type_id'))"
+                        :invalid="
+                            Boolean(fieldError(index, 'operation_type_id'))
+                        "
                         class="w-44"
-                        @update:model-value="updateRow(index, 'operation_type_id', $event)"
+                        @update:model-value="
+                            updateRow(index, 'operation_type_id', $event)
+                        "
                     />
-                    <p v-if="fieldError(index, 'operation_type_id')" class="mt-1 text-xs text-red-600">{{ fieldError(index, 'operation_type_id') }}</p>
+                    <p
+                        v-if="fieldError(index, 'operation_type_id')"
+                        class="mt-1 text-xs text-red-600"
+                    >
+                        {{ fieldError(index, "operation_type_id") }}
+                    </p>
                 </template>
             </Column>
             <Column :header="trans('fields.factory_unit')">
@@ -100,10 +152,15 @@ const fieldError = (index, field) => props.errors[`steps.${index}.${field}`];
                         filter
                         :invalid="Boolean(fieldError(index, 'factory_unit_id'))"
                         class="w-40"
-                        @update:model-value="updateRow(index, 'factory_unit_id', $event)"
+                        @update:model-value="
+                            updateRow(index, 'factory_unit_id', $event)
+                        "
                     />
-                    <p v-if="fieldError(index, 'factory_unit_id')" class="mt-1 text-xs text-red-600">
-                        {{ fieldError(index, 'factory_unit_id') }}
+                    <p
+                        v-if="fieldError(index, 'factory_unit_id')"
+                        class="mt-1 text-xs text-red-600"
+                    >
+                        {{ fieldError(index, "factory_unit_id") }}
                     </p>
                 </template>
             </Column>
@@ -115,12 +172,19 @@ const fieldError = (index, field) => props.errors[`steps.${index}.${field}`];
                         option-label="label"
                         option-value="id"
                         filter
-                        :invalid="Boolean(fieldError(index, 'professional_role_id'))"
+                        :invalid="
+                            Boolean(fieldError(index, 'professional_role_id'))
+                        "
                         class="w-40"
-                        @update:model-value="updateRow(index, 'professional_role_id', $event)"
+                        @update:model-value="
+                            updateRow(index, 'professional_role_id', $event)
+                        "
                     />
-                    <p v-if="fieldError(index, 'professional_role_id')" class="mt-1 text-xs text-red-600">
-                        {{ fieldError(index, 'professional_role_id') }}
+                    <p
+                        v-if="fieldError(index, 'professional_role_id')"
+                        class="mt-1 text-xs text-red-600"
+                    >
+                        {{ fieldError(index, "professional_role_id") }}
                     </p>
                 </template>
             </Column>
@@ -129,12 +193,25 @@ const fieldError = (index, field) => props.errors[`steps.${index}.${field}`];
                     <InputText
                         :model-value="data.estimated_duration_minutes"
                         type="number"
-                        :invalid="Boolean(fieldError(index, 'estimated_duration_minutes'))"
+                        :invalid="
+                            Boolean(
+                                fieldError(index, 'estimated_duration_minutes'),
+                            )
+                        "
                         class="w-24"
-                        @update:model-value="updateRow(index, 'estimated_duration_minutes', $event)"
+                        @update:model-value="
+                            updateRow(
+                                index,
+                                'estimated_duration_minutes',
+                                $event,
+                            )
+                        "
                     />
-                    <p v-if="fieldError(index, 'estimated_duration_minutes')" class="mt-1 text-xs text-red-600">
-                        {{ fieldError(index, 'estimated_duration_minutes') }}
+                    <p
+                        v-if="fieldError(index, 'estimated_duration_minutes')"
+                        class="mt-1 text-xs text-red-600"
+                    >
+                        {{ fieldError(index, "estimated_duration_minutes") }}
                     </p>
                 </template>
             </Column>
@@ -143,7 +220,9 @@ const fieldError = (index, field) => props.errors[`steps.${index}.${field}`];
                     <Checkbox
                         :model-value="Boolean(data.requires_quality_check)"
                         binary
-                        @update:model-value="updateRow(index, 'requires_quality_check', $event)"
+                        @update:model-value="
+                            updateRow(index, 'requires_quality_check', $event)
+                        "
                     />
                 </template>
             </Column>
@@ -153,13 +232,22 @@ const fieldError = (index, field) => props.errors[`steps.${index}.${field}`];
                         :model-value="data.instructions"
                         rows="1"
                         class="w-52"
-                        @update:model-value="updateRow(index, 'instructions', $event)"
+                        @update:model-value="
+                            updateRow(index, 'instructions', $event)
+                        "
                     />
                 </template>
             </Column>
             <Column header="" body-style="text-align: right; width: 4rem">
                 <template #body="{ index }">
-                    <Button type="button" icon="pi pi-trash" severity="danger" text rounded @click="removeRow(index)" />
+                    <Button
+                        type="button"
+                        icon="pi pi-trash"
+                        severity="danger"
+                        text
+                        rounded
+                        @click="removeRow(index)"
+                    />
                 </template>
             </Column>
         </DataTable>

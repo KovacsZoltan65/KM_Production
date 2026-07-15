@@ -9,6 +9,34 @@ import { ref } from "vue";
 
 defineOptions({ layout: AdminLayout });
 
+/**
+ * Ütemezési sor.
+ * @typedef {Object} ScheduleRow
+ * @property {number} id A kapacitásfoglalás azonosítója.
+ * @property {string} factory_unit A gyártóegység neve.
+ * @property {string} production_task A gyártási feladat megnevezése.
+ * @property {string} start A kezdés időpontja.
+ * @property {string} finish A befejezés időpontja.
+ * @property {number} duration Az időtartam percben.
+ * @property {string} employee A kijelölt munkatárs neve.
+ * @property {string} status Az ütemezési állapot.
+ */
+
+/**
+ * Választható gyártási rendelés.
+ * @typedef {Object} ProductionOrderOption
+ * @property {number} id A gyártási rendelés azonosítója.
+ * @property {string} label A rendelés megjelenített felirata.
+ */
+
+/**
+ * A komponens bemeneti tulajdonságai.
+ * @typedef {Object} Props
+ * @property {ScheduleRow[]} rows Az ütemezési sorok.
+ * @property {ProductionOrderOption[]} productionOrders A választható gyártási rendelések.
+ * @property {boolean} canPlan Rendelkezik-e a felhasználó tervezési jogosultsággal.
+ */
+/** @type {Props} */
 const props = defineProps({
     rows: { type: Array, default: () => [] },
     productionOrders: { type: Array, default: () => [] },

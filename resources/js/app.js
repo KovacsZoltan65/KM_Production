@@ -32,7 +32,7 @@ createInertiaApp({
                     "hu",
                 fallbackLocale: "hu",
                 resolve: async (lang) => {
-                    const messages = import.meta.glob("../../lang/*.json"); // */
+                    const messages = import.meta.glob("../../lang/*.json");
                     return await messages[`../../lang/${lang}.json`]();
                 },
             })

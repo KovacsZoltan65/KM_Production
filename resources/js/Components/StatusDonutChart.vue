@@ -1,6 +1,18 @@
 <script setup>
 import { computed } from "vue";
 
+/**
+ * Állapotdiagram adatsora.
+ * @typedef {Object} StatusChartRow
+ * @property {string} label Az állapot neve.
+ * @property {number|string} value Az állapothoz tartozó darabszám.
+ */
+/**
+ * A komponens bemeneti tulajdonságai.
+ * @typedef {Object} Props
+ * @property {StatusChartRow[]} rows A diagram adatsorai.
+ */
+/** @type {Props} */
 const props = defineProps({
     rows: { type: Array, default: () => [] },
 });
@@ -15,7 +27,7 @@ const colors = [
     "#64748b",
 ];
 const total = computed(() =>
-    props.rows.reduce((sum, row) => sum + Number(row.value || 0), 0)
+    props.rows.reduce((sum, row) => sum + Number(row.value || 0), 0),
 );
 const segments = computed(() => {
     let offset = 0;
@@ -63,7 +75,9 @@ const label = (value) => String(value || "").replaceAll("_", " ");
                     :stroke-dashoffset="segment.dashoffset"
                 />
             </svg>
-            <div class="absolute inset-0 grid place-items-center text-xl font-semibold">
+            <div
+                class="absolute inset-0 grid place-items-center text-xl font-semibold"
+            >
                 {{ total }}
             </div>
         </div>

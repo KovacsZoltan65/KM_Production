@@ -10,6 +10,47 @@ import Select from "primevue/select";
 import Tag from "primevue/tag";
 import { ref } from "vue";
 
+/**
+ * Vevőirendelés-riport sora.
+ * @typedef {Object} CustomerOrderReportRow
+ * @property {number} id A rendelés azonosítója.
+ * @property {string} order_number A rendelési szám.
+ * @property {string} customer A vevő neve.
+ * @property {string} status A rendelés állapota.
+ * @property {string} created A létrehozás időpontja.
+ * @property {string|null} requested_delivery A kért szállítási dátum.
+ * @property {number} days_open A nyitva töltött napok száma.
+ */
+/**
+ * Rendelésállapot-opció.
+ * @typedef {Object} StatusOption
+ * @property {string} label Az állapot felirata.
+ * @property {string} value Az enum értéke.
+ */
+/**
+ * Vevőopció.
+ * @typedef {Object} CustomerOption
+ * @property {number} id A vevő azonosítója.
+ * @property {string} label A vevő neve.
+ */
+/**
+ * Listaoldal szerveroldali szűrői.
+ * @typedef {Object} PageFilters
+ * @property {string} [search] A keresőkifejezés.
+ * @property {number|string} [per_page] Az oldalankénti elemszám.
+ * @property {string} [sort] A rendezett mező.
+ * @property {'asc'|'desc'} [direction] A rendezés iránya.
+ * @property {string|number|null} [status] Az állapotszűrő.
+ */
+/**
+ * A komponens bemeneti tulajdonságai.
+ * @typedef {Object} Props
+ * @property {{ rows: CustomerOrderReportRow[] }} report A riport sorai.
+ * @property {PageFilters & {customer_id?: number|string, date_from?: string, date_to?: string}} filters Az aktív riportszűrők.
+ * @property {StatusOption[]} statusOptions A választható rendelésállapotok.
+ * @property {CustomerOption[]} customerOptions A választható vevők.
+ */
+/** @type {Props} */
 const props = defineProps({
     report: { type: Object, required: true },
     filters: { type: Object, default: () => ({}) },
@@ -19,8 +60,12 @@ const props = defineProps({
 
 const status = ref(props.filters.status || null);
 const customerId = ref(Number(props.filters.customer_id) || null);
-const dateFrom = ref(props.filters.date_from ? new Date(props.filters.date_from) : null);
-const dateTo = ref(props.filters.date_to ? new Date(props.filters.date_to) : null);
+const dateFrom = ref(
+    props.filters.date_from ? new Date(props.filters.date_from) : null,
+);
+const dateTo = ref(
+    props.filters.date_to ? new Date(props.filters.date_to) : null,
+);
 
 const formatDate = (value) =>
     value ? new Date(value).toISOString().slice(0, 10) : undefined;
@@ -33,7 +78,7 @@ const apply = () =>
             date_from: formatDate(dateFrom.value),
             date_to: formatDate(dateTo.value),
         },
-        { preserveState: true, replace: true }
+        { preserveState: true, replace: true },
     );
 const reset = () => router.get(route("admin.reports.customer-orders"));
 const typeLabel = (value) => String(value || "").replaceAll("_", " ");
@@ -96,10 +141,16 @@ const typeLabel = (value) => String(value || "").replaceAll("_", " ");
                     :header="$t('reports.columns.order_number')"
                     sortable
                 />
-                <Column field="customer" :header="$t('fields.customer')" sortable />
+                <Column
+                    field="customer"
+                    :header="$t('fields.customer')"
+                    sortable
+                />
                 <Column field="status" :header="$t('fields.status')" sortable>
                     <template #body="{ data }"
-                        ><Tag :value="typeLabel(data.status)" class="capitalize"
+                        ><Tag
+                            :value="typeLabel(data.status)"
+                            class="capitalize"
                     /></template>
                 </Column>
                 <Column field="created" :header="$t('fields.created')" sortable>

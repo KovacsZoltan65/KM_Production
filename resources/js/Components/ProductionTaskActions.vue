@@ -3,10 +3,19 @@ import { route } from "@/Utils/routes";
 import { router } from "@inertiajs/vue3";
 import Button from "primevue/button";
 
+/**
+ * A komponens bemeneti tulajdonságai.
+ * @typedef {Object} Props
+ * @property {{ id: number, status?: string }} task A műveletekhez tartozó gyártási feladat.
+ * @property {boolean} dense A(z) dense bemeneti értéke.
+ */
+/** @type {Props} */
 const props = defineProps({ task: Object, dense: Boolean });
 
-const start = () => router.patch(route("admin.production-tasks.start", props.task.id));
-const finish = () => router.patch(route("admin.production-tasks.finish", props.task.id));
+const start = () =>
+    router.patch(route("admin.production-tasks.start", props.task.id));
+const finish = () =>
+    router.patch(route("admin.production-tasks.finish", props.task.id));
 </script>
 
 <template>

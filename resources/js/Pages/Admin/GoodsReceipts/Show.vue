@@ -13,6 +13,31 @@ import { useConfirm } from "primevue/useconfirm";
 import { useToast } from "primevue/usetoast";
 import { computed, onMounted, watch } from "vue";
 
+/**
+ * Áruátvételi tétel.
+ * @typedef {Object} GoodsReceiptItem
+ * @property {number} id A tétel azonosítója.
+ * @property {number|string} quantity Az átvett mennyiség.
+ * @property {string|null} notes A tétel megjegyzése.
+ * @property {{item_number: string, name: string}|null} item Az átvett cikk.
+ * @property {{code: string, name: string}|null} location A bevételezési hely.
+ * @property {{batch_number: string}|null} item_batch A kapcsolódó tételazonosító.
+ */
+/**
+ * Megjelenített áruátvétel.
+ * @typedef {Object} GoodsReceiptRecord
+ * @property {number} id Az áruátvétel azonosítója.
+ * @property {string} receipt_number Az áruátvétel száma.
+ * @property {string} status Az áruátvétel állapota.
+ * @property {{order_number: string, supplier: {name: string}|null}|null} purchase_order A kapcsolódó beszerzési rendelés.
+ * @property {GoodsReceiptItem[]} items Az áruátvétel tételei.
+ */
+/**
+ * A komponens bemeneti tulajdonságai.
+ * @typedef {Object} Props
+ * @property {GoodsReceiptRecord} goodsReceipt A megjelenített áruátvétel.
+ */
+/** @type {Props} */
 const props = defineProps({ goodsReceipt: Object });
 const page = usePage();
 const toast = useToast();
@@ -20,7 +45,7 @@ const confirm = useConfirm();
 const canPost = computed(() => props.goodsReceipt.status !== "posted");
 const number = (value) => Number(value || 0).toFixed(3);
 const severity = (value) =>
-    ({ posted: "success", draft: "secondary" }[value] || "secondary");
+    ({ posted: "success", draft: "secondary" })[value] || "secondary";
 const postReceipt = () =>
     confirm.require({
         message: trans("procurement.goods_receipts.confirm_post_message", {
@@ -29,7 +54,9 @@ const postReceipt = () =>
         header: trans("procurement.goods_receipts.confirm_post_header"),
         icon: "pi pi-check",
         accept: () =>
-            router.post(route("admin.goods-receipts.post", props.goodsReceipt.id)),
+            router.post(
+                route("admin.goods-receipts.post", props.goodsReceipt.id),
+            ),
     });
 const flash = (message) =>
     message && toast.add({ severity: "success", summary: message, life: 2500 });
@@ -62,7 +89,8 @@ watch(() => page.props.flash?.success, flash);
                         />
                     </div>
                     <p class="text-sm text-slate-600">
-                        {{ goodsReceipt.purchase_order?.supplier?.name || "-" }} /
+                        {{ goodsReceipt.purchase_order?.supplier?.name || "-" }}
+                        /
                         {{ goodsReceipt.purchase_order?.order_number || "-" }}
                     </p>
                 </div>

@@ -12,6 +12,52 @@ import Toast from "primevue/toast";
 import { useToast } from "primevue/usetoast";
 import { onMounted, watch } from "vue";
 
+/** @typedef {{id: number, label: string}} EntityOption */
+/** @typedef {{id: number, unit: string, label: string}} ItemOption */
+/** @typedef {{label: string, value: string}} QualityResultOption */
+/**
+ * Gyártási feladathoz felhasznált anyag.
+ * @typedef {Object} TaskMaterial
+ * @property {number} id Az anyagfelhasználás azonosítója.
+ * @property {number|string} planned_quantity A tervezett mennyiség.
+ * @property {number|string} used_quantity A felhasznált mennyiség.
+ * @property {string} unit A mértékegység.
+ * @property {string|null} notes A megjegyzés.
+ * @property {{item_number: string, name: string}|null} item A felhasznált cikk.
+ */
+/**
+ * Gyártási feladat minőségellenőrzése.
+ * @typedef {Object} TaskQualityCheck
+ * @property {number} id Az ellenőrzés azonosítója.
+ * @property {string} result Az ellenőrzés eredménye.
+ * @property {string|null} checked_at Az ellenőrzés időpontja.
+ * @property {string|null} notes A megjegyzés.
+ * @property {{name: string}|null} inspector Az ellenőrzést végző alkalmazott.
+ */
+/**
+ * Megjelenített gyártási feladat.
+ * @typedef {Object} ProductionTaskRecord
+ * @property {number} id A feladat azonosítója.
+ * @property {string} status A feladat állapota.
+ * @property {string|null} started_at A kezdés időpontja.
+ * @property {string|null} finished_at A befejezés időpontja.
+ * @property {{serial_number: string}|null} item_instance A gyártott példány.
+ * @property {{order_number: string, item: {name: string}|null}|null} production_order A gyártási rendelés.
+ * @property {{step_order: number, operation_type: {name: string}|null, factory_unit: {code: string}|null}|null} operation_sequence_step A végrehajtandó műveleti lépés.
+ * @property {{name: string, employee_number: string}|null} employee A hozzárendelt alkalmazott.
+ * @property {TaskMaterial[]} materials A felhasznált anyagok.
+ * @property {TaskQualityCheck[]} quality_checks A minőségellenőrzések.
+ */
+/**
+ * A komponens bemeneti tulajdonságai.
+ * @typedef {Object} Props
+ * @property {ProductionTaskRecord} productionTask A megjelenített gyártási feladat.
+ * @property {EntityOption[]} employeeOptions A választható munkatársak.
+ * @property {ItemOption[]} itemOptions A választható cikkek.
+ * @property {EntityOption[]} locationOptions A választható raktárhelyek.
+ * @property {QualityResultOption[]} qualityResultOptions A választható ellenőrzési eredmények.
+ */
+/** @type {Props} */
 const props = defineProps({
     productionTask: Object,
     employeeOptions: Array,
@@ -57,7 +103,9 @@ watch(() => page.props.flash?.success, flash);
                                 })
                             }}
                         </h1>
-                        <ProductionTaskStatusBadge :status="productionTask.status" />
+                        <ProductionTaskStatusBadge
+                            :status="productionTask.status"
+                        />
                     </div>
                     <p class="text-sm text-slate-600">
                         {{ productionTask.production_order?.order_number }} -
@@ -73,11 +121,19 @@ watch(() => page.props.flash?.success, flash);
                         {{ $t("fields.operation") }}
                     </div>
                     <div class="mt-1 font-medium">
-                        {{ productionTask.operation_sequence_step?.step_order }}.
-                        {{ productionTask.operation_sequence_step?.operation_type?.name }}
+                        {{
+                            productionTask.operation_sequence_step?.step_order
+                        }}.
+                        {{
+                            productionTask.operation_sequence_step
+                                ?.operation_type?.name
+                        }}
                     </div>
                     <div class="mt-1 text-sm text-slate-600">
-                        {{ productionTask.operation_sequence_step?.factory_unit?.code }}
+                        {{
+                            productionTask.operation_sequence_step?.factory_unit
+                                ?.code
+                        }}
                     </div>
                 </div>
                 <div class="rounded border border-slate-200 bg-white p-4">
@@ -96,7 +152,8 @@ watch(() => page.props.flash?.success, flash);
                         {{ $t("fields.timing") }}
                     </div>
                     <div class="mt-1 text-sm">
-                        {{ $t("fields.started") }}: {{ productionTask.started_at || "-" }}
+                        {{ $t("fields.started") }}:
+                        {{ productionTask.started_at || "-" }}
                     </div>
                     <div class="mt-1 text-sm">
                         {{ $t("fields.finished") }}:
@@ -127,12 +184,14 @@ watch(() => page.props.flash?.success, flash);
                     >
                     <Column :header="$t('fields.planned_quantity')"
                         ><template #body="{ data }"
-                            >{{ number(data.planned_quantity) }} {{ data.unit }}</template
+                            >{{ number(data.planned_quantity) }}
+                            {{ data.unit }}</template
                         ></Column
                     >
                     <Column :header="$t('fields.used_quantity')"
                         ><template #body="{ data }"
-                            >{{ number(data.used_quantity) }} {{ data.unit }}</template
+                            >{{ number(data.used_quantity) }}
+                            {{ data.unit }}</template
                         ></Column
                     >
                     <Column field="notes" :header="$t('fields.notes')" />
@@ -164,7 +223,10 @@ watch(() => page.props.flash?.success, flash);
                             $t(`enum.quality_check_result.${data.result}`)
                         }}</template>
                     </Column>
-                    <Column field="checked_at" :header="$t('fields.checked_at')" />
+                    <Column
+                        field="checked_at"
+                        :header="$t('fields.checked_at')"
+                    />
                     <Column field="notes" :header="$t('fields.notes')" />
                 </DataTable>
             </section>

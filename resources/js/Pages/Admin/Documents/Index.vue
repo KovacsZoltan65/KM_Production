@@ -16,6 +16,36 @@ import Toast from "primevue/toast";
 import { useToast } from "primevue/usetoast";
 import { computed, onMounted, ref, watch } from "vue";
 
+/** @typedef {{label: string, value: string}} DocumentTypeOption */
+/** @typedef {{label: string, value: string, class: string}} DocumentableTypeOption */
+/** @typedef {{id: number, title: string, original_filename: string|null, document_type: string, version: number, documentable_type: string, documentable_id: number, approved: boolean, is_current: boolean, created_at: string|null, uploader: {name: string}|null}} DocumentRecord */
+/**
+ * Lapozott Inertia-adathalmaz.
+ * @typedef {Object} PaginatedResult
+ * @property {DocumentRecord[]} data Az aktuális oldal dokumentumai.
+ * @property {number} current_page Az aktuális oldalszám.
+ * @property {number} per_page Az oldalankénti elemszám.
+ * @property {number} total A teljes elemszám.
+ * @property {number} last_page Az utolsó oldalszám.
+ */
+/**
+ * Listaoldal szerveroldali szűrői.
+ * @typedef {Object} PageFilters
+ * @property {string} [search] A keresőkifejezés.
+ * @property {number|string} [per_page] Az oldalankénti elemszám.
+ * @property {string} [sort] A rendezett mező.
+ * @property {'asc'|'desc'} [direction] A rendezés iránya.
+ * @property {string|number|null} [status] Az állapotszűrő.
+ */
+/**
+ * A komponens bemeneti tulajdonságai.
+ * @typedef {Object} Props
+ * @property {PaginatedResult} records A lapozott dokumentumok.
+ * @property {PageFilters} filters Az aktív dokumentumszűrők.
+ * @property {DocumentTypeOption[]} documentTypeOptions A választható dokumentumtípusok.
+ * @property {DocumentableTypeOption[]} documentableTypeOptions A kapcsolható entitástípusok.
+ */
+/** @type {Props} */
 const props = defineProps({
     records: { type: Object, required: true },
     filters: { type: Object, default: () => ({}) },
@@ -31,7 +61,9 @@ const documentType = ref(props.filters.document_type || null);
 const documentableType = ref(props.filters.documentable_type || null);
 const approved = ref(props.filters.approved ?? null);
 const isCurrent = ref(props.filters.is_current ?? null);
-const perPage = ref(Number(props.filters.per_page || props.records.per_page || 10));
+const perPage = ref(
+    Number(props.filters.per_page || props.records.per_page || 10),
+);
 const sortField = ref(props.filters.sort || "id");
 const sortOrder = ref((props.filters.direction || "desc") === "asc" ? 1 : -1);
 
@@ -168,10 +200,16 @@ watch(() => page.props.flash?.success, flash);
                         >
                             {{ data.original_filename || data.title }}
                         </Link>
-                        <div class="text-xs text-slate-500">{{ data.title }}</div>
+                        <div class="text-xs text-slate-500">
+                            {{ data.title }}
+                        </div>
                     </template>
                 </Column>
-                <Column field="document_type" :header="$t('fields.type')" sortable>
+                <Column
+                    field="document_type"
+                    :header="$t('fields.type')"
+                    sortable
+                >
                     <template #body="{ data }"
                         ><span class="capitalize">{{
                             typeLabel(data.document_type)
@@ -211,7 +249,9 @@ watch(() => page.props.flash?.success, flash);
                                 {{ $t("actions.open") }}
                             </Link>
                             <a
-                                :href="route('admin.documents.download', data.id)"
+                                :href="
+                                    route('admin.documents.download', data.id)
+                                "
                                 class="rounded border border-slate-300 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
                             >
                                 {{ $t("actions.download") }}

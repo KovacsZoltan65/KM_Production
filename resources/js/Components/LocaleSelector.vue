@@ -3,6 +3,20 @@ import Select from "primevue/select";
 import { trans } from "laravel-vue-i18n";
 import { computed } from "vue";
 
+/**
+ * Választható listaelem.
+ * @typedef {Object} SelectOption
+ * @property {string} value A nyelv ISO-kódja.
+ * @property {string} [label] A nyelv megjelenített neve.
+ */
+/**
+ * A komponens bemeneti tulajdonságai.
+ * @typedef {Object} Props
+ * @property {string} modelValue Az aktív nyelvkód.
+ * @property {SelectOption[]} options A választható nyelvek.
+ * @property {string} placeholder A választó helyőrzője.
+ */
+/** @type {Props} */
 const props = defineProps({
     modelValue: { type: String, default: "hu" },
     options: {
@@ -12,6 +26,13 @@ const props = defineProps({
     placeholder: { type: String, default: "" },
 });
 
+/**
+ * A komponens által kibocsátott események.
+ * @typedef {Object} Emits
+ * @property {(event: 'update:modelValue', value: string) => void} updateModelValue A nyelvkód módosítási eseménye.
+ * @property {(event: 'change', value: string) => void} change A nyelvváltási esemény.
+ */
+/** @type {Emits} */
 const emit = defineEmits(["update:modelValue", "change"]);
 
 const selectedLocale = computed({

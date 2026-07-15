@@ -14,6 +14,39 @@ import Toast from "primevue/toast";
 import { useToast } from "primevue/usetoast";
 import { onMounted, ref, watch } from "vue";
 
+/** @typedef {{label: string, value: string}} StatusOption */
+/** @typedef {{id: number, label: string}} EntityOption */
+/** @typedef {{id: number, unit: string, label: string}} ItemOption */
+/** @typedef {{id: number, receipt_number: string, status: string, received_at: string|null, purchase_order: {order_number: string, supplier: {name: string}|null}|null}} GoodsReceiptRecord */
+/**
+ * Lapozott Inertia-adathalmaz.
+ * @typedef {Object} PaginatedResult
+ * @property {GoodsReceiptRecord[]} data Az aktuális oldal áruátvételei.
+ * @property {number} current_page Az aktuális oldalszám.
+ * @property {number} per_page Az oldalankénti elemszám.
+ * @property {number} total A teljes elemszám.
+ * @property {number} last_page Az utolsó oldalszám.
+ */
+/**
+ * Listaoldal szerveroldali szűrői.
+ * @typedef {Object} PageFilters
+ * @property {string} [search] A keresőkifejezés.
+ * @property {number|string} [per_page] Az oldalankénti elemszám.
+ * @property {string} [sort] A rendezett mező.
+ * @property {'asc'|'desc'} [direction] A rendezés iránya.
+ * @property {string|number|null} [status] Az állapotszűrő.
+ */
+/**
+ * A komponens bemeneti tulajdonságai.
+ * @typedef {Object} Props
+ * @property {PaginatedResult} records A lapozott áruátvételek.
+ * @property {PageFilters} filters Az aktív listaszűrők.
+ * @property {StatusOption[]} statusOptions A választható áruátvételi állapotok.
+ * @property {EntityOption[]} purchaseOrderOptions A választható beszerzési rendelések.
+ * @property {ItemOption[]} itemOptions A választható cikkek.
+ * @property {EntityOption[]} locationOptions A választható raktárhelyek.
+ */
+/** @type {Props} */
 const props = defineProps({
     records: Object,
     filters: Object,
@@ -27,7 +60,9 @@ const toast = useToast();
 const dialogVisible = ref(false);
 const search = ref(props.filters.search || "");
 const status = ref(props.filters.status || null);
-const perPage = ref(Number(props.filters.per_page || props.records.per_page || 10));
+const perPage = ref(
+    Number(props.filters.per_page || props.records.per_page || 10),
+);
 const sortField = ref(props.filters.sort || "id");
 const sortOrder = ref((props.filters.direction || "asc") === "desc" ? -1 : 1);
 const form = useForm({
@@ -49,7 +84,7 @@ const reload = (pageNumber = 1) =>
         replace: true,
     });
 const severity = (value) =>
-    ({ posted: "success", draft: "secondary" }[value] || "secondary");
+    ({ posted: "success", draft: "secondary" })[value] || "secondary";
 const dateValue = (value) => (value ? String(value).slice(0, 10) : "-");
 const submit = () =>
     form.post(route("admin.goods-receipts.store"), {
@@ -57,7 +92,9 @@ const submit = () =>
         onSuccess: () => {
             dialogVisible.value = false;
             form.reset();
-            form.items = [{ item_id: null, location_id: null, quantity: 1, notes: "" }];
+            form.items = [
+                { item_id: null, location_id: null, quantity: 1, notes: "" },
+            ];
         },
     });
 const flash = (message) =>
@@ -119,7 +156,10 @@ watch(() => page.props.flash?.success, flash);
                     }
                 "
             >
-                <Column field="receipt_number" :header="$t('fields.receipt')" sortable
+                <Column
+                    field="receipt_number"
+                    :header="$t('fields.receipt')"
+                    sortable
                     ><template #body="{ data }"
                         ><Link
                             :href="route('admin.goods-receipts.show', data.id)"
@@ -144,7 +184,10 @@ watch(() => page.props.flash?.success, flash);
                             :value="$t(`status.${data.status}`)"
                             :severity="severity(data.status)" /></template
                 ></Column>
-                <Column field="received_at" :header="$t('fields.received')" sortable
+                <Column
+                    field="received_at"
+                    :header="$t('fields.received')"
+                    sortable
                     ><template #body="{ data }">{{
                         dateValue(data.received_at)
                     }}</template></Column

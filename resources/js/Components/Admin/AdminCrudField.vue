@@ -8,6 +8,23 @@ import Textarea from "primevue/textarea";
 import { trans } from "laravel-vue-i18n";
 import { computed } from "vue";
 
+/**
+ * Választható listaelem.
+ * @typedef {Object} SelectOption
+ * @property {number|string} [id] Az elem azonosítója.
+ * @property {number|string|boolean} [value] Az elem értéke.
+ * @property {string} [label] Az elem felirata.
+ * @property {string} [name] Az elem neve.
+ * @property {string} [code] Az elem kódja.
+ */
+/**
+ * A komponens bemeneti tulajdonságai.
+ * @typedef {Object} Props
+ * @property {{ checkboxLabel?: string, checkboxLabelKey?: string, disabled?: boolean, enumKey?: string, label?: string, labelKey?: string, max?: number, min?: number, name: string, optionLabel?: string, optionValue?: string, options?: string|SelectOption[], placeholder?: string, required?: boolean, rows?: number, step?: number, type?: string }} field A szerkesztendő mező konfigurációja.
+ * @property {string|null} error A(z) error bemeneti értéke.
+ * @property {Object.<string, SelectOption[]>} options A(z) options bemeneti értéke.
+ */
+/** @type {Props} */
 const props = defineProps({
     field: { type: Object, required: true },
     error: { type: String, default: "" },

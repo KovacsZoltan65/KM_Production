@@ -19,6 +19,40 @@ import { useConfirm } from "primevue/useconfirm";
 import { useToast } from "primevue/usetoast";
 import { computed, onMounted, reactive, ref, watch } from "vue";
 
+/** @typedef {{id: number, order_number: string, customer_name: string, label: string}} CustomerOrderOption */
+/** @typedef {{id: number, item_id: number, label: string}} ItemDefinitionOption */
+/** @typedef {{label: string, value: string}} StatusOption */
+/** @typedef {{customer_order_item_id: number, item_id: number, quantity: string|number, bom_id: number|null, operation_sequence_id: number|null, notes: string|null}} ProductionPlanItemRecord */
+/** @typedef {{id: number, customer_order_id: number, plan_number: string, status: string, planned_start_date: string|null, planned_finish_date: string|null, notes: string|null, items_count: number, created_at: string|null, customer_order: {order_number: string, customer: {name: string}|null}|null, items: ProductionPlanItemRecord[]}} ProductionPlanRecord */
+/**
+ * Lapozott Inertia-adathalmaz.
+ * @typedef {Object} PaginatedResult
+ * @property {ProductionPlanRecord[]} data Az aktuális oldal gyártási tervei.
+ * @property {number} current_page Az aktuális oldalszám.
+ * @property {number} per_page Az oldalankénti elemszám.
+ * @property {number} total A teljes elemszám.
+ * @property {number} last_page Az utolsó oldalszám.
+ */
+/**
+ * Listaoldal szerveroldali szűrői.
+ * @typedef {Object} PageFilters
+ * @property {string} [search] A keresőkifejezés.
+ * @property {number|string} [per_page] Az oldalankénti elemszám.
+ * @property {string} [sort] A rendezett mező.
+ * @property {'asc'|'desc'} [direction] A rendezés iránya.
+ * @property {string|number|null} [status] Az állapotszűrő.
+ */
+/**
+ * A komponens bemeneti tulajdonságai.
+ * @typedef {Object} Props
+ * @property {PaginatedResult} records A lapozott gyártási tervek.
+ * @property {PageFilters} filters Az aktív listaszűrők.
+ * @property {CustomerOrderOption[]} customerOrderOptions A választható vevői rendelések.
+ * @property {ItemDefinitionOption[]} bomOptions A választható darabjegyzékek.
+ * @property {ItemDefinitionOption[]} operationSequenceOptions A választható műveletsorok.
+ * @property {StatusOption[]} statusOptions A választható tervállapotok.
+ */
+/** @type {Props} */
 const props = defineProps({
     records: Object,
     filters: Object,
@@ -35,7 +69,9 @@ const dialogVisible = ref(false);
 const editingRecord = ref(null);
 const search = ref(props.filters.search || "");
 const status = ref(props.filters.status || null);
-const perPage = ref(Number(props.filters.per_page || props.records.per_page || 10));
+const perPage = ref(
+    Number(props.filters.per_page || props.records.per_page || 10),
+);
 const sortField = ref(props.filters.sort || "id");
 const sortOrder = ref((props.filters.direction || "asc") === "desc" ? -1 : 1);
 const errors = ref({});
@@ -51,8 +87,8 @@ const dialogTitle = computed(() =>
     trans(
         editingRecord.value
             ? "production.plans.edit_title"
-            : "production.plans.create_title"
-    )
+            : "production.plans.create_title",
+    ),
 );
 
 const dateValue = (value) => (value ? String(value).slice(0, 10) : null);
@@ -136,7 +172,7 @@ const submit = () => {
         router.put(
             route("admin.production-plans.update", editingRecord.value.id),
             payload,
-            callbacks
+            callbacks,
         );
         return;
     }
@@ -155,7 +191,7 @@ const approvePlan = (record) => {
             router.patch(
                 route("admin.production-plans.approve", record.id),
                 {},
-                { preserveScroll: true }
+                { preserveScroll: true },
             ),
     });
 };
@@ -179,7 +215,11 @@ const canApprove = (record) => ["draft", "calculated"].includes(record.status);
 
 onMounted(() => {
     if (page.props.flash?.success) {
-        toast.add({ severity: "success", summary: page.props.flash.success, life: 2500 });
+        toast.add({
+            severity: "success",
+            summary: page.props.flash.success,
+            life: 2500,
+        });
     }
 });
 
@@ -189,7 +229,7 @@ watch(
         if (message) {
             toast.add({ severity: "success", summary: message, life: 2500 });
         }
-    }
+    },
 );
 </script>
 
@@ -217,9 +257,11 @@ watch(
             <div
                 class="flex flex-col gap-2 rounded border border-slate-200 bg-white p-3 sm:flex-row sm:items-center"
             >
-                <label for="status" class="text-sm font-medium text-slate-700">{{
-                    $t("filters.status")
-                }}</label>
+                <label
+                    for="status"
+                    class="text-sm font-medium text-slate-700"
+                    >{{ $t("filters.status") }}</label
+                >
                 <Select
                     id="status"
                     v-model="status"
@@ -257,17 +299,26 @@ watch(
                     }
                 "
             >
-                <Column field="plan_number" :header="$t('fields.plan_number')" sortable>
+                <Column
+                    field="plan_number"
+                    :header="$t('fields.plan_number')"
+                    sortable
+                >
                     <template #body="{ data }">
                         <Link
-                            :href="route('admin.production-plans.show', data.id)"
+                            :href="
+                                route('admin.production-plans.show', data.id)
+                            "
                             class="font-medium text-blue-700 hover:underline"
                         >
                             {{ data.plan_number }}
                         </Link>
                     </template>
                 </Column>
-                <Column field="customer_order_id" :header="$t('fields.customer_order')">
+                <Column
+                    field="customer_order_id"
+                    :header="$t('fields.customer_order')"
+                >
                     <template #body="{ data }"
                         >{{ data.customer_order?.order_number }} -
                         {{ data.customer_order?.customer?.name }}</template
@@ -278,7 +329,11 @@ watch(
                         ><ProductionPlanStatusBadge :status="data.status"
                     /></template>
                 </Column>
-                <Column field="planned_start_date" :header="$t('fields.start')" sortable>
+                <Column
+                    field="planned_start_date"
+                    :header="$t('fields.start')"
+                    sortable
+                >
                     <template #body="{ data }">{{
                         formatDate(data.planned_start_date)
                     }}</template>
@@ -295,12 +350,19 @@ watch(
                 <Column field="items_count" :header="$t('fields.items')">
                     <template #body="{ data }">{{ data.items_count }}</template>
                 </Column>
-                <Column field="created_at" :header="$t('fields.created')" sortable>
+                <Column
+                    field="created_at"
+                    :header="$t('fields.created')"
+                    sortable
+                >
                     <template #body="{ data }">{{
                         formatDate(data.created_at)
                     }}</template>
                 </Column>
-                <Column header="" body-style="text-align: right; min-width: 10rem">
+                <Column
+                    header=""
+                    body-style="text-align: right; min-width: 10rem"
+                >
                     <template #body="{ data }">
                         <div class="flex justify-end gap-1">
                             <Button

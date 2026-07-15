@@ -2,6 +2,12 @@
 import DocumentStatusBadge from "@/Components/DocumentStatusBadge.vue";
 import { trans } from "laravel-vue-i18n";
 
+/**
+ * A komponens bemeneti tulajdonságai.
+ * @typedef {Object} Props
+ * @property {{ approved_at?: string|null, approver?: {name?: string}|null, checksum?: string, created_at?: string, document_type?: string, documentable_id?: number, documentable_type?: string, file_size?: number, mime_type?: string, original_filename?: string, title?: string, uploader?: {name?: string}|null, version?: number|string }} document A megjelenített dokumentum metaadatai.
+ */
+/** @type {Props} */
 const props = defineProps({
     document: { type: Object, required: true },
 });
@@ -23,9 +29,13 @@ const typeLabel = (value) => trans(`enum.document_type.${value}`);
 
 <template>
     <section class="rounded border border-slate-200 bg-white p-4">
-        <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div
+            class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"
+        >
             <div>
-                <h2 class="text-lg font-semibold">{{ props.document.title }}</h2>
+                <h2 class="text-lg font-semibold">
+                    {{ props.document.title }}
+                </h2>
                 <p class="mt-1 text-sm text-slate-600">
                     {{ props.document.original_filename }}
                 </p>
@@ -46,11 +56,15 @@ const typeLabel = (value) => trans(`enum.document_type.${value}`);
             </div>
             <div>
                 <dt class="text-slate-500">{{ $t("fields.size") }}</dt>
-                <dd class="font-medium">{{ sizeLabel(props.document.file_size) }}</dd>
+                <dd class="font-medium">
+                    {{ sizeLabel(props.document.file_size) }}
+                </dd>
             </div>
             <div>
                 <dt class="text-slate-500">{{ $t("fields.mime_type") }}</dt>
-                <dd class="font-medium">{{ props.document.mime_type || "-" }}</dd>
+                <dd class="font-medium">
+                    {{ props.document.mime_type || "-" }}
+                </dd>
             </div>
             <div>
                 <dt class="text-slate-500">{{ $t("fields.linked_entity") }}</dt>
@@ -62,7 +76,9 @@ const typeLabel = (value) => trans(`enum.document_type.${value}`);
             </div>
             <div>
                 <dt class="text-slate-500">{{ $t("fields.uploaded_by") }}</dt>
-                <dd class="font-medium">{{ props.document.uploader?.name || "-" }}</dd>
+                <dd class="font-medium">
+                    {{ props.document.uploader?.name || "-" }}
+                </dd>
             </div>
             <div>
                 <dt class="text-slate-500">{{ $t("fields.uploaded_at") }}</dt>
@@ -76,7 +92,9 @@ const typeLabel = (value) => trans(`enum.document_type.${value}`);
             </div>
             <div>
                 <dt class="text-slate-500">{{ $t("fields.approved_by") }}</dt>
-                <dd class="font-medium">{{ props.document.approver?.name || "-" }}</dd>
+                <dd class="font-medium">
+                    {{ props.document.approver?.name || "-" }}
+                </dd>
             </div>
             <div>
                 <dt class="text-slate-500">{{ $t("fields.approved_at") }}</dt>
@@ -91,7 +109,9 @@ const typeLabel = (value) => trans(`enum.document_type.${value}`);
         </dl>
 
         <div class="mt-4">
-            <div class="text-sm text-slate-500">{{ $t("fields.checksum") }}</div>
+            <div class="text-sm text-slate-500">
+                {{ $t("fields.checksum") }}
+            </div>
             <div
                 class="break-all rounded bg-slate-50 px-3 py-2 font-mono text-xs text-slate-700"
             >

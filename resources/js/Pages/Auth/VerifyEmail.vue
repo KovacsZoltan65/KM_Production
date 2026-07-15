@@ -4,6 +4,12 @@ import { route } from "@/Utils/routes";
 import { Head, useForm } from "@inertiajs/vue3";
 import Button from "primevue/button";
 
+/**
+ * A komponens bemeneti tulajdonságai.
+ * @typedef {Object} Props
+ * @property {string|null} status A(z) status bemeneti értéke.
+ */
+/** @type {Props} */
 defineProps({
     status: String,
 });
@@ -21,7 +27,9 @@ const submit = () => {
     <GuestLayout>
         <form class="space-y-5" @submit.prevent="submit">
             <div>
-                <h1 class="text-xl font-semibold">{{ $t("auth.verify_email.title") }}</h1>
+                <h1 class="text-xl font-semibold">
+                    {{ $t("auth.verify_email.title") }}
+                </h1>
                 <p class="mt-1 text-sm text-slate-600">
                     {{ $t("auth.verify_email.subtitle") }}
                 </p>

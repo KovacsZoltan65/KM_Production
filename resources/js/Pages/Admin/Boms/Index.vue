@@ -21,6 +21,35 @@ import { useToast } from "primevue/usetoast";
 import { trans } from "laravel-vue-i18n";
 import { computed, onMounted, reactive, ref, watch } from "vue";
 
+/** @typedef {{id: number, item_number: string, name: string, unit: string}} ItemOption */
+/** @typedef {{item_id: number, quantity: string|number, unit: string, scrap_percentage: string|number|null, sequence: number, notes: string|null}} BomItemRecord */
+/** @typedef {{id: number, item_id: number, version: number, name: string, description: string|null, is_active: boolean, item: {item_number: string, name: string}|null, bom_items: BomItemRecord[]}} BomRecord */
+/**
+ * Lapozott Inertia-adathalmaz.
+ * @typedef {Object} PaginatedResult
+ * @property {BomRecord[]} data Az aktuális oldal darabjegyzékei.
+ * @property {number} current_page Az aktuális oldalszám.
+ * @property {number} per_page Az oldalankénti elemszám.
+ * @property {number} total A teljes elemszám.
+ * @property {number} last_page Az utolsó oldalszám.
+ */
+/**
+ * Listaoldal szerveroldali szűrői.
+ * @typedef {Object} PageFilters
+ * @property {string} [search] A keresőkifejezés.
+ * @property {number|string} [per_page] Az oldalankénti elemszám.
+ * @property {string} [sort] A rendezett mező.
+ * @property {'asc'|'desc'} [direction] A rendezés iránya.
+ * @property {string|number|null} [status] Az állapotszűrő.
+ */
+/**
+ * A komponens bemeneti tulajdonságai.
+ * @typedef {Object} Props
+ * @property {PaginatedResult} records A lapozott darabjegyzékek.
+ * @property {PageFilters} filters Az aktív listaszűrők.
+ * @property {ItemOption[]} itemOptions A választható cikkek.
+ */
+/** @type {Props} */
 const props = defineProps({
     records: Object,
     filters: Object,
@@ -33,7 +62,9 @@ const confirm = useConfirm();
 const dialogVisible = ref(false);
 const editingRecord = ref(null);
 const search = ref(props.filters.search || "");
-const perPage = ref(Number(props.filters.per_page || props.records.per_page || 10));
+const perPage = ref(
+    Number(props.filters.per_page || props.records.per_page || 10),
+);
 const sortField = ref(props.filters.sort || "id");
 const sortOrder = ref((props.filters.direction || "asc") === "desc" ? -1 : 1);
 const errors = ref({});
@@ -50,10 +81,12 @@ const itemChoices = computed(() =>
     props.itemOptions.map((item) => ({
         ...item,
         label: `${item.item_number} - ${item.name}`,
-    }))
+    })),
 );
 const dialogTitle = computed(() =>
-    editingRecord.value ? trans("bom.dialogs.edit") : trans("bom.dialogs.create")
+    editingRecord.value
+        ? trans("bom.dialogs.edit")
+        : trans("bom.dialogs.create"),
 );
 
 const resetForm = () => {
@@ -129,7 +162,7 @@ const submit = () => {
         router.put(
             route("admin.boms.update", editingRecord.value.id),
             payload,
-            callbacks
+            callbacks,
         );
         return;
     }
@@ -152,7 +185,11 @@ const destroyRecord = (record) => {
 
 onMounted(() => {
     if (page.props.flash?.success) {
-        toast.add({ severity: "success", summary: page.props.flash.success, life: 2500 });
+        toast.add({
+            severity: "success",
+            summary: page.props.flash.success,
+            life: 2500,
+        });
     }
 });
 
@@ -162,7 +199,7 @@ watch(
         if (message) {
             toast.add({ severity: "success", summary: message, life: 2500 });
         }
-    }
+    },
 );
 </script>
 
@@ -215,16 +252,25 @@ watch(
                 <Column field="name" :header="trans('fields.name')" sortable />
                 <Column field="item_id" :header="trans('fields.item')" sortable>
                     <template #body="{ data }"
-                        >{{ data.item?.item_number }} - {{ data.item?.name }}</template
+                        >{{ data.item?.item_number }} -
+                        {{ data.item?.name }}</template
                     >
                 </Column>
-                <Column field="version" :header="trans('fields.version')" sortable />
+                <Column
+                    field="version"
+                    :header="trans('fields.version')"
+                    sortable
+                />
                 <Column :header="trans('fields.rows')">
                     <template #body="{ data }">{{
                         data.bom_items?.length || 0
                     }}</template>
                 </Column>
-                <Column field="is_active" :header="trans('fields.status')" sortable>
+                <Column
+                    field="is_active"
+                    :header="trans('fields.status')"
+                    sortable
+                >
                     <template #body="{ data }"
                         ><AdminStatusBadge :active="Boolean(data.is_active)"
                     /></template>
@@ -265,7 +311,7 @@ watch(
                         </p>
                     </div>
 
-                    <!-- Version and Name Fields -->
+                    <!-- Verzió és név szerkesztéskor -->
                     <div class="space-y-2">
                         <label for="version" class="text-sm font-medium">{{
                             trans("fields.version")
@@ -281,23 +327,31 @@ watch(
                         </p>
                     </div>
 
-                    <!-- Name Field -->
+                    <!-- Név létrehozáskor -->
                     <div class="space-y-2">
                         <label for="name" class="text-sm font-medium">{{
                             trans("fields.name")
                         }}</label>
-                        <InputText id="name" v-model="form.name" class="w-full" />
+                        <InputText
+                            id="name"
+                            v-model="form.name"
+                            class="w-full"
+                        />
                         <p v-if="errors.name" class="text-sm text-red-600">
                             {{ errors.name }}
                         </p>
                     </div>
                     <label class="flex items-center gap-2 pt-8 text-sm">
-                        <input v-model="form.is_active" type="checkbox" class="h-4 w-4" />
+                        <input
+                            v-model="form.is_active"
+                            type="checkbox"
+                            class="h-4 w-4"
+                        />
                         <span>{{ trans("status.active") }}</span>
                     </label>
                 </div>
 
-                <!-- Description Field -->
+                <!-- Leírás -->
                 <div class="space-y-2">
                     <label for="description" class="text-sm font-medium">{{
                         trans("fields.description")

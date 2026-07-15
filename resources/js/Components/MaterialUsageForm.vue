@@ -8,6 +8,16 @@ import Select from "primevue/select";
 import Textarea from "primevue/textarea";
 import { watch } from "vue";
 
+/** @typedef {{id: number, unit: string, label: string}} ItemOption */
+/** @typedef {{id: number, label: string}} LocationOption */
+/**
+ * A komponens bemeneti tulajdonságai.
+ * @typedef {Object} Props
+ * @property {{ id: number }} productionTask A gyártási feladat azonosítója.
+ * @property {ItemOption[]} itemOptions A választható cikkek.
+ * @property {LocationOption[]} locationOptions A választható raktárhelyek.
+ */
+/** @type {Props} */
 const props = defineProps({
     productionTask: Object,
     itemOptions: Array,
@@ -29,14 +39,20 @@ watch(
     (itemId) => {
         const item = props.itemOptions.find((option) => option.id === itemId);
         form.unit = item?.unit || form.unit;
-    }
+    },
 );
 
 const submit = () => {
-    form.post(route("admin.production-tasks.materials.store", props.productionTask.id), {
-        preserveScroll: true,
-        onSuccess: () => form.reset(),
-    });
+    form.post(
+        route(
+            "admin.production-tasks.materials.store",
+            props.productionTask.id,
+        ),
+        {
+            preserveScroll: true,
+            onSuccess: () => form.reset(),
+        },
+    );
 };
 </script>
 

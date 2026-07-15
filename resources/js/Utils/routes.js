@@ -1,3 +1,9 @@
+/**
+ * Az alkalmazás név szerinti útvonalsablonjai.
+ * @type {Readonly<Record<string, string>>}
+ */
+// A formátumot forrásszöveget ellenőrző útvonaltesztek rögzítik.
+// prettier-ignore
 export const routes = {
     dashboard: '/dashboard',
     login: '/login',
@@ -94,7 +100,8 @@ export const routes = {
     'admin.production-plans.update': '/admin/production-plans/{productionPlan}',
     'admin.production-plans.destroy': '/admin/production-plans/{productionPlan}',
     'admin.production-plans.approve': '/admin/production-plans/{productionPlan}/approve',
-    'admin.production-plans.generate-production-orders': '/admin/production-plans/{productionPlan}/generate-production-orders',
+    'admin.production-plans.generate-production-orders':
+        '/admin/production-plans/{productionPlan}/generate-production-orders',
     'admin.production-tasks.index': '/admin/production-tasks',
     'admin.production-tasks.show': '/admin/production-tasks/{productionTask}',
     'admin.production-tasks.store': '/admin/production-tasks',
@@ -121,8 +128,10 @@ export const routes = {
     'admin.purchase-requisitions.update': '/admin/purchase-requisitions/{purchaseRequisition}',
     'admin.purchase-requisitions.destroy': '/admin/purchase-requisitions/{purchaseRequisition}',
     'admin.purchase-requisitions.approve': '/admin/purchase-requisitions/{purchaseRequisition}/approve',
-    'admin.purchase-requisitions.generate-from-material-requirements': '/admin/purchase-requisitions/generate-from-material-requirements',
-    'admin.purchase-requisitions.generate-purchase-order': '/admin/purchase-requisitions/{purchaseRequisition}/generate-purchase-order',
+    'admin.purchase-requisitions.generate-from-material-requirements':
+        '/admin/purchase-requisitions/generate-from-material-requirements',
+    'admin.purchase-requisitions.generate-purchase-order':
+        '/admin/purchase-requisitions/{purchaseRequisition}/generate-purchase-order',
     'admin.purchase-orders.index': '/admin/purchase-orders',
     'admin.purchase-orders.show': '/admin/purchase-orders/{purchaseOrder}',
     'admin.purchase-orders.store': '/admin/purchase-orders',
@@ -144,14 +153,29 @@ export const routes = {
     'admin.documents.make-current': '/admin/documents/{document}/make-current',
 };
 
+/**
+ * Útvonalparaméterből primitív, kódolható értéket képez.
+ * @param {string|number|{id: string|number}} value Az útvonalparaméter értéke vagy azonosítós objektuma.
+ * @returns {string|number} A paraméterbe helyettesíthető érték.
+ */
 const valueFrom = (value) => {
-    if (value && typeof value === 'object') {
+    if (value && typeof value === "object") {
         return value.id;
     }
 
     return value;
 };
 
+/**
+ * Név és paraméterek alapján alkalmazás-URL-t állít elő.
+ *
+ * @param {string} name Az útvonal neve.
+ * @param {Object.<string, string|number|{id: string|number}>|Array<string|number|{id: string|number}>|string|number|{id: string|number}} [parameters={}] A név szerinti vagy pozicionális útvonalparaméterek.
+ * @returns {string} A behelyettesített, URL-kódolt útvonal.
+ * @throws {Error} Ha az útvonal vagy egy kötelező paraméter hiányzik.
+ * @example
+ * route('admin.users.update', { user: 12 });
+ */
 export const route = (name, parameters = {}) => {
     const template = routes[name];
 
@@ -161,15 +185,17 @@ export const route = (name, parameters = {}) => {
 
     const values = Array.isArray(parameters)
         ? [...parameters]
-        : parameters && typeof parameters === 'object'
-            ? { ...parameters }
-            : [parameters];
+        : parameters && typeof parameters === "object"
+          ? { ...parameters }
+          : [parameters];
 
     return template.replace(/{([^}]+)}/g, (match, key) => {
         const value = Array.isArray(values) ? values.shift() : values[key];
 
         if (value === undefined || value === null) {
-            throw new Error(`Missing route parameter [${key}] for route [${name}]`);
+            throw new Error(
+                `Missing route parameter [${key}] for route [${name}]`,
+            );
         }
 
         return encodeURIComponent(valueFrom(value));
