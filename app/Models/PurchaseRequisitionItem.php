@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\PurchaseRequisitionItemStatus;
 use Database\Factories\PurchaseRequisitionItemFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -28,6 +29,10 @@ use Illuminate\Support\Carbon;
  * @property-read Item|null $item
  * @property-read MaterialRequirement|null $materialRequirement
  * @property-read PurchaseRequisition|null $purchaseRequisition
+ * @property-read Collection<int, PurchaseRequisitionItemSource> $sources
+ * @property-read int|null $sources_count
+ * @property-read Collection<int, MaterialRequirement> $sourceMaterialRequirements
+ * @property-read int|null $source_material_requirements_count
  *
  * @method static \Database\Factories\PurchaseRequisitionItemFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PurchaseRequisitionItem newModelQuery()

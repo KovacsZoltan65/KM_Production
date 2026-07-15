@@ -24,6 +24,8 @@ use Illuminate\Support\Carbon;
  * @property string|null $notes
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property-read Collection<int, CapacityReservation> $capacityReservations
+ * @property-read int|null $capacity_reservations_count
  * @property-read Employee|null $employee
  * @property-read ItemInstance $itemInstance
  * @property-read Collection<int, ProductionTaskMaterial> $materials

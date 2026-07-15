@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\ProductionOrderStatus;
 use Database\Factories\ProductionOrderFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -37,6 +38,8 @@ use Illuminate\Support\Carbon;
  * @property-read Item|null $item
  * @property-read OperationSequence|null $operationSequence
  * @property-read ProductionPlanItem|null $productionPlanItem
+ * @property-read Collection<int, ProductionTask> $productionTasks
+ * @property-read int|null $production_tasks_count
  *
  * @method static \Database\Factories\ProductionOrderFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ProductionOrder newModelQuery()

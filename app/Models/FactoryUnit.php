@@ -22,6 +22,8 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
+ * @property-read Collection<int, FactoryUnitCalendar> $calendars
+ * @property-read int|null $calendars_count
  * @property-read Collection<int, Location> $locations
  * @property-read int|null $locations_count
  *

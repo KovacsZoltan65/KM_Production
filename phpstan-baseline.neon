@@ -13,24 +13,6 @@ parameters:
 			path: app/Http/Controllers/Admin/CustomerOrderController.php
 
 		-
-			message: '#^Method App\\Http\\Controllers\\Admin\\GoodsReceiptController\:\:itemOptions\(\) should return Illuminate\\Support\\Collection\<int, array\> but returns Illuminate\\Support\\Collection\<int, array\{id\: int, unit\: string, label\: non\-falsy\-string\}\>\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Http/Controllers/Admin/GoodsReceiptController.php
-
-		-
-			message: '#^Method App\\Http\\Controllers\\Admin\\GoodsReceiptController\:\:locationOptions\(\) should return Illuminate\\Support\\Collection\<int, array\> but returns Illuminate\\Support\\Collection\<int, array\{id\: int, label\: non\-falsy\-string\}\>\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Http/Controllers/Admin/GoodsReceiptController.php
-
-		-
-			message: '#^Method App\\Http\\Controllers\\Admin\\GoodsReceiptController\:\:purchaseOrderOptions\(\) should return Illuminate\\Support\\Collection\<int, array\> but returns Illuminate\\Support\\Collection\<int, array\{id\: int, label\: non\-falsy\-string\}\>\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Http/Controllers/Admin/GoodsReceiptController.php
-
-		-
 			message: '#^Method App\\Http\\Controllers\\Admin\\Inventory\\MaterialRequirementController\:\:itemOptions\(\) should return Illuminate\\Support\\Collection\<int, array\{id\: int, label\: string\}\> but returns Illuminate\\Support\\Collection\<int, array\{id\: int, label\: non\-falsy\-string\}\>\.$#'
 			identifier: return.type
 			count: 1
@@ -67,25 +49,13 @@ parameters:
 			path: app/Http/Controllers/Admin/ProductionPlanController.php
 
 		-
-			message: '#^Method App\\Http\\Controllers\\Admin\\PurchaseOrderController\:\:itemOptions\(\) should return Illuminate\\Support\\Collection\<int, array\> but returns Illuminate\\Support\\Collection\<int, array\{id\: int, unit\: string, label\: non\-falsy\-string\}\>\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Http/Controllers/Admin/PurchaseOrderController.php
-
-		-
-			message: '#^Method App\\Http\\Controllers\\Admin\\PurchaseOrderController\:\:supplierOptions\(\) should return Illuminate\\Support\\Collection\<int, array\> but returns Illuminate\\Support\\Collection\<int, array\{id\: int, label\: non\-falsy\-string\}\>\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Http/Controllers/Admin/PurchaseOrderController.php
-
-		-
-			message: '#^Call to an undefined method Illuminate\\Contracts\\Pagination\\LengthAwarePaginator\:\:through\(\)\.$#'
+			message: '#^Call to an undefined method Illuminate\\Contracts\\Pagination\\LengthAwarePaginator\<int, Illuminate\\Database\\Eloquent\\Model\>\:\:through\(\)\.$#'
 			identifier: method.notFound
 			count: 1
 			path: app/Http/Controllers/Admin/RoleController.php
 
 		-
-			message: '#^Call to an undefined method Illuminate\\Contracts\\Pagination\\LengthAwarePaginator\:\:through\(\)\.$#'
+			message: '#^Call to an undefined method Illuminate\\Contracts\\Pagination\\LengthAwarePaginator\<int, Illuminate\\Database\\Eloquent\\Model\>\:\:through\(\)\.$#'
 			identifier: method.notFound
 			count: 1
 			path: app/Http/Controllers/Admin/UserController.php
@@ -109,12 +79,6 @@ parameters:
 			path: app/Repositories/Admin/CapacityRepository.php
 
 		-
-			message: '#^Cannot call method toDateTimeString\(\) on string\.$#'
-			identifier: method.nonObject
-			count: 2
-			path: app/Repositories/Admin/CapacityRepository.php
-
-		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$version\.$#'
 			identifier: property.notFound
 			count: 1
@@ -131,18 +95,6 @@ parameters:
 			identifier: property.protected
 			count: 1
 			path: app/Services/Admin/ProductionPlanService.php
-
-		-
-			message: '#^Cannot call method format\(\) on string\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: tests/Feature/CapacityPlanningTest.php
-
-		-
-			message: '#^Cannot call method lessThanOrEqualTo\(\) on string\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: tests/Feature/CapacityPlanningTest.php
 
 		-
 			message: '#^Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage\:\:times\(\)\.$#'

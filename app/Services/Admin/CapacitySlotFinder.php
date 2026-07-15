@@ -23,7 +23,7 @@ class CapacitySlotFinder
 
     /**
      * @var array<int, array{from: CarbonImmutable, until: CarbonImmutable,
-     *     reservations: EloquentCollection}>
+     *     reservations: EloquentCollection<int, CapacityReservation>}>
      */
     private array $reservationCache = [];
 
@@ -116,7 +116,7 @@ class CapacitySlotFinder
     /**
      * Visszaadja a gyáregység gyorsítótárazott foglalásait a tervezési horizontra.
      *
-     * @return EloquentCollection A kapacitásfoglalások.
+     * @return EloquentCollection<int, CapacityReservation> A kapacitásfoglalások.
      */
     private function factoryReservationsFor(int $factoryUnitId, CarbonInterface $from, CarbonInterface $until): EloquentCollection
     {
@@ -144,6 +144,8 @@ class CapacitySlotFinder
 
     /**
      * Megállapítja, hogy a naptárbejegyzés munkanapot jelöl-e.
+     *
+     * @phpstan-assert-if-true FactoryUnitCalendar $calendar
      */
     private function isWorkingCalendar(?FactoryUnitCalendar $calendar): bool
     {

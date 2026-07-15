@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\MaterialRequirementStatus;
 use Database\Factories\MaterialRequirementFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -27,6 +28,8 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
  * @property-read CustomerOrderItem|null $customerOrderItem
+ * @property-read Collection<int, PurchaseRequisitionItemSource> $purchaseRequisitionSources
+ * @property-read int|null $purchase_requisition_sources_count
  * @property-read Item|null $requiredItem
  *
  * @method static \Database\Factories\MaterialRequirementFactory factory($count = null, $state = [])
