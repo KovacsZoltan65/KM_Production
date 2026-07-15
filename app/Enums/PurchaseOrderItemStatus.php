@@ -2,6 +2,9 @@
 
 namespace App\Enums;
 
+/**
+ * A beszerzési rendeléstételek mennyiségi beérkezési állapotait reprezentálja.
+ */
 enum PurchaseOrderItemStatus: string
 {
     case Ordered = 'ordered';

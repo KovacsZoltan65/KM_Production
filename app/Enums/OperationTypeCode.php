@@ -2,6 +2,9 @@
 
 namespace App\Enums;
 
+/**
+ * A gyártási művelettípusok stabil, adatbázisban tárolt azonosítókódjait reprezentálja.
+ */
 enum OperationTypeCode: string
 {
     case CUTTING = 'CUTTING';

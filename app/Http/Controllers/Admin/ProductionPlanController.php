@@ -133,7 +133,7 @@ class ProductionPlanController extends Controller
     }
 
     /**
-     * @return array<int, array{label: string, value: string}>
+     * @return list<array{label: string, value: string}>
      */
     private function statusOptions(): array
     {

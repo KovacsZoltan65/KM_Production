@@ -2,6 +2,9 @@
 
 namespace App\Enums;
 
+/**
+ * A gyártási rendelések felszabadítási, végrehajtási és lezárási állapotait reprezentálja.
+ */
 enum ProductionOrderStatus: string
 {
     case Planned = 'planned';

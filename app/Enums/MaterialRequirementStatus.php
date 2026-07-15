@@ -2,6 +2,9 @@
 
 namespace App\Enums;
 
+/**
+ * A gyártási anyagszükséglet ellátottsági és beszerzési állapotait reprezentálja.
+ */
 enum MaterialRequirementStatus: string
 {
     case Calculated = 'calculated';

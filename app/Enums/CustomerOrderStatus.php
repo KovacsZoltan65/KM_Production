@@ -2,6 +2,9 @@
 
 namespace App\Enums;
 
+/**
+ * A vevői rendelések feldolgozási, gyártási és kiszállítási életciklusát reprezentálja.
+ */
 enum CustomerOrderStatus: string
 {
     case Draft = 'draft';

@@ -181,7 +181,7 @@ class ProductionTaskController extends Controller
     /**
      * Összeállítja a gyártási feladatállapotok választási listáját.
      *
-     * @return array<int, array{label: string, value: string}> A lokalizált állapotopciók.
+     * @return list<array{label: string, value: string}> A lokalizált állapotopciók.
      */
     private function statusOptions(): array
     {
@@ -300,7 +300,7 @@ class ProductionTaskController extends Controller
     /**
      * Összeállítja a minőségellenőrzési eredmények választási listáját.
      *
-     * @return array<int, array{label: string, value: string}> A lokalizált eredményopciók.
+     * @return list<array{label: string, value: string}> A lokalizált eredményopciók.
      */
     private function qualityResultOptions(): array
     {

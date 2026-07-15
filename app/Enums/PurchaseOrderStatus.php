@@ -2,6 +2,9 @@
 
 namespace App\Enums;
 
+/**
+ * A beszerzési rendelések kiadási és beérkezési életciklusát reprezentálja.
+ */
 enum PurchaseOrderStatus: string
 {
     case Draft = 'draft';

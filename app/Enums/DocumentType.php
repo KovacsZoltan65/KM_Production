@@ -2,6 +2,9 @@
 
 namespace App\Enums;
 
+/**
+ * A gyártási és beszerzési folyamatokhoz csatolható dokumentumok üzleti típusait reprezentálja.
+ */
 enum DocumentType: string
 {
     case Drawing = 'drawing';

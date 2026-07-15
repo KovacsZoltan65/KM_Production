@@ -275,7 +275,7 @@ class DocumentController extends Controller
      * A DocumentType enum értékeiből lokalizált label–value párokat
      * állít elő a frontend kiválasztómezői számára.
      *
-     * @return array<int, array{label: string, value: string}>
+     * @return list<array{label: string, value: string}>
      */
     private function documentTypeOptions(): array
     {

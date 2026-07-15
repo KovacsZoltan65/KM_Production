@@ -2,6 +2,9 @@
 
 namespace App\Enums;
 
+/**
+ * A gyártási feladatok végrehajtási sorrendjének és minőségi lezárásának állapotait reprezentálja.
+ */
 enum ProductionTaskStatus: string
 {
     case Planned = 'planned';

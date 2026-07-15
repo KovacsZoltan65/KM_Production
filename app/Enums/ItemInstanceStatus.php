@@ -2,6 +2,9 @@
 
 namespace App\Enums;
 
+/**
+ * Az egyedileg nyomon követett cikkpéldányok gyártási, készlet- és minőségi állapotait reprezentálja.
+ */
 enum ItemInstanceStatus: string
 {
     case Planned = 'planned';

@@ -2,6 +2,9 @@
 
 namespace App\Enums;
 
+/**
+ * A beszerzési igények jóváhagyási és megrendelési életciklusát reprezentálja.
+ */
 enum PurchaseRequisitionStatus: string
 {
     case Draft = 'draft';

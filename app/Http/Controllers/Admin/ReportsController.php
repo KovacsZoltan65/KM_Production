@@ -142,7 +142,7 @@ class ReportsController extends Controller
      * A CustomerOrderStatus enum értékeiből a frontend szűrőjéhez készít
      * megjelenítési címkéket és technikai értékeket.
      *
-     * @return array<int, array{label: string, value: string}> Az állapotopciók.
+     * @return list<array{label: string, value: string}> Az állapotopciók.
      */
     private function customerOrderStatusOptions(): array
     {

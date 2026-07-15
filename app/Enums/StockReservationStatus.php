@@ -2,6 +2,9 @@
 
 namespace App\Enums;
 
+/**
+ * A gyártási és vevői igényekhez létrehozott készletfoglalások életciklusát reprezentálja.
+ */
 enum StockReservationStatus: string
 {
     case Active = 'active';

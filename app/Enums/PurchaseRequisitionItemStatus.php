@@ -2,6 +2,9 @@
 
 namespace App\Enums;
 
+/**
+ * A beszerzési igénytételek igénylési és megrendelési állapotait reprezentálja.
+ */
 enum PurchaseRequisitionItemStatus: string
 {
     case Draft = 'draft';

@@ -101,7 +101,7 @@ class GoodsReceiptController extends Controller
      * A GoodsReceiptStatus enum értékeiből lokalizált címke–érték párokat
      * készít a frontend szűrői és űrlapmezői számára.
      *
-     * @return array<int, array{label: string, value: string}> Az állapotopciók.
+     * @return list<array{label: string, value: string}> Az állapotopciók.
      */
     private function statusOptions(): array
     {

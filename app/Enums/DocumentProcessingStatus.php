@@ -2,6 +2,9 @@
 
 namespace App\Enums;
 
+/**
+ * A dokumentumok automatizált feldolgozásának és emberi felülvizsgálatának állapotait reprezentálja.
+ */
 enum DocumentProcessingStatus: string
 {
     case Pending = 'pending';

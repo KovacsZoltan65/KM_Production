@@ -9,10 +9,23 @@ use App\Models\QualityCheck;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * A dokumentumhoz kapcsolható domainmodellek aliasait, osztályneveit és frontend opcióit kezeli.
+ *
+ * Az aliasok kizárólag a bemenet és a megjelenítés stabil kulcsai; a polymorphic kapcsolatban
+ * a modellek teljes osztályneve kerül tárolásra.
+ */
 class DocumentableRegistry
 {
     /**
-     * @return array<string, class-string<Model>>
+     * Visszaadja a támogatott morph aliasok és Eloquent modellek teljes megfeleltetését.
+     *
+     * @return array{
+     *     item: class-string<Item>,
+     *     production_order: class-string<ProductionOrder>,
+     *     production_task: class-string<ProductionTask>,
+     *     quality_check: class-string<QualityCheck>
+     * }
      */
     public static function aliases(): array
     {
@@ -25,7 +38,13 @@ class DocumentableRegistry
     }
 
     /**
-     * @return array<int, array{label: string, value: string, class: class-string<Model>}>
+     * Összeállítja a frontend dokumentumkapcsolási választólistáját.
+     *
+     * @return list<array{
+     *     label: non-empty-string,
+     *     value: 'item'|'production_order'|'production_task'|'quality_check',
+     *     class: class-string<Item>|class-string<ProductionOrder>|class-string<ProductionTask>|class-string<QualityCheck>
+     * }>
      */
     public static function options(): array
     {
@@ -38,7 +57,9 @@ class DocumentableRegistry
     }
 
     /**
-     * @return array<int, string>
+     * Visszaadja a bemeneti validációban elfogadott aliasokat és teljes modell-osztályneveket.
+     *
+     * @return list<non-empty-string>
      */
     public static function allowedValues(): array
     {
@@ -46,7 +67,7 @@ class DocumentableRegistry
     }
 
     /**
-     * @return class-string<Model>
+     * Az ismert aliast modell-osztálynévre oldja, más értéket változatlanul ad vissza.
      */
     public static function classFrom(string $value): string
     {
@@ -54,7 +75,11 @@ class DocumentableRegistry
     }
 
     /**
+     * Ellenőrzi a típust és az azonosítót, majd visszaadja a létező kapcsolható modell osztálynevét.
+     *
      * @return class-string<Model>
+     *
+     * @throws ValidationException Ha a típus nem támogatott, vagy a hivatkozott modell nem létezik.
      */
     public static function resolveExisting(string $type, int $id): string
     {
@@ -71,11 +96,17 @@ class DocumentableRegistry
         return $class;
     }
 
+    /**
+     * Visszaadja a modell regisztrált aliasát, ismeretlen osztálynévnél pedig az eredeti értéket.
+     */
     public static function aliasFor(string $class): string
     {
         return array_search($class, self::aliases(), true) ?: $class;
     }
 
+    /**
+     * Ember számára olvasható angol címkét képez a modell aliasából vagy osztálynevéből.
+     */
     public static function labelFor(string $class): string
     {
         $alias = self::aliasFor($class);

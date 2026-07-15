@@ -2,6 +2,9 @@
 
 namespace App\Enums;
 
+/**
+ * A készlet mennyiségét és nyomon követhetőségét érintő mozgások üzleti okát reprezentálja.
+ */
 enum StockMovementType: string
 {
     case PurchaseReceive = 'purchase_receive';

@@ -2,6 +2,9 @@
 
 namespace App\Enums;
 
+/**
+ * A készletmozgásokban és gyártásban használt fizikai helyek rendeltetését reprezentálja.
+ */
 enum LocationType: string
 {
     case Warehouse = 'warehouse';

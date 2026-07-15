@@ -149,7 +149,7 @@ class PurchaseOrderController extends Controller
     /**
      * Összeállítja a beszerzési rendelésállapotok választási listáját.
      *
-     * @return array<int, array{label: string, value: string}> A lokalizált állapotopciók.
+     * @return list<array{label: string, value: string}> A lokalizált állapotopciók.
      */
     private function statusOptions(): array
     {

@@ -2,6 +2,9 @@
 
 namespace App\Enums;
 
+/**
+ * A gyártási tervtételek tervezési és végrehajtási állapotait reprezentálja.
+ */
 enum ProductionPlanItemStatus: string
 {
     case Draft = 'draft';
