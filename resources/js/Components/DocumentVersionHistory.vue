@@ -1,8 +1,9 @@
 <script setup>
 import DocumentStatusBadge from "@/Components/DocumentStatusBadge.vue";
 import { route } from "@/Utils/routes";
-import { Link, router } from "@inertiajs/vue3";
+import { Link, router, usePage } from "@inertiajs/vue3";
 import Button from "primevue/button";
+import { computed } from "vue";
 
 /**
  * Dokumentumverzió a verzióelőzményben.
@@ -24,6 +25,12 @@ import Button from "primevue/button";
 const props = defineProps({
     versions: { type: Array, required: true },
 });
+const page = usePage();
+const canMakeCurrent = computed(
+    () =>
+        page.props.auth?.roles?.includes("super-admin") ||
+        page.props.auth?.permissions?.includes("documents.version"),
+);
 
 const makeCurrent = (document) => {
     router.patch(
@@ -65,7 +72,7 @@ const makeCurrent = (document) => {
                 <div class="flex flex-wrap items-center gap-2">
                     <DocumentStatusBadge :document="document" />
                     <Button
-                        v-if="!document.is_current"
+                        v-if="canMakeCurrent && !document.is_current"
                         type="button"
                         :label="$t('actions.make_current')"
                         icon="pi pi-check-circle"

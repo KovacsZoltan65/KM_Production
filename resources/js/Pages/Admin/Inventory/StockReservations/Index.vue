@@ -14,7 +14,7 @@ import Toast from "primevue/toast";
 import { useConfirm } from "primevue/useconfirm";
 import { useToast } from "primevue/usetoast";
 import { trans } from "laravel-vue-i18n";
-import { onMounted, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 
 /** @typedef {{label: string, value: string}} StatusOption */
 /** @typedef {{id: number, reserved_quantity: string|number, status: string, reserved_at: string|null, released_at: string|null, item: {item_number: string, name: string}|null, location: {code: string}|null, item_batch: {batch_number: string}|null, customer_order_item: {customer_order: {order_number: string}|null}|null, production_order: {order_number: string}|null, reserver: {name: string}|null}} StockReservationRecord */
@@ -45,9 +45,9 @@ import { onMounted, ref, watch } from "vue";
  */
 /** @type {Props} */
 const props = defineProps({
-    records: Object,
-    filters: Object,
-    statusOptions: Array,
+    records: { type: Object, required: true },
+    filters: { type: Object, default: () => ({}) },
+    statusOptions: { type: Array, default: () => [] },
 });
 const page = usePage();
 const toast = useToast();
@@ -59,6 +59,12 @@ const perPage = ref(
 const status = ref(props.filters.status || null);
 const sortField = ref(props.filters.sort || "reserved_at");
 const sortOrder = ref((props.filters.direction || "desc") === "asc" ? 1 : -1);
+const processingReservationId = ref(null);
+const canRelease = computed(
+    () =>
+        page.props.auth?.roles?.includes("super-admin") ||
+        page.props.auth?.permissions?.includes("inventory.release"),
+);
 
 const number = (value) => Number(value || 0).toFixed(3);
 const formatDate = (value) => (value ? new Date(value).toLocaleString() : "-");
@@ -85,18 +91,30 @@ const onSort = (event) => {
     sortOrder.value = event.sortOrder;
     reload(1);
 };
-const release = (record) =>
+const release = (record) => {
+    if (!canRelease.value || processingReservationId.value !== null) {
+        return;
+    }
+
     confirm.require({
         message: trans("inventory.stock_reservations.confirm_release_message"),
         header: trans("inventory.stock_reservations.confirm_release_header"),
         icon: "pi pi-exclamation-triangle",
-        accept: () =>
+        accept: () => {
+            processingReservationId.value = record.id;
             router.patch(
                 route("admin.inventory.stock-reservations.release", record.id),
                 {},
-                { preserveScroll: true },
-            ),
+                {
+                    preserveScroll: true,
+                    onFinish: () => {
+                        processingReservationId.value = null;
+                    },
+                },
+            );
+        },
     });
+};
 
 onMounted(
     () =>
@@ -160,6 +178,7 @@ watch(
                 @page="onPage"
                 @sort="onSort"
             >
+                <template #empty>{{ trans("common.no_data") }}</template>
                 <Column :header="trans('fields.item')" field="item_id" sortable
                     ><template #body="{ data }"
                         >{{ data.item?.item_number }} -
@@ -226,12 +245,14 @@ watch(
                 <Column header=""
                     ><template #body="{ data }"
                         ><Button
-                            v-if="data.status === 'active'"
+                            v-if="data.status === 'active' && canRelease"
                             icon="pi pi-undo"
                             :label="trans('actions.release')"
                             severity="secondary"
                             outlined
                             size="small"
+                            :loading="processingReservationId === data.id"
+                            :disabled="processingReservationId !== null"
                             @click="release(data)" /></template
                 ></Column>
             </DataTable>

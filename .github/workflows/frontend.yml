@@ -1,0 +1,33 @@
+name: Frontend
+
+on:
+    pull_request:
+    push:
+        branches: [main]
+
+permissions:
+    contents: read
+
+jobs:
+    frontend:
+        runs-on: ubuntu-latest
+        timeout-minutes: 15
+
+        steps:
+            - name: Forráskód letöltése
+              uses: actions/checkout@v7
+
+            - name: Node.js beállítása
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+                  cache: npm
+
+            - name: Függőségek telepítése
+              run: npm ci
+
+            - name: Frontend tesztek
+              run: npm run test:frontend
+
+            - name: Frontend build
+              run: npm run build

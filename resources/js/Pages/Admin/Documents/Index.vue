@@ -66,6 +66,17 @@ const perPage = ref(
 );
 const sortField = ref(props.filters.sort || "id");
 const sortOrder = ref((props.filters.direction || "desc") === "asc" ? 1 : -1);
+const permissions = computed(() => page.props.auth?.permissions || []);
+const isSuperAdmin = computed(() =>
+    page.props.auth?.roles?.includes("super-admin"),
+);
+const canCreate = computed(
+    () => isSuperAdmin.value || permissions.value.includes("documents.create"),
+);
+const canDownload = computed(
+    () =>
+        isSuperAdmin.value || permissions.value.includes("documents.download"),
+);
 
 const booleanOptions = computed(() => [
     { label: trans("common.yes"), value: "1" },
@@ -109,6 +120,7 @@ watch(() => page.props.flash?.success, flash);
                 :title="$t('documents.title')"
                 :subtitle="$t('documents.subtitle')"
                 :create-label="$t('documents.upload')"
+                :can-create="canCreate"
                 @create="dialogVisible = true"
             />
 
@@ -249,6 +261,7 @@ watch(() => page.props.flash?.success, flash);
                                 {{ $t("actions.open") }}
                             </Link>
                             <a
+                                v-if="canDownload"
                                 :href="
                                     route('admin.documents.download', data.id)
                                 "

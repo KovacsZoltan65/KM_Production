@@ -143,7 +143,11 @@ const fieldRows = computed(() => {
                 : null;
         const previousRow = rows.at(-1);
 
-        if (layoutGroup && previousRow?.layoutGroup === layoutGroup) {
+        if (
+            layoutGroup &&
+            previousRow?.layoutGroup === layoutGroup &&
+            previousRow.fields.length < 3
+        ) {
             previousRow.fields.push(field);
             return;
         }

@@ -7,6 +7,11 @@ import Menu from "primevue/menu";
 import { computed, ref } from "vue";
 import { trans } from "laravel-vue-i18n";
 import TopbarLocaleSwitch from "@/Components/TopbarLocaleSwitch.vue";
+import {
+    filterNavigationItems,
+    findActiveNavigationHref,
+    normalizeNavigationPath,
+} from "@/Utils/navigation";
 
 /**
  * A közösen megosztott bejelentkezett felhasználó.
@@ -53,7 +58,7 @@ const menuItems = computed(() => [
 ]);
 
 /** @type {import('vue').ComputedRef<NavigationItem[]>} */
-const sidebarItems = computed(() => [
+const allSidebarItems = computed(() => [
     {
         labelKey: "admin.dashboard.title",
         icon: "pi pi-home",
@@ -327,31 +332,18 @@ const sidebarItems = computed(() => [
         href: route("admin.intelligence.recommendations"),
     },
 ]);
-
-/**
- * URL-ből lekérdezés és töredék nélküli útvonalat képez.
- * @param {string|null|undefined} url A normalizálandó URL.
- * @returns {string} A normalizált útvonal.
- */
-const normalizePath = (url) => {
-    const path = String(url || "/").split(/[?#]/)[0];
-
-    return path.length > 1 ? path.replace(/\/+$/, "") : path;
-};
-
-const currentPath = computed(() => normalizePath(page.url));
-
-const activeSidebarHref = computed(() => {
-    return sidebarItems.value
-        .filter((item) => !item.disabled && item.href)
-        .map((item) => normalizePath(item.href))
-        .filter(
-            (href) =>
-                currentPath.value === href ||
-                currentPath.value.startsWith(`${href}/`),
-        )
-        .sort((first, second) => second.length - first.length)[0];
-});
+const permissions = computed(() => page.props.auth?.permissions || []);
+const roles = computed(() => page.props.auth?.roles || []);
+const sidebarItems = computed(() =>
+    filterNavigationItems(
+        allSidebarItems.value,
+        permissions.value,
+        roles.value,
+    ),
+);
+const activeSidebarHref = computed(() =>
+    findActiveNavigationHref(sidebarItems.value, page.url),
+);
 
 /**
  * Megállapítja, hogy az oldalsávelem az aktív útvonalra mutat-e.
@@ -360,7 +352,8 @@ const activeSidebarHref = computed(() => {
  */
 const isSidebarItemActive = (item) => {
     return (
-        !item.disabled && normalizePath(item.href) === activeSidebarHref.value
+        !item.disabled &&
+        normalizeNavigationPath(item.href) === activeSidebarHref.value
     );
 };
 

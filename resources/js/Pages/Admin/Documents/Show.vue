@@ -4,12 +4,15 @@ import DocumentVersionHistory from "@/Components/DocumentVersionHistory.vue";
 import AdminLayout from "@/Layouts/AdminLayout.vue";
 import { route } from "@/Utils/routes";
 import { Head, Link, router, useForm, usePage } from "@inertiajs/vue3";
+import { trans } from "laravel-vue-i18n";
 import Button from "primevue/button";
 import InputText from "primevue/inputtext";
 import Textarea from "primevue/textarea";
 import Toast from "primevue/toast";
+import ConfirmDialog from "primevue/confirmdialog";
+import { useConfirm } from "primevue/useconfirm";
 import { useToast } from "primevue/usetoast";
-import { onMounted, watch } from "vue";
+import { computed, onMounted, watch } from "vue";
 
 /**
  * Megjelenített dokumentum.
@@ -45,10 +48,22 @@ const props = defineProps({
 
 const page = usePage();
 const toast = useToast();
+const confirm = useConfirm();
 const form = useForm({
     title: props.document.title || "",
     notes: props.document.description || "",
 });
+const permissions = computed(() => page.props.auth?.permissions || []);
+const isSuperAdmin = computed(() =>
+    page.props.auth?.roles?.includes("super-admin"),
+);
+const can = (permission) =>
+    isSuperAdmin.value || permissions.value.includes(permission);
+const canUpdate = computed(() => can("documents.update"));
+const canDelete = computed(() => can("documents.delete"));
+const canDownload = computed(() => can("documents.download"));
+const canApprove = computed(() => can("documents.approve"));
+const canVersion = computed(() => can("documents.version"));
 
 const save = () => {
     form.patch(route("admin.documents.update", props.document.id), {
@@ -73,7 +88,16 @@ const makeCurrent = () => {
 };
 
 const destroy = () => {
-    router.delete(route("admin.documents.destroy", props.document.id));
+    confirm.require({
+        message: trans("confirm.delete_named_message", {
+            name: props.document.title,
+        }),
+        header: trans("admin.crud.confirm_delete_header"),
+        icon: "pi pi-exclamation-triangle",
+        acceptClass: "p-button-danger",
+        accept: () =>
+            router.delete(route("admin.documents.destroy", props.document.id)),
+    });
 };
 
 const flash = (message) =>
@@ -86,6 +110,7 @@ watch(() => page.props.flash?.success, flash);
     <Head :title="document.title" />
     <AdminLayout>
         <Toast />
+        <ConfirmDialog />
         <div class="space-y-4">
             <div
                 class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
@@ -102,13 +127,14 @@ watch(() => page.props.flash?.success, flash);
                 </div>
                 <div class="flex flex-wrap gap-2">
                     <a
+                        v-if="canDownload"
                         :href="route('admin.documents.download', document.id)"
                         class="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
                     >
                         {{ $t("actions.download") }}
                     </a>
                     <Button
-                        v-if="!document.approved"
+                        v-if="canApprove && !document.approved"
                         type="button"
                         :label="$t('actions.approve')"
                         icon="pi pi-check"
@@ -116,7 +142,7 @@ watch(() => page.props.flash?.success, flash);
                         @click="approve"
                     />
                     <Button
-                        v-if="!document.is_current"
+                        v-if="canVersion && !document.is_current"
                         type="button"
                         :label="$t('actions.make_current')"
                         icon="pi pi-check-circle"
@@ -124,6 +150,7 @@ watch(() => page.props.flash?.success, flash);
                         @click="makeCurrent"
                     />
                     <Button
+                        v-if="canDelete"
                         type="button"
                         :label="$t('actions.delete')"
                         icon="pi pi-trash"
@@ -136,7 +163,10 @@ watch(() => page.props.flash?.success, flash);
 
             <DocumentPreviewCard :document="document" />
 
-            <section class="rounded border border-slate-200 bg-white p-4">
+            <section
+                v-if="canUpdate"
+                class="rounded border border-slate-200 bg-white p-4"
+            >
                 <h2 class="font-semibold">{{ $t("documents.notes") }}</h2>
                 <form class="mt-3 space-y-3" @submit.prevent="save">
                     <div class="space-y-1">

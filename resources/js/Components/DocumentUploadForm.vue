@@ -45,6 +45,10 @@ const pickFile = (event) => {
 };
 
 const submit = () => {
+    if (form.processing) {
+        return;
+    }
+
     form.post(route("admin.documents.store"), {
         forceFormData: true,
         preserveScroll: true,
