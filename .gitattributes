@@ -9,3 +9,59 @@
 /.github export-ignore
 CHANGELOG.md export-ignore
 .styleci.yml export-ignore
+
+# Local agent, editor and IDE state
+/.agents export-ignore
+/.codex export-ignore
+/.cursor export-ignore
+/.idea export-ignore
+/.vscode export-ignore
+/.zed export-ignore
+/.phpstorm.meta.php export-ignore
+/.phpactor.json export-ignore
+/_ide_helper.php export-ignore
+/_ide_helper_models.php export-ignore
+
+# Environment files and local credentials (.env.example is intentionally kept)
+/.env export-ignore
+/.env.* export-ignore
+/.env.example -export-ignore
+/auth.json export-ignore
+/composer-auth.json export-ignore
+
+# Dependencies, generated frontend assets and test output
+/node_modules export-ignore
+/vendor export-ignore
+/coverage export-ignore
+/public/build export-ignore
+/public/hot export-ignore
+/public/storage export-ignore
+/.phpunit.cache export-ignore
+/.phpunit.result.cache export-ignore
+
+# Runtime output and caches
+*.log export-ignore
+/bootstrap/cache/*.php export-ignore
+/storage/logs export-ignore
+/storage/framework/cache/data export-ignore
+/storage/framework/sessions export-ignore
+/storage/framework/views export-ignore
+/storage/pail export-ignore
+
+# Local databases, dumps, private keys and temporary files
+*.sql export-ignore
+*.sql.gz export-ignore
+*.dump export-ignore
+*.sqlite export-ignore
+*.sqlite3 export-ignore
+*.db export-ignore
+*.bak export-ignore
+*.pem export-ignore
+*.p12 export-ignore
+*.pfx export-ignore
+*.key export-ignore
+*.tmp export-ignore
+*.temp export-ignore
+*~ export-ignore
+.DS_Store export-ignore
+Thumbs.db export-ignore
