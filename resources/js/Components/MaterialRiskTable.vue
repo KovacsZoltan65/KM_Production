@@ -2,6 +2,7 @@
 import RiskBadge from "@/Components/RiskBadge.vue";
 import Column from "primevue/column";
 import DataTable from "primevue/datatable";
+import { formatDashboardNumber } from "@/Utils/dashboard";
 
 /**
  * Anyagellátási kockázat sora.
@@ -24,8 +25,7 @@ defineProps({
     rows: { type: Array, default: () => [] },
 });
 
-const number = (value) =>
-    value === null || value === undefined ? "-" : Number(value).toFixed(3);
+const number = formatDashboardNumber;
 </script>
 
 <template>

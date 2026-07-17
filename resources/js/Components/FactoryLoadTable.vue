@@ -2,6 +2,7 @@
 import DataTable from "primevue/datatable";
 import Column from "primevue/column";
 import Tag from "primevue/tag";
+import { loadStatusSeverity } from "@/Utils/dashboard";
 
 /**
  * Gyártóegység kapacitásterhelése.
@@ -23,9 +24,7 @@ defineProps({
     loads: { type: Array, default: () => [] },
 });
 
-const severityFor = (status) =>
-    ({ green: "success", yellow: "warn", red: "danger" })[status] ||
-    "secondary";
+const severityFor = loadStatusSeverity;
 </script>
 
 <template>

@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from "vue";
+import { buildStatusChart, statusChartLabel } from "@/Utils/charts";
 
 /**
  * Állapotdiagram adatsora.
@@ -17,37 +18,10 @@ const props = defineProps({
     rows: { type: Array, default: () => [] },
 });
 
-const colors = [
-    "#2563eb",
-    "#059669",
-    "#d97706",
-    "#dc2626",
-    "#7c3aed",
-    "#0f766e",
-    "#64748b",
-];
-const total = computed(() =>
-    props.rows.reduce((sum, row) => sum + Number(row.value || 0), 0),
-);
-const segments = computed(() => {
-    let offset = 0;
-
-    return props.rows.map((row, index) => {
-        const value = Number(row.value || 0);
-        const length = total.value > 0 ? (value / total.value) * 100 : 0;
-        const segment = {
-            ...row,
-            color: colors[index % colors.length],
-            dasharray: `${length} ${100 - length}`,
-            dashoffset: -offset,
-        };
-        offset += length;
-
-        return segment;
-    });
-});
-
-const label = (value) => String(value || "").replaceAll("_", " ");
+const chart = computed(() => buildStatusChart(props.rows));
+const total = computed(() => chart.value.total);
+const segments = computed(() => chart.value.segments);
+const label = statusChartLabel;
 </script>
 
 <template>

@@ -5,15 +5,23 @@
     "scripts": {
         "build": "vite build",
         "dev": "vite",
-        "i18n:check": "node scripts/check-translations.js"
+        "i18n:check": "node scripts/check-translations.js",
+        "test": "npm run test:frontend",
+        "test:frontend": "vitest run",
+        "test:frontend:watch": "vitest",
+        "test:frontend:coverage": "vitest run --coverage"
     },
     "devDependencies": {
         "@tailwindcss/vite": "^4.0.0",
         "@vitejs/plugin-vue": "^6.0.7",
+        "@vitest/coverage-v8": "^4.1.10",
+        "@vue/test-utils": "^2.4.11",
         "concurrently": "^9.0.1",
+        "jsdom": "^29.1.1",
         "laravel-vite-plugin": "^3.1",
         "tailwindcss": "^4.0.0",
-        "vite": "^8.0.0"
+        "vite": "^8.0.0",
+        "vitest": "^4.1.10"
     },
     "dependencies": {
         "@inertiajs/vue3": "^3.4.0",
