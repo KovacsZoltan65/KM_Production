@@ -58,7 +58,7 @@ class DocumentService
             (int) $attributes['documentable_id']
         );
 
-        $disk = 'local';
+        $disk = (string) config('filesystems.default', 'local');
         $path = $file->store('documents', $disk);
 
         return DB::transaction(function () use ($attributes, $file, $causer, $documentableType, $disk, $path): Document {

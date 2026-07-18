@@ -80,6 +80,7 @@ const toast = useToast();
 const confirm = useConfirm();
 const dialogVisible = ref(false);
 const editingRecord = ref(null);
+const submitting = ref(false);
 const search = ref(props.filters.search || "");
 const status = ref(props.filters.status || null);
 const perPage = ref(
@@ -157,6 +158,7 @@ const reload = (pageNumber = 1) => {
 
 const submit = () => {
     errors.value = {};
+    submitting.value = true;
     const payload = { ...form, items: [...form.items] };
     const callbacks = {
         preserveScroll: true,
@@ -166,6 +168,9 @@ const submit = () => {
         },
         onError: (responseErrors) => {
             errors.value = responseErrors;
+        },
+        onFinish: () => {
+            submitting.value = false;
         },
     };
 
@@ -292,6 +297,7 @@ watch(
                     :options="statusOptions"
                     option-label="label"
                     option-value="value"
+                    :aria-label="trans('fields.status')"
                     show-clear
                     class="w-full sm:w-72"
                     @update:model-value="reload(1)"
@@ -421,6 +427,7 @@ watch(
                 :customer-options="customerOptions"
                 :item-options="itemOptions"
                 :errors="errors"
+                :processing="submitting"
                 @submit="submit"
                 @cancel="dialogVisible = false"
             />

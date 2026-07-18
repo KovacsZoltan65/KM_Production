@@ -125,6 +125,7 @@ watch(() => page.props.flash?.success, flash);
                     :options="statusOptions"
                     option-label="label"
                     option-value="value"
+                    :aria-label="$t('filters.status')"
                     :placeholder="$t('filters.status')"
                     show-clear
                     class="w-full sm:w-72"
@@ -206,6 +207,7 @@ watch(() => page.props.flash?.success, flash);
                     :options="purchaseOrderOptions"
                     option-label="label"
                     option-value="id"
+                    :aria-label="$t('fields.purchase_order')"
                     :placeholder="$t('fields.purchase_order')"
                     show-clear
                     filter
@@ -221,6 +223,7 @@ watch(() => page.props.flash?.success, flash);
                         :options="itemOptions"
                         option-label="label"
                         option-value="id"
+                        :aria-label="$t('fields.item')"
                         :placeholder="$t('fields.item')"
                         filter
                     />
@@ -229,6 +232,7 @@ watch(() => page.props.flash?.success, flash);
                         :options="locationOptions"
                         option-label="label"
                         option-value="id"
+                        :aria-label="$t('fields.location')"
                         :placeholder="$t('fields.location')"
                         filter
                     />
@@ -237,6 +241,7 @@ watch(() => page.props.flash?.success, flash);
                         type="number"
                         min="0.001"
                         step="0.001"
+                        :aria-label="$t('fields.received')"
                         class="rounded border border-slate-300 px-3 py-2"
                     />
                 </div>

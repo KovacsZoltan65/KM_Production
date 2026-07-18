@@ -38,6 +38,14 @@ return [
             'report' => false,
         ],
 
+        'e2e' => [
+            'driver' => 'local',
+            'root' => storage_path('framework/testing/e2e-files'),
+            'serve' => false,
+            'throw' => true,
+            'report' => false,
+        ],
+
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),

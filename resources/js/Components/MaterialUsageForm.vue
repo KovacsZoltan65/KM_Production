@@ -66,6 +66,7 @@ const submit = () => {
             :options="itemOptions"
             option-label="label"
             option-value="id"
+            :aria-label="$t('fields.material')"
             :placeholder="$t('fields.material')"
             filter
         />
@@ -74,6 +75,7 @@ const submit = () => {
             :options="locationOptions"
             option-label="label"
             option-value="id"
+            :aria-label="$t('fields.stock_location')"
             :placeholder="$t('fields.stock_location')"
             filter
             show-clear
@@ -82,12 +84,14 @@ const submit = () => {
             v-model="form.planned_quantity"
             :min-fraction-digits="3"
             :max-fraction-digits="3"
+            :input-props="{ 'aria-label': $t('fields.planned_quantity') }"
             :placeholder="$t('fields.planned_quantity')"
         />
         <InputNumber
             v-model="form.used_quantity"
             :min-fraction-digits="3"
             :max-fraction-digits="3"
+            :input-props="{ 'aria-label': $t('fields.used_quantity') }"
             :placeholder="$t('fields.used_quantity')"
         />
         <div>
@@ -104,6 +108,7 @@ const submit = () => {
         <Textarea
             v-model="form.notes"
             rows="1"
+            :aria-label="$t('fields.notes')"
             :placeholder="$t('fields.notes')"
             class="md:col-span-2"
         />

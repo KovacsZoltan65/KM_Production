@@ -433,7 +433,7 @@ const toggleUserMenu = (event) => {
                         class="flex min-w-fit items-center gap-2 rounded px-3 py-2 text-sm font-medium"
                         :class="
                             item.disabled
-                                ? 'cursor-not-allowed text-slate-400'
+                                ? 'cursor-not-allowed text-slate-600'
                                 : isSidebarItemActive(item)
                                   ? 'bg-blue-50 text-blue-700 shadow-sm ring-1 ring-blue-100'
                                   : 'text-slate-700 hover:bg-slate-100'

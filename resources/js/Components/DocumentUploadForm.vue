@@ -64,10 +64,14 @@ const submit = () => {
     <form class="space-y-4" @submit.prevent="submit">
         <div class="grid gap-3 sm:grid-cols-2">
             <div class="space-y-1">
-                <label class="text-sm font-medium text-slate-700">{{
-                    $t("fields.type")
-                }}</label>
+                <label
+                    for="document-type"
+                    class="text-sm font-medium text-slate-700"
+                    >{{ $t("fields.type") }}</label
+                >
                 <Select
+                    input-id="document-type"
+                    :aria-label="$t('fields.type')"
                     v-model="form.document_type"
                     :options="props.documentTypeOptions"
                     option-label="label"
@@ -84,10 +88,14 @@ const submit = () => {
             </div>
 
             <div class="space-y-1">
-                <label class="text-sm font-medium text-slate-700">{{
-                    $t("fields.linked_entity")
-                }}</label>
+                <label
+                    for="documentable-type"
+                    class="text-sm font-medium text-slate-700"
+                    >{{ $t("fields.linked_entity") }}</label
+                >
                 <Select
+                    input-id="documentable-type"
+                    :aria-label="$t('fields.linked_entity')"
                     v-model="form.documentable_type"
                     :options="props.documentableTypeOptions"
                     option-label="label"
@@ -106,10 +114,13 @@ const submit = () => {
 
         <div class="grid gap-3 sm:grid-cols-[12rem_1fr]">
             <div class="space-y-1">
-                <label class="text-sm font-medium text-slate-700">{{
-                    $t("fields.entity_id")
-                }}</label>
+                <label
+                    for="documentable-id"
+                    class="text-sm font-medium text-slate-700"
+                    >{{ $t("fields.entity_id") }}</label
+                >
                 <InputNumber
+                    input-id="documentable-id"
                     v-model="form.documentable_id"
                     input-class="w-full"
                     class="w-full"
@@ -124,10 +135,16 @@ const submit = () => {
             </div>
 
             <div class="space-y-1">
-                <label class="text-sm font-medium text-slate-700">{{
-                    $t("fields.title")
-                }}</label>
-                <InputText v-model="form.title" class="w-full" />
+                <label
+                    for="document-title"
+                    class="text-sm font-medium text-slate-700"
+                    >{{ $t("fields.title") }}</label
+                >
+                <InputText
+                    id="document-title"
+                    v-model="form.title"
+                    class="w-full"
+                />
                 <Message
                     v-if="form.errors.title"
                     severity="error"
@@ -138,10 +155,13 @@ const submit = () => {
         </div>
 
         <div class="space-y-1">
-            <label class="text-sm font-medium text-slate-700">{{
-                $t("fields.file")
-            }}</label>
+            <label
+                for="document-file"
+                class="text-sm font-medium text-slate-700"
+                >{{ $t("fields.file") }}</label
+            >
             <input
+                id="document-file"
                 type="file"
                 class="block w-full rounded border border-slate-300 bg-white px-3 py-2 text-sm"
                 @change="pickFile"
@@ -152,10 +172,17 @@ const submit = () => {
         </div>
 
         <div class="space-y-1">
-            <label class="text-sm font-medium text-slate-700">{{
-                $t("fields.notes")
-            }}</label>
-            <Textarea v-model="form.notes" rows="4" class="w-full" />
+            <label
+                for="document-notes"
+                class="text-sm font-medium text-slate-700"
+                >{{ $t("fields.notes") }}</label
+            >
+            <Textarea
+                id="document-notes"
+                v-model="form.notes"
+                rows="4"
+                class="w-full"
+            />
             <Message v-if="form.errors.notes" severity="error" size="small">{{
                 form.errors.notes
             }}</Message>

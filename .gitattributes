@@ -26,6 +26,7 @@ CHANGELOG.md export-ignore
 /.env export-ignore
 /.env.* export-ignore
 /.env.example -export-ignore
+/.env.e2e.example -export-ignore
 /auth.json export-ignore
 /composer-auth.json export-ignore
 
@@ -33,6 +34,9 @@ CHANGELOG.md export-ignore
 /node_modules export-ignore
 /vendor export-ignore
 /coverage export-ignore
+/playwright-report export-ignore
+/test-results export-ignore
+/tests/e2e/.auth export-ignore
 /public/build export-ignore
 /public/hot export-ignore
 /public/storage export-ignore

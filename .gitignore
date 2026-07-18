@@ -5,6 +5,7 @@ __pycache__/
 .env
 .env.*
 !.env.example
+!.env.e2e.example
 .env.testing
 .env.backup
 .env.production
@@ -22,6 +23,11 @@ __pycache__/
 /auth.json
 /node_modules
 /coverage
+/playwright-report
+/test-results
+/tests/e2e/.auth
+/storage/framework/testing/e2e-public-hot.backup
+/storage/framework/testing/e2e-server.pid
 /public/build
 /public/fonts-manifest.dev.json
 /public/hot

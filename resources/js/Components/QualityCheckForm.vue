@@ -51,6 +51,7 @@ const submit = () => {
             :options="employeeOptions"
             option-label="label"
             option-value="id"
+            :aria-label="$t('fields.inspector')"
             :placeholder="$t('fields.inspector')"
             filter
         />
@@ -59,11 +60,13 @@ const submit = () => {
             :options="qualityResultOptions"
             option-label="label"
             option-value="value"
+            :aria-label="$t('fields.result')"
             :placeholder="$t('fields.result')"
         />
         <Textarea
             v-model="form.notes"
             rows="2"
+            :aria-label="$t('fields.notes')"
             :placeholder="$t('fields.notes')"
             class="md:col-span-2"
         />

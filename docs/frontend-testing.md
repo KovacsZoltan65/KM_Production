@@ -2,7 +2,7 @@
 
 ## Cél és eszközök
 
-A frontend tesztrendszer a közös Vue-komponensek, az Inertia-hívási szerződések, a composable-ok és a kritikus oldalak regresszióit védi. A rendszer Vitest 4-et, Vue Test Utils 2-t, jsdomot és a V8 coverage providert használ. E2E keretrendszer ebben a fázisban nem került bevezetésre.
+A frontend tesztrendszer a közös Vue-komponensek, az Inertia-hívási szerződések, a composable-ok, a kritikus oldalak és a fő felhasználói folyamatok regresszióit védi. A unit/component réteg Vitest 4-et, Vue Test Utils 2-t, jsdomot és a V8 coverage providert használ. A böngészős E2E, accessibility, keyboard, cross-browser és mobile smoke réteg Playwrighttal fut; részletek: [E2E testing](e2e-testing.md).
 
 ## Audit és prioritások
 
@@ -45,9 +45,14 @@ npm test
 npm run test:frontend
 npm run test:frontend:watch
 npm run test:frontend:coverage
+npm run test:e2e
+npm run test:e2e:a11y
+npm run test:e2e:keyboard
+npm run test:e2e:cross-browser
+npm run test:e2e:mobile
 ```
 
-Az első két parancs egyszer fut és megfelelő exit kóddal leáll. A watch parancs fejlesztéshez használható. A coverage szöveges, HTML- és JSON-summary riportot ír a `coverage/frontend` könyvtárba. Globális threshold szándékosan nincs: előbb a kritikus területek célzott lefedését kell bővíteni.
+Az első két Vitest parancs egyszer fut és megfelelő exit kóddal leáll. A watch parancs fejlesztéshez használható. A coverage szöveges, HTML- és JSON-summary riportot ír a `coverage/frontend` könyvtárba. Globális threshold szándékosan nincs: előbb a kritikus területek célzott lefedését kell bővíteni. Az E2E parancsok előtt szükség esetén `npm run test:e2e:install` és mindig buildelt asset szükséges; a `npm run test:e2e` ezt előkészíti.
 
 ## Új teszt mintája
 
@@ -83,15 +88,21 @@ A fixture factory-k kis, érvényes alapobjektumokat adnak, és minden mező fel
 
 ## CI
 
-A `.github/workflows/frontend.yml` pull requestnél és a `main` branch pushainál Node 24 alatt futtatja az `npm ci`, `npm run test:frontend` és `npm run build` lépéseket. A frontend külön jobban fut, így a PHP/Pest hibáktól elkülöníthető. Watch módot és grafikus böngészőt nem használ.
+A `.github/workflows/frontend.yml` pull requestnél és a `main` branch pushainál három jobot futtat:
+
+- frontend unit, i18n és build;
+- Playwright Chromium E2E, accessibility és keyboard;
+- Playwright WebKit/Firefox cross-browser smoke és mobile Chromium smoke.
+
+Az E2E jobok PHP 8.4-et, Composer függőségeket, Node 24-et, Playwright böngészőket, SQLite E2E adatbázist és production build asseteket használnak. A Playwright riportok és `test-results` artifactként feltöltésre kerülnek.
 
 ## Mit teszteljünk
 
 Tesztelendő a prop/emit szerződés, üres és hibás adat, form reset és processing állapot, backend validációs hibák, route és HTTP-művelet, szűrés/lapozás, megerősítés, valamint jogosultságfüggő megjelenítés. Ne teszteljük a PrimeVue belső működését, a Laravel route-feloldást, backend üzleti logikát, CSS részleteket vagy nagy komponens-snapshotokat.
 
-## Későbbi E2E fázis
+## Playwright E2E réteg
 
-Stabil unit/component alap után külön Playwright-fázis javasolt. Első vertikális folyamat: bejelentkezés → törzsadat és vevői rendelés → gyártási terv → gyártási feladat → anyag/készletmozgás → minőségellenőrzés → dokumentum vagy teljesítés. Az E2E környezet külön tesztadatbázist, determinisztikus seedet és szerepkörönkénti jogosultsági forgatókönyveket igényel. E2E függőség jelenleg nincs telepítve.
+A Playwright réteg már aktív. A részletes környezet, fixture, futtatási és ismert kockázati leírás a [docs/e2e-testing.md](e2e-testing.md) fájlban található.
 
 ## Második tesztelési ütem
 
@@ -157,12 +168,6 @@ Ha később külső chart library kerül be, könnyű stubot használjunk, amely
 
 Opcionális nested relation esetén explicit `null` fixture-rel teszteljünk. Csak a dokumentáltan opcionális mezőket tegyük nullbiztossá; kötelező backend szerződést ne lazítsunk fel teszt kedvéért. Ismeretlen numerikus értékhez a közös dashboard helper `-` értéket ad, a chart count helper pedig biztonságos nullát.
 
-### Harmadik ütem javaslata
+### További bővítési irányok
 
-A következő kör prioritása accessibility és billentyűzetes navigáció, procurement jóváhagyási műveletek, production planning interakciók, további quality formágak és fájlletöltési edge case-ek. Ezután 3–5 Playwright smoke folyamat javasolt:
-
-1. bejelentkezés → permission-alapú menü → készletfoglalás feloldása;
-2. bejelentkezés → dokumentumfeltöltés → aktuális verzióvá tétel;
-3. vevői rendelés → gyártási terv → gyártási feladat → minőségellenőrzés.
-
-Playwright továbbra sincs telepítve; a fenti csak későbbi fázisterv.
+A következő körben érdemes tovább bővíteni a procurement jóváhagyási műveleteket, a production planning edge case-eket, a quality formágakat és a fájlletöltési hibakezelést. Új E2E teszt csak determinisztikus `E2ETestSeeder` adattal és elkülönített fájlrendszerrel kerüljön be.

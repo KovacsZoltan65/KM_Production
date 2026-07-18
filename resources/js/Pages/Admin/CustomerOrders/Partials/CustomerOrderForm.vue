@@ -16,6 +16,7 @@ import { trans } from "laravel-vue-i18n";
  * @property {CustomerOption[]} customerOptions A választható vevők.
  * @property {ItemOption[]} itemOptions A választható cikkek.
  * @property {Object.<string, string>} errors Az űrlap validációs hibái.
+ * @property {boolean} processing Jelzi, hogy az űrlap mentése folyamatban van.
  * @property {string} submitLabel A mentés gombfelirata.
  */
 /** @type {Props} */
@@ -24,6 +25,7 @@ defineProps({
     customerOptions: { type: Array, default: () => [] },
     itemOptions: { type: Array, default: () => [] },
     errors: { type: Object, default: () => ({}) },
+    processing: { type: Boolean, default: false },
     submitLabel: { type: String, default: "" },
 });
 
@@ -50,6 +52,7 @@ defineEmits(["submit", "cancel"]);
                     :options="customerOptions"
                     option-label="label"
                     option-value="id"
+                    :aria-label="trans('fields.customer')"
                     filter
                     class="w-full"
                 />
@@ -106,6 +109,8 @@ defineEmits(["submit", "cancel"]);
                 type="submit"
                 :label="submitLabel || trans('actions.save')"
                 icon="pi pi-save"
+                :loading="processing"
+                :disabled="processing"
             />
         </div>
     </form>

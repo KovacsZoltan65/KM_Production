@@ -50,6 +50,7 @@ const makeCurrent = (document) => {
             <div
                 v-for="document in props.versions"
                 :key="document.id"
+                :data-testid="`document-version-${document.version}`"
                 class="flex flex-col gap-3 px-4 py-3 md:flex-row md:items-center md:justify-between"
             >
                 <div>

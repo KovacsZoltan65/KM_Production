@@ -96,6 +96,7 @@ const fieldError = (index, field) => props.errors[`items.${index}.${field}`];
                         :options="itemOptions"
                         option-label="label"
                         option-value="id"
+                        :aria-label="trans('fields.item')"
                         filter
                         class="w-full"
                         @update:model-value="
@@ -115,6 +116,7 @@ const fieldError = (index, field) => props.errors[`items.${index}.${field}`];
                     <InputText
                         :model-value="data.quantity"
                         type="number"
+                        :aria-label="trans('fields.quantity')"
                         class="w-28"
                         @update:model-value="
                             updateRow(index, 'quantity', $event)
@@ -163,6 +165,7 @@ const fieldError = (index, field) => props.errors[`items.${index}.${field}`];
                         severity="danger"
                         text
                         rounded
+                        :aria-label="trans('actions.delete')"
                         @click="removeRow(index)"
                     />
                 </template>

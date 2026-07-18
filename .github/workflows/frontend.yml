@@ -1,33 +1,140 @@
 name: Frontend
 
 on:
-    pull_request:
-    push:
-        branches: [main]
+  pull_request:
+  push:
+    branches: [main]
 
 permissions:
-    contents: read
+  contents: read
 
 jobs:
-    frontend:
-        runs-on: ubuntu-latest
-        timeout-minutes: 15
+  frontend:
+    name: Frontend unit, i18n and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
 
-        steps:
-            - name: Forráskód letöltése
-              uses: actions/checkout@v7
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-            - name: Node.js beállítása
-              uses: actions/setup-node@v6
-              with:
-                  node-version: 24
-                  cache: npm
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
 
-            - name: Függőségek telepítése
-              run: npm ci
+      - name: Install npm dependencies
+        run: npm ci
 
-            - name: Frontend tesztek
-              run: npm run test:frontend
+      - name: Frontend tests
+        run: npm run test:frontend
 
-            - name: Frontend build
-              run: npm run build
+      - name: Translation key check
+        run: npm run i18n:check
+
+      - name: Frontend build
+        run: npm run build
+
+  e2e-chromium:
+    name: Playwright Chromium, accessibility and keyboard
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: sqlite, pdo_sqlite
+          coverage: none
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install Composer dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Prepare E2E database
+        run: npm run test:e2e:prepare
+
+      - name: Build frontend assets
+        run: npm run build
+
+      - name: Chromium E2E
+        run: npx playwright test --project=chromium
+
+      - name: Upload Playwright artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-chromium
+          path: |
+            playwright-report
+            test-results
+          if-no-files-found: ignore
+
+  e2e-cross-browser:
+    name: Playwright cross-browser and mobile smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: sqlite, pdo_sqlite
+          coverage: none
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install Composer dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium firefox webkit
+
+      - name: Prepare E2E database
+        run: npm run test:e2e:prepare
+
+      - name: Build frontend assets
+        run: npm run build
+
+      - name: Firefox and WebKit smoke
+        run: npm run test:e2e:cross-browser
+
+      - name: Mobile Chromium smoke
+        run: npm run test:e2e:mobile
+
+      - name: Upload Playwright artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-cross-browser
+          path: |
+            playwright-report
+            test-results
+          if-no-files-found: ignore

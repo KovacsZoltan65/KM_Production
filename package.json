@@ -9,9 +9,21 @@
         "test": "npm run test:frontend",
         "test:frontend": "vitest run",
         "test:frontend:watch": "vitest",
-        "test:frontend:coverage": "vitest run --coverage"
+        "test:frontend:coverage": "vitest run --coverage",
+        "test:e2e": "npm run test:e2e:prepare && npm run build && playwright test",
+        "test:e2e:prepare": "node scripts/prepare-e2e.js",
+        "test:e2e:install": "playwright install chromium firefox webkit",
+        "test:e2e:a11y": "playwright test --project=chromium tests/e2e/accessibility",
+        "test:e2e:keyboard": "playwright test --project=chromium tests/e2e/keyboard",
+        "test:e2e:cross-browser": "playwright test --project=firefox --project=webkit tests/e2e/smoke/cross-browser.spec.js",
+        "test:e2e:mobile": "playwright test --project=mobile-chromium tests/e2e/smoke/mobile.spec.js",
+        "test:e2e:ui": "npm run test:e2e:prepare && npm run build && playwright test --ui",
+        "test:e2e:headed": "npm run test:e2e:prepare && npm run build && playwright test --headed",
+        "test:e2e:report": "playwright show-report"
     },
     "devDependencies": {
+        "@axe-core/playwright": "^4.12.1",
+        "@playwright/test": "^1.61.1",
         "@tailwindcss/vite": "^4.0.0",
         "@vitejs/plugin-vue": "^6.0.7",
         "@vitest/coverage-v8": "^4.1.10",

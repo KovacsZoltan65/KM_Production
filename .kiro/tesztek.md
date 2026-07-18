@@ -67,3 +67,38 @@ Execute:
 ```bash
 php artisan test
 ```
+
+## STEP 3 — Run frontend tests
+
+Inspect `package.json` first and identify:
+
+- the configured package manager
+- the Vitest test script
+- coverage-related scripts
+- required frontend test setup files
+
+Install dependencies only if they are missing. Respect the existing lockfile:
+
+- `package-lock.json` → npm
+- `pnpm-lock.yaml` → pnpm
+- `yarn.lock` → Yarn
+
+Run the complete frontend test suite in non-interactive, single-run mode.
+
+Use the existing `package.json` script whenever available, for example:
+
+```bash
+npm run test -- --run
+```
+
+````markdown
+## FINAL VERIFICATION
+
+After all fixes and new tests are complete, run the full verification sequence:
+
+```bash
+php artisan test
+npm run test -- --run
+npm run build
+```
+````

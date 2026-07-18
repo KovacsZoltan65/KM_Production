@@ -51,6 +51,7 @@ defineEmits(["submit", "cancel"]);
                     :options="customerOrderOptions"
                     option-label="label"
                     option-value="id"
+                    :aria-label="$t('fields.customer_order')"
                     :disabled="isEditing"
                     filter
                     class="w-full"
