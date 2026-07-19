@@ -6,15 +6,24 @@ use App\Models\User;
 use App\Repositories\Contracts\RoleRepositoryInterface;
 use App\Services\AuditLogService;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 class RoleAdminService extends AbstractAdminService
 {
-    public function __construct(RoleRepositoryInterface $repository, AuditLogService $auditLogService)
+    public function __construct(
+        private readonly RoleRepositoryInterface $roles,
+        AuditLogService $auditLogService,
+    ) {
+        parent::__construct($this->roles, $auditLogService);
+    }
+
+    /** @return LengthAwarePaginator<int, Role> */
+    public function paginateForAdminIndex(array $filters, int $perPage = 10): LengthAwarePaginator
     {
-        parent::__construct($repository, $auditLogService);
+        return $this->roles->paginateForAdminIndex($filters, $perPage);
     }
 
     public function update(Model $model, array $attributes, ?User $causer = null): Model

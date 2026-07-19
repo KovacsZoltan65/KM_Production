@@ -6,13 +6,22 @@ use App\Models\User;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Services\AuditLogService;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Validation\ValidationException;
 
 class UserAdminService extends AbstractAdminService
 {
-    public function __construct(UserRepositoryInterface $repository, AuditLogService $auditLogService)
+    public function __construct(
+        private readonly UserRepositoryInterface $users,
+        AuditLogService $auditLogService,
+    ) {
+        parent::__construct($this->users, $auditLogService);
+    }
+
+    /** @return LengthAwarePaginator<int, User> */
+    public function paginateForAdminIndex(array $filters, int $perPage = 10): LengthAwarePaginator
     {
-        parent::__construct($repository, $auditLogService);
+        return $this->users->paginateForAdminIndex($filters, $perPage);
     }
 
     public function delete(Model $model, ?User $causer = null): void

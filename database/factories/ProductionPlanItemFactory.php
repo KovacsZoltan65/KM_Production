@@ -30,8 +30,12 @@ class ProductionPlanItemFactory extends Factory
             'bom_id' => Bom::factory(),
             'operation_sequence_id' => OperationSequence::factory(),
             'quantity' => fake()->randomFloat(3, 1, 10),
-            'planned_start_date' => fake()->optional()->dateTimeBetween('+1 day', '+2 weeks')?->format('Y-m-d'),
-            'planned_finish_date' => fake()->optional()->dateTimeBetween('+2 weeks', '+3 months')?->format('Y-m-d'),
+            'planned_start_date' => fake()->optional()->passthrough(
+                fake()->dateTimeBetween('+1 day', '+2 weeks')->format('Y-m-d')
+            ),
+            'planned_finish_date' => fake()->optional()->passthrough(
+                fake()->dateTimeBetween('+2 weeks', '+3 months')->format('Y-m-d')
+            ),
             'status' => ProductionPlanItemStatus::Draft,
             'notes' => fake()->optional()->sentence(),
         ];

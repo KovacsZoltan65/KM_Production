@@ -28,7 +28,7 @@ class DocumentSeeder extends Seeder
             DocumentType::Drawing,
             'PRODUCT-AAA rajz',
             'drawings/product-aaa-v1.pdf',
-            $user?->id,
+            $user->id,
         );
 
         $this->updateOrCreateDocument(
@@ -36,7 +36,7 @@ class DocumentSeeder extends Seeder
             DocumentType::OperationDescription,
             'PRODUCT-AAA muveleti leiras',
             'operations/product-aaa-v1.pdf',
-            $user?->id,
+            $user->id,
         );
 
         $this->updateOrCreateDocument(
@@ -44,7 +44,7 @@ class DocumentSeeder extends Seeder
             DocumentType::WorkNote,
             'PO-2026-000001 gyartasi megjegyzes',
             'work-notes/po-2026-000001.txt',
-            $user?->id,
+            $user->id,
         );
     }
 

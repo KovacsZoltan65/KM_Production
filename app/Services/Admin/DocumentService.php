@@ -111,7 +111,7 @@ class DocumentService
      */
     public function update(Document $document, array $attributes, ?User $causer = null): Document
     {
-        $document = $this->documents->update($document, [
+        $document = $this->documents->updateDocument($document, [
             'title' => $attributes['title'] ?? $document->title,
             'description' => $attributes['notes'] ?? $document->description,
         ]);

@@ -50,8 +50,8 @@ class ProcurementDashboardService
             ->get()
             ->map(fn (MaterialRequirement $requirement): array => [
                 'item_id' => $requirement->required_item_id,
-                'item_number' => $requirement->requiredItem?->item_number ?? '',
-                'name' => $requirement->requiredItem?->name ?? '',
+                'item_number' => $requirement->requiredItem->item_number,
+                'name' => $requirement->requiredItem->name,
                 'missing_quantity' => (float) $requirement->missing_quantity,
                 'unit' => $requirement->unit,
             ]);

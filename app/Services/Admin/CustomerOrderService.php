@@ -30,7 +30,7 @@ class CustomerOrderService
      *
      * @param  array{search?: string|null, status?: string|null, sort?: string|null,
      *     direction?: string|null}  $filters  Az alkalmazandó listaszűrők.
-     * @return LengthAwarePaginator<int, Model> A lapozott rendelések.
+     * @return LengthAwarePaginator<int, covariant Model> A lapozott rendelések.
      */
     public function paginateForAdminIndex(array $filters, int $perPage = 10): LengthAwarePaginator
     {

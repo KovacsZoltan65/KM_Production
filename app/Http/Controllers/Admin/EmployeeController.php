@@ -93,8 +93,8 @@ class EmployeeController extends Controller
      * Sikeres mentés után visszatér az előző oldalra, és egy sikerüzenetet
      * jelenít meg.
      *
-     * @param  UpdateEmployeeRequest  $request   A validált HTTP kérés.
-     * @param  Employee               $employee  A módosítandó alkalmazott.
+     * @param  UpdateEmployeeRequest  $request  A validált HTTP kérés.
+     * @param  Employee  $employee  A módosítandó alkalmazott.
      * @return RedirectResponse Visszairányítás az előző oldalra.
      */
     public function update(UpdateEmployeeRequest $request, Employee $employee): RedirectResponse

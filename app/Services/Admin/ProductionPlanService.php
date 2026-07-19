@@ -48,7 +48,7 @@ class ProductionPlanService
     {
         $customerOrder = CustomerOrder::query()
             ->with('items')
-            ->findOrFail($payload['customer_order_id']);
+            ->findOrFail((int) $payload['customer_order_id']);
 
         $items = $customerOrder->items
             ->map(fn ($item): array => [

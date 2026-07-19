@@ -32,8 +32,12 @@ class ProductionOrderFactory extends Factory
             'order_number' => strtoupper(fake()->unique()->bothify('PO-2026-######')),
             'quantity' => fake()->randomFloat(3, 1, 10),
             'status' => ProductionOrderStatus::Planned,
-            'planned_start_date' => fake()->optional()->dateTimeBetween('+1 day', '+2 weeks')?->format('Y-m-d'),
-            'planned_finish_date' => fake()->optional()->dateTimeBetween('+2 weeks', '+3 months')?->format('Y-m-d'),
+            'planned_start_date' => fake()->optional()->passthrough(
+                fake()->dateTimeBetween('+1 day', '+2 weeks')->format('Y-m-d')
+            ),
+            'planned_finish_date' => fake()->optional()->passthrough(
+                fake()->dateTimeBetween('+2 weeks', '+3 months')->format('Y-m-d')
+            ),
             'started_at' => null,
             'finished_at' => null,
             'created_by' => null,

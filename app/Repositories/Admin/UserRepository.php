@@ -5,6 +5,7 @@ namespace App\Repositories\Admin;
 use App\Models\User;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Hash;
 
 class UserRepository extends AbstractAdminRepository implements UserRepositoryInterface
@@ -16,6 +17,12 @@ class UserRepository extends AbstractAdminRepository implements UserRepositoryIn
     protected array $sortable = ['id', 'name', 'email', 'created_at'];
 
     protected array $with = ['roles'];
+
+    /** @return LengthAwarePaginator<int, User> */
+    public function paginateForAdminIndex(array $filters, int $perPage = 10): LengthAwarePaginator
+    {
+        return parent::paginateForAdminIndex($filters, $perPage);
+    }
 
     /**
      * @param  array<string, mixed>  $attributes

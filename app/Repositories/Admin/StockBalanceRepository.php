@@ -20,10 +20,11 @@ class StockBalanceRepository extends AbstractAdminRepository implements StockBal
 
     /**
      * @param  array<string, mixed>  $filters
+     * @return LengthAwarePaginator<int, StockBalance>
      */
     public function paginateForAdminIndex(array $filters, int $perPage = 10): LengthAwarePaginator
     {
-        $query = $this->query();
+        $query = StockBalance::query()->with($this->with);
         $search = trim((string) ($filters['search'] ?? ''));
 
         if ($search !== '') {

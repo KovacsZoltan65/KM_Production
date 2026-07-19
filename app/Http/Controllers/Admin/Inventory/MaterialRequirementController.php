@@ -45,7 +45,7 @@ class MaterialRequirementController extends Controller
     }
 
     /**
-     * @return Collection<int, array{id: int, label: string}>
+     * @return Collection<int, array{id: int, label: non-falsy-string}>
      */
     private function itemOptions(): Collection
     {

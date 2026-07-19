@@ -111,9 +111,7 @@ class Item extends Model
 
     public function requiresSerialNumberByType(): bool
     {
-        return $this->item_type instanceof ItemType
-            ? $this->item_type->requiresSerialNumber()
-            : ItemType::from((string) $this->item_type)->requiresSerialNumber();
+        return $this->item_type->requiresSerialNumber();
     }
 
     /**

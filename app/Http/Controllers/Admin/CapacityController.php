@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ScheduleProductionOrderRequest;
 use App\Http\Requests\Admin\SimulateCapacityRequest;
 use App\Models\CustomerOrder;
-use App\Models\Employee;
 use App\Models\ProductionOrder;
 use App\Services\Admin\CapacityPlanningService;
 use App\Services\Admin\LeadTimeEstimator;
@@ -58,8 +57,8 @@ class CapacityController extends Controller
         // Ellenőrzi, hogy a bejelentkezett felhasználó rendelkezik-e
         // a kapacitástervezés megtekintéséhez szükséges jogosultsággal.
         // Jogosultság hiányában HTTP 403 (Forbidden) választ ad.
-        //$request->user()?->can('capacity.view') ?: abort(403);
-        //abort_unless($request->user()?->can('capacity.view'), 403);
+        // $request->user()?->can('capacity.view') ?: abort(403);
+        // abort_unless($request->user()?->can('capacity.view'), 403);
         $this->authorizeView($request);
 
         // Betölti a dolgozók kapacitás-terhelési oldalát, és átadja
@@ -90,7 +89,7 @@ class CapacityController extends Controller
         // Ellenőrzi, hogy a felhasználó jogosult-e a
         // kapacitástervezési modul megtekintésére.
         // Jogosultság hiányában HTTP 403 választ ad.
-        //$request->user()?->can('capacity.view') ?: abort(403);
+        // $request->user()?->can('capacity.view') ?: abort(403);
         $this->authorizeView($request);
 
         // Betölti a kapacitástervezési ütemező oldalt.
@@ -126,8 +125,7 @@ class CapacityController extends Controller
     {
 
         // Meglévő ütemezés felülírása csak megfelelő jogosultsággal engedélyezett.
-        if ($request->boolean('override') && ! 
-            ($request->user()?->can('capacity.override') ?? false)) {
+        if ($request->boolean('override') && ! ($request->user()?->can('capacity.override') ?? false)) {
             abort(403);
         }
 
@@ -162,7 +160,7 @@ class CapacityController extends Controller
         // Ellenőrzi, hogy a felhasználó jogosult-e a
         // kapacitástervezési modul megtekintésére.
         // Jogosultság hiányában HTTP 403 választ ad.
-        //$request->user()?->can('capacity.view') ?: abort(403);
+        // $request->user()?->can('capacity.view') ?: abort(403);
         $this->authorizeView($request);
 
         // Betölti a kapacitásszimuláció oldalát.

@@ -43,7 +43,7 @@ abstract class AbstractAdminRepository implements AdminRepositoryInterface
      *
      * @param  array<string, mixed>  $filters  A keresési és rendezési szűrők.
      * @param  int  $perPage  Az oldalanként visszaadott rekordok száma.
-     * @return LengthAwarePaginator<int, Model> A lapozott modellpéldányok.
+     * @return LengthAwarePaginator<int, covariant Model> A lapozott modellpéldányok.
      */
     public function paginateForAdminIndex(array $filters, int $perPage = 10): LengthAwarePaginator
     {

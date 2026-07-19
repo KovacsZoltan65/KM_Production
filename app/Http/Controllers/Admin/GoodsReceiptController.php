@@ -130,7 +130,7 @@ class GoodsReceiptController extends Controller
             ->get(['id', 'order_number', 'supplier_id'])
             ->map(fn (PurchaseOrder $purchaseOrder): array => [
                 'id' => $purchaseOrder->id,
-                'label' => "{$purchaseOrder->order_number} - ".($purchaseOrder->supplier?->name ?? 'Unknown supplier'),
+                'label' => "{$purchaseOrder->order_number} - {$purchaseOrder->supplier->name}",
             ]);
     }
 

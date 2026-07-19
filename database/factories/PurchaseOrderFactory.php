@@ -26,7 +26,9 @@ class PurchaseOrderFactory extends Factory
             'purchase_requisition_id' => PurchaseRequisition::factory(),
             'status' => PurchaseOrderStatus::Draft,
             'ordered_at' => fake()->optional()->dateTimeBetween('-1 month', 'now'),
-            'expected_delivery_date' => fake()->optional()->dateTimeBetween('+1 week', '+2 months')?->format('Y-m-d'),
+            'expected_delivery_date' => fake()->optional()->passthrough(
+                fake()->dateTimeBetween('+1 week', '+2 months')->format('Y-m-d')
+            ),
             'notes' => fake()->optional()->sentence(),
             'created_by' => null,
         ];

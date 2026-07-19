@@ -44,7 +44,7 @@ class BomController extends Controller
         return Inertia::render('Admin/Boms/Index', [
             // A darabjegyzékek szerveroldalon szűrt és lapozott listája.
             'records' => $this->service->paginateForAdminIndex(
-                $filters, 
+                $filters,
                 $request->perPage()
             ),
 
@@ -79,7 +79,7 @@ class BomController extends Controller
         // Létrehozza az új darabjegyzéket a validált adatok alapján.
         // A bejelentkezett felhasználó átadásra kerül audit naplózás céljából.
         $this->service->create(
-            $request->validated(), 
+            $request->validated(),
             $request->user()
         );
 
@@ -98,7 +98,7 @@ class BomController extends Controller
      * jelenít meg.
      *
      * @param  UpdateBomRequest  $request  A validált HTTP kérés.
-     * @param  Bom               $bom      A módosítandó darabjegyzék.
+     * @param  Bom  $bom  A módosítandó darabjegyzék.
      * @return RedirectResponse Visszairányítás az előző oldalra.
      */
     public function update(UpdateBomRequest $request, Bom $bom): RedirectResponse

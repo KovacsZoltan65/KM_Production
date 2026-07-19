@@ -23,7 +23,9 @@ class ItemBatchFactory extends Factory
             'batch_number' => strtoupper(fake()->unique()->bothify('BATCH-####')),
             'supplier_id' => null,
             'received_at' => fake()->optional()->date(),
-            'expires_at' => fake()->optional()->dateTimeBetween('+1 month', '+2 years')?->format('Y-m-d'),
+            'expires_at' => fake()->optional()->passthrough(
+                fake()->dateTimeBetween('+1 month', '+2 years')->format('Y-m-d')
+            ),
             'notes' => fake()->optional()->sentence(),
         ];
     }

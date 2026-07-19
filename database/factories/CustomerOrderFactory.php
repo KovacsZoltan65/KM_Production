@@ -23,7 +23,9 @@ class CustomerOrderFactory extends Factory
             'order_number' => strtoupper(fake()->unique()->bothify('SO-2026-######')),
             'customer_id' => Customer::factory(),
             'status' => CustomerOrderStatus::Draft,
-            'requested_delivery_date' => fake()->optional()->dateTimeBetween('+1 week', '+3 months')?->format('Y-m-d'),
+            'requested_delivery_date' => fake()->optional()->passthrough(
+                fake()->dateTimeBetween('+1 week', '+3 months')->format('Y-m-d')
+            ),
             'confirmed_at' => null,
             'notes' => fake()->optional()->sentence(),
             'created_by' => null,

@@ -98,10 +98,6 @@ class CustomerOrderController extends Controller
      *
      * Sikeres mentés után visszatér az előző oldalra, és egy
      * sikerüzenetet jelenít meg.
-     *
-     * @param  UpdateCustomerOrderRequest  $request
-     * @param  CustomerOrder               $customerOrder
-     * @return RedirectResponse
      */
     public function update(UpdateCustomerOrderRequest $request, CustomerOrder $customerOrder): RedirectResponse
     {
@@ -123,7 +119,6 @@ class CustomerOrderController extends Controller
      * sikerüzenetet jelenít meg.
      *
      * @param  CustomerOrder  $customerOrder  A törlendő rendelés.
-     * @return RedirectResponse
      */
     public function destroy(CustomerOrder $customerOrder): RedirectResponse
     {
@@ -142,10 +137,6 @@ class CustomerOrderController extends Controller
      *
      * Sikeres jóváhagyás után visszatér az előző oldalra, és egy
      * sikerüzenetet jelenít meg.
-     *
-     * @param  ConfirmCustomerOrderRequest  $request
-     * @param  CustomerOrder                $customerOrder
-     * @return RedirectResponse
      */
     public function confirm(ConfirmCustomerOrderRequest $request, CustomerOrder $customerOrder): RedirectResponse
     {
@@ -163,10 +154,6 @@ class CustomerOrderController extends Controller
      *
      * Sikeres művelet után visszatér az előző oldalra, és egy
      * sikerüzenetet jelenít meg.
-     *
-     * @param  CancelCustomerOrderRequest  $request
-     * @param  CustomerOrder               $customerOrder
-     * @return RedirectResponse
      */
     public function cancel(CancelCustomerOrderRequest $request, CustomerOrder $customerOrder): RedirectResponse
     {
@@ -178,7 +165,7 @@ class CustomerOrderController extends Controller
     /**
      * Visszaadja az aktív vevők listáját a kiválasztómezőkhöz.
      *
-     * @return Collection<int, array{id: int, code: string, name: string, label: string}>
+     * @return Collection<int, array{id: int, code: string, name: string, label: non-falsy-string}>
      */
     private function customerOptions(): Collection
     {
@@ -195,7 +182,7 @@ class CustomerOrderController extends Controller
     }
 
     /**
-     * @return Collection<int, array{id: int, item_number: string, name: string, unit: string, label: string}>
+     * @return Collection<int, array{id: int, item_number: string, name: string, unit: string, label: non-falsy-string}>
      */
     private function itemOptions(): Collection
     {

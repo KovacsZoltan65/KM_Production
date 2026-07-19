@@ -61,6 +61,16 @@ class DocumentRepository extends AbstractAdminRepository implements DocumentRepo
         return $document->load(['uploader', 'approver', 'documentable']);
     }
 
+    /**
+     * @param  array<string, mixed>  $attributes
+     */
+    public function updateDocument(Document $document, array $attributes): Document
+    {
+        $document->update($attributes);
+
+        return $document->refresh();
+    }
+
     public function versionsFor(Document $document): Collection
     {
         return Document::query()

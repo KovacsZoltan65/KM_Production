@@ -42,7 +42,7 @@ class CustomerController extends Controller
         return Inertia::render('Admin/Customers/Index', [
             // A vevők szerveroldalon szűrt és lapozott listája.
             'records' => $this->service->paginateForAdminIndex(
-                $filters, 
+                $filters,
                 $request->perPage()
             ),
             'filters' => $filters,
@@ -84,8 +84,8 @@ class CustomerController extends Controller
      * Sikeres mentés után visszatér az előző oldalra, és egy sikerüzenetet
      * jelenít meg.
      *
-     * @param  UpdateCustomerRequest  $request   A validált HTTP kérés.
-     * @param  Customer               $customer  A módosítandó vevő.
+     * @param  UpdateCustomerRequest  $request  A validált HTTP kérés.
+     * @param  Customer  $customer  A módosítandó vevő.
      * @return RedirectResponse Visszairányítás az előző oldalra.
      */
     public function update(UpdateCustomerRequest $request, Customer $customer): RedirectResponse

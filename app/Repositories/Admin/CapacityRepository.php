@@ -31,7 +31,12 @@ class CapacityRepository implements CapacityRepositoryInterface
             ->whereBetween('reserved_from', [$from, $until])
             ->groupBy('factory_unit_id')
             ->get()
-            ->keyBy('factory_unit_id');
+            ->mapWithKeys(fn (CapacityReservation $reservation): array => [
+                $reservation->factory_unit_id => [
+                    'reserved_minutes' => (int) $reservation->getAttribute('reserved_minutes'),
+                    'queue_count' => (int) $reservation->getAttribute('queue_count'),
+                ],
+            ]);
 
         return FactoryUnit::query()
             ->with(['calendars' => fn ($query) => $query->where('is_working_day', true)])
@@ -39,7 +44,8 @@ class CapacityRepository implements CapacityRepositoryInterface
             ->orderBy('name')
             ->get()
             ->map(function (FactoryUnit $factoryUnit) use ($reservedByUnit, $from, $until): array {
-                $reserved = (int) ($reservedByUnit->get($factoryUnit->id)?->reserved_minutes ?? 0);
+                $load = $reservedByUnit->get($factoryUnit->id);
+                $reserved = $load['reserved_minutes'] ?? 0;
                 $available = $this->factoryAvailableMinutes($factoryUnit, $from, $until);
                 $utilization = $available > 0 ? round(($reserved / $available) * 100, 1) : 0.0;
 
@@ -50,7 +56,7 @@ class CapacityRepository implements CapacityRepositoryInterface
                     'available_minutes' => $available,
                     'reserved_minutes' => $reserved,
                     'utilization' => $utilization,
-                    'current_queue' => (int) ($reservedByUnit->get($factoryUnit->id)?->queue_count ?? 0),
+                    'current_queue' => $load['queue_count'] ?? 0,
                     'status' => $this->utilizationStatus($utilization),
                 ];
             });
@@ -72,7 +78,12 @@ class CapacityRepository implements CapacityRepositoryInterface
             ->whereBetween('reserved_from', [$from, $until])
             ->groupBy('employee_id')
             ->get()
-            ->keyBy('employee_id');
+            ->mapWithKeys(fn (CapacityReservation $reservation): array => [
+                (int) $reservation->employee_id => [
+                    'reserved_minutes' => (int) $reservation->getAttribute('reserved_minutes'),
+                    'assigned_tasks' => (int) $reservation->getAttribute('assigned_tasks'),
+                ],
+            ]);
 
         return Employee::query()
             ->with(['professionalRole', 'workCalendars'])
@@ -80,18 +91,19 @@ class CapacityRepository implements CapacityRepositoryInterface
             ->orderBy('name')
             ->get()
             ->map(function (Employee $employee) use ($reservedByEmployee, $from, $until): array {
-                $reserved = (int) ($reservedByEmployee->get($employee->id)?->reserved_minutes ?? 0);
+                $load = $reservedByEmployee->get($employee->id);
+                $reserved = $load['reserved_minutes'] ?? 0;
                 $working = $this->employeeWorkingMinutes($employee, $from, $until);
                 $utilization = $working > 0 ? round(($reserved / $working) * 100, 1) : 0.0;
 
                 return [
                     'id' => $employee->id,
                     'employee' => $employee->name,
-                    'professional_role' => $employee->professionalRole?->name ?? '-',
+                    'professional_role' => $employee->professionalRole->name,
                     'working_minutes' => $working,
                     'reserved_minutes' => $reserved,
                     'utilization' => $utilization,
-                    'assigned_tasks' => (int) ($reservedByEmployee->get($employee->id)?->assigned_tasks ?? 0),
+                    'assigned_tasks' => $load['assigned_tasks'] ?? 0,
                     'status' => $this->utilizationStatus($utilization),
                 ];
             });
@@ -116,20 +128,24 @@ class CapacityRepository implements CapacityRepositoryInterface
             ->whereBetween('reserved_from', [$from, $until])
             ->orderBy('reserved_from')
             ->get()
-            ->map(fn (CapacityReservation $reservation): array => [
-                'id' => $reservation->id,
-                'factory_unit' => $reservation->factoryUnit?->name ?? '-',
-                'production_task' => sprintf(
-                    '%s / %s',
-                    $reservation->productionTask?->productionOrder?->order_number ?? '-',
-                    $reservation->productionTask?->operationSequenceStep?->operationType?->name ?? 'Task',
-                ),
-                'start' => $reservation->reserved_from?->toDateTimeString(),
-                'finish' => $reservation->reserved_until?->toDateTimeString(),
-                'duration' => $reservation->planned_minutes,
-                'employee' => $reservation->employee?->name ?? '-',
-                'status' => $reservation->status,
-            ]);
+            ->map(function (CapacityReservation $reservation): array {
+                $employee = $reservation->getRelation('employee');
+
+                return [
+                    'id' => $reservation->id,
+                    'factory_unit' => $reservation->factoryUnit->name,
+                    'production_task' => sprintf(
+                        '%s / %s',
+                        $reservation->productionTask->productionOrder->order_number,
+                        $reservation->productionTask->operationSequenceStep->operationType->name,
+                    ),
+                    'start' => $reservation->reserved_from->toDateTimeString(),
+                    'finish' => $reservation->reserved_until->toDateTimeString(),
+                    'duration' => $reservation->planned_minutes,
+                    'employee' => $employee instanceof Employee ? $employee->name : '-',
+                    'status' => $reservation->status,
+                ];
+            });
     }
 
     public function productionOrderOptions(): Collection

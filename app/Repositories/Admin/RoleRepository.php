@@ -4,6 +4,7 @@ namespace App\Repositories\Admin;
 
 use App\Repositories\Contracts\RoleRepositoryInterface;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Spatie\Permission\Models\Role;
 
 class RoleRepository extends AbstractAdminRepository implements RoleRepositoryInterface
@@ -15,6 +16,12 @@ class RoleRepository extends AbstractAdminRepository implements RoleRepositoryIn
     protected array $sortable = ['id', 'name', 'created_at'];
 
     protected array $with = ['permissions'];
+
+    /** @return LengthAwarePaginator<int, Role> */
+    public function paginateForAdminIndex(array $filters, int $perPage = 10): LengthAwarePaginator
+    {
+        return parent::paginateForAdminIndex($filters, $perPage);
+    }
 
     /**
      * @param  array<string, mixed>  $attributes

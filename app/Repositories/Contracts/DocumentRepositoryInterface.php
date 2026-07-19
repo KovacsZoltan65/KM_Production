@@ -16,6 +16,13 @@ interface DocumentRepositoryInterface extends AdminRepositoryInterface
     public function findForShow(Document $document): Document;
 
     /**
+     * Frissíti és újratöltve adja vissza a dokumentumot.
+     *
+     * @param  array<string, mixed>  $attributes
+     */
+    public function updateDocument(Document $document, array $attributes): Document;
+
+    /**
      * @return Collection<int, Document>
      */
     public function versionsFor(Document $document): Collection;

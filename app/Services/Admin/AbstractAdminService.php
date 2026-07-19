@@ -25,7 +25,7 @@ abstract class AbstractAdminService
      * Delegálja a szűrt és lapozott adminisztrációs listázást.
      *
      * @param  array<string, mixed>  $filters  Az alkalmazandó listaoldali szűrők.
-     * @return LengthAwarePaginator<int, Model> A lapozott modellpéldányok.
+     * @return LengthAwarePaginator<int, covariant Model> A lapozott modellpéldányok.
      */
     public function paginateForAdminIndex(array $filters, int $perPage = 10): LengthAwarePaginator
     {
@@ -50,8 +50,10 @@ abstract class AbstractAdminService
     /**
      * Normalizálja, frissíti és auditnaplózza a modellt.
      *
+     * @param  Model  $model  A frissítendő modell.
      * @param  array<string, mixed>  $attributes  A validált modellattribútumok.
      * @param  User|null  $causer  A műveletet végrehajtó felhasználó.
+     * @return Model A frissített modell.
      */
     public function update(Model $model, array $attributes, ?User $causer = null): Model
     {
@@ -64,6 +66,8 @@ abstract class AbstractAdminService
 
     /**
      * Auditnaplózza, majd a repository-n keresztül törli a modellt.
+     *
+     * @param  Model  $model  A törlendő modell.
      */
     public function delete(Model $model, ?User $causer = null): void
     {

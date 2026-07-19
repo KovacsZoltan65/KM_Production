@@ -49,7 +49,7 @@ class DocumentController extends Controller
         return Inertia::render('Admin/Documents/Index', [
             // A dokumentumok szerveroldalon szűrt és lapozott listája.
             'records' => $this->service->paginateForAdminIndex(
-                $filters, 
+                $filters,
                 $request->perPage()
             ),
 
@@ -116,8 +116,8 @@ class DocumentController extends Controller
         // a feltöltött fájlt, valamint audit naplózás céljából
         // átadja a bejelentkezett felhasználót.
         $document = $this->service->create(
-            $request->validated(), 
-            $request->file('file'), 
+            $request->validated(),
+            $request->file('file'),
             $request->user()
         );
 
@@ -139,8 +139,8 @@ class DocumentController extends Controller
      * Sikeres mentés után visszatér az előző oldalra, és egy sikerüzenetet
      * jelenít meg.
      *
-     * @param  UpdateDocumentRequest  $request   A validált HTTP kérés.
-     * @param  Document               $document  A módosítandó dokumentum.
+     * @param  UpdateDocumentRequest  $request  A validált HTTP kérés.
+     * @param  Document  $document  A módosítandó dokumentum.
      * @return RedirectResponse Visszairányítás az előző oldalra.
      */
     public function update(UpdateDocumentRequest $request, Document $document): RedirectResponse
@@ -148,8 +148,8 @@ class DocumentController extends Controller
         // Frissíti a dokumentum adatait a validált bemenet alapján.
         // A bejelentkezett felhasználó átadásra kerül audit naplózás céljából.
         $this->service->update(
-            $document, 
-            $request->validated(), 
+            $document,
+            $request->validated(),
             $request->user()
         );
 
@@ -208,7 +208,7 @@ class DocumentController extends Controller
         // Elindítja a dokumentum fájljának letöltését, és átadja
         // a bejelentkezett felhasználót audit naplózás céljából.
         return $this->service->download(
-            $document, 
+            $document,
             $request->user(),
         );
     }
@@ -224,8 +224,8 @@ class DocumentController extends Controller
      * Sikeres jóváhagyás után visszatér az előző oldalra, és egy
      * sikerüzenetet jelenít meg.
      *
-     * @param  ApproveDocumentRequest  $request   A validált HTTP kérés.
-     * @param  Document                $document  A jóváhagyandó dokumentum.
+     * @param  ApproveDocumentRequest  $request  A validált HTTP kérés.
+     * @param  Document  $document  A jóváhagyandó dokumentum.
      * @return RedirectResponse Visszairányítás az előző oldalra.
      */
     public function approve(ApproveDocumentRequest $request, Document $document): RedirectResponse
@@ -249,11 +249,11 @@ class DocumentController extends Controller
      * Sikeres verzióváltás után visszatér az előző oldalra, és egy
      * sikerüzenetet jelenít meg.
      *
-     * @param  MakeCurrentDocumentRequest  $request   A validált HTTP kérés.
-     * @param  Document                    $document  Az aktívvá teendő dokumentumverzió.
+     * @param  MakeCurrentDocumentRequest  $request  A validált HTTP kérés.
+     * @param  Document  $document  Az aktívvá teendő dokumentumverzió.
      * @return RedirectResponse Visszairányítás az előző oldalra.
      */
-    public function makeCurrent(MakeCurrentDocumentRequest $request, Document $document,): RedirectResponse
+    public function makeCurrent(MakeCurrentDocumentRequest $request, Document $document): RedirectResponse
     {
         // Aktívvá teszi a kiválasztott dokumentumverziót, és átadja
         // a műveletet végrehajtó felhasználót audit naplózás céljából.

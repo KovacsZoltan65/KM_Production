@@ -43,7 +43,7 @@ class LeadTimeEstimator
 
         foreach ($tasks as $task) {
             $step = $task->operationSequenceStep;
-            $duration = max(1, (int) ($step?->estimated_duration_minutes ?? 0));
+            $duration = max(1, (int) $step->estimated_duration_minutes);
 
             [$reservedFrom, $reservedUntil] = $this->slotFinder->findSlot(
                 $step->factory_unit_id,
@@ -62,7 +62,7 @@ class LeadTimeEstimator
             $cursor = $reservedUntil;
         }
 
-        $estimatedMinutes = (int) $tasks->sum(fn ($task): int => (int) ($task->operationSequenceStep?->estimated_duration_minutes ?? 0));
+        $estimatedMinutes = (int) $tasks->sum(fn ($task): int => (int) $task->operationSequenceStep->estimated_duration_minutes);
         $estimatedStart = $windows->first()['from'] ?? now()->startOfHour();
         $estimatedFinish = $windows->last()['until'] ?? $estimatedStart->copy()->addMinutes(max(1, $estimatedMinutes));
         $deadline = $order->requested_delivery_date?->copy()->endOfDay();
@@ -113,8 +113,8 @@ class LeadTimeEstimator
     private function criticalFactoryUnit(Collection $tasks): string
     {
         return $tasks
-            ->groupBy(fn ($task): string => $task->operationSequenceStep?->factoryUnit?->name ?? '-')
-            ->sortByDesc(fn (Collection $group): int => $group->sum(fn ($task): int => (int) ($task->operationSequenceStep?->estimated_duration_minutes ?? 0)))
+            ->groupBy(fn ($task): string => $task->operationSequenceStep->factoryUnit->name)
+            ->sortByDesc(fn (Collection $group): int => $group->sum(fn ($task): int => (int) $task->operationSequenceStep->estimated_duration_minutes))
             ->keys()
             ->first() ?? '-';
     }
@@ -127,8 +127,8 @@ class LeadTimeEstimator
     private function criticalProfessionalRole(Collection $tasks): string
     {
         return $tasks
-            ->groupBy(fn ($task): string => $task->operationSequenceStep?->professionalRole?->name ?? '-')
-            ->sortByDesc(fn (Collection $group): int => $group->sum(fn ($task): int => (int) ($task->operationSequenceStep?->estimated_duration_minutes ?? 0)))
+            ->groupBy(fn ($task): string => $task->operationSequenceStep->professionalRole->name)
+            ->sortByDesc(fn (Collection $group): int => $group->sum(fn ($task): int => (int) $task->operationSequenceStep->estimated_duration_minutes))
             ->keys()
             ->first() ?? '-';
     }

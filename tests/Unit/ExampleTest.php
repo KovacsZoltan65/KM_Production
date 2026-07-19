@@ -6,11 +6,9 @@ use PHPUnit\Framework\TestCase;
 
 class ExampleTest extends TestCase
 {
-    /**
-     * A basic test example.
-     */
-    public function test_that_true_is_true(): void
+    /** Ellenőrzi a Laravel konzol belépési pontjának meglétét. */
+    public function test_artisan_entry_point_exists(): void
     {
-        $this->assertTrue(true);
+        $this->assertFileExists(dirname(__DIR__, 2).'/artisan');
     }
 }

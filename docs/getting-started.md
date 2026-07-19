@@ -27,10 +27,10 @@ Before committing backend changes, run:
 ```bash
 php artisan test
 vendor/bin/pint
-vendor/bin/phpstan analyse
+composer analyse
 ```
 
-PHPStan uses Larastan at level 3 with an initial baseline for existing findings. New work should keep analysis green and reduce baseline entries when touching related code.
+PHPStan a Larastan Laravel-kiegészítésével, 5-ös szinten, baseline nélkül elemzi a teljes backend- és tesztscope-ot. A részletes szabályokat a [statikus elemzési útmutató](static-analysis.md) tartalmazza.
 
 ## Before Changing Code
 

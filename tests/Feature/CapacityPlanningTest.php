@@ -222,12 +222,17 @@ class CapacityPlanningTest extends TestCase
 
         $task = ProductionTask::query()->with('operationSequenceStep')->firstOrFail();
         $factoryUnitId = $task->operationSequenceStep->factory_unit_id;
+        $workingCalendar = FactoryUnitCalendar::query()
+            ->where('factory_unit_id', $factoryUnitId)
+            ->where('is_working_day', true)
+            ->firstOrFail();
+        $workday = now()->startOfWeek()->addDays($workingCalendar->weekday - 1);
         $finder = app(CapacitySlotFinder::class);
 
-        $queries = $this->countQueries(function () use ($finder, $factoryUnitId, $task): void {
-            $finder->findSlot($factoryUnitId, now()->startOfDay()->addHours(8), 30, $task->id);
-            $finder->findSlot($factoryUnitId, now()->startOfDay()->addHours(9), 30, $task->id);
-            $finder->findSlot($factoryUnitId, now()->startOfDay()->addHours(10), 30, $task->id);
+        $queries = $this->countQueries(function () use ($finder, $factoryUnitId, $task, $workday): void {
+            $finder->findSlot($factoryUnitId, $workday->copy()->addHours(8), 30, $task->id);
+            $finder->findSlot($factoryUnitId, $workday->copy()->addHours(9), 30, $task->id);
+            $finder->findSlot($factoryUnitId, $workday->copy()->addHours(10), 30, $task->id);
         });
 
         $this->assertLessThan(3, $queries);

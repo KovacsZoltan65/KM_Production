@@ -12,6 +12,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
+use Mockery\CompositeExpectation;
 use Mockery\MockInterface;
 use Spatie\Activitylog\Models\Activity;
 use Symfony\Component\Process\Process;
@@ -78,15 +79,24 @@ function documentOcrUnavailableResult(): array
 function runDocumentIntelligenceJob(Document $document, array ...$engineResults): Document
 {
     $engine = Mockery::mock(PythonAiEngineService::class, function (MockInterface $mock) use ($document, $engineResults): void {
-        $mock->shouldReceive('run')
-            ->times(count($engineResults))
-            ->withArgs(function (array $payload) use ($document): bool {
-                return in_array($payload['task'] ?? null, ['document_classification', 'document_ocr'], true)
-                    && ($payload['document']['id'] ?? null) === $document->id
-                    && ($payload['document']['filename'] ?? null) === $document->original_filename;
-            })
-            ->andReturn(...$engineResults);
+        $expectation = $mock->shouldReceive('run');
+
+        if (! $expectation instanceof CompositeExpectation) {
+            throw new LogicException('Mockery did not create a concrete method expectation.');
+        }
+
+        $expectation->__call('times', [count($engineResults)]);
+        $expectation->__call('withArgs', [function (array $payload) use ($document): bool {
+            return in_array($payload['task'] ?? null, ['document_classification', 'document_ocr'], true)
+                && ($payload['document']['id'] ?? null) === $document->id
+                && ($payload['document']['filename'] ?? null) === $document->original_filename;
+        }]);
+        $expectation->andReturn(...$engineResults);
     });
+
+    if (! $engine instanceof PythonAiEngineService) {
+        throw new LogicException('Mockery did not create the requested AI engine test double.');
+    }
 
     (new ProcessDocumentJob($document->id))->handle(
         $engine,

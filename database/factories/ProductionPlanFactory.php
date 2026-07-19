@@ -23,8 +23,12 @@ class ProductionPlanFactory extends Factory
             'customer_order_id' => CustomerOrder::factory(),
             'plan_number' => strtoupper(fake()->unique()->bothify('PP-2026-######')),
             'status' => ProductionPlanStatus::Draft,
-            'planned_start_date' => fake()->optional()->dateTimeBetween('+1 day', '+2 weeks')?->format('Y-m-d'),
-            'planned_finish_date' => fake()->optional()->dateTimeBetween('+2 weeks', '+3 months')?->format('Y-m-d'),
+            'planned_start_date' => fake()->optional()->passthrough(
+                fake()->dateTimeBetween('+1 day', '+2 weeks')->format('Y-m-d')
+            ),
+            'planned_finish_date' => fake()->optional()->passthrough(
+                fake()->dateTimeBetween('+2 weeks', '+3 months')->format('Y-m-d')
+            ),
             'created_by' => null,
             'approved_by' => null,
             'approved_at' => null,

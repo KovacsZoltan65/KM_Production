@@ -2,11 +2,11 @@
 
 namespace Database\Seeders;
 
+use App\Enums\CustomerOrderItemStatus;
+use App\Enums\CustomerOrderStatus;
 use App\Enums\ItemInstanceStatus;
 use App\Enums\ItemType;
 use App\Enums\LocationType;
-use App\Enums\CustomerOrderItemStatus;
-use App\Enums\CustomerOrderStatus;
 use App\Enums\ProductionTaskStatus;
 use App\Enums\StockReservationStatus;
 use App\Models\Customer;
@@ -16,7 +16,6 @@ use App\Models\Document;
 use App\Models\Employee;
 use App\Models\FactoryUnit;
 use App\Models\Item;
-use App\Models\ItemInstance;
 use App\Models\Location;
 use App\Models\ProductionOrder;
 use App\Models\ProductionPlan;
@@ -26,8 +25,8 @@ use App\Models\QualityCheck;
 use App\Models\StockReservation;
 use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use LogicException;
 use Spatie\Permission\Models\Permission;
@@ -168,13 +167,13 @@ class E2ETestSeeder extends Seeder
             ->firstOrFail();
 
         QualityCheck::query()->where('production_task_id', $productionTask->id)->delete();
-        $productionTask->operationSequenceStep?->update(['requires_quality_check' => true]);
+        $productionTask->operationSequenceStep->update(['requires_quality_check' => true]);
         $productionTask->update([
             'status' => ProductionTaskStatus::Ready->value,
             'started_at' => null,
             'finished_at' => null,
         ]);
-        $productionTask->itemInstance?->update([
+        $productionTask->itemInstance->update([
             'current_status' => ItemInstanceStatus::Planned->value,
         ]);
 

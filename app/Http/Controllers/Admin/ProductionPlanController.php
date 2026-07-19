@@ -84,7 +84,7 @@ class ProductionPlanController extends Controller
     }
 
     /**
-     * @return Collection<int, array{id: int, order_number: string, customer_name: string, label: string}>
+     * @return Collection<int, array{id: int, order_number: string, customer_name: string, label: non-falsy-string}>
      */
     private function customerOrderOptions(): Collection
     {
@@ -95,13 +95,13 @@ class ProductionPlanController extends Controller
             ->map(fn (CustomerOrder $order): array => [
                 'id' => $order->id,
                 'order_number' => $order->order_number,
-                'customer_name' => $order->customer?->name ?? '',
-                'label' => "{$order->order_number} - ".($order->customer?->name ?? 'Unknown customer'),
+                'customer_name' => $order->customer->name,
+                'label' => "{$order->order_number} - {$order->customer->name}",
             ]);
     }
 
     /**
-     * @return Collection<int, array{id: int, item_id: int, label: string}>
+     * @return Collection<int, array{id: int, item_id: int, label: non-falsy-string}>
      */
     private function bomOptions(): Collection
     {
@@ -117,7 +117,7 @@ class ProductionPlanController extends Controller
     }
 
     /**
-     * @return Collection<int, array{id: int, item_id: int, label: string}>
+     * @return Collection<int, array{id: int, item_id: int, label: non-falsy-string}>
      */
     private function operationSequenceOptions(): Collection
     {
