@@ -23,7 +23,7 @@ Helyi futtatás:
 composer analyse
 ```
 
-A `.github/workflows/backend-static-analysis.yml` ugyanezt a parancsot futtatja PHP 8.4-en, `composer install` után. A lépés blokkoló, nem használ `continue-on-error` beállítást, és nem generál baseline-t.
+A `.github/workflows/backend-quality.yml` ugyanezt a parancsot futtatja PHP 8.4-en, `composer install` és Pint után. A lépés blokkoló, nem használ `continue-on-error` beállítást, és nem generál baseline-t.
 
 ## Típusszerződés-minták
 

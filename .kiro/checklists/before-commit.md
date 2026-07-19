@@ -45,6 +45,9 @@ Mandatory checklist before committing work in KM_Production.
 - [ ] Validation tested.
 - [ ] Happy path tested.
 - [ ] Failure path tested.
+- [ ] `composer test:backend:sqlite` passes.
+- [ ] `composer test:backend:mysql` passes on a dedicated guarded test database.
+- [ ] SQLite and MySQL migration round-trip plus seeder smoke passes; see [backend quality gate](../../docs/backend-quality-gate.md).
 
 ## Code Quality
 
@@ -57,6 +60,10 @@ Mandatory checklist before committing work in KM_Production.
 - [ ] No commented dead code.
 - [ ] Pint passes.
 - [ ] PHPStan/Larastan passes.
+- [ ] `composer validate --strict` passes.
+- [ ] `vendor/bin/pint --test` passes.
+- [ ] `composer analyse` passes.
+- [ ] `git diff --check` passes.
 - [ ] A PHPStan/Larastan hibák valódi javítást kapnak; baseline vagy széles ignore nem adható hozzá.
 
 ## Documentation

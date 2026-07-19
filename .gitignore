@@ -6,6 +6,7 @@ __pycache__/
 .env.*
 !.env.example
 !.env.e2e.example
+!.env.testing.example
 .env.testing
 .env.backup
 .env.production

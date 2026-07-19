@@ -1,0 +1,200 @@
+name: Backend quality gate
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+env:
+  PHP_VERSION: "8.4"
+  COMPOSER_NO_INTERACTION: "1"
+
+jobs:
+  static-analysis:
+    name: Backend Static Analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          coverage: none
+          tools: composer:v2
+
+      - &composer-cache
+        name: Cache Composer packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/composer/files
+          key: ${{ runner.os }}-php-${{ env.PHP_VERSION }}-composer-${{ hashFiles('composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-${{ env.PHP_VERSION }}-composer-
+
+      - name: Validate Composer configuration
+        run: composer validate --strict
+
+      - &composer-install
+        name: Install Composer dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Check PHP formatting
+        run: vendor/bin/pint --test
+
+      - name: Run Larastan
+        run: composer analyse
+
+      - name: Check patch whitespace
+        run: git diff --check
+
+  tests-sqlite:
+    name: Backend Tests / SQLite
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          coverage: none
+          extensions: pdo_sqlite, sqlite3
+          tools: composer:v2
+
+      - *composer-cache
+      - *composer-install
+
+      - name: Create test result directory
+        run: mkdir -p test-results
+
+      - name: Run complete SQLite suite
+        run: php scripts/backend-test-environment.php sqlite test --log-junit=test-results/sqlite-junit.xml
+
+      - name: Upload SQLite JUnit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-sqlite-junit
+          path: test-results/sqlite-junit.xml
+          if-no-files-found: warn
+          retention-days: 7
+
+  tests-mysql:
+    name: Backend Tests / MySQL
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    env: &mysql-test-environment
+      TEST_MYSQL_HOST: 127.0.0.1
+      TEST_MYSQL_PORT: "3306"
+      TEST_MYSQL_DATABASE: km_production_testing
+      TEST_MYSQL_USERNAME: km_testing
+      TEST_MYSQL_PASSWORD: testing_only
+
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_DATABASE: km_production_testing
+          MYSQL_USER: km_testing
+          MYSQL_PASSWORD: testing_only
+          MYSQL_ROOT_PASSWORD: root_testing_only
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -u km_testing --password=testing_only"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=12
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          coverage: none
+          extensions: pdo_mysql
+          tools: composer:v2
+
+      - *composer-cache
+      - *composer-install
+
+      - name: Create test result directory
+        run: mkdir -p test-results
+
+      - name: Run complete MySQL suite
+        run: php scripts/backend-test-environment.php mysql test --log-junit=test-results/mysql-junit.xml
+
+      - name: Record MySQL test settings
+        if: always()
+        run: >-
+          mysql --host=127.0.0.1 --port=3306 --user=km_testing --password=testing_only
+          --batch --skip-column-names
+          --execute="SELECT VERSION(), @@character_set_database, @@collation_database, @@SESSION.sql_mode, @@SESSION.time_zone"
+          km_production_testing > test-results/mysql-settings.txt
+
+      - name: Upload MySQL reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-mysql-results
+          path: |
+            test-results/mysql-junit.xml
+            test-results/mysql-settings.txt
+          if-no-files-found: warn
+          retention-days: 7
+
+  migrations:
+    name: Backend Migrations
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env: *mysql-test-environment
+
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_DATABASE: km_production_testing
+          MYSQL_USER: km_testing
+          MYSQL_PASSWORD: testing_only
+          MYSQL_ROOT_PASSWORD: root_testing_only
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -u km_testing --password=testing_only"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=12
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          coverage: none
+          extensions: pdo_mysql, pdo_sqlite, sqlite3
+          tools: composer:v2
+
+      - *composer-cache
+      - *composer-install
+
+      - name: SQLite migration round-trip and seeder smoke
+        run: composer test:backend:migrations:sqlite
+
+      - name: MySQL migration round-trip and seeder smoke
+        run: composer test:backend:migrations:mysql

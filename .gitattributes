@@ -27,6 +27,7 @@ CHANGELOG.md export-ignore
 /.env.* export-ignore
 /.env.example -export-ignore
 /.env.e2e.example -export-ignore
+/.env.testing.example -export-ignore
 /auth.json export-ignore
 /composer-auth.json export-ignore
 

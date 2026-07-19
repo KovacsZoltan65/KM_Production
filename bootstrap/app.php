@@ -1,5 +1,7 @@
 <?php
 
+use App\Console\Commands\AssertSafeTestingEnvironment;
+use App\Console\Commands\DatabaseRoundTrip;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\SetLocaleFromSession;
 use Illuminate\Foundation\Application;
@@ -11,6 +13,10 @@ use Spatie\Permission\Middleware\RoleMiddleware;
 use Spatie\Permission\Middleware\RoleOrPermissionMiddleware;
 
 return Application::configure(basePath: dirname(__DIR__))
+    ->withCommands([
+        AssertSafeTestingEnvironment::class,
+        DatabaseRoundTrip::class,
+    ])
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
         commands: __DIR__.'/../routes/console.php',

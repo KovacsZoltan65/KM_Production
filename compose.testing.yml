@@ -1,0 +1,22 @@
+services:
+  mysql-testing:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: km_production_testing
+      MYSQL_USER: km_testing
+      MYSQL_PASSWORD: testing_only
+      MYSQL_ROOT_PASSWORD: root_testing_only
+      TZ: UTC
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    ports:
+      - "33060:3306"
+    tmpfs:
+      - /var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u", "km_testing", "--password=testing_only"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s

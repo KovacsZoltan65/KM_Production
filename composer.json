@@ -61,6 +61,35 @@
             "Composer\\Config::disableProcessTimeout",
             "phpstan analyse --memory-limit=1G --no-progress"
         ],
+        "test:backend:sqlite": [
+            "Composer\\Config::disableProcessTimeout",
+            "@php scripts/backend-test-environment.php sqlite test @no_additional_args"
+        ],
+        "test:backend:mysql": [
+            "Composer\\Config::disableProcessTimeout",
+            "@php scripts/backend-test-environment.php mysql test @no_additional_args"
+        ],
+        "test:backend:migrations:sqlite": "@php scripts/backend-test-environment.php sqlite migrate @no_additional_args",
+        "test:backend:migrations:mysql": "@php scripts/backend-test-environment.php mysql migrate @no_additional_args",
+        "quality:backend:sqlite": [
+            "Composer\\Config::disableProcessTimeout",
+            "composer validate --strict",
+            "vendor/bin/pint --test",
+            "@analyse",
+            "@test:backend:sqlite",
+            "@test:backend:migrations:sqlite"
+        ],
+        "quality:backend:mysql": [
+            "Composer\\Config::disableProcessTimeout",
+            "@test:backend:mysql",
+            "@test:backend:migrations:mysql"
+        ],
+        "quality:backend:all": [
+            "Composer\\Config::disableProcessTimeout",
+            "@quality:backend:sqlite",
+            "@quality:backend:mysql"
+        ],
+        "test:backend:quality": "@quality:backend:all",
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
             "@php artisan package:discover --ansi"

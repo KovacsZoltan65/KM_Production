@@ -28,9 +28,12 @@ Before committing backend changes, run:
 php artisan test
 vendor/bin/pint
 composer analyse
+composer quality:backend:sqlite
 ```
 
 PHPStan a Larastan Laravel-kiegészítésével, 5-ös szinten, baseline nélkül elemzi a teljes backend- és tesztscope-ot. A részletes szabályokat a [statikus elemzési útmutató](static-analysis.md) tartalmazza.
+
+A release előtti teljes backend gate-hez a dedikált MySQL tesztservice indítása után futtasd a `composer quality:backend:all` parancsot. A biztonsági guardot, Docker-konfigurációt és CI-checkeket a [backend quality gate útmutató](backend-quality-gate.md) dokumentálja.
 
 ## Before Changing Code
 

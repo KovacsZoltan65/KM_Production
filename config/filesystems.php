@@ -30,6 +30,13 @@ return [
 
     'disks' => [
 
+        'testing' => [
+            'driver' => 'local',
+            'root' => storage_path('framework/testing/backend'),
+            'throw' => true,
+            'report' => false,
+        ],
+
         'local' => [
             'driver' => 'local',
             'root' => storage_path('app/private'),
