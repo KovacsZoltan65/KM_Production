@@ -16,6 +16,7 @@ KM_Production is a Laravel, Vue, and Inertia Manufacturing Execution System for 
 - [Manufacturing domain](docs/manufacturing.md)
 - [Deployment](docs/deployment.md)
 - [Frontend automatizált tesztelés](docs/frontend-testing.md)
+- [Frontend head- és lapcímkezelés](docs/frontend-head-management.md)
 - [Backend statikus elemzés](docs/static-analysis.md)
 - [Backend quality gate: SQLite és MySQL](docs/backend-quality-gate.md)
 - [API](docs/api.md)

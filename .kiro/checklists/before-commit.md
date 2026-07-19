@@ -24,6 +24,9 @@ Mandatory checklist before committing work in KM_Production.
 
 ## Frontend
 
+- [ ] `npm audit` and `npm audit --omit=dev` both report zero vulnerabilities.
+- [ ] Page titles use Inertia's `<Head>` and the centralized title formatter; do not add a second head-manager plugin.
+
 - [ ] Localization complete.
 - [ ] PrimeVue conventions followed.
 - [ ] Shared components reused.

@@ -50,7 +50,7 @@ test("an authorized user can release a stock reservation and the state survives 
                 ) && response.request().method() === "PATCH",
     );
     continueRequest();
-    expect((await releaseResponse).status()).toBe(302);
+    expect((await releaseResponse).status()).toBe(303);
 
     await expect(row).toContainText("Released");
     await expect(row.getByRole("button", { name: "Release" })).toHaveCount(0);

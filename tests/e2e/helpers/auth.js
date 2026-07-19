@@ -11,4 +11,5 @@ export async function loginThroughUi(page, user) {
         page.getByRole("heading", { name: "Dashboard" }),
     ).toBeVisible();
     await expect(page.getByText(user.name, { exact: true })).toBeAttached();
+    await expect(page.locator("#nprogress")).toHaveCount(0);
 }

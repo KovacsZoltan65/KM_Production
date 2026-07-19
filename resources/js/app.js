@@ -4,19 +4,19 @@ import "primeicons/primeicons.css";
 
 import { createInertiaApp } from "@inertiajs/vue3";
 import { resolvePageComponent } from "laravel-vite-plugin/inertia-helpers";
-import { createHead } from "@vueuse/head";
 import { createApp, h } from "vue";
 import PrimeVue from "primevue/config";
 import Aura from "@primeuix/themes/aura";
 import ConfirmationService from "primevue/confirmationservice";
 import ToastService from "primevue/toastservice";
 import { route } from "@/Utils/routes";
+import { formatPageTitle } from "@/Utils/pageTitle";
 import { i18nVue } from "laravel-vue-i18n";
 
 const appName = import.meta.env.VITE_APP_NAME || "KM Production";
 
 createInertiaApp({
-    title: (title) => (title ? `${title} | ${appName}` : appName),
+    title: (title) => formatPageTitle(title, appName),
     resolve: (name) =>
         resolvePageComponent(
             `./Pages/${name}.vue`,
@@ -36,7 +36,6 @@ createInertiaApp({
                     return await messages[`../../lang/${lang}.json`]();
                 },
             })
-            .use(createHead())
             .use(ToastService)
             .use(ConfirmationService)
             .use(PrimeVue, {

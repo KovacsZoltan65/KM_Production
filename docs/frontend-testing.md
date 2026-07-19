@@ -45,6 +45,8 @@ npm test
 npm run test:frontend
 npm run test:frontend:watch
 npm run test:frontend:coverage
+npm audit
+npm audit --omit=dev
 npm run test:e2e
 npm run test:e2e:a11y
 npm run test:e2e:keyboard
@@ -52,7 +54,7 @@ npm run test:e2e:cross-browser
 npm run test:e2e:mobile
 ```
 
-Az első két Vitest parancs egyszer fut és megfelelő exit kóddal leáll. A watch parancs fejlesztéshez használható. A coverage szöveges, HTML- és JSON-summary riportot ír a `coverage/frontend` könyvtárba. Globális threshold szándékosan nincs: előbb a kritikus területek célzott lefedését kell bővíteni. Az E2E parancsok előtt szükség esetén `npm run test:e2e:install` és mindig buildelt asset szükséges; a `npm run test:e2e` ezt előkészíti.
+Az első két Vitest parancs egyszer fut és megfelelő exit kóddal leáll. A watch parancs fejlesztéshez használható. A két audit parancs a teljes, illetve kizárólag a production függőségi fát ellenőrzi, és sérülékenység esetén blokkolja a quality gate-et. A coverage szöveges, HTML- és JSON-summary riportot ír a `coverage/frontend` könyvtárba. Globális threshold szándékosan nincs: előbb a kritikus területek célzott lefedését kell bővíteni. Az E2E parancsok előtt szükség esetén `npm run test:e2e:install` és mindig buildelt asset szükséges; a `npm run test:e2e` ezt előkészíti.
 
 ## Új teszt mintája
 
@@ -90,7 +92,7 @@ A fixture factory-k kis, érvényes alapobjektumokat adnak, és minden mező fel
 
 A `.github/workflows/frontend.yml` pull requestnél és a `main` branch pushainál három jobot futtat:
 
-- frontend unit, i18n és build;
+- teljes és production npm audit, frontend unit, i18n és build;
 - Playwright Chromium E2E, accessibility és keyboard;
 - Playwright WebKit/Firefox cross-browser smoke és mobile Chromium smoke.
 

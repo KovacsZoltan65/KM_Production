@@ -1,5 +1,6 @@
-import { defineComponent, h, reactive } from "vue";
+import { defineComponent, h, reactive, watchEffect } from "vue";
 import { vi } from "vitest";
+import { formatPageTitle } from "@/Utils/pageTitle";
 
 export const inertiaPage = reactive({
     url: "/",
@@ -42,11 +43,26 @@ const passthrough = (name, tag = "div") =>
         },
     });
 
+const HeadMock = defineComponent({
+    name: "Head",
+    inheritAttrs: false,
+    props: {
+        title: { type: String, default: "" },
+    },
+    setup(props, { attrs, slots }) {
+        watchEffect(() => {
+            document.title = formatPageTitle(props.title);
+        });
+
+        return () => h("div", attrs, slots.default?.());
+    },
+});
+
 export const inertiaModule = {
     router: inertiaRouter,
     usePage: () => inertiaPage,
     useForm: (values) => createFormMock(values),
-    Head: passthrough("Head"),
+    Head: HeadMock,
     Link: passthrough("Link", "a"),
 };
 
