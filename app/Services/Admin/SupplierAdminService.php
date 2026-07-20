@@ -4,10 +4,11 @@ namespace App\Services\Admin;
 
 use App\Repositories\Contracts\SupplierAdminRepositoryInterface;
 use App\Services\AuditLogService;
+use App\Services\BusinessCacheInvalidator;
 
 class SupplierAdminService extends AbstractAdminService
 {
-    public function __construct(SupplierAdminRepositoryInterface $repository, AuditLogService $auditLogService)
+    public function __construct(SupplierAdminRepositoryInterface $repository, AuditLogService $auditLogService, private readonly BusinessCacheInvalidator $cacheInvalidator)
     {
         parent::__construct($repository, $auditLogService);
     }
@@ -25,5 +26,10 @@ class SupplierAdminService extends AbstractAdminService
     protected function deletedEvent(): string
     {
         return 'admin_supplier_deleted';
+    }
+
+    protected function afterWrite(): void
+    {
+        $this->cacheInvalidator->procurementChanged();
     }
 }

@@ -6,6 +6,7 @@ use App\Models\OperationSequence;
 use App\Models\User;
 use App\Repositories\Contracts\OperationSequenceRepositoryInterface;
 use App\Services\AuditLogService;
+use App\Services\BusinessCacheInvalidator;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 /**
@@ -18,6 +19,7 @@ class OperationSequenceAdminService
     public function __construct(
         private readonly OperationSequenceRepositoryInterface $repository,
         private readonly AuditLogService $auditLogService,
+        private readonly BusinessCacheInvalidator $cacheInvalidator,
     ) {}
 
     /**
@@ -38,6 +40,7 @@ class OperationSequenceAdminService
 
         $operationSequence = $this->repository->createWithSteps($payload, $steps);
         $this->auditLogService->log('admin_operation_sequence_created', $operationSequence, [], $causer);
+        $this->cacheInvalidator->productionChanged();
 
         return $operationSequence;
     }
@@ -52,6 +55,7 @@ class OperationSequenceAdminService
 
         $operationSequence = $this->repository->updateWithSteps($operationSequence, $payload, $steps);
         $this->auditLogService->log('admin_operation_sequence_updated', $operationSequence, [], $causer);
+        $this->cacheInvalidator->productionChanged();
 
         return $operationSequence;
     }
@@ -60,5 +64,6 @@ class OperationSequenceAdminService
     {
         $this->auditLogService->log('admin_operation_sequence_deleted', $operationSequence, [], $causer);
         $this->repository->delete($operationSequence);
+        $this->cacheInvalidator->productionChanged();
     }
 }

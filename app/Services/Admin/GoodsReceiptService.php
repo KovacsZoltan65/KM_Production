@@ -13,6 +13,7 @@ use App\Models\User;
 use App\Repositories\Contracts\GoodsReceiptRepositoryInterface;
 use App\Repositories\Contracts\StockBalanceRepositoryInterface;
 use App\Services\AuditLogService;
+use App\Services\BusinessCacheInvalidator;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -29,6 +30,7 @@ class GoodsReceiptService
         private readonly GoodsReceiptRepositoryInterface $goodsReceipts,
         private readonly StockBalanceRepositoryInterface $stockBalances,
         private readonly AuditLogService $auditLogService,
+        private readonly BusinessCacheInvalidator $cacheInvalidator,
     ) {}
 
     public function paginateForAdminIndex(array $filters, int $perPage = 10): LengthAwarePaginator
@@ -43,7 +45,7 @@ class GoodsReceiptService
 
     public function create(array $attributes, ?User $causer = null): GoodsReceipt
     {
-        return DB::transaction(function () use ($attributes, $causer): GoodsReceipt {
+        $goodsReceipt = DB::transaction(function () use ($attributes, $causer): GoodsReceipt {
             $items = $attributes['items'] ?? [];
             unset($attributes['items']);
 
@@ -73,11 +75,15 @@ class GoodsReceiptService
 
             return $goodsReceipt->refresh();
         });
+
+        $this->cacheInvalidator->procurementChanged();
+
+        return $goodsReceipt;
     }
 
     public function post(GoodsReceipt $goodsReceipt, ?User $causer = null): GoodsReceipt
     {
-        return DB::transaction(function () use ($goodsReceipt, $causer): GoodsReceipt {
+        $goodsReceipt = DB::transaction(function () use ($goodsReceipt, $causer): GoodsReceipt {
             $goodsReceipt = GoodsReceipt::query()
                 ->whereKey($goodsReceipt->id)
                 ->lockForUpdate()
@@ -129,6 +135,11 @@ class GoodsReceiptService
 
             return $goodsReceipt->refresh();
         });
+
+        $this->cacheInvalidator->procurementChanged();
+        $this->cacheInvalidator->inventoryChanged();
+
+        return $goodsReceipt;
     }
 
     private function updatePurchaseOrderItemReceivedQuantity(?PurchaseOrderItem $purchaseOrderItem, float $quantity): void

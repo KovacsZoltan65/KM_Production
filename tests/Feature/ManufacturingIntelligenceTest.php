@@ -32,6 +32,8 @@ use App\Services\Admin\ProcurementRecommendationService;
 use App\Services\Admin\ProductionRiskService;
 use App\Services\Admin\QualityTrendService;
 use App\Services\Admin\SupplierPerformanceService;
+use App\Support\Cache\BusinessCacheDomain;
+use App\Support\Cache\BusinessCacheKey;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
@@ -210,7 +212,7 @@ class ManufacturingIntelligenceTest extends TestCase
         $second = $service->dashboard();
 
         $this->assertSame($first['high_risk_orders'], $second['high_risk_orders']);
-        $this->assertTrue(Cache::has('intelligence.dashboard'));
+        $this->assertTrue(Cache::has(BusinessCacheKey::make(BusinessCacheDomain::IntelligenceDashboard, 'summary')));
     }
 
     public function test_route_helper_contains_intelligence_routes(): void

@@ -6,6 +6,7 @@ use App\Models\Bom;
 use App\Models\User;
 use App\Repositories\Contracts\BomRepositoryInterface;
 use App\Services\AuditLogService;
+use App\Services\BusinessCacheInvalidator;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class BomAdminService
@@ -13,6 +14,7 @@ class BomAdminService
     public function __construct(
         private readonly BomRepositoryInterface $repository,
         private readonly AuditLogService $auditLogService,
+        private readonly BusinessCacheInvalidator $cacheInvalidator,
     ) {}
 
     /**
@@ -33,6 +35,7 @@ class BomAdminService
 
         $bom = $this->repository->createWithItems($payload, $items);
         $this->auditLogService->log('admin_bom_created', $bom, [], $causer);
+        $this->cacheInvalidator->inventoryChanged();
 
         return $bom;
     }
@@ -47,6 +50,7 @@ class BomAdminService
 
         $bom = $this->repository->updateWithItems($bom, $payload, $items);
         $this->auditLogService->log('admin_bom_updated', $bom, [], $causer);
+        $this->cacheInvalidator->inventoryChanged();
 
         return $bom;
     }
@@ -55,5 +59,6 @@ class BomAdminService
     {
         $this->auditLogService->log('admin_bom_deleted', $bom, [], $causer);
         $this->repository->delete($bom);
+        $this->cacheInvalidator->inventoryChanged();
     }
 }

@@ -3,6 +3,8 @@
 namespace App\Services\Admin;
 
 use App\Repositories\Contracts\ManufacturingIntelligenceRepositoryInterface;
+use App\Support\Cache\BusinessCacheDomain;
+use App\Support\Cache\BusinessCacheKey;
 use Illuminate\Support\Facades\Cache;
 
 class ManufacturingIntelligenceService
@@ -19,7 +21,7 @@ class ManufacturingIntelligenceService
 
     public function dashboard(): array
     {
-        return Cache::remember('intelligence.dashboard', now()->addMinutes(5), fn (): array => [
+        return Cache::remember(BusinessCacheKey::make(BusinessCacheDomain::IntelligenceDashboard, 'summary'), now()->addMinutes(5), fn (): array => [
             'high_risk_orders' => collect($this->productionRisks->score()['rows'])->where('risk_level', 'high')->values()->take(10)->all(),
             'bottleneck_factory_units' => collect($this->bottlenecks->analyze()['rows'])->whereIn('status', ['bottleneck', 'watch'])->values()->take(10)->all(),
             'materials_at_risk' => collect($this->materialForecast->forecast()['rows'])->whereIn('risk_level', ['critical', 'warning'])->values()->take(10)->all(),

@@ -5,10 +5,11 @@ namespace App\Services\Admin;
 use App\Enums\ItemType;
 use App\Repositories\Contracts\ItemRepositoryInterface;
 use App\Services\AuditLogService;
+use App\Services\BusinessCacheInvalidator;
 
 class ItemAdminService extends AbstractAdminService
 {
-    public function __construct(ItemRepositoryInterface $repository, AuditLogService $auditLogService)
+    public function __construct(ItemRepositoryInterface $repository, AuditLogService $auditLogService, private readonly BusinessCacheInvalidator $cacheInvalidator)
     {
         parent::__construct($repository, $auditLogService);
     }
@@ -42,5 +43,11 @@ class ItemAdminService extends AbstractAdminService
     protected function deletedEvent(): string
     {
         return 'admin_item_deleted';
+    }
+
+    protected function afterWrite(): void
+    {
+        $this->cacheInvalidator->inventoryChanged();
+        $this->cacheInvalidator->productionChanged();
     }
 }

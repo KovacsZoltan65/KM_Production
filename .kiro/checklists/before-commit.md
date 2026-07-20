@@ -50,6 +50,7 @@ Mandatory checklist before committing work in KM_Production.
 - [ ] Failure path tested.
 - [ ] `composer test:backend:sqlite` passes.
 - [ ] `composer test:backend:mysql` passes on a dedicated guarded test database.
+- [ ] Cache-elt adatforrást módosító write műveletnél frissült a cache-mátrix és zöld a `composer test:cache`.
 - [ ] SQLite and MySQL migration round-trip plus seeder smoke passes; see [backend quality gate](../../docs/backend-quality-gate.md).
 
 ## Code Quality

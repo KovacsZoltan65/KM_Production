@@ -45,6 +45,7 @@ A wrapper a MySQL kapcsolathoz kizárólag a `TEST_MYSQL_*` változókat olvassa
 SQLite teljes suite:
 
 ```bash
+composer test:cache
 composer test:backend:sqlite
 composer test:backend:migrations:sqlite
 ```

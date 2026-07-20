@@ -13,6 +13,7 @@ use App\Models\SerialSequence;
 use App\Models\User;
 use App\Repositories\Contracts\ProductionTaskRepositoryInterface;
 use App\Services\AuditLogService;
+use App\Services\BusinessCacheInvalidator;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -28,6 +29,7 @@ class ProductionTaskService
     public function __construct(
         private readonly ProductionTaskRepositoryInterface $productionTasks,
         private readonly AuditLogService $auditLogService,
+        private readonly BusinessCacheInvalidator $cacheInvalidator,
     ) {}
 
     /**
@@ -55,6 +57,7 @@ class ProductionTaskService
         ]);
 
         $this->auditLogService->log('production_task_created', $task, [], $causer);
+        $this->cacheInvalidator->productionChanged();
 
         return $this->productionTasks->findForShow($task);
     }
@@ -66,6 +69,7 @@ class ProductionTaskService
     {
         $productionTask->update($attributes);
         $this->auditLogService->log('production_task_updated', $productionTask, [], $causer);
+        $this->cacheInvalidator->productionChanged();
 
         return $this->productionTasks->findForShow($productionTask);
     }
@@ -74,11 +78,12 @@ class ProductionTaskService
     {
         $this->auditLogService->log('production_task_deleted', $productionTask, [], $causer);
         $productionTask->delete();
+        $this->cacheInvalidator->productionChanged();
     }
 
     public function generateFromOrder(ProductionOrder $productionOrder, Employee $employee, ?User $causer = null): int
     {
-        return DB::transaction(function () use ($productionOrder, $employee, $causer): int {
+        $created = DB::transaction(function () use ($productionOrder, $employee, $causer): int {
             $productionOrder = ProductionOrder::query()
                 ->whereKey($productionOrder->id)
                 ->lockForUpdate()
@@ -132,6 +137,10 @@ class ProductionTaskService
 
             return $created;
         });
+
+        $this->cacheInvalidator->productionChanged();
+
+        return $created;
     }
 
     public function start(ProductionTask $productionTask, ?User $causer = null): ProductionTask
@@ -140,7 +149,7 @@ class ProductionTaskService
             throw ValidationException::withMessages(['status' => __('production.tasks.validation.start_status')]);
         }
 
-        return DB::transaction(function () use ($productionTask, $causer): ProductionTask {
+        $productionTask = DB::transaction(function () use ($productionTask, $causer): ProductionTask {
             $productionTask->update([
                 'status' => ProductionTaskStatus::InProgress->value,
                 'started_at' => now(),
@@ -159,6 +168,10 @@ class ProductionTaskService
 
             return $this->productionTasks->findForShow($productionTask->refresh());
         });
+
+        $this->cacheInvalidator->productionChanged();
+
+        return $productionTask;
     }
 
     public function finish(ProductionTask $productionTask, ?User $causer = null): ProductionTask
@@ -167,7 +180,7 @@ class ProductionTaskService
             throw ValidationException::withMessages(['status' => __('production.tasks.validation.finish_status')]);
         }
 
-        return DB::transaction(function () use ($productionTask, $causer): ProductionTask {
+        $productionTask = DB::transaction(function () use ($productionTask, $causer): ProductionTask {
             $productionTask->load('operationSequenceStep', 'itemInstance');
             $status = $productionTask->operationSequenceStep->requires_quality_check
                 ? ProductionTaskStatus::WaitingForCheck
@@ -192,6 +205,10 @@ class ProductionTaskService
 
             return $this->productionTasks->findForShow($productionTask->refresh());
         });
+
+        $this->cacheInvalidator->productionChanged();
+
+        return $productionTask;
     }
 
     public function advanceNextTaskOrFinalize(ProductionTask $productionTask, ?User $causer = null): void

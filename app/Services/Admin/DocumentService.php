@@ -6,6 +6,7 @@ use App\Models\Document;
 use App\Models\User;
 use App\Repositories\Contracts\DocumentRepositoryInterface;
 use App\Services\AuditLogService;
+use App\Services\BusinessCacheInvalidator;
 use App\Support\DocumentableRegistry;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
@@ -28,6 +29,7 @@ class DocumentService
         private readonly DocumentVersionService $versions,
         private readonly DocumentApprovalService $approvals,
         private readonly AuditLogService $auditLogService,
+        private readonly BusinessCacheInvalidator $cacheInvalidator,
     ) {}
 
     public function paginateForAdminIndex(array $filters, int $perPage = 10): LengthAwarePaginator
@@ -61,7 +63,7 @@ class DocumentService
         $disk = (string) config('filesystems.default', 'local');
         $path = $file->store('documents', $disk);
 
-        return DB::transaction(function () use ($attributes, $file, $causer, $documentableType, $disk, $path): Document {
+        $document = DB::transaction(function () use ($attributes, $file, $causer, $documentableType, $disk, $path): Document {
             $group = [
                 'documentable_type' => $documentableType,
                 'documentable_id' => (int) $attributes['documentable_id'],
@@ -104,6 +106,10 @@ class DocumentService
 
             return $document->refresh();
         });
+
+        $this->cacheInvalidator->documentsChanged();
+
+        return $document;
     }
 
     /**
@@ -119,6 +125,7 @@ class DocumentService
         $this->auditLogService->log('document_updated', $document, [
             'version' => $document->version,
         ], $causer);
+        $this->cacheInvalidator->documentsChanged();
 
         return $document;
     }
@@ -141,16 +148,23 @@ class DocumentService
         $this->auditLogService->log('document_deleted', $document, [
             'version' => $document->version,
         ], $causer);
+        $this->cacheInvalidator->documentsChanged();
     }
 
     public function approve(Document $document, ?User $causer = null): Document
     {
-        return $this->approvals->approve($document, $causer);
+        $document = $this->approvals->approve($document, $causer);
+        $this->cacheInvalidator->documentsChanged();
+
+        return $document;
     }
 
     public function makeCurrent(Document $document, ?User $causer = null): Document
     {
-        return $this->versions->makeCurrent($document, $causer);
+        $document = $this->versions->makeCurrent($document, $causer);
+        $this->cacheInvalidator->documentsChanged();
+
+        return $document;
     }
 
     public function download(Document $document, ?User $causer = null): StreamedResponse

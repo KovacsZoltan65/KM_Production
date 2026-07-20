@@ -4,10 +4,11 @@ namespace App\Services\Admin;
 
 use App\Repositories\Contracts\ProfessionalRoleRepositoryInterface;
 use App\Services\AuditLogService;
+use App\Services\BusinessCacheInvalidator;
 
 class ProfessionalRoleAdminService extends AbstractAdminService
 {
-    public function __construct(ProfessionalRoleRepositoryInterface $repository, AuditLogService $auditLogService)
+    public function __construct(ProfessionalRoleRepositoryInterface $repository, AuditLogService $auditLogService, private readonly BusinessCacheInvalidator $cacheInvalidator)
     {
         parent::__construct($repository, $auditLogService);
     }
@@ -25,5 +26,10 @@ class ProfessionalRoleAdminService extends AbstractAdminService
     protected function deletedEvent(): string
     {
         return 'admin_professional_role_deleted';
+    }
+
+    protected function afterWrite(): void
+    {
+        $this->cacheInvalidator->workforceChanged();
     }
 }

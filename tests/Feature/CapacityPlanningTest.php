@@ -12,6 +12,8 @@ use App\Services\Admin\CapacityPlanningService;
 use App\Services\Admin\CapacitySlotFinder;
 use App\Services\Admin\LeadTimeEstimator;
 use App\Services\Admin\SchedulingService;
+use App\Support\Cache\BusinessCacheDomain;
+use App\Support\Cache\BusinessCacheKey;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
@@ -203,7 +205,7 @@ class CapacityPlanningTest extends TestCase
 
         $second = $service->factoryUnitLoads();
 
-        $this->assertTrue(Cache::has('capacity.factory-units'));
+        $this->assertTrue(Cache::has(BusinessCacheKey::make(BusinessCacheDomain::Capacity, 'factory-units')));
         $this->assertSame($first->toArray(), $second->toArray());
     }
 

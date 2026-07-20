@@ -3,6 +3,8 @@
 namespace App\Services\Admin;
 
 use App\Repositories\Contracts\ManufacturingIntelligenceRepositoryInterface;
+use App\Support\Cache\BusinessCacheDomain;
+use App\Support\Cache\BusinessCacheKey;
 use Illuminate\Support\Facades\Cache;
 
 /** A gyártási minőségtrendek gyorsítótárazott lekérdezését biztosítja. */
@@ -13,6 +15,6 @@ class QualityTrendService
     /** @return array{rows: list<array<string, mixed>>} A minőségügyi trendadatok. */
     public function analyze(): array
     {
-        return Cache::remember('intelligence.quality_trends', now()->addMinutes(5), fn (): array => $this->repository->qualityTrends());
+        return Cache::remember(BusinessCacheKey::make(BusinessCacheDomain::IntelligenceQualityTrends, 'analysis'), now()->addMinutes(5), fn (): array => $this->repository->qualityTrends());
     }
 }

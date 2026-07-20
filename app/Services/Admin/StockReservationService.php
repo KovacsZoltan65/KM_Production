@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Repositories\Contracts\StockBalanceRepositoryInterface;
 use App\Repositories\Contracts\StockReservationRepositoryInterface;
 use App\Services\AuditLogService;
+use App\Services\BusinessCacheInvalidator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -26,6 +27,7 @@ class StockReservationService
         private readonly StockReservationRepositoryInterface $stockReservations,
         private readonly MaterialRequirementService $materialRequirementService,
         private readonly AuditLogService $auditLogService,
+        private readonly BusinessCacheInvalidator $cacheInvalidator,
     ) {}
 
     public function reserveForProductionOrder(ProductionOrder $productionOrder, ?User $causer = null): void
@@ -82,6 +84,8 @@ class StockReservationService
                 'reservations_count' => $createdCount,
             ], $causer);
         });
+
+        $this->cacheInvalidator->inventoryChanged();
     }
 
     public function release(StockReservation $reservation, ?User $causer = null): StockReservation
@@ -92,7 +96,7 @@ class StockReservationService
             ]);
         }
 
-        return DB::transaction(function () use ($reservation, $causer): StockReservation {
+        $reservation = DB::transaction(function () use ($reservation, $causer): StockReservation {
             $reservation = $this->stockReservations->release($reservation);
 
             if ($reservation->productionOrder !== null) {
@@ -105,6 +109,10 @@ class StockReservationService
 
             return $reservation;
         });
+
+        $this->cacheInvalidator->inventoryChanged();
+
+        return $reservation;
     }
 
     private function availableOnBalance(StockBalance $balance): float

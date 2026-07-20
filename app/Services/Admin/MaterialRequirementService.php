@@ -11,6 +11,7 @@ use App\Repositories\Contracts\MaterialRequirementRepositoryInterface;
 use App\Repositories\Contracts\StockBalanceRepositoryInterface;
 use App\Repositories\Contracts\StockReservationRepositoryInterface;
 use App\Services\AuditLogService;
+use App\Services\BusinessCacheInvalidator;
 use Illuminate\Support\Collection;
 
 class MaterialRequirementService
@@ -20,6 +21,7 @@ class MaterialRequirementService
         private readonly StockBalanceRepositoryInterface $stockBalances,
         private readonly StockReservationRepositoryInterface $stockReservations,
         private readonly AuditLogService $auditLogService,
+        private readonly BusinessCacheInvalidator $cacheInvalidator,
     ) {}
 
     /**
@@ -36,6 +38,7 @@ class MaterialRequirementService
         $this->auditLogService->log('material_requirements_calculated', $productionOrder, [
             'requirements_count' => $requirements->count(),
         ], $causer);
+        $this->cacheInvalidator->inventoryChanged();
 
         return $requirements;
     }

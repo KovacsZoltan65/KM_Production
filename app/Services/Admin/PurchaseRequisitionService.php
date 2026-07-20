@@ -13,6 +13,7 @@ use App\Models\PurchaseRequisitionItem;
 use App\Models\User;
 use App\Repositories\Contracts\PurchaseRequisitionRepositoryInterface;
 use App\Services\AuditLogService;
+use App\Services\BusinessCacheInvalidator;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -27,6 +28,7 @@ class PurchaseRequisitionService
     public function __construct(
         private readonly PurchaseRequisitionRepositoryInterface $purchaseRequisitions,
         private readonly AuditLogService $auditLogService,
+        private readonly BusinessCacheInvalidator $cacheInvalidator,
     ) {}
 
     public function paginateForAdminIndex(array $filters, int $perPage = 10): LengthAwarePaginator
@@ -41,7 +43,7 @@ class PurchaseRequisitionService
 
     public function create(array $attributes, ?User $causer = null): PurchaseRequisition
     {
-        return DB::transaction(function () use ($attributes, $causer): PurchaseRequisition {
+        $requisition = DB::transaction(function () use ($attributes, $causer): PurchaseRequisition {
             $items = $attributes['items'] ?? [];
             unset($attributes['items']);
 
@@ -67,6 +69,10 @@ class PurchaseRequisitionService
 
             return $requisition->refresh();
         });
+
+        $this->cacheInvalidator->procurementChanged();
+
+        return $requisition;
     }
 
     public function update(PurchaseRequisition $purchaseRequisition, array $attributes, ?User $causer = null): PurchaseRequisition
@@ -76,6 +82,7 @@ class PurchaseRequisitionService
         ]);
 
         $this->auditLogService->log('purchase_requisition_updated', $purchaseRequisition, [], $causer);
+        $this->cacheInvalidator->procurementChanged();
 
         return $purchaseRequisition->refresh();
     }
@@ -84,6 +91,7 @@ class PurchaseRequisitionService
     {
         $this->auditLogService->log('purchase_requisition_deleted', $purchaseRequisition, [], $causer);
         $purchaseRequisition->delete();
+        $this->cacheInvalidator->procurementChanged();
     }
 
     public function approve(PurchaseRequisition $purchaseRequisition, ?User $causer = null): PurchaseRequisition
@@ -96,13 +104,14 @@ class PurchaseRequisitionService
         $purchaseRequisition->items()->update(['status' => PurchaseRequisitionItemStatus::Requested->value]);
 
         $this->auditLogService->log('purchase_requisition_approved', $purchaseRequisition, [], $causer);
+        $this->cacheInvalidator->procurementChanged();
 
         return $purchaseRequisition->refresh();
     }
 
     public function generateFromMaterialRequirements(?User $causer = null): PurchaseRequisition
     {
-        return DB::transaction(function () use ($causer): PurchaseRequisition {
+        $requisition = DB::transaction(function () use ($causer): PurchaseRequisition {
             $requirements = MaterialRequirement::query()
                 ->with(['requiredItem', 'customerOrderItem.customerOrder'])
                 ->where('missing_quantity', '>', 0)
@@ -152,11 +161,15 @@ class PurchaseRequisitionService
 
             return $requisition->refresh();
         });
+
+        $this->cacheInvalidator->procurementChanged();
+
+        return $requisition;
     }
 
     public function generatePurchaseOrder(PurchaseRequisition $purchaseRequisition, int $supplierId, ?string $expectedDeliveryDate = null, ?User $causer = null): PurchaseOrder
     {
-        return DB::transaction(function () use ($purchaseRequisition, $supplierId, $expectedDeliveryDate, $causer): PurchaseOrder {
+        $purchaseOrder = DB::transaction(function () use ($purchaseRequisition, $supplierId, $expectedDeliveryDate, $causer): PurchaseOrder {
             $purchaseRequisition = PurchaseRequisition::query()
                 ->whereKey($purchaseRequisition->id)
                 ->lockForUpdate()
@@ -198,6 +211,10 @@ class PurchaseRequisitionService
 
             return $purchaseOrder->refresh();
         });
+
+        $this->cacheInvalidator->procurementChanged();
+
+        return $purchaseOrder;
     }
 
     private function nextRequisitionNumber(): string

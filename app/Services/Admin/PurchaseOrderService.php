@@ -7,6 +7,7 @@ use App\Models\PurchaseOrder;
 use App\Models\User;
 use App\Repositories\Contracts\PurchaseOrderRepositoryInterface;
 use App\Services\AuditLogService;
+use App\Services\BusinessCacheInvalidator;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -21,6 +22,7 @@ class PurchaseOrderService
     public function __construct(
         private readonly PurchaseOrderRepositoryInterface $purchaseOrders,
         private readonly AuditLogService $auditLogService,
+        private readonly BusinessCacheInvalidator $cacheInvalidator,
     ) {}
 
     public function paginateForAdminIndex(array $filters, int $perPage = 10): LengthAwarePaginator
@@ -35,7 +37,7 @@ class PurchaseOrderService
 
     public function create(array $attributes, ?User $causer = null): PurchaseOrder
     {
-        return DB::transaction(function () use ($attributes, $causer): PurchaseOrder {
+        $purchaseOrder = DB::transaction(function () use ($attributes, $causer): PurchaseOrder {
             $items = $attributes['items'] ?? [];
             unset($attributes['items']);
 
@@ -65,6 +67,10 @@ class PurchaseOrderService
 
             return $purchaseOrder->refresh();
         });
+
+        $this->cacheInvalidator->procurementChanged();
+
+        return $purchaseOrder;
     }
 
     public function update(PurchaseOrder $purchaseOrder, array $attributes, ?User $causer = null): PurchaseOrder
@@ -76,6 +82,7 @@ class PurchaseOrderService
         ]);
 
         $this->auditLogService->log('purchase_order_updated', $purchaseOrder, [], $causer);
+        $this->cacheInvalidator->procurementChanged();
 
         return $purchaseOrder->refresh();
     }
@@ -84,6 +91,7 @@ class PurchaseOrderService
     {
         $this->auditLogService->log('purchase_order_deleted', $purchaseOrder, [], $causer);
         $purchaseOrder->delete();
+        $this->cacheInvalidator->procurementChanged();
     }
 
     public function approve(PurchaseOrder $purchaseOrder, ?User $causer = null): PurchaseOrder
@@ -98,6 +106,7 @@ class PurchaseOrderService
         ]);
 
         $this->auditLogService->log('purchase_order_approved', $purchaseOrder, [], $causer);
+        $this->cacheInvalidator->procurementChanged();
 
         return $purchaseOrder->refresh();
     }
@@ -106,6 +115,7 @@ class PurchaseOrderService
     {
         $purchaseOrder->update(['status' => PurchaseOrderStatus::Received->value]);
         $this->auditLogService->log('purchase_order_closed', $purchaseOrder, [], $causer);
+        $this->cacheInvalidator->procurementChanged();
 
         return $purchaseOrder->refresh();
     }

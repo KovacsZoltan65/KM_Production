@@ -4,10 +4,11 @@ namespace App\Services\Admin;
 
 use App\Repositories\Contracts\FactoryUnitRepositoryInterface;
 use App\Services\AuditLogService;
+use App\Services\BusinessCacheInvalidator;
 
 class FactoryUnitAdminService extends AbstractAdminService
 {
-    public function __construct(FactoryUnitRepositoryInterface $repository, AuditLogService $auditLogService)
+    public function __construct(FactoryUnitRepositoryInterface $repository, AuditLogService $auditLogService, private readonly BusinessCacheInvalidator $cacheInvalidator)
     {
         parent::__construct($repository, $auditLogService);
     }
@@ -25,5 +26,11 @@ class FactoryUnitAdminService extends AbstractAdminService
     protected function deletedEvent(): string
     {
         return 'admin_factory_unit_deleted';
+    }
+
+    protected function afterWrite(): void
+    {
+        $this->cacheInvalidator->productionChanged();
+        $this->cacheInvalidator->capacityChanged();
     }
 }

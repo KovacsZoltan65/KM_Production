@@ -4,10 +4,11 @@ namespace App\Services\Admin;
 
 use App\Repositories\Contracts\EmployeeRepositoryInterface;
 use App\Services\AuditLogService;
+use App\Services\BusinessCacheInvalidator;
 
 class EmployeeAdminService extends AbstractAdminService
 {
-    public function __construct(EmployeeRepositoryInterface $repository, AuditLogService $auditLogService)
+    public function __construct(EmployeeRepositoryInterface $repository, AuditLogService $auditLogService, private readonly BusinessCacheInvalidator $cacheInvalidator)
     {
         parent::__construct($repository, $auditLogService);
     }
@@ -25,5 +26,10 @@ class EmployeeAdminService extends AbstractAdminService
     protected function deletedEvent(): string
     {
         return 'admin_employee_deleted';
+    }
+
+    protected function afterWrite(): void
+    {
+        $this->cacheInvalidator->workforceChanged();
     }
 }

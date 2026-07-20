@@ -43,6 +43,7 @@ abstract class AbstractAdminService
         $attributes = $this->normalizeAttributes($attributes);
         $model = $this->repository->create($attributes);
         $this->auditLogService->log($this->createdEvent(), $model, [], $causer);
+        $this->afterWrite();
 
         return $model;
     }
@@ -60,6 +61,7 @@ abstract class AbstractAdminService
         $attributes = $this->normalizeAttributes($attributes);
         $model = $this->repository->update($model, $attributes);
         $this->auditLogService->log($this->updatedEvent(), $model, [], $causer);
+        $this->afterWrite();
 
         return $model;
     }
@@ -73,6 +75,7 @@ abstract class AbstractAdminService
     {
         $this->auditLogService->log($this->deletedEvent(), $model, [], $causer);
         $this->repository->delete($model);
+        $this->afterWrite();
     }
 
     abstract protected function createdEvent(): string;
@@ -80,6 +83,8 @@ abstract class AbstractAdminService
     abstract protected function updatedEvent(): string;
 
     abstract protected function deletedEvent(): string;
+
+    protected function afterWrite(): void {}
 
     /**
      * Előkészíti az attribútumokat a repository számára.

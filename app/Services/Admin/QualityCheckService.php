@@ -9,6 +9,7 @@ use App\Models\ProductionTask;
 use App\Models\QualityCheck;
 use App\Models\User;
 use App\Services\AuditLogService;
+use App\Services\BusinessCacheInvalidator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -23,6 +24,7 @@ class QualityCheckService
     public function __construct(
         private readonly ProductionTaskService $productionTaskService,
         private readonly AuditLogService $auditLogService,
+        private readonly BusinessCacheInvalidator $cacheInvalidator,
     ) {}
 
     /**
@@ -34,7 +36,7 @@ class QualityCheckService
             throw ValidationException::withMessages(['status' => __('quality.validation.task_status')]);
         }
 
-        return DB::transaction(function () use ($productionTask, $attributes, $causer): QualityCheck {
+        $qualityCheck = DB::transaction(function () use ($productionTask, $attributes, $causer): QualityCheck {
             $qualityCheck = QualityCheck::query()->create([
                 'production_task_id' => $productionTask->id,
                 'checked_by' => $attributes['checked_by'],
@@ -62,5 +64,10 @@ class QualityCheckService
 
             return $qualityCheck->load('inspector');
         });
+
+        $this->cacheInvalidator->qualityChanged();
+        $this->cacheInvalidator->productionChanged();
+
+        return $qualityCheck;
     }
 }

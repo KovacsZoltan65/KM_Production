@@ -69,6 +69,10 @@
             "Composer\\Config::disableProcessTimeout",
             "@php scripts/backend-test-environment.php mysql test @no_additional_args"
         ],
+        "test:cache": [
+            "Composer\\Config::disableProcessTimeout",
+            "@php scripts/backend-test-environment.php sqlite test tests/Feature/BusinessCacheInvalidationTest.php @no_additional_args"
+        ],
         "test:backend:migrations:sqlite": "@php scripts/backend-test-environment.php sqlite migrate @no_additional_args",
         "test:backend:migrations:mysql": "@php scripts/backend-test-environment.php mysql migrate @no_additional_args",
         "quality:backend:sqlite": [

@@ -7,6 +7,7 @@ use App\Models\CustomerOrder;
 use App\Models\User;
 use App\Repositories\Contracts\CustomerOrderRepositoryInterface;
 use App\Services\AuditLogService;
+use App\Services\BusinessCacheInvalidator;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -23,6 +24,7 @@ class CustomerOrderService
     public function __construct(
         private readonly CustomerOrderRepositoryInterface $repository,
         private readonly AuditLogService $auditLogService,
+        private readonly BusinessCacheInvalidator $cacheInvalidator,
     ) {}
 
     /**
@@ -65,6 +67,7 @@ class CustomerOrderService
 
         $customerOrder = $this->repository->createWithItems($payload, $items);
         $this->auditLogService->log('customer_order_created', $customerOrder, [], $causer);
+        $this->cacheInvalidator->customerOrdersChanged();
 
         return $customerOrder;
     }
@@ -85,6 +88,7 @@ class CustomerOrderService
 
         $customerOrder = $this->repository->updateWithItems($customerOrder, $payload, $items);
         $this->auditLogService->log('customer_order_updated', $customerOrder, [], $causer);
+        $this->cacheInvalidator->customerOrdersChanged();
 
         return $customerOrder;
     }
@@ -100,12 +104,16 @@ class CustomerOrderService
     {
         $this->ensureStatus($customerOrder, [CustomerOrderStatus::Draft], __('orders.validation.only_draft_confirm'));
 
-        return DB::transaction(function () use ($customerOrder, $causer): CustomerOrder {
+        $customerOrder = DB::transaction(function () use ($customerOrder, $causer): CustomerOrder {
             $customerOrder = $this->repository->confirm($customerOrder);
             $this->auditLogService->log('customer_order_confirmed', $customerOrder, [], $causer);
 
             return $customerOrder;
         });
+
+        $this->cacheInvalidator->customerOrdersChanged();
+
+        return $customerOrder;
     }
 
     /**
@@ -121,12 +129,16 @@ class CustomerOrderService
             ]);
         }
 
-        return DB::transaction(function () use ($customerOrder, $causer): CustomerOrder {
+        $customerOrder = DB::transaction(function () use ($customerOrder, $causer): CustomerOrder {
             $customerOrder = $this->repository->cancel($customerOrder);
             $this->auditLogService->log('customer_order_cancelled', $customerOrder, [], $causer);
 
             return $customerOrder;
         });
+
+        $this->cacheInvalidator->customerOrdersChanged();
+
+        return $customerOrder;
     }
 
     /**
@@ -144,6 +156,7 @@ class CustomerOrderService
 
         $this->auditLogService->log('customer_order_deleted', $customerOrder, [], $causer);
         $this->repository->delete($customerOrder);
+        $this->cacheInvalidator->customerOrdersChanged();
     }
 
     /**

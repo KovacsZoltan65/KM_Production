@@ -77,6 +77,9 @@ jobs:
       - name: Create test result directory
         run: mkdir -p test-results
 
+      - name: Run cache invalidation regression tests
+        run: composer test:cache
+
       - name: Run complete SQLite suite
         run: php scripts/backend-test-environment.php sqlite test --log-junit=test-results/sqlite-junit.xml
 

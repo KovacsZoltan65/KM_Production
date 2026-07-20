@@ -9,6 +9,7 @@ use App\Models\ProductionPlan;
 use App\Models\User;
 use App\Repositories\Contracts\ProductionPlanRepositoryInterface;
 use App\Services\AuditLogService;
+use App\Services\BusinessCacheInvalidator;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -26,6 +27,7 @@ class ProductionPlanService
         private readonly AuditLogService $auditLogService,
         private readonly MaterialRequirementService $materialRequirementService,
         private readonly StockReservationService $stockReservationService,
+        private readonly BusinessCacheInvalidator $cacheInvalidator,
     ) {}
 
     /**
@@ -72,6 +74,7 @@ class ProductionPlanService
 
         $productionPlan = $this->repository->createWithItems($attributes, $items);
         $this->auditLogService->log('production_plan_created', $productionPlan, [], $causer);
+        $this->cacheInvalidator->productionChanged();
 
         return $productionPlan;
     }
@@ -101,6 +104,7 @@ class ProductionPlanService
 
         $productionPlan = $this->repository->updateWithItems($productionPlan, $attributes, $items);
         $this->auditLogService->log('production_plan_updated', $productionPlan, [], $causer);
+        $this->cacheInvalidator->productionChanged();
 
         return $productionPlan;
     }
@@ -115,6 +119,7 @@ class ProductionPlanService
 
         $productionPlan = $this->repository->approve($productionPlan, $causer?->id);
         $this->auditLogService->log('production_plan_approved', $productionPlan, [], $causer);
+        $this->cacheInvalidator->productionChanged();
 
         return $productionPlan;
     }
@@ -149,11 +154,14 @@ class ProductionPlanService
                 'generated_count' => $orders->count(),
             ], $causer);
         });
+
+        $this->cacheInvalidator->productionChanged();
     }
 
     public function delete(ProductionPlan $productionPlan, ?User $causer = null): void
     {
         $this->auditLogService->log('production_plan_deleted', $productionPlan, [], $causer);
         $this->repository->delete($productionPlan);
+        $this->cacheInvalidator->productionChanged();
     }
 }

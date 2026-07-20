@@ -30,6 +30,8 @@ use App\Models\Supplier;
 use App\Models\User;
 use App\Services\Admin\DashboardService;
 use App\Services\Admin\ReportingService;
+use App\Support\Cache\BusinessCacheDomain;
+use App\Support\Cache\BusinessCacheKey;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
@@ -195,7 +197,7 @@ class ReportingAnalyticsTest extends TestCase
         $second = $service->customerOrdersSummary();
 
         $this->assertCount(\count($first['rows']), $second['rows']);
-        $this->assertTrue(Cache::has('reports.customer-orders'));
+        $this->assertTrue(Cache::has(BusinessCacheKey::make(BusinessCacheDomain::ReportsCustomerOrders, 'summary')));
     }
 
     public function test_dashboard_cache_works(): void
@@ -208,7 +210,7 @@ class ReportingAnalyticsTest extends TestCase
         $second = $service->summary();
 
         $this->assertSame($first['kpis']['open_customer_orders'], $second['kpis']['open_customer_orders']);
-        $this->assertTrue(Cache::has('dashboard.summary'));
+        $this->assertTrue(Cache::has(BusinessCacheKey::make(BusinessCacheDomain::Dashboard, 'summary')));
     }
 
     public function test_viewer_can_access_reports(): void
