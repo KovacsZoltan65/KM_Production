@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Cache;
 
 final class BusinessCacheKey
 {
-    private const string PREFIX = 'km-production';
+    private const PREFIX = 'km-production';
 
     /**
      * @param  array<string, mixed>  $parameters
