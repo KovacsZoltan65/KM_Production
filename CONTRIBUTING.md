@@ -42,6 +42,9 @@ változás kockázatához illő fókuszált teszteket és a releváns
 
 ## Definition of Done
 
-A központi backlog lezárási szabálya a
-[backlog-konvenciókban](docs/project-management/backlog-conventions.md)
-található.
+A feladatlezárás elsődleges szabálya a
+[projektszintű Definition of Done](docs/project-management/definition-of-done.md).
+A változás csak a releváns általános és típus-specifikus feltételek
+bizonyításával `done`; a kihagyott ellenőrzést indokolni kell. A backlog
+állapotkezelését a
+[backlog-konvenciók](docs/project-management/backlog-conventions.md) rögzítik.

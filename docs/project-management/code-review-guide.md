@@ -8,6 +8,9 @@ traceability és karbantarthatóság igazolása, nem pusztán a formázás ellen
 
 A PR szerzője a
 [pull request sablont](../../.github/pull_request_template.md) használja. A PR
+céljának lezárását a
+[projektszintű Definition of Done](definition-of-done.md) alapján bizonyítja.
+A PR
 címe a [commitüzenet-konvenció](commit-conventions.md) tárgysor-formátumát
 követi:
 
@@ -302,6 +305,8 @@ A `main` ághoz javasolt adminisztrátori checklist:
 
 Merge előtt:
 
+- a [projektszintű Definition of Done](definition-of-done.md) releváns
+  feltételei teljesültek;
 - a [merge előtti ellenőrzőlista](../../.kiro/checklists/before-merge.md)
   releváns pontjai teljesültek;
 - a teljes PR diff review-zott;

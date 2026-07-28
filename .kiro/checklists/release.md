@@ -1,9 +1,12 @@
 # Purpose
 
 Mandatory checklist before preparing or deploying a release.
+Release readiness builds on the
+[project Definition of Done](../../docs/project-management/definition-of-done.md).
 
 # Checklist
 
+- [ ] Every included change is merge-ready under the Definition of Done.
 - [ ] Tests pass.
 - [ ] Migrations reviewed.
 - [ ] Rollback reviewed.

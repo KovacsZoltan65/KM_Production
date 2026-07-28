@@ -52,3 +52,11 @@ authorization. They must use the
 checks that actually ran, and inspect the complete branch diff. Agents must not
 claim approval, merge with unresolved blockers, enable auto-merge, or change
 branch protection and required checks without explicit authorization.
+
+## Definition of Done
+
+Before reporting a task complete, agents must apply the
+[project Definition of Done](docs/project-management/definition-of-done.md).
+They must identify the relevant change types, record concrete evidence, explain
+checks not run, and must not mark work `done` while a relevant blocker or
+unverified requirement remains.

@@ -3,9 +3,12 @@
 Mandatory checklist before merging work into a shared branch.
 
 Detailed process: [code review guide](../../docs/project-management/code-review-guide.md).
+Completion source:
+[project Definition of Done](../../docs/project-management/definition-of-done.md).
 
 # Checklist
 
+- [ ] Relevant general and change-type-specific Definition of Done conditions are evidenced.
 - [ ] Regression review completed.
 - [ ] Breaking changes identified.
 - [ ] Performance review completed.

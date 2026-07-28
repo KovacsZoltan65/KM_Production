@@ -112,6 +112,7 @@ Visszaállítás:
 ## Beküldő ellenőrzőlistája
 
 - [ ] A PR címe követi a commitüzenet-konvenciót
+- [ ] A releváns [Definition of Done](../docs/project-management/definition-of-done.md) feltételek teljesülnek
 - [ ] A PR egy logikailag összetartozó változást tartalmaz
 - [ ] A teljes branch diffjét átnéztem
 - [ ] Nem került be titok, jelszó vagy érzékeny adat

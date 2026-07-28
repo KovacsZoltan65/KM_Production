@@ -1,6 +1,9 @@
 # Purpose
 
 Mandatory checklist before committing work in KM_Production.
+Apply only the relevant items under the
+[project Definition of Done](../../docs/project-management/definition-of-done.md);
+record non-applicable or skipped checks with a reason.
 
 # Checklist
 

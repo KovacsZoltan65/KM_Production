@@ -141,19 +141,16 @@ nem függőségként, hanem a `blocked` állapot indoklásában szerepel.
 
 ## Lezárási és Definition of Done szabály
 
-Egy aktív tétel csak akkor állítható `done` állapotba, ha:
-
-- minden elfogadási feltétel teljesült;
-- a megadott automatizált és manuális tesztek lefutottak;
-- a kód-, adatbázis-, biztonsági és dokumentációs ellenőrzések releváns része
-  teljesült;
-- a kapcsolódó dokumentumok és fordítások frissültek;
-- nincs ismert, elhallgatott regresszió;
-- a Git-változás visszakövethető PR-hez vagy indokolt közvetlen változáshoz;
-- a backlog állapota, függőségei és végrehajtási terv frissült.
+A feladatspecifikus elfogadási feltétel azt mondja meg, mit kell szállítani; a
+[projektszintű Definition of Done](definition-of-done.md) azt, hogy milyen
+minőségben és bizonyítékkal tekinthető késznek. Egy aktív tétel csak minden AC,
+valamint a releváns általános és változástípus-specifikus DoD-pont
+teljesülésekor állítható `done` állapotba.
 
 Ha egy ellenőrzés környezeti okból nem futtatható, a tétel legfeljebb `review`
-állapotú lehet, dokumentált kivétellel.
+állapotú lehet, dokumentált eltéréssel. A részleges munka `in-progress`,
+`review` vagy `blocked`; a hiányzó feltételt és a következő lépést rögzíteni
+kell.
 
 ## Dokumentációfrissítés
 

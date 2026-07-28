@@ -44,7 +44,7 @@ A mezők, állapotátmenetek és lezárási szabályok részletes definíciójá
 
 | Kategória                     | Planned |  Ready | Blocked |  Done | Összesen |
 | ----------------------------- | ------: | -----: | ------: | ----: | -------: |
-| Projektvezetés és Git         |       1 |      2 |       0 |     5 |        8 |
+| Projektvezetés és Git         |       1 |      1 |       0 |     6 |        8 |
 | CI és release                 |       3 |      7 |       0 |     0 |       10 |
 | Tesztelés és statikus elemzés |       2 |      2 |       0 |     0 |        4 |
 | Learning Center               |      18 |      1 |       0 |     0 |       19 |
@@ -52,7 +52,7 @@ A mezők, állapotátmenetek és lezárási szabályok részletes definíciójá
 | Manufacturing Intelligence    |       5 |      0 |       0 |     0 |        5 |
 | Üzemeltetés                   |       4 |      7 |       0 |     0 |       11 |
 | UX és skálázhatóság           |       0 |      0 |       0 |     0 |        0 |
-| **Összesen**                  |  **44** | **19** |   **1** | **5** |   **69** |
+| **Összesen**                  |  **44** | **18** |   **1** | **6** |   **69** |
 
 | Prioritás | Darabszám |
 | --------- | --------: |
@@ -76,8 +76,8 @@ A mezők, állapotátmenetek és lezárási szabályok részletes definíciójá
 Az első tíz aktív feladat részletes sorrendje:
 `docs/project-management/next-actions.md`.
 
-Röviden: `GOV-008`, `CI-001`, `CI-002`, `CI-003`, `CI-004`, `CI-005`,
-`GOV-005`, `CI-006`, `CI-007`, `CI-009`.
+Röviden: `CI-001`, `CI-002`, `CI-003`, `CI-004`, `CI-005`, `GOV-005`,
+`CI-006`, `CI-007`, `CI-009`, `OPS-003`.
 
 ## Backlog tételek
 
@@ -269,25 +269,36 @@ Röviden: `GOV-008`, `CI-001`, `CI-002`, `CI-003`, `CI-004`, `CI-005`,
 
 #### GOV-008 — Projekt Definition of Done bevezetése
 
-- **Állapot:** ready
+- **Állapot:** done
 - **Prioritás:** P1
 - **Kategória:** Projektvezetés és Git
 - **Célverzió:** v1.x Stabilizálás
 - **Összefoglaló:** Egységes lezárási kapu kódra, tesztre, biztonságra,
   dokumentációra és backlogfrissítésre.
 - **Indoklás:** A `done` állapot közös bizonyítási szabály nélkül félreérthető.
-- **Scope:** Backlog-, PR-, merge- és release-checklist összehangolása.
+- **Scope:** Kanonikus, változástípushoz igazodó DoD; backlog-, PR-, merge- és
+  release-checklist összehangolása; bizonyíték- és kivételszabályok.
 - **Scope-on kívül:** Minden kategória egyedi teszttervének részletes leírása.
 - **Függőségek:** Nincs.
-- **Elfogadási feltételek:** A négy governance felület ugyanazt a minimumkaput
-  írja elő; környezeti kivétel legfeljebb `review` állapotot enged.
-- **Tesztelési követelmények:** Egy feature és egy dokumentációs minta tétel
-  végigvezetése a lezárási szabályon.
-- **Kapcsolódó fájlok és dokumentáció:** `docs/project-management/backlog-conventions.md`,
-  `.kiro/checklists/before-commit.md`, `.kiro/checklists/before-merge.md`,
-  `.kiro/checklists/release.md`.
+- **Elfogadási feltételek:** A backlog, PR, merge és release felület ugyanarra
+  az elsődleges minimumkapura hivatkozik; környezeti kivétel legfeljebb
+  `review` állapotot enged.
+- **Tesztelési követelmények:** Hét eltérő változástípus helyi mintatétele,
+  Markdown-, relatív hivatkozás-, parancs-, checklist- és backlogkonzisztencia
+  validáció.
+- **Kapcsolódó fájlok és dokumentáció:**
+  `docs/project-management/definition-of-done.md`,
+  `docs/project-management/backlog-conventions.md`,
+  `.github/pull_request_template.md`, `.kiro/checklists/before-commit.md`,
+  `.kiro/checklists/before-merge.md`, `.kiro/checklists/release.md`.
 - **Becsült méret:** S
 - **Kockázat:** Ellentmondó checklisták esetén a csapat eltérően értelmezheti.
+- **Eredmény 2026-07-28:** A magyar nyelvű elsődleges DoD elkülöníti az AC,
+  DoR, review-ready, merge-ready és release-ready fogalmakat, tíz
+  változástípusra ad arányos feltételeket, és konkrét evidence-et követel. A
+  governance belépési pontok ugyanarra a szabályzatra hivatkoznak; hét helyi
+  mintafeladat és a dokumentációs validáció sikeres. CI workflow, required
+  check és repository-beállítás nem változott.
 
 ### CI és release
 

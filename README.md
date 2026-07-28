@@ -14,6 +14,7 @@ KM_Production is a Laravel, Vue, and Inertia Manufacturing Execution System for 
 - [Course Model Specification](docs/architecture/course-model.md)
 - [Projektkonvenciók](docs/architecture/project-conventions.md)
 - [Commitüzenet-konvenció](docs/project-management/commit-conventions.md)
+- [Projektszintű Definition of Done](docs/project-management/definition-of-done.md)
 - [Code review útmutató](docs/project-management/code-review-guide.md)
 - [Hozzájárulási útmutató](CONTRIBUTING.md)
 - [Manufacturing domain](docs/manufacturing.md)
