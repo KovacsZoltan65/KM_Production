@@ -129,10 +129,37 @@ használ `needs` vagy másik job eredményére épülő `if` feltételt.
 
 ## GitHub Actions validáció
 
-A push utáni valós GitHub Actions eredmény ebben a dokumentumverzióban még
-nem áll rendelkezésre. A helyi parancsok sikere nem minősül CI-sikernek. A run
-azonosítóját, a Node 24 eredményét és a három céljob státuszát push után kell
-ide rögzíteni, ha a repository-hozzáférés lehetővé teszi.
+- Workflow: `Frontend`
+- Run ID: [`30365414060`](https://github.com/KovacsZoltan65/KM_Production/actions/runs/30365414060)
+- Run number: 15
+- Trigger: `push`
+- Commit: `33864e229b00cdb86aaebf9c3d57ba256cd973ff`
+- Run attempt: 1
+
+| Job                       | Eredmény | Jobidő | Gate-lépés |
+| ------------------------- | -------- | -----: | ---------: |
+| Frontend Unit Tests       | success  |   25 s |       12 s |
+| Frontend i18n Check       | success  |   11 s |        1 s |
+| Frontend Production Build | success  |   13 s |        1 s |
+| Frontend Dependency Audit | failure  |   11 s |        1 s |
+
+A három `CI-002` céljob egymástól és a dependency audittól függetlenül
+elindult és sikeresen befejeződött GitHub-hosted Node 24 környezetben. Nem
+történt workerhiba, timeout vagy másik frontend quality gate miatti kihagyás.
+A nyilvános API a sikeres unit job tesztszámát tartalmazó loghoz
+adminjogosultságot kért, ezért a CI-beli 166-os tesztszám nem olvasható vissza;
+a helyi 5/5 futás mindegyikében 166 teszt futott.
+
+A teljes workflow nem tekinthető sikeresnek: a megőrzött `npm audit` parancs
+exit code 1-gyel zárult, ezért ugyanabban a dependency-audit jobban az
+`npm audit --omit=dev` lépés kimaradt. A nyilvános check API a konkrét
+findinget nem közli, csak a nem nulla exit code-ot. A security policy és a
+finding javítása a `CI-007` scope-ja; ezt a `CI-002` nem előzi meg.
+
+Mind a négy új job warning annotációt kapott, mert az `actions/checkout@v4` és
+az `actions/setup-node@v4` Node 20 action runtime-ját a GitHub 2026-ban Node
+24-en kényszerítve futtatja. A jobok ettől sikeresen elindultak; az
+actionverziók célzott felülvizsgálata külön karbantartási feladat.
 
 ## CI-001 regresszióellenőrzés
 
@@ -160,8 +187,10 @@ Tesztben nem történt `.skip`, `.only`, `.todo` vagy assertionmódosítás.
 
 - A három check required státusza nincs beállítva vagy igazolva; ez a `CI-005`
   és `GOV-005` későbbi feladata.
-- A GitHub-hosted Node 24 futás eredménye push után igazolandó.
-- A dependency audit policy és minden aktuális finding kezelése `CI-007`.
+- A dependency audit valós CI-futása hibás, a production auditlépés kimaradt;
+  a policy és minden aktuális finding kezelése `CI-007`.
+- A használt v4 checkout és setup-node actionök Node 20 runtime deprecation
+  warningot adnak a GitHub Node 24 kényszerített futtatása mellett.
 - A coverage külön CI-kapuvá vagy artifacttá emelése nem része a `CI-002`
   feladatnak.
 - A Prettier önálló CI-gate-je és a teljes release-folyamat konszolidációja
@@ -169,6 +198,7 @@ Tesztben nem történt `.skip`, `.only`, `.todo` vagy assertionmódosítás.
 
 ## Következő lépések
 
-1. A push által indított `Frontend` workflow három céljobának ellenőrzése.
-2. Siker esetén a `CI-002` backlogelem tényszerű lezárása.
-3. A végrehajtási sorrend következő eleme: `CI-003`.
+1. A `CI-007` alatt a dependency-audit finding és a két auditlépés független
+   kiértékelésének rendezése.
+2. Zöld teljes frontend workflow után a `CI-002` lezárása.
+3. A `CI-003` előkészítése a végrehajtási terv szerint.

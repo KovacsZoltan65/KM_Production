@@ -42,17 +42,17 @@ A mezők, állapotátmenetek és lezárási szabályok részletes definíciójá
 
 ## Összesítés
 
-| Kategória                     | Planned |  Ready | Blocked |  Done | Összesen |
-| ----------------------------- | ------: | -----: | ------: | ----: | -------: |
-| Projektvezetés és Git         |       1 |      1 |       0 |     6 |        8 |
-| CI és release                 |       2 |      7 |       0 |     1 |       10 |
-| Tesztelés és statikus elemzés |       2 |      2 |       0 |     0 |        4 |
-| Learning Center               |      18 |      1 |       0 |     0 |       19 |
-| Document Intelligence és OCR  |      11 |      0 |       1 |     0 |       12 |
-| Manufacturing Intelligence    |       5 |      0 |       0 |     0 |        5 |
-| Üzemeltetés                   |       4 |      7 |       0 |     0 |       11 |
-| UX és skálázhatóság           |       0 |      0 |       0 |     0 |        0 |
-| **Összesen**                  |  **43** | **18** |   **1** | **7** |   **69** |
+| Kategória                     | Planned |  Ready | Review | Blocked |  Done | Összesen |
+| ----------------------------- | ------: | -----: | -----: | ------: | ----: | -------: |
+| Projektvezetés és Git         |       1 |      1 |      0 |       0 |     6 |        8 |
+| CI és release                 |       2 |      6 |      1 |       0 |     1 |       10 |
+| Tesztelés és statikus elemzés |       2 |      2 |      0 |       0 |     0 |        4 |
+| Learning Center               |      18 |      1 |      0 |       0 |     0 |       19 |
+| Document Intelligence és OCR  |      11 |      0 |      0 |       1 |     0 |       12 |
+| Manufacturing Intelligence    |       5 |      0 |      0 |       0 |     0 |        5 |
+| Üzemeltetés                   |       4 |      7 |      0 |       0 |     0 |       11 |
+| UX és skálázhatóság           |       0 |      0 |      0 |       0 |     0 |        0 |
+| **Összesen**                  |  **43** | **17** |  **1** |   **1** | **7** |   **69** |
 
 | Prioritás | Darabszám |
 | --------- | --------: |
@@ -335,7 +335,7 @@ Röviden: `CI-002`, `CI-003`, `CI-004`, `CI-005`, `GOV-005`, `CI-006`,
 
 #### CI-002 — Frontend unit, i18n és build quality gate stabilizálása
 
-- **Állapot:** ready
+- **Állapot:** review
 - **Prioritás:** P1
 - **Kategória:** CI és release
 - **Célverzió:** v1.x Stabilizálás
@@ -356,6 +356,15 @@ Röviden: `CI-002`, `CI-003`, `CI-004`, `CI-005`, `GOV-005`, `CI-006`,
   `.github/workflows/frontend.yml`.
 - **Becsült méret:** S
 - **Kockázat:** Túl konzervatív beállítás indokolatlanul lassíthatja a CI-t.
+- **Eredmény 2026-07-28:** A unit, i18n és production build önálló, `needs`
+  nélküli Node 24 jobot és stabil checknevet kapott. A helyi unit suite 5/5
+  alkalommal 20/20 fájllal és 166/166 teszttel sikeres; az i18n 2/2, a build
+  2/2 és a coverage 1/1 sikeres. A GitHub Actions
+  [30365414060](https://github.com/KovacsZoltan65/KM_Production/actions/runs/30365414060)
+  futásában mindhárom céljob sikeres volt, de a külön megőrzött dependency
+  audit `npm audit` lépése exit code 1-gyel hibázott, és a production audit
+  kimaradt. A feladat ezért a DoD szerint `review`; a lezárás feltétele a
+  `CI-007` alatt rendezett audit és egy zöld teljes frontend workflow.
 
 #### CI-003 — A teljes MySQL quality gate aktuális futtatása
 

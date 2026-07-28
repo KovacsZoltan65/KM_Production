@@ -52,13 +52,17 @@ A lezárt elemek nem részei az alábbi tíz végrehajtási lépésnek.
 
 ### 1. CI-002 — Frontend unit, i18n és build quality gate stabilizálása
 
+- **Állapot:** review
 - **Prioritás / méret:** P1 / S
-- **Miért most:** a Windows Vitest-futás stabil; a GitHub-hosted Node 24
-  eredményét és az összetett unit/i18n/build job hibahatárát még igazolni kell.
+- **Miért most:** a három külön Node 24 céljob már sikeres, de a teljes
+  frontend workflow-t a külön dependency audit hibája pirosan tartja, és a
+  production auditlépés kimarad.
 - **Előfeltétel:** CI-001.
 - **Kész definíciója:** a frontend workflow Node 24-en zöld, a unit, i18n és
   build eredménye külön azonosítható; a stabil Vitest workerszám és tesztszám
   változatlan.
+- **Következő lépés:** a `CI-007` alatt az `npm audit` finding és a két audit
+  független kiértékelésének rendezése, majd a teljes workflow újraellenőrzése.
 
 ### 2. CI-003 — A teljes MySQL quality gate aktuális futtatása
 
