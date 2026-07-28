@@ -56,6 +56,14 @@ npm run test:e2e:mobile
 
 Az első két Vitest parancs egyszer fut és megfelelő exit kóddal leáll. A watch parancs fejlesztéshez használható. A két audit parancs a teljes, illetve kizárólag a production függőségi fát ellenőrzi, és sérülékenység esetén blokkolja a quality gate-et. A coverage szöveges, HTML- és JSON-summary riportot ír a `coverage/frontend` könyvtárba. Globális threshold szándékosan nincs: előbb a kritikus területek célzott lefedését kell bővíteni. Az E2E parancsok előtt szükség esetén `npm run test:e2e:install` és mindig buildelt asset szükséges; a `npm run test:e2e` ezt előkészíti.
 
+A Vitest fájlszintű párhuzamosítása és izolációja aktív, a `forks` pool
+legfeljebb két workert használ. Minden fork külön jsdom heapet tart fenn; a
+korlátozás a mért worker-timeout és memóriaigény alapján csökkenti az
+erőforrás-versenyt anélkül, hogy sorosítaná a suite-ot. A döntés és a
+reprodukciós mátrix a
+[frontend worker-stabilitási auditban](audits/frontend-worker-stability-2026-07-28.md)
+található.
+
 ## Új teszt mintája
 
 ```js

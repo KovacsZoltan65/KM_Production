@@ -45,14 +45,14 @@ A mezők, állapotátmenetek és lezárási szabályok részletes definíciójá
 | Kategória                     | Planned |  Ready | Blocked |  Done | Összesen |
 | ----------------------------- | ------: | -----: | ------: | ----: | -------: |
 | Projektvezetés és Git         |       1 |      1 |       0 |     6 |        8 |
-| CI és release                 |       3 |      7 |       0 |     0 |       10 |
+| CI és release                 |       2 |      7 |       0 |     1 |       10 |
 | Tesztelés és statikus elemzés |       2 |      2 |       0 |     0 |        4 |
 | Learning Center               |      18 |      1 |       0 |     0 |       19 |
 | Document Intelligence és OCR  |      11 |      0 |       1 |     0 |       12 |
 | Manufacturing Intelligence    |       5 |      0 |       0 |     0 |        5 |
 | Üzemeltetés                   |       4 |      7 |       0 |     0 |       11 |
 | UX és skálázhatóság           |       0 |      0 |       0 |     0 |        0 |
-| **Összesen**                  |  **44** | **18** |   **1** | **6** |   **69** |
+| **Összesen**                  |  **43** | **18** |   **1** | **7** |   **69** |
 
 | Prioritás | Darabszám |
 | --------- | --------: |
@@ -76,8 +76,8 @@ A mezők, állapotátmenetek és lezárási szabályok részletes definíciójá
 Az első tíz aktív feladat részletes sorrendje:
 `docs/project-management/next-actions.md`.
 
-Röviden: `CI-001`, `CI-002`, `CI-003`, `CI-004`, `CI-005`, `GOV-005`,
-`CI-006`, `CI-007`, `CI-009`, `OPS-003`.
+Röviden: `CI-002`, `CI-003`, `CI-004`, `CI-005`, `GOV-005`, `CI-006`,
+`CI-007`, `CI-009`, `OPS-003`, `LC-001`.
 
 ## Backlog tételek
 
@@ -304,7 +304,7 @@ Röviden: `CI-001`, `CI-002`, `CI-003`, `CI-004`, `CI-005`, `GOV-005`,
 
 #### CI-001 — A Vitest worker-timeout okának reprodukálása
 
-- **Állapot:** ready
+- **Állapot:** done
 - **Prioritás:** P1
 - **Kategória:** CI és release
 - **Célverzió:** v1.x Stabilizálás
@@ -321,21 +321,31 @@ Röviden: `CI-001`, `CI-002`, `CI-003`, `CI-004`, `CI-005`, `GOV-005`,
 - **Tesztelési követelmények:** Alapértelmezett, egyworkeres és fokozatos
   worker-számú Vitest futások azonos dependency state mellett.
 - **Kapcsolódó fájlok és dokumentáció:** `vitest.config.js`, `package.json`,
-  `docs/frontend-testing.md`, `tests/frontend/`.
+  `docs/frontend-testing.md`, `tests/frontend/`,
+  `docs/audits/frontend-worker-stability-2026-07-28.md`.
 - **Becsült méret:** S
 - **Kockázat:** Gépfüggő hiba miatt Linux CI-n nem feltétlen reprodukálható.
+- **Eredmény 2026-07-28:** A korábbi hét worker-timeoutot a folyamat-alapú
+  jsdom workerek erőforrás-versenye magyarázza. A 4 workeres `forks` profil
+  914,6 MB, a 2 workeres 570,0 MB peak Node working setet használt; a 2
+  workeres profil 3/3 kontrollban stabil és gyorsabb volt. A fájlizoláció és
+  párhuzamosítás megmaradt, timeout, retry, tesztkihagyás, assertion- vagy
+  dependency-változás nem történt. A végleges teljes suite stabilitási,
+  build-, i18n- és formatting evidence a kapcsolódó auditban található.
 
-#### CI-002 — Az alapértelmezett Vitest-konfiguráció stabilizálása
+#### CI-002 — Frontend unit, i18n és build quality gate stabilizálása
 
-- **Állapot:** planned
+- **Állapot:** ready
 - **Prioritás:** P1
 - **Kategória:** CI és release
 - **Célverzió:** v1.x Stabilizálás
-- **Összefoglaló:** A bizonyított gyökérok alapján determinisztikus alapbeállítás.
-- **Indoklás:** A fejlesztői alapértelmezett tesztparancs jelenleg nem megbízható
-  ezen a Windows környezeten.
-- **Scope:** Pool/worker/file-parallelism és CI/lokális profil legkisebb szükséges
-  módosítása.
+- **Összefoglaló:** A lokálisan stabil Vitest-konfiguráció és a frontend
+  quality gate Linux CI-bizonyítása, szükség esetén a unit, i18n és build
+  checkkontextus szétválasztása.
+- **Indoklás:** A Windows worker-stabilitás bizonyított, de a GitHub-hosted Node
+  24 futás és az összetett frontend job hibahatára még nem igazolt.
+- **Scope:** GitHub Actions frontend job, Node 24 futás, checkkontextus és
+  artifact/hibaelkülönítés legkisebb szükséges módosítása.
 - **Scope-on kívül:** Tesztek törlése, timeout önkényes nagyítása.
 - **Függőségek:** CI-001.
 - **Elfogadási feltételek:** `npm test` három egymást követő Windows-futtatásban

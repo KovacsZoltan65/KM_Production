@@ -38,32 +38,29 @@ kockázat és tesztkövetelmény a hivatkozott backlogelemnél található.
   kivételszabályok, valamint a backlog-, PR-, merge- és release-hivatkozások
   dokumentáltak és hét mintafeladattal ellenőrzöttek.
 
+### CI-001 — A Vitest worker-timeout okának reprodukálása
+
+- **Állapot:** done
+- **Eredmény:** a 4 workeres `forks` profil 914,6 MB-os peak Node working
+  setjéhez kötött erőforrás-verseny bizonyított; a két workeres, továbbra is
+  izolált és fájlpárhuzamos konfiguráció stabilitási és teljesítményevidence-et
+  kapott.
+
 A lezárt elemek nem részei az alábbi tíz végrehajtási lépésnek.
 
 ## Végrehajtási sorrend
 
-### 1. CI-001 — A Vitest worker-timeout okának reprodukálása
+### 1. CI-002 — Frontend unit, i18n és build quality gate stabilizálása
 
 - **Prioritás / méret:** P1 / S
-- **Miért most:** az alapértelmezett `npm test` 7 worker-timeouttal hibázott,
-  miközben egyszálas futásban 166/166 teszt sikeres.
-- **Előfeltétel:** a baseline gép Node/npm verziójának és erőforrásadatainak
-  rögzítése.
-- **Kész definíciója:** legalább három kontrollált futásból származó bizonyíték
-  azonosítja a worker-, pool-, erőforrás- vagy környezeti okot, és kizárja a
-  tesztlogikai regressziót.
-
-### 2. CI-002 — Az alapértelmezett Vitest-konfiguráció stabilizálása
-
-- **Prioritás / méret:** P1 / S
-- **Miért most:** a fejlesztői alapértelmezett parancsnak megbízható quality
-  gate-ként kell működnie.
+- **Miért most:** a Windows Vitest-futás stabil; a GitHub-hosted Node 24
+  eredményét és az összetett unit/i18n/build job hibahatárát még igazolni kell.
 - **Előfeltétel:** CI-001.
-- **Kész definíciója:** az `npm test` három egymást követő Windows-futtatásban
-  20/20 fájllal és 166/166 teszttel zárul worker-timeout nélkül; a Linux CI is
-  zöld.
+- **Kész definíciója:** a frontend workflow Node 24-en zöld, a unit, i18n és
+  build eredménye külön azonosítható; a stabil Vitest workerszám és tesztszám
+  változatlan.
 
-### 3. CI-003 — A teljes MySQL quality gate aktuális futtatása
+### 2. CI-003 — A teljes MySQL quality gate aktuális futtatása
 
 - **Prioritás / méret:** P1 / S
 - **Miért most:** a workflow létezik, de a 2026-07-27-i audit nem adott
@@ -73,7 +70,7 @@ A lezárt elemek nem részei az alábbi tíz végrehajtási lépésnek.
 - **Kész definíciója:** a MySQL tesztsuite, migráció round-trip és kétszeri
   alapseeder smoke sikeres, a charset/collation/sql-mode adatok rögzítettek.
 
-### 4. CI-004 — A teljes Playwright E2E-kapu aktuális futtatása
+### 3. CI-004 — A teljes Playwright E2E-kapu aktuális futtatása
 
 - **Prioritás / méret:** P1 / M
 - **Miért most:** az E2E-infrastruktúra elkészült, de az audit során a teljes
@@ -84,7 +81,7 @@ A lezárt elemek nem részei az alábbi tíz végrehajtási lépésnek.
 - **Kész definíciója:** minden konfigurált Playwright projekt lefut; eltérés
   esetén artifact és dokumentált környezeti kivétel készül, tiltott teszt nincs.
 
-### 5. CI-005 — A GitHub Actions quality gate és required check mátrix auditja
+### 4. CI-005 — A GitHub Actions quality gate és required check mátrix auditja
 
 - **Prioritás / méret:** P1 / S
 - **Miért most:** a workflow-k jelen vannak, de nincs repository-szintű
@@ -93,7 +90,7 @@ A lezárt elemek nem részei az alábbi tíz végrehajtási lépésnek.
 - **Kész definíciója:** dokumentált job/trigger/required-check mátrix készül,
   és egyetlen P1 quality gate sem kerülhető meg normál PR-merge során.
 
-### 6. GOV-005 — Branch protection és required check szabályok bevezetése
+### 5. GOV-005 — Branch protection és required check szabályok bevezetése
 
 - **Prioritás / méret:** P1 / S
 - **Miért most:** a release-ág védelme csak az elfogadott PR-, DoD- és
@@ -103,7 +100,7 @@ A lezárt elemek nem részei az alábbi tíz végrehajtási lépésnek.
   szabályok élnek, a force push és a közvetlen törlés tiltott, az admin bypass
   szabály és a teszt-PR eredménye dokumentált.
 
-### 7. CI-006 — Composer security audit release-kapu igazolása
+### 6. CI-006 — Composer security audit release-kapu igazolása
 
 - **Prioritás / méret:** P1 / S
 - **Miért most:** a backend workflow jelenleg nem futtat Composer security
@@ -113,7 +110,7 @@ A lezárt elemek nem részei az alábbi tíz végrehajtási lépésnek.
   kritikus/magas találat blokkol vagy dokumentált kivétellel rendelkezik; a
   CI-be emelésről végrehajtható döntés született.
 
-### 8. CI-007 — npm security audit release-kapu felülvizsgálata
+### 7. CI-007 — npm security audit release-kapu felülvizsgálata
 
 - **Prioritás / méret:** P1 / S
 - **Miért most:** a workflow futtat teljes és production npm auditot, de a
@@ -122,7 +119,7 @@ A lezárt elemek nem részei az alábbi tíz végrehajtási lépésnek.
 - **Kész definíciója:** mindkét audit eredménye rögzített; minden findinghez
   owner, döntés és határidő tartozik; production high/critical találat blokkol.
 
-### 9. CI-009 — Egységes release gate és evidence-csomag
+### 8. CI-009 — Egységes release gate és evidence-csomag
 
 - **Prioritás / méret:** P1 / M
 - **Miért most:** a release-kapuk és bizonyítékok több workflow-ban és
@@ -132,7 +129,7 @@ A lezárt elemek nem részei az alábbi tíz végrehajtási lépésnek.
   backend-, frontend-, security-, E2E-, migráció- és rollbackeredményt; hiányzó
   kapu mellett nincs release.
 
-### 10. OPS-003 — Backup policy, scope, RPO és RTO jóváhagyása
+### 9. OPS-003 — Backup policy, scope, RPO és RTO jóváhagyása
 
 - **Prioritás / méret:** P0 / M
 - **Miért most:** a rendszer gyártási, készlet-, audit- és privát
@@ -143,8 +140,18 @@ A lezárt elemek nem részei az alábbi tíz végrehajtási lépésnek.
   konzisztens snapshot követelménye, valamint a tabletop loss scenariók
   eredménye dokumentált.
 
+### 10. LC-001 — Learning Center v1.0 scope lezárása
+
+- **Prioritás / méret:** P1 / M
+- **Miért most:** a v1.0 adatmodellje, jogosultsága és UI-ja csak jóváhagyott
+  kötelező képességekre és nem célokra építhető.
+- **Előfeltétel:** nincs.
+- **Kész definíciója:** a v1.0 use case-ek, szerepkörök, első támogatott
+  oldalak, kontextuális súgó és mérhető sikerkritériumok jóváhagyottak; a nem
+  célok és nyitott döntések explicit listában szerepelnek.
+
 ## Következő frissítés
 
 A lista első elemeinek lezárása után a következő jelöltek:
 
-- `LC-001` Learning Center v1.0 scope-zárás.
+- `OPS-001` queue konfiguráció és worker lifecycle audit.

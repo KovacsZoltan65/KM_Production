@@ -16,7 +16,10 @@ export default defineConfig({
         },
         setupFiles: ["tests/frontend/setup/setup.js"],
         include: ["tests/frontend/**/*.test.js"],
-        maxWorkers: 4,
+        // Each fork owns a jsdom heap; two workers cap peak memory while
+        // preserving file-level parallelism on constrained local and CI hosts.
+        pool: "forks",
+        maxWorkers: 2,
         clearMocks: true,
         restoreMocks: true,
         coverage: {
