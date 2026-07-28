@@ -2,7 +2,7 @@
 
 ## Dokumentumadatok
 
-- Baseline: 2026-07-27
+- Baseline: 2026-07-28
 - Forrás: `docs/project-management/backlog.md`
 - Hatókör: a következő tíz végrehajtható projektfeladat
 - Frissítési szabály: feladat lezárásakor, blokkolásakor vagy prioritásváltásakor
@@ -10,29 +10,26 @@
 Ez a dokumentum nem ismétli meg a teljes backlogot. A részletes scope,
 kockázat és tesztkövetelmény a hivatkozott backlogelemnél található.
 
+## Blokkolt governance-előfeltétel
+
+### GOV-002 — Az origin alapértelmezett ágának átállítása `main` ágra
+
+- **Állapot:** blocked
+- **Blokkoló ok:** a GitHub szerveroldali default branch továbbra is `master`;
+  a `git remote set-head origin --auto` ezért helyesen
+  `origin/HEAD -> origin/master` állapotot tartott meg.
+- **Feloldás:** repository-adminisztrátor a GitHub beállításokban `main`-re
+  váltja a default branchet, majd `git fetch origin --prune` és
+  `git remote set-head origin --auto` fut.
+- **Ellenőrzési feltétel:** az origin szerveroldali HEAD-je `main`, a helyi
+  szimbolikus referencia `origin/HEAD -> origin/main`, és egy friss klón
+  `main` ágra érkezik.
+
+A blokkolt elem nem része az alábbi tíz, jelenleg végrehajtható feladatnak.
+
 ## Végrehajtási sorrend
 
-### 1. GOV-002 — Az origin alapértelmezett ágának átállítása `main` ágra
-
-- **Prioritás / méret:** P1 / XS
-- **Miért most:** az `origin/HEAD -> origin/master` eltérés hibás klónozási és
-  automatizációs alapértelmezést okozhat.
-- **Előfeltétel:** repository-adminisztrátori jogosultság és a `main` aktív
-  release-ágként történő megerősítése.
-- **Kész definíciója:** a távoli default branch `main`, friss fetch után az
-  `origin/HEAD -> origin/main`, és a klónozási ellenőrzés `main` ágra érkezik.
-
-### 2. GOV-003 — Beolvadt ágak felülvizsgálata és takarítása
-
-- **Prioritás / méret:** P1 / S
-- **Miért most:** a megmaradt feature/maintenance ágak félkész munka látszatát
-  keltik és rontják a projektállapot olvashatóságát.
-- **Előfeltétel:** GOV-002; minden törlendő ágnál merge- és egyedi
-  commitellenőrzés.
-- **Kész definíciója:** a felülvizsgálati lista rögzíti a megtartott/törölt
-  ágakat és indokukat; csak bizonyítottan beolvadt ág törlődik.
-
-### 3. GOV-004 — Commitüzenet-konvenció elfogadása
+### 1. GOV-004 — Commitüzenet-konvenció elfogadása
 
 - **Prioritás / méret:** P1 / XS
 - **Miért most:** a `mentés`, `workspace` és `Hiba javítás` üzenetekből nem
@@ -41,7 +38,7 @@ kockázat és tesztkövetelmény a hivatkozott backlogelemnél található.
 - **Kész definíciója:** dokumentált típus/scope/tárgy formátum, jó és tiltott
   példák, valamint backlog/issue ID-hivatkozási szabály áll rendelkezésre.
 
-### 4. GOV-006 — Pull request sablon létrehozása
+### 2. GOV-006 — Pull request sablon létrehozása
 
 - **Prioritás / méret:** P1 / XS
 - **Miért most:** a CI és Definition of Done csak egységes PR-bizonyítékkal
@@ -50,7 +47,7 @@ kockázat és tesztkövetelmény a hivatkozott backlogelemnél található.
 - **Kész definíciója:** a GitHub új PR-nél automatikusan megjeleníti a scope,
   backlog ID, kockázat, migráció, teszteredmény és dokumentáció mezőket.
 
-### 5. GOV-008 — Projekt Definition of Done bevezetése
+### 3. GOV-008 — Projekt Definition of Done bevezetése
 
 - **Prioritás / méret:** P1 / S
 - **Miért most:** az aktív backlogelemek lezárási állapota egységes quality
@@ -60,7 +57,7 @@ kockázat és tesztkövetelmény a hivatkozott backlogelemnél található.
   ugyanazokat a kötelező kód-, teszt-, biztonsági és dokumentációs kapukat
   használja.
 
-### 6. CI-001 — A Vitest worker-timeout okának reprodukálása
+### 4. CI-001 — A Vitest worker-timeout okának reprodukálása
 
 - **Prioritás / méret:** P1 / S
 - **Miért most:** az alapértelmezett `npm test` 7 worker-timeouttal hibázott,
@@ -71,7 +68,7 @@ kockázat és tesztkövetelmény a hivatkozott backlogelemnél található.
   azonosítja a worker-, pool-, erőforrás- vagy környezeti okot, és kizárja a
   tesztlogikai regressziót.
 
-### 7. CI-002 — Az alapértelmezett Vitest-konfiguráció stabilizálása
+### 5. CI-002 — Az alapértelmezett Vitest-konfiguráció stabilizálása
 
 - **Prioritás / méret:** P1 / S
 - **Miért most:** a fejlesztői alapértelmezett parancsnak megbízható quality
@@ -81,7 +78,7 @@ kockázat és tesztkövetelmény a hivatkozott backlogelemnél található.
   20/20 fájllal és 166/166 teszttel zárul worker-timeout nélkül; a Linux CI is
   zöld.
 
-### 8. CI-003 — A teljes MySQL quality gate aktuális futtatása
+### 6. CI-003 — A teljes MySQL quality gate aktuális futtatása
 
 - **Prioritás / méret:** P1 / S
 - **Miért most:** a workflow létezik, de a 2026-07-27-i audit nem adott
@@ -91,7 +88,7 @@ kockázat és tesztkövetelmény a hivatkozott backlogelemnél található.
 - **Kész definíciója:** a MySQL tesztsuite, migráció round-trip és kétszeri
   alapseeder smoke sikeres, a charset/collation/sql-mode adatok rögzítettek.
 
-### 9. CI-004 — A teljes Playwright E2E-kapu aktuális futtatása
+### 7. CI-004 — A teljes Playwright E2E-kapu aktuális futtatása
 
 - **Prioritás / méret:** P1 / M
 - **Miért most:** az E2E-infrastruktúra elkészült, de az audit során a teljes
@@ -102,21 +99,40 @@ kockázat és tesztkövetelmény a hivatkozott backlogelemnél található.
 - **Kész definíciója:** minden konfigurált Playwright projekt lefut; eltérés
   esetén artifact és dokumentált környezeti kivétel készül, tiltott teszt nincs.
 
-### 10. CI-005 — A GitHub Actions quality gate és required check mátrix auditja
+### 8. CI-005 — A GitHub Actions quality gate és required check mátrix auditja
 
 - **Prioritás / méret:** P1 / S
 - **Miért most:** a workflow-k jelen vannak, de nincs repository-szintű
   bizonyíték arról, hogy valamennyi release-kritikus job kötelező merge-feltétel.
-- **Előfeltétel:** GOV-005 branch-protection döntés előkészítése; CI-002,
-  CI-003 és CI-004 eredményei.
+- **Előfeltétel:** CI-002, CI-003 és CI-004.
 - **Kész definíciója:** dokumentált job/trigger/required-check mátrix készül,
   és egyetlen P1 quality gate sem kerülhető meg normál PR-merge során.
+
+### 9. GOV-005 — Branch protection és required check szabályok bevezetése
+
+- **Prioritás / méret:** P1 / S
+- **Miért most:** a release-ág védelme csak az elfogadott PR-, DoD- és
+  quality-gate szabályok ismeretében állítható be pontosan.
+- **Előfeltétel:** GOV-006, GOV-008 és CI-005.
+- **Kész definíciója:** a `main` ágon kötelező PR-review és required check
+  szabályok élnek, a force push és a közvetlen törlés tiltott, az admin bypass
+  szabály és a teszt-PR eredménye dokumentált.
+
+### 10. CI-006 — Composer security audit release-kapu igazolása
+
+- **Prioritás / méret:** P1 / S
+- **Miért most:** a backend workflow jelenleg nem futtat Composer security
+  auditot, ezért a PHP dependency-kockázat nem igazolt release-kapu.
+- **Előfeltétel:** nincs.
+- **Kész definíciója:** a `composer audit` exit code-ja és riportja rögzített; a
+  kritikus/magas találat blokkol vagy dokumentált kivétellel rendelkezik; a
+  CI-be emelésről végrehajtható döntés született.
 
 ## Következő frissítés
 
 A lista első elemeinek lezárása után a következő jelöltek:
 
-- `CI-006` és `CI-007` dependency security audit;
+- `CI-007` frontend dependency security audit;
 - `CI-009` egységes release gate;
 - `OPS-003` backup policy és RPO/RTO;
 - `LC-001` Learning Center v1.0 scope-zárás.

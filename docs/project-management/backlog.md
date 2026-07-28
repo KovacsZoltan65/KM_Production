@@ -44,7 +44,7 @@ A mezők, állapotátmenetek és lezárási szabályok részletes definíciójá
 
 | Kategória                     | Planned |  Ready | Blocked |  Done | Összesen |
 | ----------------------------- | ------: | -----: | ------: | ----: | -------: |
-| Projektvezetés és Git         |       1 |      6 |       0 |     1 |        8 |
+| Projektvezetés és Git         |       1 |      4 |       1 |     2 |        8 |
 | CI és release                 |       3 |      7 |       0 |     0 |       10 |
 | Tesztelés és statikus elemzés |       2 |      2 |       0 |     0 |        4 |
 | Learning Center               |      18 |      1 |       0 |     0 |       19 |
@@ -52,7 +52,7 @@ A mezők, állapotátmenetek és lezárási szabályok részletes definíciójá
 | Manufacturing Intelligence    |       5 |      0 |       0 |     0 |        5 |
 | Üzemeltetés                   |       4 |      7 |       0 |     0 |       11 |
 | UX és skálázhatóság           |       0 |      0 |       0 |     0 |        0 |
-| **Összesen**                  |  **44** | **23** |   **1** | **1** |   **69** |
+| **Összesen**                  |  **44** | **21** |   **2** | **2** |   **69** |
 
 | Prioritás | Darabszám |
 | --------- | --------: |
@@ -76,8 +76,8 @@ A mezők, állapotátmenetek és lezárási szabályok részletes definíciójá
 Az első tíz aktív feladat részletes sorrendje:
 `docs/project-management/next-actions.md`.
 
-Röviden: `GOV-002`, `GOV-003`, `GOV-004`, `GOV-006`, `GOV-008`, `CI-001`,
-`CI-002`, `CI-003`, `CI-004`, `CI-005`.
+Röviden: `GOV-004`, `GOV-006`, `GOV-008`, `CI-001`, `CI-002`, `CI-003`,
+`CI-004`, `CI-005`, `GOV-005`, `CI-006`.
 
 ## Backlog tételek
 
@@ -109,7 +109,9 @@ Röviden: `GOV-002`, `GOV-003`, `GOV-004`, `GOV-006`, `GOV-008`, `CI-001`,
 
 #### GOV-002 — Az origin alapértelmezett ágának átállítása `main` ágra
 
-- **Állapot:** ready
+- **Állapot:** blocked — blokkoló ok: a GitHub szerveroldali default branch
+  továbbra is `master`; feloldás: repository-adminisztrátor a GitHub
+  beállításokban `main`-re váltja a default branchet.
 - **Prioritás:** P1
 - **Kategória:** Projektvezetés és Git
 - **Célverzió:** v1.x Stabilizálás
@@ -129,10 +131,13 @@ Röviden: `GOV-002`, `GOV-003`, `GOV-004`, `GOV-006`, `GOV-008`, `CI-001`,
 - **Becsült méret:** XS
 - **Kockázat:** Adminisztrátori jogosultság szükséges; hibás váltás automatizmust
   érinthet.
+- **Eredmény 2026-07-28:** A `git remote set-head origin --auto` a szerver
+  beállítása alapján változatlanul `origin/master` értéket adott. Helyi explicit
+  felülírás nem történt, mert az elfedné a szerveroldali eltérést.
 
 #### GOV-003 — Beolvadt branchek felülvizsgálata és takarítása
 
-- **Állapot:** ready
+- **Állapot:** done
 - **Prioritás:** P1
 - **Kategória:** Projektvezetés és Git
 - **Célverzió:** v1.x Stabilizálás
@@ -151,6 +156,11 @@ Röviden: `GOV-002`, `GOV-003`, `GOV-004`, `GOV-006`, `GOV-008`, `CI-001`,
   `docs/deployment.md`.
 - **Becsült méret:** S
 - **Kockázat:** Téves törlés elveszíthet nehezen visszakereshető referenciát.
+- **Eredmény 2026-07-28:** Tíz helyi és ugyanaz a tíz remote feature/maintenance
+  ág normál törléssel megszűnt. Minden tip a `main` őse volt, egyedi commitjuk
+  nulla, `git cherry` eredményük üres, worktree- és tip-tag kapcsolatuk nem volt.
+  A `main` megmaradt; a remote `master` a szerveroldali default branch miatt
+  külön, megtartandó kockázat.
 
 #### GOV-004 — Commitüzenet-konvenció elfogadása
 
