@@ -42,3 +42,13 @@ Commit messages and AI-agent commit rules are defined in
 [Commit Message Convention](docs/project-management/commit-conventions.md).
 Agents must use targeted staging and may commit or push only with explicit user
 authorization.
+
+## Pull Requests and Review
+
+Agents may create or update a pull request only with explicit user
+authorization. They must use the
+[pull request template](.github/pull_request_template.md), follow the
+[code review guide](docs/project-management/code-review-guide.md), report only
+checks that actually ran, and inspect the complete branch diff. Agents must not
+claim approval, merge with unresolved blockers, enable auto-merge, or change
+branch protection and required checks without explicit authorization.

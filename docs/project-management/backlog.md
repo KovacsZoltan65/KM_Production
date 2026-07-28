@@ -44,7 +44,7 @@ A mezők, állapotátmenetek és lezárási szabályok részletes definíciójá
 
 | Kategória                     | Planned |  Ready | Blocked |  Done | Összesen |
 | ----------------------------- | ------: | -----: | ------: | ----: | -------: |
-| Projektvezetés és Git         |       1 |      3 |       0 |     4 |        8 |
+| Projektvezetés és Git         |       1 |      2 |       0 |     5 |        8 |
 | CI és release                 |       3 |      7 |       0 |     0 |       10 |
 | Tesztelés és statikus elemzés |       2 |      2 |       0 |     0 |        4 |
 | Learning Center               |      18 |      1 |       0 |     0 |       19 |
@@ -52,7 +52,7 @@ A mezők, állapotátmenetek és lezárási szabályok részletes definíciójá
 | Manufacturing Intelligence    |       5 |      0 |       0 |     0 |        5 |
 | Üzemeltetés                   |       4 |      7 |       0 |     0 |       11 |
 | UX és skálázhatóság           |       0 |      0 |       0 |     0 |        0 |
-| **Összesen**                  |  **44** | **20** |   **1** | **4** |   **69** |
+| **Összesen**                  |  **44** | **19** |   **1** | **5** |   **69** |
 
 | Prioritás | Darabszám |
 | --------- | --------: |
@@ -76,8 +76,8 @@ A mezők, állapotátmenetek és lezárási szabályok részletes definíciójá
 Az első tíz aktív feladat részletes sorrendje:
 `docs/project-management/next-actions.md`.
 
-Röviden: `GOV-006`, `GOV-008`, `CI-001`, `CI-002`, `CI-003`, `CI-004`,
-`CI-005`, `GOV-005`, `CI-006`, `CI-007`.
+Röviden: `GOV-008`, `CI-001`, `CI-002`, `CI-003`, `CI-004`, `CI-005`,
+`GOV-005`, `CI-006`, `CI-007`, `CI-009`.
 
 ## Backlog tételek
 
@@ -218,7 +218,7 @@ Röviden: `GOV-006`, `GOV-008`, `CI-001`, `CI-002`, `CI-003`, `CI-004`,
 
 #### GOV-006 — Pull request sablon létrehozása
 
-- **Állapot:** ready
+- **Állapot:** done
 - **Prioritás:** P1
 - **Kategória:** Projektvezetés és Git
 - **Célverzió:** v1.x Stabilizálás
@@ -226,17 +226,25 @@ Röviden: `GOV-006`, `GOV-008`, `CI-001`, `CI-002`, `CI-003`, `CI-004`,
   tesztbizonyítékkal.
 - **Indoklás:** A quality gate és architekturális szabályok review-bizonyítéka
   jelenleg nem egységes.
-- **Scope:** A létrehozandó GitHub pull request sablon tartalma és használati
-  szabálya.
+- **Scope:** GitHub pull request sablon, reviewer útmutató, merge-stratégia,
+  required-check és branch-protection javaslat, valamint AI-agent PR-szabályok.
 - **Scope-on kívül:** Automatikus GitHub app vagy bot.
 - **Függőségek:** GOV-004.
 - **Elfogadási feltételek:** Új PR-nél megjelenik a backlog, üzleti hatás,
-  migráció, jogosultság, teszt, dokumentáció és rollback mező.
-- **Tesztelési követelmények:** Draft PR preview és checklist tartalmi review.
-- **Kapcsolódó fájlok és dokumentáció:** `.kiro/checklists/before-merge.md`,
+  migráció, jogosultság, teszt, dokumentáció és rollback mező; a review,
+  merge- és AI-agent szabályok, valamint a tényleges checkjavaslat dokumentált.
+- **Tesztelési követelmények:** Három eltérő változástípus helyi
+  mintakitöltése, Markdown-, hivatkozás- és checklist-tartalmi validáció.
+- **Kapcsolódó fájlok és dokumentáció:** `.github/pull_request_template.md`,
+  `docs/project-management/code-review-guide.md`, `CONTRIBUTING.md`,
+  `AGENTS.md`, `.kiro/checklists/before-merge.md`,
   `.kiro/checklists/security.md`, `.kiro/workflows/feature-development.md`.
 - **Becsült méret:** XS
 - **Kockázat:** Túl hosszú sablon formális, de tartalmatlan kitöltéshez vezethet.
+- **Eredmény 2026-07-28:** Egyetlen általános PR-sablon, változástípus-alapú
+  tesztelés, reviewer severity, merge-stratégia, required-check és
+  branch-protection javaslat készült. A három helyi mintakitöltés és a
+  dokumentációs validáció sikeres; GitHub-beállítás nem változott.
 
 #### GOV-007 — GitHub issue sablonok létrehozása
 

@@ -16,8 +16,9 @@ repository aktuális dokumentációját és scriptjeit.
 ## Commitüzenetek
 
 Minden új commit kövesse a
-`docs/project-management/commit-conventions.md` szabályait. A commitüzenet
-angol, a magyarázó projekt-dokumentáció magyar nyelvű.
+[commitüzenet-konvenció](docs/project-management/commit-conventions.md)
+szabályait. A commitüzenet angol, a magyarázó projekt-dokumentáció magyar
+nyelvű.
 
 ## Tesztek
 
@@ -28,13 +29,19 @@ változás kockázatához illő fókuszált teszteket és a releváns
 
 ## Pull request
 
-- Tartsd a változást fókuszáltan és review-zhatóan.
-- Add meg az üzleti vagy technikai célt, a kockázatot és a tesztbizonyítékot.
+- Használd a [pull request sablont](.github/pull_request_template.md).
+- A PR címe kövesse a commitkonvenció tárgysor-formátumát.
+- Tartsd a változást fókuszáltan, és add meg a célt, kockázatot, rollbacket,
+  valamint a tényleges tesztbizonyítékot.
 - Hivatkozd a backlog ID-t, ha a munkához tartozik backlogelem.
-- Kövesd a `.kiro/checklists/before-merge.md` ellenőrzőlistát.
-- Squash merge esetén a végső commitcím is kövesse a commitkonvenciót.
+- Kövesd a [merge előtti ellenőrzőlistát](.kiro/checklists/before-merge.md) és a
+  [code review útmutatót](docs/project-management/code-review-guide.md).
+- Az alapértelmezett javaslat squash merge; a végső cím kövesse a
+  commitkonvenciót.
+- Nyitott `BLOCKER` vagy `REQUIRED` megjegyzéssel ne történjen merge.
 
 ## Definition of Done
 
 A központi backlog lezárási szabálya a
-`docs/project-management/backlog-conventions.md` dokumentumban található.
+[backlog-konvenciókban](docs/project-management/backlog-conventions.md)
+található.

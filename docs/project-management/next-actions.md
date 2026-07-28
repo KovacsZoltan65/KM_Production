@@ -25,20 +25,17 @@ kockázat és tesztkövetelmény a hivatkozott backlogelemnél található.
 - **Eredmény:** az elsődleges szabályzat, az emberi és AI-agent hivatkozások,
   valamint az automatizálási döntés dokumentált.
 
+### GOV-006 — Pull request sablon létrehozása
+
+- **Állapot:** done
+- **Eredmény:** az általános PR-sablon, code review és merge-folyamat,
+  required-check javaslat, valamint az AI-agent PR-szabályok dokumentáltak.
+
 A lezárt elemek nem részei az alábbi tíz végrehajtási lépésnek.
 
 ## Végrehajtási sorrend
 
-### 1. GOV-006 — Pull request sablon létrehozása
-
-- **Prioritás / méret:** P1 / XS
-- **Miért most:** a CI és Definition of Done csak egységes PR-bizonyítékkal
-  tehető kötelezővé.
-- **Előfeltétel:** GOV-004.
-- **Kész definíciója:** a GitHub új PR-nél automatikusan megjeleníti a scope,
-  backlog ID, kockázat, migráció, teszteredmény és dokumentáció mezőket.
-
-### 2. GOV-008 — Projekt Definition of Done bevezetése
+### 1. GOV-008 — Projekt Definition of Done bevezetése
 
 - **Prioritás / méret:** P1 / S
 - **Miért most:** az aktív backlogelemek lezárási állapota egységes quality
@@ -48,7 +45,7 @@ A lezárt elemek nem részei az alábbi tíz végrehajtási lépésnek.
   ugyanazokat a kötelező kód-, teszt-, biztonsági és dokumentációs kapukat
   használja.
 
-### 3. CI-001 — A Vitest worker-timeout okának reprodukálása
+### 2. CI-001 — A Vitest worker-timeout okának reprodukálása
 
 - **Prioritás / méret:** P1 / S
 - **Miért most:** az alapértelmezett `npm test` 7 worker-timeouttal hibázott,
@@ -59,7 +56,7 @@ A lezárt elemek nem részei az alábbi tíz végrehajtási lépésnek.
   azonosítja a worker-, pool-, erőforrás- vagy környezeti okot, és kizárja a
   tesztlogikai regressziót.
 
-### 4. CI-002 — Az alapértelmezett Vitest-konfiguráció stabilizálása
+### 3. CI-002 — Az alapértelmezett Vitest-konfiguráció stabilizálása
 
 - **Prioritás / méret:** P1 / S
 - **Miért most:** a fejlesztői alapértelmezett parancsnak megbízható quality
@@ -69,7 +66,7 @@ A lezárt elemek nem részei az alábbi tíz végrehajtási lépésnek.
   20/20 fájllal és 166/166 teszttel zárul worker-timeout nélkül; a Linux CI is
   zöld.
 
-### 5. CI-003 — A teljes MySQL quality gate aktuális futtatása
+### 4. CI-003 — A teljes MySQL quality gate aktuális futtatása
 
 - **Prioritás / méret:** P1 / S
 - **Miért most:** a workflow létezik, de a 2026-07-27-i audit nem adott
@@ -79,7 +76,7 @@ A lezárt elemek nem részei az alábbi tíz végrehajtási lépésnek.
 - **Kész definíciója:** a MySQL tesztsuite, migráció round-trip és kétszeri
   alapseeder smoke sikeres, a charset/collation/sql-mode adatok rögzítettek.
 
-### 6. CI-004 — A teljes Playwright E2E-kapu aktuális futtatása
+### 5. CI-004 — A teljes Playwright E2E-kapu aktuális futtatása
 
 - **Prioritás / méret:** P1 / M
 - **Miért most:** az E2E-infrastruktúra elkészült, de az audit során a teljes
@@ -90,7 +87,7 @@ A lezárt elemek nem részei az alábbi tíz végrehajtási lépésnek.
 - **Kész definíciója:** minden konfigurált Playwright projekt lefut; eltérés
   esetén artifact és dokumentált környezeti kivétel készül, tiltott teszt nincs.
 
-### 7. CI-005 — A GitHub Actions quality gate és required check mátrix auditja
+### 6. CI-005 — A GitHub Actions quality gate és required check mátrix auditja
 
 - **Prioritás / méret:** P1 / S
 - **Miért most:** a workflow-k jelen vannak, de nincs repository-szintű
@@ -99,7 +96,7 @@ A lezárt elemek nem részei az alábbi tíz végrehajtási lépésnek.
 - **Kész definíciója:** dokumentált job/trigger/required-check mátrix készül,
   és egyetlen P1 quality gate sem kerülhető meg normál PR-merge során.
 
-### 8. GOV-005 — Branch protection és required check szabályok bevezetése
+### 7. GOV-005 — Branch protection és required check szabályok bevezetése
 
 - **Prioritás / méret:** P1 / S
 - **Miért most:** a release-ág védelme csak az elfogadott PR-, DoD- és
@@ -109,7 +106,7 @@ A lezárt elemek nem részei az alábbi tíz végrehajtási lépésnek.
   szabályok élnek, a force push és a közvetlen törlés tiltott, az admin bypass
   szabály és a teszt-PR eredménye dokumentált.
 
-### 9. CI-006 — Composer security audit release-kapu igazolása
+### 8. CI-006 — Composer security audit release-kapu igazolása
 
 - **Prioritás / méret:** P1 / S
 - **Miért most:** a backend workflow jelenleg nem futtat Composer security
@@ -119,7 +116,7 @@ A lezárt elemek nem részei az alábbi tíz végrehajtási lépésnek.
   kritikus/magas találat blokkol vagy dokumentált kivétellel rendelkezik; a
   CI-be emelésről végrehajtható döntés született.
 
-### 10. CI-007 — npm security audit release-kapu felülvizsgálata
+### 9. CI-007 — npm security audit release-kapu felülvizsgálata
 
 - **Prioritás / méret:** P1 / S
 - **Miért most:** a workflow futtat teljes és production npm auditot, de a
@@ -128,10 +125,19 @@ A lezárt elemek nem részei az alábbi tíz végrehajtási lépésnek.
 - **Kész definíciója:** mindkét audit eredménye rögzített; minden findinghez
   owner, döntés és határidő tartozik; production high/critical találat blokkol.
 
+### 10. CI-009 — Egységes release gate és evidence-csomag
+
+- **Prioritás / méret:** P1 / M
+- **Miért most:** a release-kapuk és bizonyítékok több workflow-ban és
+  dokumentumban szétszórva vannak.
+- **Előfeltétel:** CI-002, CI-003, CI-004, CI-005, CI-006, CI-007 és CI-010.
+- **Kész definíciója:** egy verziójelölt evidence-csomagja tartalmaz minden
+  backend-, frontend-, security-, E2E-, migráció- és rollbackeredményt; hiányzó
+  kapu mellett nincs release.
+
 ## Következő frissítés
 
 A lista első elemeinek lezárása után a következő jelöltek:
 
-- `CI-009` egységes release gate;
 - `OPS-003` backup policy és RPO/RTO;
 - `LC-001` Learning Center v1.0 scope-zárás.

@@ -2,6 +2,8 @@
 
 Mandatory checklist before merging work into a shared branch.
 
+Detailed process: [code review guide](../../docs/project-management/code-review-guide.md).
+
 # Checklist
 
 - [ ] Regression review completed.
@@ -17,6 +19,10 @@ Mandatory checklist before merging work into a shared branch.
 - [ ] Tests pass in the expected environment.
 - [ ] Documentation changes are complete.
 - [ ] No unrelated changes are included.
+- [ ] PR title follows the commit message convention.
+- [ ] Test evidence lists commands that actually ran.
+- [ ] No unresolved `BLOCKER` or `REQUIRED` review comment remains.
+- [ ] PR description, backlog state, migration notes, and rollback are current.
 
 # Common Mistakes
 
