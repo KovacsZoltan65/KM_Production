@@ -35,3 +35,10 @@ Before significant work, read in this order:
 Project-specific rules, decisions, knowledge, playbooks, prompts, templates, checklists, workflows, and memory live under [.kiro/](.kiro/).
 
 Reader-facing product documentation lives under [docs/](docs/).
+
+## Git and Commits
+
+Commit messages and AI-agent commit rules are defined in
+[Commit Message Convention](docs/project-management/commit-conventions.md).
+Agents must use targeted staging and may commit or push only with explicit user
+authorization.

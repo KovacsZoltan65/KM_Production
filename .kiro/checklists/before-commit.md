@@ -77,6 +77,13 @@ Mandatory checklist before committing work in KM_Production.
 - [ ] ADR affected?
 - [ ] Knowledge affected?
 
+## Git
+
+- [ ] Commit message follows the [commit message convention](../../docs/project-management/commit-conventions.md).
+- [ ] Staging was targeted; staged names, statistics, whitespace, and full diff were reviewed.
+- [ ] No unrelated or previously existing changes are staged.
+- [ ] Commit claims only tests and checks that actually ran.
+
 # Common Mistakes
 
 - Committing before running focused tests.

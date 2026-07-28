@@ -44,7 +44,7 @@ A mezők, állapotátmenetek és lezárási szabályok részletes definíciójá
 
 | Kategória                     | Planned |  Ready | Blocked |  Done | Összesen |
 | ----------------------------- | ------: | -----: | ------: | ----: | -------: |
-| Projektvezetés és Git         |       1 |      4 |       1 |     2 |        8 |
+| Projektvezetés és Git         |       1 |      3 |       0 |     4 |        8 |
 | CI és release                 |       3 |      7 |       0 |     0 |       10 |
 | Tesztelés és statikus elemzés |       2 |      2 |       0 |     0 |        4 |
 | Learning Center               |      18 |      1 |       0 |     0 |       19 |
@@ -52,7 +52,7 @@ A mezők, állapotátmenetek és lezárási szabályok részletes definíciójá
 | Manufacturing Intelligence    |       5 |      0 |       0 |     0 |        5 |
 | Üzemeltetés                   |       4 |      7 |       0 |     0 |       11 |
 | UX és skálázhatóság           |       0 |      0 |       0 |     0 |        0 |
-| **Összesen**                  |  **44** | **21** |   **2** | **2** |   **69** |
+| **Összesen**                  |  **44** | **20** |   **1** | **4** |   **69** |
 
 | Prioritás | Darabszám |
 | --------- | --------: |
@@ -76,8 +76,8 @@ A mezők, állapotátmenetek és lezárási szabályok részletes definíciójá
 Az első tíz aktív feladat részletes sorrendje:
 `docs/project-management/next-actions.md`.
 
-Röviden: `GOV-004`, `GOV-006`, `GOV-008`, `CI-001`, `CI-002`, `CI-003`,
-`CI-004`, `CI-005`, `GOV-005`, `CI-006`.
+Röviden: `GOV-006`, `GOV-008`, `CI-001`, `CI-002`, `CI-003`, `CI-004`,
+`CI-005`, `GOV-005`, `CI-006`, `CI-007`.
 
 ## Backlog tételek
 
@@ -109,9 +109,7 @@ Röviden: `GOV-004`, `GOV-006`, `GOV-008`, `CI-001`, `CI-002`, `CI-003`,
 
 #### GOV-002 — Az origin alapértelmezett ágának átállítása `main` ágra
 
-- **Állapot:** blocked — blokkoló ok: a GitHub szerveroldali default branch
-  továbbra is `master`; feloldás: repository-adminisztrátor a GitHub
-  beállításokban `main`-re váltja a default branchet.
+- **Állapot:** done
 - **Prioritás:** P1
 - **Kategória:** Projektvezetés és Git
 - **Célverzió:** v1.x Stabilizálás
@@ -134,6 +132,9 @@ Röviden: `GOV-004`, `GOV-006`, `GOV-008`, `CI-001`, `CI-002`, `CI-003`,
 - **Eredmény 2026-07-28:** A `git remote set-head origin --auto` a szerver
   beállítása alapján változatlanul `origin/master` értéket adott. Helyi explicit
   felülírás nem történt, mert az elfedné a szerveroldali eltérést.
+- **Lezárás 2026-07-28:** A GitHub szerveroldali HEAD-je `main`; fetch után
+  `origin/HEAD -> origin/main`, a `main` az `origin/main` ágat követi, és a
+  korábbi remote `master` ág már nincs jelen.
 
 #### GOV-003 — Beolvadt branchek felülvizsgálata és takarítása
 
@@ -159,12 +160,13 @@ Röviden: `GOV-004`, `GOV-006`, `GOV-008`, `CI-001`, `CI-002`, `CI-003`,
 - **Eredmény 2026-07-28:** Tíz helyi és ugyanaz a tíz remote feature/maintenance
   ág normál törléssel megszűnt. Minden tip a `main` őse volt, egyedi commitjuk
   nulla, `git cherry` eredményük üres, worktree- és tip-tag kapcsolatuk nem volt.
-  A `main` megmaradt; a remote `master` a szerveroldali default branch miatt
-  külön, megtartandó kockázat.
+  A `main` megmaradt. A remote `master` az ellenőrzéskor még a szerveroldali
+  default branch miatt megmaradt; a későbbi `GOV-002` lezárásakor már nem volt
+  jelen.
 
 #### GOV-004 — Commitüzenet-konvenció elfogadása
 
-- **Állapot:** ready
+- **Állapot:** done
 - **Prioritás:** P1
 - **Kategória:** Projektvezetés és Git
 - **Célverzió:** v1.x Stabilizálás
@@ -175,14 +177,22 @@ Röviden: `GOV-004`, `GOV-006`, `GOV-008`, `CI-001`, `CI-002`, `CI-003`,
 - **Scope-on kívül:** Régi commitok history rewrite-ja.
 - **Függőségek:** Nincs.
 - **Elfogadási feltételek:** Dokumentált formátum és legalább öt
-  projekt-specifikus jó/rossz példa; PR-sablon hivatkozik rá.
-- **Tesztelési követelmények:** A következő öt nem merge commit manuális
-  megfelelőségi ellenőrzése.
-- **Kapcsolódó fájlok és dokumentáció:** `AGENTS.md`,
-  `.kiro/checklists/before-commit.md`,
+  projekt-specifikus jó/rossz példa; az `AGENTS.md`, a hozzájárulási útmutató és
+  a commit előtti checklist hivatkozik rá.
+- **Tesztelési követelmények:** Dokumentum-, hivatkozás- és
+  formázásellenőrzés, valamint a bevezető commit manuális megfelelőségi
+  ellenőrzése. A következő négy nem merge commit külön, nem blokkoló
+  bevezetési review-t kap.
+- **Kapcsolódó fájlok és dokumentáció:**
+  `docs/project-management/commit-conventions.md`, `AGENTS.md`,
+  `CONTRIBUTING.md`, `.kiro/checklists/before-commit.md`,
   `docs/project-management/backlog-conventions.md`.
 - **Becsült méret:** XS
 - **Kockázat:** Automatizált ellenőrzés nélkül a szabály következetlen maradhat.
+- **Eredmény 2026-07-28:** Az angol Conventional Commits-alapú formátum,
+  projekt-scope-ok, breaking change, atomi commit, merge/squash és AI-agent
+  szabályok dokumentáltak. Az automatizálás auditja új dependency telepítése
+  nélkül, fokozatos CI-bevezetési javaslattal lezárult.
 
 #### GOV-005 — Branch protection és required check szabályok bevezetése
 
