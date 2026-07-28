@@ -9,10 +9,73 @@ permissions:
   contents: read
 
 jobs:
-  frontend:
-    name: Frontend unit, i18n and build
+  frontend-unit:
+    name: Frontend Unit Tests
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Frontend tests
+        run: npm run test:frontend
+
+  frontend-i18n:
+    name: Frontend i18n Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Translation key check
+        run: npm run i18n:check
+
+  frontend-build:
+    name: Frontend Production Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Frontend build
+        run: npm run build
+
+  frontend-dependency-audit:
+    name: Frontend Dependency Audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - name: Checkout
@@ -32,15 +95,6 @@ jobs:
 
       - name: Audit production npm dependencies
         run: npm audit --omit=dev
-
-      - name: Frontend tests
-        run: npm run test:frontend
-
-      - name: Translation key check
-        run: npm run i18n:check
-
-      - name: Frontend build
-        run: npm run build
 
   e2e-chromium:
     name: Playwright Chromium, accessibility and keyboard

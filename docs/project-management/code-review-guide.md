@@ -267,20 +267,25 @@ A GitHub merge-stratégiát ez a dokumentum nem módosítja.
 Az alábbi jobok pull requestre futnak, de repository-szintű required státuszuk
 nem igazolt:
 
-| Ellenőrzés                           | Workflow               | Job neve                                          | Javasolt required | Feltétel vagy backlogkapcsolat                              |
-| ------------------------------------ | ---------------------- | ------------------------------------------------- | ----------------- | ----------------------------------------------------------- |
-| Composer validáció, Pint és Larastan | `Backend quality gate` | `Backend Static Analysis`                         | Igen              | A check kontextusát `CI-005` alatt GitHubon igazolni kell.  |
-| SQLite backend és cache regresszió   | `Backend quality gate` | `Backend Tests / SQLite`                          | Igen              | Stabil PR-futás után.                                       |
-| MySQL backend tesztek                | `Backend quality gate` | `Backend Tests / MySQL`                           | Feltételes        | `CI-003` aktuális stabilitási bizonyítéka után.             |
-| SQLite és MySQL migráció             | `Backend quality gate` | `Backend Migrations`                              | Feltételes        | `CI-003` után.                                              |
-| Vitest, i18n, build és npm audit     | `Frontend`             | `Frontend unit, i18n and build`                   | Még nem           | `CI-001`, `CI-002` és `CI-007` lezárása után.               |
-| Chromium, accessibility és keyboard  | `Frontend`             | `Playwright Chromium, accessibility and keyboard` | Még nem           | `CI-004` stabilitási auditja után.                          |
-| Cross-browser és mobile smoke        | `Frontend`             | `Playwright cross-browser and mobile smoke`       | Még nem           | `CI-004` után; költség- és flakység-review szükséges.       |
-| Prettier                             | Nincs                  | Nincs                                             | Nem               | Előbb ellenőrizhető workflow vagy projekt-script szükséges. |
-| Composer security audit              | Nincs                  | Nincs                                             | Nem               | `CI-006`.                                                   |
+| Ellenőrzés                           | Workflow               | Job neve                                          | Javasolt required | Feltétel vagy backlogkapcsolat                                  |
+| ------------------------------------ | ---------------------- | ------------------------------------------------- | ----------------- | --------------------------------------------------------------- |
+| Composer validáció, Pint és Larastan | `Backend quality gate` | `Backend Static Analysis`                         | Igen              | A check kontextusát `CI-005` alatt GitHubon igazolni kell.      |
+| SQLite backend és cache regresszió   | `Backend quality gate` | `Backend Tests / SQLite`                          | Igen              | Stabil PR-futás után.                                           |
+| MySQL backend tesztek                | `Backend quality gate` | `Backend Tests / MySQL`                           | Feltételes        | `CI-003` aktuális stabilitási bizonyítéka után.                 |
+| SQLite és MySQL migráció             | `Backend quality gate` | `Backend Migrations`                              | Feltételes        | `CI-003` után.                                                  |
+| Frontend unit tesztek                | `Frontend`             | `Frontend Unit Tests`                             | Még nem           | A stabil checkkontextust `CI-005` alatt GitHubon igazolni kell. |
+| Frontend lokalizáció                 | `Frontend`             | `Frontend i18n Check`                             | Még nem           | A stabil checkkontextust `CI-005` alatt GitHubon igazolni kell. |
+| Frontend production build            | `Frontend`             | `Frontend Production Build`                       | Még nem           | A stabil checkkontextust `CI-005` alatt GitHubon igazolni kell. |
+| npm dependency audit                 | `Frontend`             | `Frontend Dependency Audit`                       | Még nem           | A finding- és kivételpolicy a `CI-007` feladata.                |
+| Chromium, accessibility és keyboard  | `Frontend`             | `Playwright Chromium, accessibility and keyboard` | Még nem           | `CI-004` stabilitási auditja után.                              |
+| Cross-browser és mobile smoke        | `Frontend`             | `Playwright cross-browser and mobile smoke`       | Még nem           | `CI-004` után; költség- és flakység-review szükséges.           |
+| Prettier                             | Nincs                  | Nincs                                             | Nem               | Előbb ellenőrizhető workflow vagy projekt-script szükséges.     |
+| Composer security audit              | Nincs                  | Nincs                                             | Nem               | `CI-006`.                                                       |
 
-Az npm security audit a frontend összetett job része, nem külön check. A
-backend workflow `git diff --check` lépésének PR-patch lefedettsége külön
+A frontend unit, i18n és production build jobok stabil checkkontextust adnak,
+de required státuszuk nincs repository-beállításból igazolva. Az npm security
+audit külön check, policy-ja továbbra is a `CI-007` feladata. A backend
+workflow `git diff --check` lépésének PR-patch lefedettsége külön
 igazolandó, mert tiszta checkout mellett önmagában nem bizonyítja a teljes PR
 whitespace-állapotát. A required státuszok beállítása a `CI-005` és `GOV-005`
 feladata, nem ennek a dokumentációnak a végrehajtott változása.

@@ -114,10 +114,11 @@ eszközei. A mátrix nem teszi őket minden változtatásra kötelezővé.
 A GitHub Actions jobok pull requestre futnak, de required státuszuk nem
 repository-fájlból igazolható. A tényleges jobneveket és a javasolt
 branch-protection mátrixot a [code review útmutató](code-review-guide.md)
-tartalmazza. A Vitest stabilitás (`CI-001`, `CI-002`), a MySQL- és E2E-kapu
-aktuális bizonyítása (`CI-003`, `CI-004`), valamint a required-check audit
-(`CI-005`) nyitott backlogmunka; ezek hiánya nem írható le sikeres
-ellenőrzésként.
+tartalmazza. A Vitest worker-stabilitását a `CI-001` bizonyította; a külön
+frontend unit, i18n és build checkek GitHub-hosted igazolását a `CI-002`
+lezárási auditja rögzíti. A MySQL- és E2E-kapu aktuális bizonyítása (`CI-003`,
+`CI-004`), valamint a required-check audit (`CI-005`) nyitott backlogmunka;
+ezek hiánya nem írható le sikeres ellenőrzésként.
 
 ## Változástípus-specifikus feltételek
 
