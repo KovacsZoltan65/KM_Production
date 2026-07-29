@@ -2,10 +2,10 @@
 
 ## Döntés
 
-A `CI-003` lokális elfogadási feltételei teljesültek. A végleges `done` státusz
-feltétele a jelen módosítást tartalmazó GitHub Actions `Backend quality gate`
-workflow sikeres lefutása. Az audit lezárásakor a távoli futás még nem állt
-rendelkezésre.
+A `CI-003` elfogadási feltételei teljesültek, státusza `done`. A lokális
+SQLite/MySQL ismétlések, mindkét motor migration round-tripje és a
+`c089d3cc4aabfd5abe94393337fc21e5c86f1b52` commit valós GitHub Actions
+`Backend quality gate` futása sikeres.
 
 ## Hatókör és baseline
 
@@ -62,6 +62,16 @@ a MySQL service-es jobban maradt.
   illetve a destruktív round-trip előtt.
 - A jobok továbbra is függetlenek; nincs `needs` és nincs
   `continue-on-error`.
+- A közös backend `TestCase` kikapcsolja a Vite asset-feloldást, ezért a
+  backend feature suite nem függ ignorált lokális dev-server vagy build
+  artifacttól.
+- Az Inertia page-finder projektkonfigurációja a tényleges, case-sensitive
+  `resources/js/Pages` útvonalat használja.
+- A PHPStan feltételesen létező `node_modules` és `public/build` kizárásai
+  opcionális útvonalként szerepelnek; baseline és hibaelnémítás nem került be.
+- Sikertelen suite esetén legfeljebb tíz JUnit hiba publikus GitHub
+  annotációként jelenik meg. A Larastan nem nulla exitje rövidített
+  stdout/stderr annotációt is ad, miközben a gate blokkoló marad.
 
 ## Lokális pozitív evidence
 
@@ -72,6 +82,9 @@ a MySQL service-es jobban maradt.
 | MySQL migration round-trip | 2/2 | teljes rollback és re-migrate, 2/2 seed smoke, exit 0 |
 | SQLite teljes suite, módosítás után | 5/5 | 348 teszt, 955 assertion, exit 0 minden körben |
 | SQLite migration round-trip | 1/1 | teljes rollback és re-migrate, 2/2 seed smoke, exit 0 |
+| SQLite suite, Linux/CI-fixek után | 1/1 | 348 teszt, 955 assertion, exit 0 |
+| MySQL suite, Linux/CI-fixek után | 1/1 | 348 teszt, 955 assertion, exit 0 |
+| Friss-checkout szimuláció | 2/2 célzott fájl | Vite hot/manifest nélkül 30/30 teszt zöld |
 
 Az első, Xdebuggal indított SQLite baseline próbát a futási idő miatt
 megszakítottam, és nem számítottam bele a 3/3 eredménybe. A megismételt
@@ -123,8 +136,35 @@ fejlesztői vagy production adatbázist.
 
 ## GitHub Actions evidence
 
-Függőben: a push után a workflow URL-je, commit SHA-ja, négy stabil jobneve,
-eredménye és a MySQL settings artifact ellenőrzése ide kerül.
+A 2026-07-29-én befejezett
+[Backend quality gate #30428224526](https://github.com/KovacsZoltan65/KM_Production/actions/runs/30428224526)
+futás a `c089d3cc4aabfd5abe94393337fc21e5c86f1b52` commiton:
+
+| Stabil jobnév | Eredmény |
+| --- | --- |
+| `Backend Static Analysis` | success |
+| `Backend Tests / SQLite` | success |
+| `Backend Tests / MySQL` | success |
+| `Database Migrations / MySQL` | success |
+
+A MySQL kapcsolatpróba, teljes suite, settings-rögzítés és artifactfeltöltés
+külön-külön sikeres lépés volt. A futás létrehozta a hét napig megőrzött
+`backend-mysql-results` artifactot (ID `8714474696`) és a
+`backend-sqlite-junit` artifactot (ID `8714448544`). A MySQL artifact a
+workflow szerint JUnit riportot és a verzió/charset/collation/session
+SQL-mode/timezone lekérdezés kimenetét tartalmazza; credential, `.env` vagy
+adatbázisdump nem kerül bele.
+
+Az első távoli futások két, Windows alatt rejtve maradó friss-checkout hibát
+tártak fel és bizonyítottak:
+
+1. a backend tesztek ignorált Vite hot/manifest fájltól függtek;
+2. az Inertia vendor alapútvonala kisbetűs `resources/js/pages` volt, miközben
+   a Gitben követett könyvtár `resources/js/Pages`;
+3. a Larastan nem létező, de kizárt frontend könyvtárakat kötelező útvonalként
+   validált.
+
+Mindhárom gyökérok javítása után a teljes workflow zöld lett.
 
 ## Következő feladat
 

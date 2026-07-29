@@ -45,14 +45,14 @@ A mezők, állapotátmenetek és lezárási szabályok részletes definíciójá
 | Kategória                     | Planned |  Ready | Review | Blocked |  Done | Összesen |
 | ----------------------------- | ------: | -----: | -----: | ------: | ----: | -------: |
 | Projektvezetés és Git         |       1 |      1 |      0 |       0 |     6 |        8 |
-| CI és release                 |       2 |      6 |      1 |       0 |     1 |       10 |
+| CI és release                 |       2 |      5 |      1 |       0 |     2 |       10 |
 | Tesztelés és statikus elemzés |       2 |      2 |      0 |       0 |     0 |        4 |
 | Learning Center               |      18 |      1 |      0 |       0 |     0 |       19 |
 | Document Intelligence és OCR  |      11 |      0 |      0 |       1 |     0 |       12 |
 | Manufacturing Intelligence    |       5 |      0 |      0 |       0 |     0 |        5 |
 | Üzemeltetés                   |       4 |      7 |      0 |       0 |     0 |       11 |
 | UX és skálázhatóság           |       0 |      0 |      0 |       0 |     0 |        0 |
-| **Összesen**                  |  **43** | **17** |  **1** |   **1** | **7** |   **69** |
+| **Összesen**                  |  **43** | **16** |  **1** |   **1** | **8** |   **69** |
 
 | Prioritás | Darabszám |
 | --------- | --------: |
@@ -76,8 +76,8 @@ A mezők, állapotátmenetek és lezárási szabályok részletes definíciójá
 Az első tíz aktív feladat részletes sorrendje:
 `docs/project-management/next-actions.md`.
 
-Röviden: `CI-002`, `CI-003`, `CI-004`, `CI-005`, `GOV-005`, `CI-006`,
-`CI-007`, `CI-009`, `OPS-003`, `LC-001`.
+Röviden: `CI-002`, `CI-004`, `CI-005`, `GOV-005`, `CI-006`, `CI-007`,
+`CI-009`, `OPS-003`, `LC-001`, `OPS-001`.
 
 ## Backlog tételek
 
@@ -368,7 +368,7 @@ Röviden: `CI-002`, `CI-003`, `CI-004`, `CI-005`, `GOV-005`, `CI-006`,
 
 #### CI-003 — A teljes MySQL quality gate aktuális futtatása
 
-- **Állapot:** ready
+- **Állapot:** done
 - **Prioritás:** P1
 - **Kategória:** CI és release
 - **Célverzió:** v1.x Stabilizálás
@@ -388,6 +388,15 @@ Röviden: `CI-002`, `CI-003`, `CI-004`, `CI-005`, `GOV-005`, `CI-006`,
   `.github/workflows/backend-quality.yml`.
 - **Becsült méret:** S
 - **Kockázat:** Hibás környezetválasztás adatvesztést okozhat; guard kötelező.
+- **Eredmény 2026-07-29:** A teljes helyi suite SQLite-on 3/3 baseline és 5/5
+  módosítás utáni, MySQL 8.4-en 3/3 futásban 348/348 teszttel és 955
+  assertionnel sikeres. A MySQL migration round-trip 2/2, az SQLite round-trip
+  1/1 alkalommal teljes rollback/re-migrate és kétszeri idempotens seed
+  smoke-kal zöld. A Linux CI-ben feltárt Vite artifact-függés, Inertia
+  page-path case eltérés és opcionális PHPStan exclude javítva. A
+  [30428224526](https://github.com/KovacsZoltan65/KM_Production/actions/runs/30428224526)
+  futás mind a négy stabil backend jobja sikeres; a MySQL settings és JUnit
+  artifactok létrejöttek.
 
 #### CI-004 — A teljes Playwright E2E-kapu aktuális futtatása
 

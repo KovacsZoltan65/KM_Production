@@ -142,6 +142,13 @@ cache-be.
 
 Az SQLite és MySQL JUnit riportok hét napos artifactként töltődnek fel. A MySQL artifact ezen felül csak a verziót, charsetet, collationt, session SQL mode-ot és időzónát tartalmazza. `.env`, dump, storage vagy credential nem kerül artifactba.
 
+Sikertelen suite esetén a workflow a JUnit riport első tíz hibáját GitHub
+annotációként is megjeleníti, majd az eredeti nem nulla teszt-exit miatt
+blokkol. A backend feature tesztek a közös `Tests\TestCase` `withoutVite()`
+beállításával nem függenek `public/hot` vagy `public/build` artifacttól. Az
+Inertia page-finder explicit a case-sensitive `resources/js/Pages` útvonalat
+használja, ezért ugyanazt ellenőrzi Windows és Linux alatt.
+
 Branch protection alatt mind a négy fenti checket required státuszra kell állítani. A workflow nem használ `continue-on-error` beállítást.
 
 ## Hibakeresés és biztonságos leállítás

@@ -15,6 +15,10 @@ A zárolt eszközverziók:
 
 A [phpstan.neon.dist](../phpstan.neon.dist) 5-ös szinten elemzi az `app`, `config`, `routes`, `database/factories`, `database/seeders` és `tests` útvonalakat. Csak generált vagy külső könyvtárak vannak kizárva: `bootstrap/cache`, `node_modules`, `public/build`, `storage` és `vendor`.
 
+A `node_modules` és `public/build` feltételesen létező útvonal, ezért a PHPStan
+opcionális exclude jelölését használja. Ez friss, kizárólag backendet telepítő
+checkoutban is érvényes konfigurációt ad; nem jelent hibaelnémítást.
+
 A projekt nem használ PHPStan baseline-t, `ignoreErrors` szabályt vagy inline `@phpstan-ignore` megjegyzést. Az elemzés nem tölti be a Gitben követett `_ide_helper.php` fájlt, ezért CI-ben nem függ lokálisan generált IDE-helper állománytól vagy adatbázis-kapcsolattól. A folyamat egy elemzőprocesszt és legfeljebb 1 GB memóriát használ; a mért csúcs 426 MB volt 396 fájlnál. A Composer script kikapcsolja a Composer 300 másodperces folyamattúllépését, mert a teljes elemzés ezen a Windows fejlesztői környezeten ennél hosszabb is lehet; a CI job külön 15 perces korláttal rendelkezik.
 
 Helyi futtatás:
@@ -23,7 +27,11 @@ Helyi futtatás:
 composer analyse
 ```
 
-A `.github/workflows/backend-quality.yml` ugyanezt a parancsot futtatja PHP 8.4-en, `composer install` és Pint után. A lépés blokkoló, nem használ `continue-on-error` beállítást, és nem generál baseline-t.
+A `.github/workflows/backend-quality.yml` ugyanazt az elemzést futtatja PHP
+8.4-en, `composer install` és Pint után, natív GitHub error formátummal. Ha az
+elemző normál hibalista előtt áll le, a rövidített stdout/stderr külön
+annotációban is megjelenik. A lépés blokkoló, nem használ `continue-on-error`
+beállítást, és nem generál baseline-t.
 
 ## Típusszerződés-minták
 

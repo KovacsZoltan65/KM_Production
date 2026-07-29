@@ -46,6 +46,15 @@ kockázat és tesztkövetelmény a hivatkozott backlogelemnél található.
   izolált és fájlpárhuzamos konfiguráció stabilitási és teljesítményevidence-et
   kapott.
 
+### CI-003 — Backend MySQL és migrációs quality gate stabilizálása
+
+- **Állapot:** done
+- **Eredmény:** a helyi SQLite/MySQL suite-ok és migration round-trip
+  ismételten zöldek; a Linux Vite-, Inertia page-path és PHPStan
+  friss-checkout hibák javítva. A GitHub Actions
+  [30428224526](https://github.com/KovacsZoltan65/KM_Production/actions/runs/30428224526)
+  futásának mind a négy backend jobja sikeres.
+
 A lezárt elemek nem részei az alábbi tíz végrehajtási lépésnek.
 
 ## Végrehajtási sorrend
@@ -64,17 +73,7 @@ A lezárt elemek nem részei az alábbi tíz végrehajtási lépésnek.
 - **Következő lépés:** a `CI-007` alatt az `npm audit` finding és a két audit
   független kiértékelésének rendezése, majd a teljes workflow újraellenőrzése.
 
-### 2. CI-003 — A teljes MySQL quality gate aktuális futtatása
-
-- **Prioritás / méret:** P1 / S
-- **Miért most:** a workflow létezik, de a 2026-07-27-i audit nem adott
-  aktuális helyi MySQL-bizonyítékot.
-- **Előfeltétel:** kizárólag dedikált `km_production_testing` adatbázis és a
-  test-environment guard sikeres ellenőrzése.
-- **Kész definíciója:** a MySQL tesztsuite, migráció round-trip és kétszeri
-  alapseeder smoke sikeres, a charset/collation/sql-mode adatok rögzítettek.
-
-### 3. CI-004 — A teljes Playwright E2E-kapu aktuális futtatása
+### 2. CI-004 — A teljes Playwright E2E-kapu aktuális futtatása
 
 - **Prioritás / méret:** P1 / M
 - **Miért most:** az E2E-infrastruktúra elkészült, de az audit során a teljes
@@ -85,7 +84,7 @@ A lezárt elemek nem részei az alábbi tíz végrehajtási lépésnek.
 - **Kész definíciója:** minden konfigurált Playwright projekt lefut; eltérés
   esetén artifact és dokumentált környezeti kivétel készül, tiltott teszt nincs.
 
-### 4. CI-005 — A GitHub Actions quality gate és required check mátrix auditja
+### 3. CI-005 — A GitHub Actions quality gate és required check mátrix auditja
 
 - **Prioritás / méret:** P1 / S
 - **Miért most:** a workflow-k jelen vannak, de nincs repository-szintű
@@ -94,7 +93,7 @@ A lezárt elemek nem részei az alábbi tíz végrehajtási lépésnek.
 - **Kész definíciója:** dokumentált job/trigger/required-check mátrix készül,
   és egyetlen P1 quality gate sem kerülhető meg normál PR-merge során.
 
-### 5. GOV-005 — Branch protection és required check szabályok bevezetése
+### 4. GOV-005 — Branch protection és required check szabályok bevezetése
 
 - **Prioritás / méret:** P1 / S
 - **Miért most:** a release-ág védelme csak az elfogadott PR-, DoD- és
@@ -104,7 +103,7 @@ A lezárt elemek nem részei az alábbi tíz végrehajtási lépésnek.
   szabályok élnek, a force push és a közvetlen törlés tiltott, az admin bypass
   szabály és a teszt-PR eredménye dokumentált.
 
-### 6. CI-006 — Composer security audit release-kapu igazolása
+### 5. CI-006 — Composer security audit release-kapu igazolása
 
 - **Prioritás / méret:** P1 / S
 - **Miért most:** a backend workflow jelenleg nem futtat Composer security
@@ -114,7 +113,7 @@ A lezárt elemek nem részei az alábbi tíz végrehajtási lépésnek.
   kritikus/magas találat blokkol vagy dokumentált kivétellel rendelkezik; a
   CI-be emelésről végrehajtható döntés született.
 
-### 7. CI-007 — npm security audit release-kapu felülvizsgálata
+### 6. CI-007 — npm security audit release-kapu felülvizsgálata
 
 - **Prioritás / méret:** P1 / S
 - **Miért most:** a workflow futtat teljes és production npm auditot, de a
@@ -123,7 +122,7 @@ A lezárt elemek nem részei az alábbi tíz végrehajtási lépésnek.
 - **Kész definíciója:** mindkét audit eredménye rögzített; minden findinghez
   owner, döntés és határidő tartozik; production high/critical találat blokkol.
 
-### 8. CI-009 — Egységes release gate és evidence-csomag
+### 7. CI-009 — Egységes release gate és evidence-csomag
 
 - **Prioritás / méret:** P1 / M
 - **Miért most:** a release-kapuk és bizonyítékok több workflow-ban és
@@ -133,7 +132,7 @@ A lezárt elemek nem részei az alábbi tíz végrehajtási lépésnek.
   backend-, frontend-, security-, E2E-, migráció- és rollbackeredményt; hiányzó
   kapu mellett nincs release.
 
-### 9. OPS-003 — Backup policy, scope, RPO és RTO jóváhagyása
+### 8. OPS-003 — Backup policy, scope, RPO és RTO jóváhagyása
 
 - **Prioritás / méret:** P0 / M
 - **Miért most:** a rendszer gyártási, készlet-, audit- és privát
@@ -144,7 +143,7 @@ A lezárt elemek nem részei az alábbi tíz végrehajtási lépésnek.
   konzisztens snapshot követelménye, valamint a tabletop loss scenariók
   eredménye dokumentált.
 
-### 10. LC-001 — Learning Center v1.0 scope lezárása
+### 9. LC-001 — Learning Center v1.0 scope lezárása
 
 - **Prioritás / méret:** P1 / M
 - **Miért most:** a v1.0 adatmodellje, jogosultsága és UI-ja csak jóváhagyott
@@ -154,8 +153,18 @@ A lezárt elemek nem részei az alábbi tíz végrehajtási lépésnek.
   oldalak, kontextuális súgó és mérhető sikerkritériumok jóváhagyottak; a nem
   célok és nyitott döntések explicit listában szerepelnek.
 
+### 10. OPS-001 — Queue konfiguráció és worker lifecycle audit
+
+- **Prioritás / méret:** P1 / M
+- **Miért most:** database queue és AI job létezik, de nincs dokumentált
+  production workerindítás, deploy restart vagy crash recovery folyamat.
+- **Előfeltétel:** nincs.
+- **Kész definíciója:** a worker command, process manager lifecycle,
+  timeout/retry_after összhang, graceful shutdown, deploy restart és
+  duplicate prevention smoke dokumentált és próbált.
+
 ## Következő frissítés
 
 A lista első elemeinek lezárása után a következő jelöltek:
 
-- `OPS-001` queue konfiguráció és worker lifecycle audit.
+- `OPS-002` scheduler feladat- és futtatási audit.
