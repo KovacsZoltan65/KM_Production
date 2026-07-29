@@ -32,6 +32,7 @@ defineProps({
     filters: Object,
 });
 
+// OSZLOPOK
 const columns = [
     { field: "code", headerKey: "fields.code" },
     { field: "name", headerKey: "fields.name" },
@@ -41,12 +42,27 @@ const columns = [
     { field: "is_active", headerKey: "fields.status", type: "status" },
 ];
 
+// MEZŐK
 const fields = [
     { name: "code", labelKey: "fields.code", type: "text" },
     { name: "name", labelKey: "fields.name", type: "text" },
     { name: "tax_number", labelKey: "fields.tax_number", type: "text" },
-    { name: "email", labelKey: "fields.email", type: "email" },
-    { name: "phone", labelKey: "fields.phone", type: "text" },
+
+    // A "media" layoutGroup azt jelenti,
+    // hogy az email és a telefon mezők
+    // egymás mellett jelennek meg a formon.
+    {
+        name: "email",
+        labelKey: "fields.email",
+        type: "email",
+        layoutGroup: "media",
+    },
+    {
+        name: "phone",
+        labelKey: "fields.phone",
+        type: "text",
+        layoutGroup: "media",
+    },
     { name: "address", labelKey: "fields.address", type: "textarea" },
     { name: "notes", labelKey: "fields.notes", type: "textarea" },
     {

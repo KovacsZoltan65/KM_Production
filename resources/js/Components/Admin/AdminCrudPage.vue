@@ -85,29 +85,27 @@ const confirm = useConfirm();
 const dialogVisible = ref(false);
 const editingRecord = ref(null);
 const search = ref(props.filters.search || "");
-const perPage = ref(
-    Number(props.filters.per_page || props.records.per_page || 10),
-);
+const perPage = ref(Number(props.filters.per_page || props.records.per_page || 10));
 const sortField = ref(props.filters.sort || "id");
 const sortOrder = ref((props.filters.direction || "asc") === "desc" ? -1 : 1);
 const form = reactive({});
 const errors = ref({});
 
 const resolvedTitle = computed(() =>
-    props.titleKey ? trans(props.titleKey) : props.title,
+    props.titleKey ? trans(props.titleKey) : props.title
 );
 const resolvedSubtitle = computed(() =>
-    props.subtitleKey ? trans(props.subtitleKey) : props.subtitle,
+    props.subtitleKey ? trans(props.subtitleKey) : props.subtitle
 );
 const resolvedCreateLabel = computed(() =>
     props.createLabelKey
         ? trans(props.createLabelKey)
-        : props.createLabel || trans("actions.create"),
+        : props.createLabel || trans("actions.create")
 );
 const pageTitle = computed(() =>
     editingRecord.value
         ? trans("admin.crud.edit_title", { title: resolvedTitle.value })
-        : resolvedCreateLabel.value,
+        : resolvedCreateLabel.value
 );
 const indexRoute = computed(() => `${props.routeName}.index`);
 const storeRoute = computed(() => `${props.routeName}.store`);
@@ -130,17 +128,20 @@ watch(
         if (message) {
             toast.add({ severity: "success", summary: message, life: 2500 });
         }
-    },
+    }
 );
 
 const fieldRows = computed(() => {
     const rows = [];
 
     props.fields.forEach((field) => {
-        const layoutGroup =
-            field.type === "number"
-                ? field.layoutGroup || field.layout?.group
-                : null;
+        /*
+        const layoutGroup = field.type === "number" 
+            ? field.layoutGroup || field.layout?.group 
+            : null;
+        */
+        const layoutGroup = field.layoutGroup || field.layout?.group || null;
+
         const previousRow = rows.at(-1);
 
         if (
@@ -168,8 +169,8 @@ const resetForm = () => {
             (field.type === "multiselect"
                 ? []
                 : field.type === "checkbox"
-                  ? false
-                  : null);
+                ? false
+                : null);
     });
     errors.value = {};
 };
@@ -235,11 +236,7 @@ const submit = () => {
     };
 
     if (editingRecord.value) {
-        router.put(
-            route(updateRoute.value, editingRecord.value.id),
-            payload,
-            callbacks,
-        );
+        router.put(route(updateRoute.value, editingRecord.value.id), payload, callbacks);
         return;
     }
 
@@ -352,11 +349,12 @@ const resolveColumnHeader = (column) =>
                             ? `${row.layoutGroup}-${index}`
                             : row.fields[0].name
                     "
-                    :class="
-                        row.layoutGroup
-                            ? 'grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'
-                            : ''
-                    "
+                    :class="{
+                        'grid grid-cols-1 gap-4 md:grid-cols-2':
+                            row.layoutGroup && row.fields.length === 2,
+                        'grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3':
+                            row.layoutGroup && row.fields.length >= 3,
+                    }"
                     :data-layout-group="row.layoutGroup || undefined"
                 >
                     <AdminCrudField
@@ -369,7 +367,9 @@ const resolveColumnHeader = (column) =>
                     />
                 </div>
 
+                <!-- Cancel and Save buttons -->
                 <div class="flex justify-end gap-2 pt-2">
+                    <!-- Cancel button -->
                     <Button
                         type="button"
                         :label="trans('actions.cancel')"
@@ -377,6 +377,8 @@ const resolveColumnHeader = (column) =>
                         outlined
                         @click="dialogVisible = false"
                     />
+
+                    <!-- Save button -->
                     <Button
                         type="submit"
                         :label="trans('actions.save')"
