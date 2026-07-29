@@ -9,12 +9,18 @@ const serviceMocks = vi.hoisted(() => ({
     confirm: { require: vi.fn() },
     toast: { add: vi.fn() },
 }));
+const axiosMocks = vi.hoisted(() => ({
+    get: vi.fn(),
+}));
 
 vi.mock("primevue/useconfirm", () => ({
     useConfirm: () => serviceMocks.confirm,
 }));
 vi.mock("primevue/usetoast", () => ({
     useToast: () => serviceMocks.toast,
+}));
+vi.mock("axios", () => ({
+    default: { get: axiosMocks.get },
 }));
 
 const AdminLayoutStub = defineComponent({
@@ -32,7 +38,8 @@ const DialogStub = defineComponent({
     name: "Dialog",
     props: ["visible", "header"],
     emits: ["update:visible"],
-    template: "<section v-if='visible' data-test='dialog'><h2>{{ header }}</h2><slot /></section>",
+    template:
+        "<section v-if='visible' data-test='dialog'><h2>{{ header }}</h2><slot /></section>",
 });
 const ButtonStub = defineComponent({
     name: "Button",
@@ -45,18 +52,12 @@ const AdminCrudFieldStub = defineComponent({
     name: "AdminCrudField",
     props: ["modelValue", "field", "error", "options"],
     emits: ["update:modelValue"],
-    template: "<label>{{ field.name }}<span v-if='error'>{{ error }}</span></label>",
+    template:
+        "<label>{{ field.name }}<span v-if='error'>{{ error }}</span></label>",
 });
 const DataTableStub = defineComponent({
     name: "DataTable",
-    props: [
-        "value",
-        "rows",
-        "first",
-        "totalRecords",
-        "sortField",
-        "sortOrder",
-    ],
+    props: ["value", "rows", "first", "totalRecords", "sortField", "sortOrder"],
     emits: ["page", "sort"],
     template: "<div data-test='table'><slot /></div>",
 });
@@ -100,6 +101,7 @@ describe("AdminCrudPage", () => {
     beforeEach(() => {
         serviceMocks.confirm.require.mockReset();
         serviceMocks.toast.add.mockReset();
+        axiosMocks.get.mockReset();
     });
 
     it("megjeleníti az oldal címét és az írható létrehozási műveletet", () => {
@@ -114,11 +116,14 @@ describe("AdminCrudPage", () => {
     });
 
     it("a kapott rekordokat és pagination metát átadja a táblázatnak", () => {
-        const records = makePagination([makeRecord({ id: 4, name: "Csavar" })], {
-            current_page: 2,
-            per_page: 25,
-            total: 31,
-        });
+        const records = makePagination(
+            [makeRecord({ id: 4, name: "Csavar" })],
+            {
+                current_page: 2,
+                per_page: 25,
+                total: 31,
+            },
+        );
         const table = mountPage({ records }).findComponent(DataTableStub);
 
         expect(table.props()).toMatchObject({
@@ -162,7 +167,12 @@ describe("AdminCrudPage", () => {
     it("szerkesztéskor a kiválasztott rekord adataival tölti fel a formot", async () => {
         const wrapper = mountPage();
 
-        wrapper.vm.openEdit({ id: 7, name: "Alumínium", quantity: 4, active: true });
+        wrapper.vm.openEdit({
+            id: 7,
+            name: "Alumínium",
+            quantity: 4,
+            active: true,
+        });
         await nextTick();
 
         expect(
@@ -290,7 +300,183 @@ describe("AdminCrudPage", () => {
         const groupedRows = wrapper.findAll("[data-layout-group='limits']");
         expect(groupedRows).toHaveLength(2);
         expect(groupedRows[0].classes()).toContain("lg:grid-cols-3");
-        expect(groupedRows[0].findAllComponents(AdminCrudFieldStub)).toHaveLength(3);
-        expect(groupedRows[1].findAllComponents(AdminCrudFieldStub)).toHaveLength(1);
+        expect(
+            groupedRows[0].findAllComponents(AdminCrudFieldStub),
+        ).toHaveLength(3);
+        expect(
+            groupedRows[1].findAllComponents(AdminCrudFieldStub),
+        ).toHaveLength(1);
+    });
+
+    it("Create módban megjeleníti a generálást, Edit módban pedig zárolja a kódot", async () => {
+        const fields = [
+            {
+                name: "code",
+                type: "text",
+                immutableOnEdit: true,
+                generateCode: { type: "supplier" },
+            },
+            { name: "name", type: "text" },
+        ];
+        const wrapper = mountPage({ fields });
+
+        wrapper.vm.openCreate();
+        await nextTick();
+        expect(wrapper.find("[data-test='generate-code']").exists()).toBe(true);
+        expect(
+            wrapper.findAllComponents(AdminCrudFieldStub)[0].props("field")
+                .disabled,
+        ).toBe(false);
+
+        wrapper.vm.openEdit({ id: 3, code: "SUP-0001", name: "Régi" });
+        await nextTick();
+        expect(wrapper.find("[data-test='generate-code']").exists()).toBe(
+            false,
+        );
+        expect(
+            wrapper.findAllComponents(AdminCrudFieldStub)[0].props("field")
+                .disabled,
+        ).toBe(true);
+
+        wrapper.vm.submit();
+        expect(inertiaRouter.put).toHaveBeenCalledWith(
+            "/admin/items/3",
+            { name: "Régi" },
+            expect.any(Object),
+        );
+    });
+
+    it("sikeres generálás beírja a kódot és nem indít párhuzamos dupla kérést", async () => {
+        let resolveRequest;
+        axiosMocks.get.mockReturnValue(
+            new Promise((resolve) => {
+                resolveRequest = resolve;
+            }),
+        );
+        const wrapper = mountPage({
+            fields: [
+                {
+                    name: "code",
+                    type: "text",
+                    generateCode: { type: "supplier" },
+                },
+            ],
+        });
+        wrapper.vm.openCreate();
+        await nextTick();
+
+        const button = wrapper.find("[data-test='generate-code']");
+        await button.trigger("click");
+        await button.trigger("click");
+        expect(axiosMocks.get).toHaveBeenCalledOnce();
+        expect(button.attributes("disabled")).toBeDefined();
+
+        resolveRequest({ data: { code: "SUP-0008", generated: true } });
+        await nextTick();
+        await nextTick();
+        expect(wrapper.vm.form.code).toBe("SUP-0008");
+    });
+
+    it("kézi módosítás után nem jelöli generáltnak a mentett kódot", async () => {
+        axiosMocks.get.mockResolvedValue({
+            data: { code: "SUP-0008", generated: true },
+        });
+        const wrapper = mountPage({
+            fields: [
+                {
+                    name: "code",
+                    type: "text",
+                    generateCode: { type: "supplier" },
+                },
+            ],
+        });
+        wrapper.vm.openCreate();
+        await wrapper.vm.generateCode(wrapper.props("fields")[0]);
+        wrapper.vm.form.code = "SUP-BUDAPEST";
+        wrapper.vm.submit();
+
+        expect(inertiaRouter.post).toHaveBeenCalledWith(
+            "/admin/items",
+            { code: "SUP-BUDAPEST", _code_was_generated: false },
+            expect.any(Object),
+        );
+    });
+
+    it("cikknél továbbítja a kiválasztott típust", async () => {
+        axiosMocks.get.mockResolvedValue({
+            data: { code: "MAT-0001", generated: true },
+        });
+        const fields = [
+            {
+                name: "item_number",
+                type: "text",
+                generateCode: {
+                    type: "item",
+                    parameters: { item_type: "item_type" },
+                },
+            },
+            {
+                name: "item_type",
+                type: "select",
+                default: "purchased_material",
+            },
+        ];
+        const wrapper = mountPage({ fields });
+        wrapper.vm.openCreate();
+
+        await wrapper.vm.generateCode(fields[0]);
+
+        expect(axiosMocks.get).toHaveBeenCalledWith(
+            "/admin/code-generation/item",
+            { params: { item_type: "purchased_material" } },
+        );
+    });
+
+    it("kézi ütközés után beírja a javaslatot, de nem ment újra automatikusan", () => {
+        const wrapper = mountPage({
+            fields: [
+                {
+                    name: "code",
+                    type: "text",
+                    generateCode: { type: "supplier" },
+                },
+            ],
+        });
+        wrapper.vm.openCreate();
+        wrapper.vm.form.code = "FOGLALT";
+        wrapper.vm.submit();
+
+        inertiaRouter.post.mock.calls[0][2].onError({
+            code: "A kód foglalt",
+            code_suggestion: "SUP-0009",
+        });
+
+        expect(wrapper.vm.form.code).toBe("SUP-0009");
+        expect(inertiaRouter.post).toHaveBeenCalledOnce();
+    });
+
+    it("generálási hibát lokalizált mezőhibával és toasttal jelez", async () => {
+        axiosMocks.get.mockRejectedValue({
+            response: { data: { errors: {} } },
+        });
+        const field = {
+            name: "code",
+            type: "text",
+            generateCode: { type: "supplier" },
+        };
+        const wrapper = mountPage({ fields: [field] });
+        wrapper.vm.openCreate();
+
+        await wrapper.vm.generateCode(field);
+
+        expect(wrapper.vm.errors.code).toBe(
+            "code_generation.errors.generation_failed",
+        );
+        expect(serviceMocks.toast.add).toHaveBeenCalledWith(
+            expect.objectContaining({
+                severity: "error",
+                summary: "code_generation.errors.generation_failed",
+            }),
+        );
     });
 });

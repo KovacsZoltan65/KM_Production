@@ -34,7 +34,7 @@ class UpdateItemRequest extends FormRequest
         $item = $this->route('item');
 
         return [
-            'item_number' => ['required', 'string', 'max:255', Rule::unique('items', 'item_number')->ignore($item)],
+            'item_number' => ['sometimes', 'string', Rule::in([$item->item_number])],
             'name' => ['required', 'string', 'max:255'],
             'item_type' => ['required', Rule::enum(ItemType::class)],
             'unit' => ['required', 'string', 'max:50'],

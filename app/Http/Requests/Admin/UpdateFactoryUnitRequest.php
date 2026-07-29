@@ -43,7 +43,7 @@ class UpdateFactoryUnitRequest extends FormRequest
         }
 
         return [
-            'code' => ['required', 'string', 'max:50', Rule::unique('factory_units', 'code')->ignore($factoryUnit)],
+            'code' => ['sometimes', 'string', Rule::in([$factoryUnit->code])],
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'daily_capacity_minutes' => ['nullable', 'integer', 'min:0'],

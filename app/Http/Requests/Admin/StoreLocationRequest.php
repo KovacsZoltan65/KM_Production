@@ -32,7 +32,8 @@ class StoreLocationRequest extends FormRequest
     {
         return [
             'factory_unit_id' => ['nullable', 'exists:factory_units,id'],
-            'code' => ['required', 'string', 'max:50', 'unique:locations,code'],
+            'code' => ['required', 'string', 'max:50'],
+            '_code_was_generated' => ['sometimes', 'boolean'],
             'name' => ['required', 'string', 'max:255'],
             'location_type' => ['required', Rule::enum(LocationType::class)],
             'description' => ['nullable', 'string'],

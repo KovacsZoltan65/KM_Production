@@ -50,7 +50,9 @@ const columns = [
         field: "requires_serial_number",
         headerKey: "fields.serial",
         format: (record) =>
-            record.requires_serial_number ? trans("common.yes") : trans("common.no"),
+            record.requires_serial_number
+                ? trans("common.yes")
+                : trans("common.no"),
     },
     { field: "is_active", headerKey: "fields.status", type: "status" },
 ];
@@ -59,7 +61,17 @@ const columns = [
 const fields = [
     // A cikk azonosítóját jelző mező, amely rejtett.
     { name: "id", type: "hidden" },
-    { name: "item_number", labelKey: "fields.item_number", type: "text" },
+    {
+        name: "item_number",
+        labelKey: "fields.item_number",
+        type: "text",
+        required: true,
+        immutableOnEdit: true,
+        generateCode: {
+            type: "item",
+            parameters: { item_type: "item_type" },
+        },
+    },
     // A cikk nevét jelző mező, amely kötelező.
     { name: "name", labelKey: "fields.name", type: "text" },
 

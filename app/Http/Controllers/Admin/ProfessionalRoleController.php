@@ -30,7 +30,7 @@ class ProfessionalRoleController extends Controller
     {
         $this->service->create($request->validated(), $request->user());
 
-        return back()->with('success', __('messages.created'));
+        return back()->with('success', $this->service->creationMessage());
     }
 
     public function update(UpdateProfessionalRoleRequest $request, ProfessionalRole $professionalRole): RedirectResponse

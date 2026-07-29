@@ -39,7 +39,14 @@ const columns = [
 ];
 
 const fields = [
-    { name: "code", labelKey: "fields.code", type: "text" },
+    {
+        name: "code",
+        labelKey: "fields.code",
+        type: "text",
+        required: true,
+        immutableOnEdit: true,
+        generateCode: { type: "professional_role" },
+    },
     { name: "name", labelKey: "fields.name", type: "text" },
     { name: "description", labelKey: "fields.description", type: "textarea" },
     {

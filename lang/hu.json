@@ -688,5 +688,13 @@
     "status.warning": "Figyelmeztetés",
     "status.watch": "Figyelendő",
     "users.title": "Felhasználók",
+    "code_generation.actions.generate": "Generálás",
+    "code_generation.messages.generated": "A javasolt kód elkészült.",
+    "code_generation.messages.generated_collision_replaced": "Az eredetileg generált :original kód időközben foglalttá vált. A rekord :actual kóddal lett létrehozva.",
+    "code_generation.errors.generation_failed": "A kód generálása nem sikerült.",
+    "code_generation.errors.unsupported_type": "A kért kódtípus nem támogatott.",
+    "code_generation.errors.unsupported_item_type": "Ehhez a cikktípushoz nem generálható kód.",
+    "code_generation.errors.manual_collision": "A megadott :code kód már foglalt. A következő elérhető kód: :suggested. Ellenőrizd az értéket, majd mentsd újra.",
+    "code_generation.errors.retry_exhausted": "A kód időközben többször foglalttá vált. Generálj új kódot, majd próbáld újra.",
     "validation.locale.supported": "A választott nyelv nem támogatott."
 }

@@ -43,7 +43,7 @@ class UpdateProfessionalRoleRequest extends FormRequest
         }
 
         return [
-            'code' => ['required', 'string', 'max:50', Rule::unique('professional_roles', 'code')->ignore($professionalRole)],
+            'code' => ['sometimes', 'string', Rule::in([$professionalRole->code])],
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'is_active' => ['boolean'],

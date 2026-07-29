@@ -7,6 +7,7 @@ import AdminStatusBadge from "@/Components/Admin/AdminStatusBadge.vue";
 import AdminLayout from "@/Layouts/AdminLayout.vue";
 import { route } from "@/Utils/routes";
 import { Head, router, usePage } from "@inertiajs/vue3";
+import axios from "axios";
 import Button from "primevue/button";
 import Column from "primevue/column";
 import ConfirmDialog from "primevue/confirmdialog";
@@ -62,6 +63,14 @@ import { computed, onMounted, reactive, ref, watch } from "vue";
  * @property {boolean} readOnly A(z) readOnly bemeneti értéke.
  * @property {Object.<string, SelectOption[]>} options A(z) options bemeneti értéke.
  */
+/**
+ * Újrafelhasználható CRUD-mező konfigurációja.
+ * @typedef {Object} CrudField
+ * @property {string} name A payload mezőneve.
+ * @property {string} [type] A megjelenített mezőtípus.
+ * @property {boolean} [immutableOnEdit] Szerkesztéskor látható, de nem küldhető azonosító.
+ * @property {{type: string, parameters?: Object.<string, string>}} [generateCode] A közös generáló végpont típusa és formmező-paraméterei.
+ */
 /** @type {Props} */
 const props = defineProps({
     title: { type: String, required: true },
@@ -85,27 +94,32 @@ const confirm = useConfirm();
 const dialogVisible = ref(false);
 const editingRecord = ref(null);
 const search = ref(props.filters.search || "");
-const perPage = ref(Number(props.filters.per_page || props.records.per_page || 10));
+const perPage = ref(
+    Number(props.filters.per_page || props.records.per_page || 10),
+);
 const sortField = ref(props.filters.sort || "id");
 const sortOrder = ref((props.filters.direction || "asc") === "desc" ? -1 : 1);
 const form = reactive({});
 const errors = ref({});
+const generatedValues = reactive({});
+const generatingFields = reactive({});
+const submitting = ref(false);
 
 const resolvedTitle = computed(() =>
-    props.titleKey ? trans(props.titleKey) : props.title
+    props.titleKey ? trans(props.titleKey) : props.title,
 );
 const resolvedSubtitle = computed(() =>
-    props.subtitleKey ? trans(props.subtitleKey) : props.subtitle
+    props.subtitleKey ? trans(props.subtitleKey) : props.subtitle,
 );
 const resolvedCreateLabel = computed(() =>
     props.createLabelKey
         ? trans(props.createLabelKey)
-        : props.createLabel || trans("actions.create")
+        : props.createLabel || trans("actions.create"),
 );
 const pageTitle = computed(() =>
     editingRecord.value
         ? trans("admin.crud.edit_title", { title: resolvedTitle.value })
-        : resolvedCreateLabel.value
+        : resolvedCreateLabel.value,
 );
 const indexRoute = computed(() => `${props.routeName}.index`);
 const storeRoute = computed(() => `${props.routeName}.store`);
@@ -128,7 +142,7 @@ watch(
         if (message) {
             toast.add({ severity: "success", summary: message, life: 2500 });
         }
-    }
+    },
 );
 
 const fieldRows = computed(() => {
@@ -169,9 +183,13 @@ const resetForm = () => {
             (field.type === "multiselect"
                 ? []
                 : field.type === "checkbox"
-                ? false
-                : null);
+                  ? false
+                  : null);
     });
+    Object.keys(generatedValues).forEach((key) => delete generatedValues[key]);
+    Object.keys(generatingFields).forEach(
+        (key) => delete generatingFields[key],
+    );
     errors.value = {};
 };
 
@@ -193,6 +211,59 @@ const openEdit = (record) => {
     });
     errors.value = {};
     dialogVisible.value = true;
+};
+
+const fieldForMode = (field) => ({
+    ...field,
+    disabled: Boolean(
+        field.disabled || (editingRecord.value && field.immutableOnEdit),
+    ),
+});
+
+const generationParameters = (field) =>
+    Object.fromEntries(
+        Object.entries(field.generateCode?.parameters || {}).map(
+            ([parameter, formField]) => [parameter, form[formField]],
+        ),
+    );
+
+const generateCode = async (field) => {
+    if (editingRecord.value || generatingFields[field.name]) {
+        return;
+    }
+
+    generatingFields[field.name] = true;
+    errors.value = { ...errors.value, [field.name]: undefined };
+
+    try {
+        const response = await axios.get(
+            route("admin.code-generation.show", field.generateCode.type),
+            { params: generationParameters(field) },
+        );
+        form[field.name] = response.data.code;
+        generatedValues[field.name] = response.data.code;
+        toast.add({
+            severity: "success",
+            summary: trans("code_generation.messages.generated"),
+            life: 2500,
+        });
+    } catch (error) {
+        const responseErrors = error.response?.data?.errors || {};
+        errors.value = {
+            ...errors.value,
+            [field.name]:
+                responseErrors.item_type?.[0] ||
+                responseErrors.type?.[0] ||
+                trans("code_generation.errors.generation_failed"),
+        };
+        toast.add({
+            severity: "error",
+            summary: trans("code_generation.errors.generation_failed"),
+            life: 3500,
+        });
+    } finally {
+        generatingFields[field.name] = false;
+    }
 };
 
 const query = (pageNumber = props.records.current_page || 1) => ({
@@ -224,6 +295,21 @@ const onSort = (event) => {
 const submit = () => {
     errors.value = {};
     const payload = { ...form };
+    const codeFields = props.fields.filter((field) => field.generateCode);
+
+    if (editingRecord.value) {
+        props.fields
+            .filter((field) => field.immutableOnEdit)
+            .forEach((field) => delete payload[field.name]);
+    } else if (codeFields.length > 0) {
+        payload._code_was_generated = codeFields.some(
+            (field) =>
+                generatedValues[field.name] !== undefined &&
+                form[field.name] === generatedValues[field.name],
+        );
+    }
+
+    submitting.value = true;
     const callbacks = {
         preserveScroll: true,
         onSuccess: () => {
@@ -231,12 +317,31 @@ const submit = () => {
             resetForm();
         },
         onError: (responseErrors) => {
+            const suggestion = responseErrors.code_suggestion;
+            const generatedField = codeFields[0];
+
+            if (suggestion && generatedField) {
+                form[generatedField.name] = suggestion;
+                generatedValues[generatedField.name] = suggestion;
+                const { code_suggestion: ignored, ...visibleErrors } =
+                    responseErrors;
+                errors.value = visibleErrors;
+                return;
+            }
+
             errors.value = responseErrors;
+        },
+        onFinish: () => {
+            submitting.value = false;
         },
     };
 
     if (editingRecord.value) {
-        router.put(route(updateRoute.value, editingRecord.value.id), payload, callbacks);
+        router.put(
+            route(updateRoute.value, editingRecord.value.id),
+            payload,
+            callbacks,
+        );
         return;
     }
 
@@ -357,14 +462,31 @@ const resolveColumnHeader = (column) =>
                     }"
                     :data-layout-group="row.layoutGroup || undefined"
                 >
-                    <AdminCrudField
+                    <div
                         v-for="field in row.fields"
                         :key="field.name"
-                        v-model="form[field.name]"
-                        :field="field"
-                        :error="errors[field.name]"
-                        :options="options"
-                    />
+                        class="min-w-0"
+                    >
+                        <AdminCrudField
+                            v-model="form[field.name]"
+                            :field="fieldForMode(field)"
+                            :error="errors[field.name]"
+                            :options="options"
+                        />
+                        <Button
+                            v-if="field.generateCode && !editingRecord"
+                            type="button"
+                            class="mt-2"
+                            :label="trans('code_generation.actions.generate')"
+                            icon="pi pi-sparkles"
+                            severity="secondary"
+                            outlined
+                            :loading="Boolean(generatingFields[field.name])"
+                            :disabled="Boolean(generatingFields[field.name])"
+                            :data-test="`generate-${field.name}`"
+                            @click="generateCode(field)"
+                        />
+                    </div>
                 </div>
 
                 <!-- Cancel and Save buttons -->
@@ -383,6 +505,8 @@ const resolveColumnHeader = (column) =>
                         type="submit"
                         :label="trans('actions.save')"
                         icon="pi pi-save"
+                        :loading="submitting"
+                        :disabled="submitting"
                     />
                 </div>
             </form>

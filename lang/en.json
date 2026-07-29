@@ -688,5 +688,13 @@
     "status.warning": "Warning",
     "status.watch": "Watch",
     "users.title": "Users",
+    "code_generation.actions.generate": "Generate",
+    "code_generation.messages.generated": "The suggested code has been generated.",
+    "code_generation.messages.generated_collision_replaced": "The originally generated code :original became unavailable. The record was created with code :actual.",
+    "code_generation.errors.generation_failed": "The code could not be generated.",
+    "code_generation.errors.unsupported_type": "The requested code type is not supported.",
+    "code_generation.errors.unsupported_item_type": "A code cannot be generated for this item type.",
+    "code_generation.errors.manual_collision": "The code :code is already in use. The next available code is :suggested. Review the value, then save again.",
+    "code_generation.errors.retry_exhausted": "The code became unavailable repeatedly. Generate a new code and try again.",
     "validation.locale.supported": "The selected language is not supported."
 }

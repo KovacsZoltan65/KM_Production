@@ -35,7 +35,7 @@ class UpdateLocationRequest extends FormRequest
 
         return [
             'factory_unit_id' => ['nullable', 'exists:factory_units,id'],
-            'code' => ['required', 'string', 'max:50', Rule::unique('locations', 'code')->ignore($location->id)],
+            'code' => ['sometimes', 'string', Rule::in([$location->code])],
             'name' => ['required', 'string', 'max:255'],
             'location_type' => ['required', Rule::enum(LocationType::class)],
             'description' => ['nullable', 'string'],

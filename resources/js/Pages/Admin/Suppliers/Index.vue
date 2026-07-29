@@ -44,7 +44,14 @@ const columns = [
 
 // MEZŐK
 const fields = [
-    { name: "code", labelKey: "fields.code", type: "text" },
+    {
+        name: "code",
+        labelKey: "fields.code",
+        type: "text",
+        required: true,
+        immutableOnEdit: true,
+        generateCode: { type: "supplier" },
+    },
     { name: "name", labelKey: "fields.name", type: "text" },
     { name: "tax_number", labelKey: "fields.tax_number", type: "text" },
 
