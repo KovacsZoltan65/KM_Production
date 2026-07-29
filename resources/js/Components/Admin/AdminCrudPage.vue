@@ -472,20 +472,33 @@ const resolveColumnHeader = (column) =>
                             :field="fieldForMode(field)"
                             :error="errors[field.name]"
                             :options="options"
-                        />
-                        <Button
-                            v-if="field.generateCode && !editingRecord"
-                            type="button"
-                            class="mt-2"
-                            :label="trans('code_generation.actions.generate')"
-                            icon="pi pi-sparkles"
-                            severity="secondary"
-                            outlined
-                            :loading="Boolean(generatingFields[field.name])"
-                            :disabled="Boolean(generatingFields[field.name])"
-                            :data-test="`generate-${field.name}`"
-                            @click="generateCode(field)"
-                        />
+                        >
+                            <template
+                                v-if="field.generateCode && !editingRecord"
+                                #action
+                            >
+                                <Button
+                                    type="button"
+                                    class="shrink-0"
+                                    :label="
+                                        trans(
+                                            'code_generation.actions.generate',
+                                        )
+                                    "
+                                    icon="pi pi-sparkles"
+                                    severity="secondary"
+                                    outlined
+                                    :loading="
+                                        Boolean(generatingFields[field.name])
+                                    "
+                                    :disabled="
+                                        Boolean(generatingFields[field.name])
+                                    "
+                                    :data-test="`generate-${field.name}`"
+                                    @click="generateCode(field)"
+                                />
+                            </template>
+                        </AdminCrudField>
                     </div>
                 </div>
 

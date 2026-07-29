@@ -73,24 +73,30 @@ const optionItems = computed(() => {
             {{ label }}<span v-if="field.required" aria-hidden="true"> *</span>
         </label>
 
-        <InputText
+        <div
             v-if="
                 ['text', 'email', 'password', 'date', 'number'].includes(
                     field.type,
                 )
             "
-            :id="field.name"
-            v-model="model"
-            :type="field.type"
-            :invalid="Boolean(error)"
-            :disabled="Boolean(field.disabled)"
-            :placeholder="field.placeholder"
-            :required="Boolean(field.required)"
-            :min="field.min"
-            :max="field.max"
-            :step="field.step"
-            class="w-full"
-        />
+            class="flex items-start gap-2"
+            data-test="field-control-row"
+        >
+            <InputText
+                :id="field.name"
+                v-model="model"
+                :type="field.type"
+                :invalid="Boolean(error)"
+                :disabled="Boolean(field.disabled)"
+                :placeholder="field.placeholder"
+                :required="Boolean(field.required)"
+                :min="field.min"
+                :max="field.max"
+                :step="field.step"
+                class="min-w-0 flex-1"
+            />
+            <slot name="action" />
+        </div>
         <Textarea
             v-else-if="field.type === 'textarea'"
             :id="field.name"

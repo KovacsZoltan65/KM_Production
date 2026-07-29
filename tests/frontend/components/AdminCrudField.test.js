@@ -2,8 +2,11 @@ import { shallowMount } from "@vue/test-utils";
 import { describe, expect, it } from "vitest";
 import AdminCrudField from "@/Components/Admin/AdminCrudField.vue";
 
-const mountField = (field, extraProps = {}) =>
-    shallowMount(AdminCrudField, { props: { field, ...extraProps } });
+const mountField = (field, extraProps = {}, slots = {}) =>
+    shallowMount(AdminCrudField, {
+        props: { field, ...extraProps },
+        slots,
+    });
 
 describe("AdminCrudField", () => {
     it.each([
@@ -79,5 +82,21 @@ describe("AdminCrudField", () => {
             { label: "draft", value: "draft" },
             { label: "approved", value: "approved" },
         ]);
+    });
+
+    it("a mező műveleti gombját a beviteli vezérlővel egy sorban jeleníti meg", () => {
+        const wrapper = mountField(
+            { name: "code", label: "Kód", type: "text" },
+            {},
+            {
+                action: '<button data-test="field-action">Generálás</button>',
+            },
+        );
+        const controlRow = wrapper.find("[data-test='field-control-row']");
+
+        expect(controlRow.find("input-text-stub").exists()).toBe(true);
+        expect(controlRow.find("[data-test='field-action']").exists()).toBe(
+            true,
+        );
     });
 });

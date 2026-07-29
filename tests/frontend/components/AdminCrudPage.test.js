@@ -53,7 +53,7 @@ const AdminCrudFieldStub = defineComponent({
     props: ["modelValue", "field", "error", "options"],
     emits: ["update:modelValue"],
     template:
-        "<label>{{ field.name }}<span v-if='error'>{{ error }}</span></label>",
+        "<label :data-field='field.name'>{{ field.name }}<span v-if='error'>{{ error }}</span><slot name='action' /></label>",
 });
 const DataTableStub = defineComponent({
     name: "DataTable",
@@ -323,6 +323,12 @@ describe("AdminCrudPage", () => {
         wrapper.vm.openCreate();
         await nextTick();
         expect(wrapper.find("[data-test='generate-code']").exists()).toBe(true);
+        expect(
+            wrapper
+                .find("[data-field='code']")
+                .find("[data-test='generate-code']")
+                .exists(),
+        ).toBe(true);
         expect(
             wrapper.findAllComponents(AdminCrudFieldStub)[0].props("field")
                 .disabled,
