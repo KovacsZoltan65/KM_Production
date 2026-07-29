@@ -1,7 +1,7 @@
 <script setup>
 import AdminLayout from "@/Layouts/AdminLayout.vue";
 import { route } from "@/Utils/routes";
-import { Head, Link, router, useForm, usePage } from "@inertiajs/vue3";
+import { Head, Link, router, useForm } from "@inertiajs/vue3";
 import Button from "primevue/button";
 import Column from "primevue/column";
 import ConfirmDialog from "primevue/confirmdialog";
@@ -10,11 +10,9 @@ import DatePicker from "primevue/datepicker";
 import Dialog from "primevue/dialog";
 import Select from "primevue/select";
 import Tag from "primevue/tag";
-import Toast from "primevue/toast";
 import { useConfirm } from "primevue/useconfirm";
-import { useToast } from "primevue/usetoast";
 import { trans } from "laravel-vue-i18n";
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, ref } from "vue";
 
 /** @typedef {{id: number, label: string}} SupplierOption */
 /**
@@ -54,10 +52,9 @@ const props = defineProps({
     purchaseRequisition: Object,
     supplierOptions: Array,
 });
-const page = usePage();
-const toast = useToast();
 const confirm = useConfirm();
 const dialogVisible = ref(false);
+const approving = ref(false);
 const form = useForm({ supplier_id: null, expected_delivery_date: null });
 const canApprove = computed(() =>
     ["draft", "requested"].includes(props.purchaseRequisition.status),
@@ -83,13 +80,25 @@ const approve = () =>
             "procurement.purchase_requisitions.confirm_approve_header",
         ),
         icon: "pi pi-check",
-        accept: () =>
+        accept: () => {
+            if (approving.value) {
+                return;
+            }
+
+            approving.value = true;
             router.patch(
                 route(
                     "admin.purchase-requisitions.approve",
                     props.purchaseRequisition.id,
                 ),
-            ),
+                {},
+                {
+                    onFinish: () => {
+                        approving.value = false;
+                    },
+                },
+            );
+        },
     });
 const generatePo = () =>
     form.post(
@@ -99,16 +108,11 @@ const generatePo = () =>
         ),
         { preserveScroll: true },
     );
-const flash = (message) =>
-    message && toast.add({ severity: "success", summary: message, life: 2500 });
-onMounted(() => flash(page.props.flash?.success));
-watch(() => page.props.flash?.success, flash);
 </script>
 
 <template>
     <Head :title="purchaseRequisition.requisition_number" />
     <AdminLayout>
-        <Toast />
         <ConfirmDialog />
         <div class="space-y-4">
             <div
@@ -143,6 +147,8 @@ watch(() => page.props.flash?.success, flash);
                         :label="trans('actions.approve')"
                         icon="pi pi-check"
                         severity="success"
+                        :loading="approving"
+                        :disabled="approving"
                         @click="approve"
                     />
                     <Button

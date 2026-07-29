@@ -54,6 +54,12 @@ class HandleInertiaRequests extends Middleware
                     ['label' => 'English', 'value' => 'en'],
                 ]),
             ],
+            'flash' => [
+                'success' => fn (): ?string => $request->session()->get('success'),
+                'error' => fn (): ?string => $request->session()->get('error'),
+                'warning' => fn (): ?string => $request->session()->get('warning'),
+                'info' => fn (): ?string => $request->session()->get('info'),
+            ],
         ];
     }
 }

@@ -1,17 +1,15 @@
 <script setup>
 import AdminLayout from "@/Layouts/AdminLayout.vue";
 import { route } from "@/Utils/routes";
-import { Head, Link, router, usePage } from "@inertiajs/vue3";
+import { Head, Link, router } from "@inertiajs/vue3";
 import { trans } from "laravel-vue-i18n";
 import Button from "primevue/button";
 import Column from "primevue/column";
 import ConfirmDialog from "primevue/confirmdialog";
 import DataTable from "primevue/datatable";
 import Tag from "primevue/tag";
-import Toast from "primevue/toast";
 import { useConfirm } from "primevue/useconfirm";
-import { useToast } from "primevue/usetoast";
-import { computed, onMounted, watch } from "vue";
+import { computed, ref } from "vue";
 
 /**
  * Áruátvételi tétel.
@@ -39,9 +37,8 @@ import { computed, onMounted, watch } from "vue";
  */
 /** @type {Props} */
 const props = defineProps({ goodsReceipt: Object });
-const page = usePage();
-const toast = useToast();
 const confirm = useConfirm();
+const posting = ref(false);
 const canPost = computed(() => props.goodsReceipt.status !== "posted");
 const number = (value) => Number(value || 0).toFixed(3);
 const severity = (value) =>
@@ -53,21 +50,28 @@ const postReceipt = () =>
         }),
         header: trans("procurement.goods_receipts.confirm_post_header"),
         icon: "pi pi-check",
-        accept: () =>
+        accept: () => {
+            if (posting.value) {
+                return;
+            }
+
+            posting.value = true;
             router.post(
                 route("admin.goods-receipts.post", props.goodsReceipt.id),
-            ),
+                {},
+                {
+                    onFinish: () => {
+                        posting.value = false;
+                    },
+                },
+            );
+        },
     });
-const flash = (message) =>
-    message && toast.add({ severity: "success", summary: message, life: 2500 });
-onMounted(() => flash(page.props.flash?.success));
-watch(() => page.props.flash?.success, flash);
 </script>
 
 <template>
     <Head :title="goodsReceipt.receipt_number" />
     <AdminLayout>
-        <Toast />
         <ConfirmDialog />
         <div class="space-y-4">
             <div
@@ -100,6 +104,8 @@ watch(() => page.props.flash?.success, flash);
                     :label="$t('procurement.goods_receipts.post')"
                     icon="pi pi-check"
                     severity="success"
+                    :loading="posting"
+                    :disabled="posting"
                     @click="postReceipt"
                 />
             </div>

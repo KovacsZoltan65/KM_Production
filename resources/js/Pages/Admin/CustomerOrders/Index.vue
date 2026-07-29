@@ -6,18 +6,16 @@ import AdminLayout from "@/Layouts/AdminLayout.vue";
 import CustomerOrderForm from "@/Pages/Admin/CustomerOrders/Partials/CustomerOrderForm.vue";
 import CustomerOrderStatusBadge from "@/Pages/Admin/CustomerOrders/Partials/CustomerOrderStatusBadge.vue";
 import { route } from "@/Utils/routes";
-import { Head, Link, router, usePage } from "@inertiajs/vue3";
+import { Head, Link, router } from "@inertiajs/vue3";
 import Button from "primevue/button";
 import Column from "primevue/column";
 import ConfirmDialog from "primevue/confirmdialog";
 import DataTable from "primevue/datatable";
 import Dialog from "primevue/dialog";
 import Select from "primevue/select";
-import Toast from "primevue/toast";
 import { useConfirm } from "primevue/useconfirm";
-import { useToast } from "primevue/usetoast";
 import { trans } from "laravel-vue-i18n";
-import { computed, onMounted, reactive, ref, watch } from "vue";
+import { computed, reactive, ref } from "vue";
 
 /** @typedef {{id: number, code: string, name: string}} Customer */
 /** @typedef {{id: number, item_number: string, name: string, unit: string}} Item */
@@ -75,8 +73,6 @@ const props = defineProps({
     statusOptions: Array,
 });
 
-const page = usePage();
-const toast = useToast();
 const confirm = useConfirm();
 const dialogVisible = ref(false);
 const editingRecord = ref(null);
@@ -240,32 +236,12 @@ const canCancel = (record) =>
 const canDelete = (record) => ["draft", "cancelled"].includes(record.status);
 
 const formatDate = (value) => dateValue(value) || "-";
-
-onMounted(() => {
-    if (page.props.flash?.success) {
-        toast.add({
-            severity: "success",
-            summary: page.props.flash.success,
-            life: 2500,
-        });
-    }
-});
-
-watch(
-    () => page.props.flash?.success,
-    (message) => {
-        if (message) {
-            toast.add({ severity: "success", summary: message, life: 2500 });
-        }
-    },
-);
 </script>
 
 <template>
     <Head :title="trans('orders.title')" />
 
     <AdminLayout>
-        <Toast />
         <ConfirmDialog />
 
         <div class="space-y-4">

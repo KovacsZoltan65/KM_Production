@@ -3,7 +3,7 @@ import DocumentStatusBadge from "@/Components/DocumentStatusBadge.vue";
 import { route } from "@/Utils/routes";
 import { Link, router, usePage } from "@inertiajs/vue3";
 import Button from "primevue/button";
-import { computed } from "vue";
+import { computed, ref } from "vue";
 
 /**
  * Dokumentumverzió a verzióelőzményben.
@@ -26,6 +26,7 @@ const props = defineProps({
     versions: { type: Array, required: true },
 });
 const page = usePage();
+const pendingDocumentId = ref(null);
 const canMakeCurrent = computed(
     () =>
         page.props.auth?.roles?.includes("super-admin") ||
@@ -33,10 +34,20 @@ const canMakeCurrent = computed(
 );
 
 const makeCurrent = (document) => {
+    if (pendingDocumentId.value !== null) {
+        return;
+    }
+
+    pendingDocumentId.value = document.id;
     router.patch(
         route("admin.documents.make-current", document.id),
         {},
-        { preserveScroll: true },
+        {
+            preserveScroll: true,
+            onFinish: () => {
+                pendingDocumentId.value = null;
+            },
+        },
     );
 };
 </script>
@@ -79,6 +90,8 @@ const makeCurrent = (document) => {
                         icon="pi pi-check-circle"
                         size="small"
                         outlined
+                        :loading="pendingDocumentId === document.id"
+                        :disabled="pendingDocumentId !== null"
                         @click="makeCurrent(document)"
                     />
                 </div>

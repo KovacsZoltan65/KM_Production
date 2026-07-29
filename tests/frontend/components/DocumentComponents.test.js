@@ -1,4 +1,4 @@
-import { defineComponent } from "vue";
+import { defineComponent, nextTick } from "vue";
 import { shallowMount } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import DocumentPreviewCard from "@/Components/DocumentPreviewCard.vue";
@@ -94,9 +94,17 @@ describe("DocumentStatusBadge", () => {
             props: { document: { is_current: true, approved: true } },
             global: { stubs: { Tag: TagStub } },
         });
-        expect(wrapper.findAllComponents(TagStub).map((tag) => tag.props())).toEqual([
-            expect.objectContaining({ value: "status.current", severity: "success" }),
-            expect.objectContaining({ value: "status.approved", severity: "info" }),
+        expect(
+            wrapper.findAllComponents(TagStub).map((tag) => tag.props()),
+        ).toEqual([
+            expect.objectContaining({
+                value: "status.current",
+                severity: "success",
+            }),
+            expect.objectContaining({
+                value: "status.approved",
+                severity: "info",
+            }),
         ]);
     });
 
@@ -105,9 +113,17 @@ describe("DocumentStatusBadge", () => {
             props: { document: { is_current: false, approved: false } },
             global: { stubs: { Tag: TagStub } },
         });
-        expect(wrapper.findAllComponents(TagStub).map((tag) => tag.props())).toEqual([
-            expect.objectContaining({ value: "status.archived", severity: "secondary" }),
-            expect.objectContaining({ value: "status.pending", severity: "warn" }),
+        expect(
+            wrapper.findAllComponents(TagStub).map((tag) => tag.props()),
+        ).toEqual([
+            expect.objectContaining({
+                value: "status.archived",
+                severity: "secondary",
+            }),
+            expect.objectContaining({
+                value: "status.pending",
+                severity: "warn",
+            }),
         ]);
     });
 });
@@ -118,34 +134,73 @@ describe("dokumentumműveletek", () => {
     it("csak view permission mellett elrejti a módosító és letöltési actionöket", () => {
         const wrapper = mountShow(["documents.view"]);
         expect(wrapper.findAllComponents(ButtonStub)).toHaveLength(0);
-        expect(wrapper.find("a[href='/admin/documents/1/download']").exists()).toBe(false);
+        expect(
+            wrapper.find("a[href='/admin/documents/1/download']").exists(),
+        ).toBe(false);
     });
 
     it("a kapott permissionök alapján megjeleníti az actionöket", () => {
-        const wrapper = mountShow([
-            "documents.update",
-            "documents.delete",
-            "documents.download",
-            "documents.approve",
-            "documents.version",
-        ], makeDocument({ is_current: false }));
-        const labels = wrapper.findAllComponents(ButtonStub).map((button) => button.props("label"));
-        expect(labels).toEqual(expect.arrayContaining([
-            "actions.approve",
-            "actions.make_current",
-            "actions.delete",
-            "actions.save",
-        ]));
-        expect(wrapper.find("a[href='/admin/documents/1/download']").exists()).toBe(true);
+        const wrapper = mountShow(
+            [
+                "documents.update",
+                "documents.delete",
+                "documents.download",
+                "documents.approve",
+                "documents.version",
+            ],
+            makeDocument({ is_current: false }),
+        );
+        const labels = wrapper
+            .findAllComponents(ButtonStub)
+            .map((button) => button.props("label"));
+        expect(labels).toEqual(
+            expect.arrayContaining([
+                "actions.approve",
+                "actions.make_current",
+                "actions.delete",
+                "actions.save",
+            ]),
+        );
+        expect(
+            wrapper.find("a[href='/admin/documents/1/download']").exists(),
+        ).toBe(true);
     });
 
     it("jóváhagyás és verzióváltás a megfelelő PATCH route-ot használja", async () => {
-        const wrapper = mountShow(["documents.approve", "documents.version"], makeDocument({ is_current: false }));
+        const wrapper = mountShow(
+            ["documents.approve", "documents.version"],
+            makeDocument({ is_current: false }),
+        );
         const buttons = wrapper.findAllComponents(ButtonStub);
-        await buttons.find((button) => button.props("label") === "actions.approve").trigger("click");
-        await buttons.find((button) => button.props("label") === "actions.make_current").trigger("click");
-        expect(inertiaRouter.patch).toHaveBeenNthCalledWith(1, "/admin/documents/1/approve", {}, { preserveScroll: true });
-        expect(inertiaRouter.patch).toHaveBeenNthCalledWith(2, "/admin/documents/1/make-current", {}, { preserveScroll: true });
+        await buttons
+            .find((button) => button.props("label") === "actions.approve")
+            .trigger("click");
+        await buttons
+            .find((button) => button.props("label") === "actions.make_current")
+            .trigger("click");
+        expect(inertiaRouter.patch).toHaveBeenNthCalledWith(
+            1,
+            "/admin/documents/1/approve",
+            {},
+            expect.objectContaining({
+                preserveScroll: true,
+                onFinish: expect.any(Function),
+            }),
+        );
+        inertiaRouter.patch.mock.calls[0][2].onFinish();
+        await nextTick();
+        await buttons
+            .find((button) => button.props("label") === "actions.make_current")
+            .trigger("click");
+        expect(inertiaRouter.patch).toHaveBeenNthCalledWith(
+            2,
+            "/admin/documents/1/make-current",
+            {},
+            expect.objectContaining({
+                preserveScroll: true,
+                onFinish: expect.any(Function),
+            }),
+        );
     });
 
     it("törlés előtt megerősítést kér", async () => {
@@ -154,11 +209,16 @@ describe("dokumentumműveletek", () => {
         expect(services.confirm.require).toHaveBeenCalledOnce();
         expect(inertiaRouter.delete).not.toHaveBeenCalled();
         services.confirm.require.mock.calls[0][0].accept();
-        expect(inertiaRouter.delete).toHaveBeenCalledWith("/admin/documents/1");
+        expect(inertiaRouter.delete).toHaveBeenCalledWith(
+            "/admin/documents/1",
+            expect.objectContaining({ onFinish: expect.any(Function) }),
+        );
     });
 
     it("verzióelőzményben permission nélkül elrejti az aktuálissá tételt", () => {
-        inertiaPage.props = makeAuthPageProps({ auth: { permissions: [], roles: [] } });
+        inertiaPage.props = makeAuthPageProps({
+            auth: { permissions: [], roles: [] },
+        });
         const wrapper = shallowMount(DocumentVersionHistory, {
             props: { versions: [makeDocumentVersion()] },
             global: { stubs: { Button: ButtonStub, Link: LinkStub } },

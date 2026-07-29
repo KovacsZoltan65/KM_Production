@@ -27,6 +27,8 @@ describe("ProductionTaskActions", () => {
         await wrapper.findComponent(ButtonStub).trigger("click");
         expect(inertiaRouter.patch).toHaveBeenCalledWith(
             "/admin/production-tasks/5/start",
+            {},
+            expect.objectContaining({ onFinish: expect.any(Function) }),
         );
     });
 
@@ -39,6 +41,8 @@ describe("ProductionTaskActions", () => {
         await wrapper.findComponent(ButtonStub).trigger("click");
         expect(inertiaRouter.patch).toHaveBeenCalledWith(
             "/admin/production-tasks/6/finish",
+            {},
+            expect.objectContaining({ onFinish: expect.any(Function) }),
         );
     });
 
@@ -72,7 +76,10 @@ describe("DocumentVersionHistory", () => {
         expect(inertiaRouter.patch).toHaveBeenCalledWith(
             "/admin/documents/1/make-current",
             {},
-            { preserveScroll: true },
+            expect.objectContaining({
+                preserveScroll: true,
+                onFinish: expect.any(Function),
+            }),
         );
     });
 });

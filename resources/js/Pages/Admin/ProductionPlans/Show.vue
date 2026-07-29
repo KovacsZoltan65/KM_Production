@@ -2,16 +2,14 @@
 import AdminLayout from "@/Layouts/AdminLayout.vue";
 import ProductionPlanStatusBadge from "@/Pages/Admin/ProductionPlans/Partials/ProductionPlanStatusBadge.vue";
 import { route } from "@/Utils/routes";
-import { Head, Link, router, usePage } from "@inertiajs/vue3";
+import { Head, Link, router } from "@inertiajs/vue3";
 import { trans } from "laravel-vue-i18n";
 import Button from "primevue/button";
 import Column from "primevue/column";
 import ConfirmDialog from "primevue/confirmdialog";
 import DataTable from "primevue/datatable";
-import Toast from "primevue/toast";
 import { useConfirm } from "primevue/useconfirm";
-import { useToast } from "primevue/usetoast";
-import { computed, onMounted, watch } from "vue";
+import { computed, ref } from "vue";
 
 /**
  * Gyártási tervből létrehozott gyártási rendelés.
@@ -54,9 +52,26 @@ const props = defineProps({
     productionPlan: Object,
 });
 
-const page = usePage();
-const toast = useToast();
 const confirm = useConfirm();
+const pendingAction = ref(null);
+
+const runAction = (action, method, routeName) => {
+    if (pendingAction.value) {
+        return;
+    }
+
+    pendingAction.value = action;
+    router[method](
+        route(routeName, props.productionPlan.id),
+        {},
+        {
+            preserveScroll: true,
+            onFinish: () => {
+                pendingAction.value = null;
+            },
+        },
+    );
+};
 
 const dateValue = (value) => (value ? String(value).slice(0, 10) : "-");
 const canApprove = computed(() =>
@@ -74,14 +89,7 @@ const approvePlan = () => {
         header: trans("production.plans.confirm_approve_header"),
         icon: "pi pi-check-circle",
         accept: () =>
-            router.patch(
-                route(
-                    "admin.production-plans.approve",
-                    props.productionPlan.id,
-                ),
-                {},
-                { preserveScroll: true },
-            ),
+            runAction("approve", "patch", "admin.production-plans.approve"),
     });
 };
 
@@ -93,42 +101,19 @@ const generateProductionOrders = () => {
         header: trans("production.plans.confirm_generate_orders_header"),
         icon: "pi pi-cog",
         accept: () =>
-            router.post(
-                route(
-                    "admin.production-plans.generate-production-orders",
-                    props.productionPlan.id,
-                ),
-                {},
-                { preserveScroll: true },
+            runAction(
+                "generate",
+                "post",
+                "admin.production-plans.generate-production-orders",
             ),
     });
 };
-
-onMounted(() => {
-    if (page.props.flash?.success) {
-        toast.add({
-            severity: "success",
-            summary: page.props.flash.success,
-            life: 2500,
-        });
-    }
-});
-
-watch(
-    () => page.props.flash?.success,
-    (message) => {
-        if (message) {
-            toast.add({ severity: "success", summary: message, life: 2500 });
-        }
-    },
-);
 </script>
 
 <template>
     <Head :title="productionPlan.plan_number" />
 
     <AdminLayout>
-        <Toast />
         <ConfirmDialog />
 
         <div class="space-y-4">
@@ -161,6 +146,8 @@ watch(
                         :label="$t('actions.approve')"
                         icon="pi pi-check"
                         severity="success"
+                        :loading="pendingAction === 'approve'"
+                        :disabled="Boolean(pendingAction)"
                         @click="approvePlan"
                     />
                     <Button
@@ -168,6 +155,8 @@ watch(
                         :label="$t('production.plans.generate_orders')"
                         icon="pi pi-cog"
                         outlined
+                        :loading="pendingAction === 'generate'"
+                        :disabled="Boolean(pendingAction)"
                         @click="generateProductionOrders"
                     />
                 </div>

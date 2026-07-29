@@ -1,17 +1,15 @@
 <script setup>
 import AdminLayout from "@/Layouts/AdminLayout.vue";
 import { route } from "@/Utils/routes";
-import { Head, Link, router, usePage } from "@inertiajs/vue3";
+import { Head, Link, router } from "@inertiajs/vue3";
 import Button from "primevue/button";
 import Column from "primevue/column";
 import ConfirmDialog from "primevue/confirmdialog";
 import DataTable from "primevue/datatable";
 import Tag from "primevue/tag";
-import Toast from "primevue/toast";
 import { useConfirm } from "primevue/useconfirm";
-import { useToast } from "primevue/usetoast";
 import { trans } from "laravel-vue-i18n";
-import { computed, onMounted, watch } from "vue";
+import { computed, ref } from "vue";
 
 /**
  * Beszerzési rendelési tétel.
@@ -39,9 +37,24 @@ import { computed, onMounted, watch } from "vue";
  */
 /** @type {Props} */
 const props = defineProps({ purchaseOrder: Object });
-const page = usePage();
-const toast = useToast();
 const confirm = useConfirm();
+const pendingAction = ref(null);
+const runAction = (action, routeName) => {
+    if (pendingAction.value) {
+        return;
+    }
+
+    pendingAction.value = action;
+    router.patch(
+        route(routeName, props.purchaseOrder.id),
+        {},
+        {
+            onFinish: () => {
+                pendingAction.value = null;
+            },
+        },
+    );
+};
 const canApprove = computed(() => props.purchaseOrder.status === "draft");
 const canClose = computed(() =>
     ["ordered", "partially_received"].includes(props.purchaseOrder.status),
@@ -61,10 +74,7 @@ const approve = () =>
         }),
         header: trans("procurement.purchase_orders.confirm_approve_header"),
         icon: "pi pi-check",
-        accept: () =>
-            router.patch(
-                route("admin.purchase-orders.approve", props.purchaseOrder.id),
-            ),
+        accept: () => runAction("approve", "admin.purchase-orders.approve"),
     });
 const close = () =>
     confirm.require({
@@ -73,21 +83,13 @@ const close = () =>
         }),
         header: trans("procurement.purchase_orders.confirm_close_header"),
         icon: "pi pi-lock",
-        accept: () =>
-            router.patch(
-                route("admin.purchase-orders.close", props.purchaseOrder.id),
-            ),
+        accept: () => runAction("close", "admin.purchase-orders.close"),
     });
-const flash = (message) =>
-    message && toast.add({ severity: "success", summary: message, life: 2500 });
-onMounted(() => flash(page.props.flash?.success));
-watch(() => page.props.flash?.success, flash);
 </script>
 
 <template>
     <Head :title="purchaseOrder.order_number" />
     <AdminLayout>
-        <Toast />
         <ConfirmDialog />
         <div class="space-y-4">
             <div
@@ -123,6 +125,8 @@ watch(() => page.props.flash?.success, flash);
                         :label="trans('actions.approve')"
                         icon="pi pi-check"
                         severity="success"
+                        :loading="pendingAction === 'approve'"
+                        :disabled="Boolean(pendingAction)"
                         @click="approve"
                     />
                     <Button
@@ -131,6 +135,8 @@ watch(() => page.props.flash?.success, flash);
                         :label="trans('actions.close')"
                         icon="pi pi-lock"
                         outlined
+                        :loading="pendingAction === 'close'"
+                        :disabled="Boolean(pendingAction)"
                         @click="close"
                     />
                 </div>

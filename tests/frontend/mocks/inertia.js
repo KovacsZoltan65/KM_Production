@@ -19,6 +19,7 @@ export const inertiaRouter = {
     delete: vi.fn(),
     visit: vi.fn(),
     reload: vi.fn(),
+    on: vi.fn(() => vi.fn()),
 };
 
 export const createFormMock = (values = {}) =>

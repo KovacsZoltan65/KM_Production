@@ -34,6 +34,22 @@
 - Handle validation errors from Laravel responses.
 - Avoid direct API calls when an existing Inertia workflow fits the feature.
 
+## User Feedback
+
+- Server-side notifications use the shared `flash.success`, `flash.error`,
+  `flash.warning`, and `flash.info` contract.
+- Render server flash notifications once through the authenticated layout;
+  pages must not add their own flash watchers or duplicate `<Toast />`
+  instances.
+- Keep field-level Laravel validation errors visible. The global validation
+  toast supplements them and never replaces them.
+- Normalize Axios and other client request failures through
+  `useRequestError`; never display a raw exception, response `message`, SQL
+  error, or stack trace.
+- Use local `useToast()` calls only for immediate client-side operations that
+  do not use the server flash path.
+- Disable repeated state-changing actions while their request is pending.
+
 ## PrimeVue
 
 - Use PrimeVue components for tables, forms, dialogs, menus, buttons, toasts, and overlays.

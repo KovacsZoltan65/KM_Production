@@ -81,8 +81,11 @@ use App\Repositories\Contracts\SupplierAdminRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
+use Inertia\ExceptionResponse;
+use Inertia\Inertia;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
+use Symfony\Component\HttpFoundation\Response;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -125,6 +128,19 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Inertia::handleExceptionsUsing(function (ExceptionResponse $response): ExceptionResponse|Response {
+            if (
+                $response->request->expectsJson()
+                || ! in_array($response->statusCode(), [403, 404, 419, 429, 500, 503], true)
+            ) {
+                return $response->response;
+            }
+
+            return $response
+                ->render('Error', ['status' => $response->statusCode()])
+                ->withSharedData();
+        });
+
         Gate::policy(Role::class, RolePolicy::class);
         Gate::policy(Permission::class, PermissionPolicy::class);
         Gate::policy(StockBalance::class, StockBalancePolicy::class);

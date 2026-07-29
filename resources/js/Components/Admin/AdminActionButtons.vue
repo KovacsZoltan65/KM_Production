@@ -7,11 +7,13 @@ import { trans } from "laravel-vue-i18n";
  * @typedef {Object} Props
  * @property {boolean} canEdit A(z) canEdit bemeneti értéke.
  * @property {boolean} canDelete A(z) canDelete bemeneti értéke.
+ * @property {boolean} deleting Jelzi, hogy a törlés folyamatban van.
  */
 /** @type {Props} */
 defineProps({
     canEdit: { type: Boolean, default: true },
     canDelete: { type: Boolean, default: true },
+    deleting: { type: Boolean, default: false },
 });
 
 /**
@@ -44,6 +46,8 @@ defineEmits(["edit", "delete"]);
             text
             rounded
             :aria-label="trans('actions.delete')"
+            :loading="deleting"
+            :disabled="deleting"
             @click="$emit('delete')"
         />
     </div>

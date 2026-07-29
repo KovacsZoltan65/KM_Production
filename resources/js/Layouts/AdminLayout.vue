@@ -7,6 +7,7 @@ import Menu from "primevue/menu";
 import { computed, ref } from "vue";
 import { trans } from "laravel-vue-i18n";
 import TopbarLocaleSwitch from "@/Components/TopbarLocaleSwitch.vue";
+import FlashToast from "@/Components/Common/FlashToast.vue";
 import {
     filterNavigationItems,
     findActiveNavigationHref,
@@ -375,6 +376,7 @@ const toggleUserMenu = (event) => {
 </script>
 
 <template>
+    <FlashToast />
     <div
         class="flex h-screen min-h-0 flex-col overflow-hidden bg-slate-50 text-slate-900"
     >

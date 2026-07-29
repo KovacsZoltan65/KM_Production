@@ -56,7 +56,12 @@ test("an authorized user can create and reopen a customer order", async ({
     await intercepted;
     await expect(save).toBeDisabled();
     continueRequest();
-    await expect(dialog).toBeHidden();
+    await expect(dialog).toBeHidden({ timeout: 15_000 });
+    await expect(
+        page.locator(".p-toast-message-success").filter({
+            hasText: "Customer order created.",
+        }),
+    ).toBeVisible();
     await page.unroute("**/admin/customer-orders");
 
     const row = page
