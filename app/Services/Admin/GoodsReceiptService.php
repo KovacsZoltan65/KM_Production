@@ -69,9 +69,9 @@ class GoodsReceiptService
                 ]);
             }
 
-            $this->auditLogService->log('goods_receipt_created', $goodsReceipt, [
+            $this->auditLogService->logCreated('goods_receipt_created', $goodsReceipt, $causer, [
                 'items_count' => \count($items),
-            ], $causer);
+            ]);
 
             return $goodsReceipt->refresh();
         });
@@ -94,6 +94,7 @@ class GoodsReceiptService
             }
 
             $goodsReceipt->load(['items', 'purchaseOrder.items']);
+            $original = $goodsReceipt->getRawOriginal();
 
             foreach ($goodsReceipt->items as $item) {
                 $this->stockBalances->increaseQuantity(
@@ -116,10 +117,10 @@ class GoodsReceiptService
                     'notes' => 'Goods receipt posted.',
                 ]);
 
-                $this->auditLogService->log('stock_inbound_created', $movement, [
+                $this->auditLogService->logCreated('stock_inbound_created', $movement, $causer, [
                     'goods_receipt_id' => $goodsReceipt->id,
                     'goods_receipt_item_id' => $item->id,
-                ], $causer);
+                ]);
 
                 if ($item->purchase_order_item_id !== null) {
                     $this->updatePurchaseOrderItemReceivedQuantity($item->purchaseOrderItem, (float) $item->quantity);
@@ -129,9 +130,9 @@ class GoodsReceiptService
             $goodsReceipt->update(['status' => GoodsReceiptStatus::Posted->value]);
             $this->refreshPurchaseOrderStatus($goodsReceipt);
 
-            $this->auditLogService->log('goods_receipt_posted', $goodsReceipt, [
+            $this->auditLogService->logUpdated('goods_receipt_posted', $goodsReceipt, $original, $causer, [
                 'items_count' => $goodsReceipt->items->count(),
-            ], $causer);
+            ]);
 
             return $goodsReceipt->refresh();
         });

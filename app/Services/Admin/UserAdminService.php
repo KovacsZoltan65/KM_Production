@@ -56,4 +56,36 @@ class UserAdminService extends AbstractAdminService
     {
         return 'admin_user_deleted';
     }
+
+    protected function createdAuditProperties(Model $model, array $attributes): array
+    {
+        /** @var User $model */
+        return ['roles' => $model->getRoleNames()->sort()->values()->all()];
+    }
+
+    protected function captureUpdateAuditContext(Model $model, array $attributes): array
+    {
+        /** @var User $model */
+        return ['roles' => $model->getRoleNames()->sort()->values()->all()];
+    }
+
+    protected function updatedAuditProperties(Model $model, array $attributes, array $context): array
+    {
+        /** @var User $model */
+        $oldRoles = $context['roles'] ?? [];
+        $roles = $model->getRoleNames()->sort()->values()->all();
+
+        if ($oldRoles === $roles) {
+            return [];
+        }
+
+        return [
+            'relations' => [
+                'roles' => [
+                    'old' => $oldRoles,
+                    'attributes' => $roles,
+                ],
+            ],
+        ];
+    }
 }

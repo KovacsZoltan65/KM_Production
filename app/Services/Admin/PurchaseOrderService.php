@@ -63,7 +63,9 @@ class PurchaseOrderService
                 ]);
             }
 
-            $this->auditLogService->log('purchase_order_created', $purchaseOrder, [], $causer);
+            $this->auditLogService->logCreated('purchase_order_created', $purchaseOrder, $causer, [
+                'items_count' => \count($items),
+            ]);
 
             return $purchaseOrder->refresh();
         });
@@ -75,16 +77,20 @@ class PurchaseOrderService
 
     public function update(PurchaseOrder $purchaseOrder, array $attributes, ?User $causer = null): PurchaseOrder
     {
-        $purchaseOrder->update([
-            'supplier_id' => $attributes['supplier_id'] ?? $purchaseOrder->supplier_id,
-            'expected_delivery_date' => $attributes['expected_delivery_date'] ?? $purchaseOrder->expected_delivery_date,
-            'notes' => $attributes['notes'] ?? $purchaseOrder->notes,
-        ]);
+        $purchaseOrder = DB::transaction(function () use ($purchaseOrder, $attributes, $causer): PurchaseOrder {
+            $original = $purchaseOrder->getRawOriginal();
+            $purchaseOrder->update([
+                'supplier_id' => $attributes['supplier_id'] ?? $purchaseOrder->supplier_id,
+                'expected_delivery_date' => $attributes['expected_delivery_date'] ?? $purchaseOrder->expected_delivery_date,
+                'notes' => $attributes['notes'] ?? $purchaseOrder->notes,
+            ]);
+            $this->auditLogService->logUpdated('purchase_order_updated', $purchaseOrder, $original, $causer);
 
-        $this->auditLogService->log('purchase_order_updated', $purchaseOrder, [], $causer);
+            return $purchaseOrder->refresh();
+        });
         $this->cacheInvalidator->procurementChanged();
 
-        return $purchaseOrder->refresh();
+        return $purchaseOrder;
     }
 
     public function delete(PurchaseOrder $purchaseOrder, ?User $causer = null): void
@@ -100,24 +106,33 @@ class PurchaseOrderService
             throw ValidationException::withMessages(['status' => __('procurement.purchase_orders.validation.only_draft_approve')]);
         }
 
-        $purchaseOrder->update([
-            'status' => PurchaseOrderStatus::Ordered->value,
-            'ordered_at' => now(),
-        ]);
+        $purchaseOrder = DB::transaction(function () use ($purchaseOrder, $causer): PurchaseOrder {
+            $original = $purchaseOrder->getRawOriginal();
+            $purchaseOrder->update([
+                'status' => PurchaseOrderStatus::Ordered->value,
+                'ordered_at' => now(),
+            ]);
+            $this->auditLogService->logUpdated('purchase_order_approved', $purchaseOrder, $original, $causer);
 
-        $this->auditLogService->log('purchase_order_approved', $purchaseOrder, [], $causer);
+            return $purchaseOrder->refresh();
+        });
         $this->cacheInvalidator->procurementChanged();
 
-        return $purchaseOrder->refresh();
+        return $purchaseOrder;
     }
 
     public function close(PurchaseOrder $purchaseOrder, ?User $causer = null): PurchaseOrder
     {
-        $purchaseOrder->update(['status' => PurchaseOrderStatus::Received->value]);
-        $this->auditLogService->log('purchase_order_closed', $purchaseOrder, [], $causer);
+        $purchaseOrder = DB::transaction(function () use ($purchaseOrder, $causer): PurchaseOrder {
+            $original = $purchaseOrder->getRawOriginal();
+            $purchaseOrder->update(['status' => PurchaseOrderStatus::Received->value]);
+            $this->auditLogService->logUpdated('purchase_order_closed', $purchaseOrder, $original, $causer);
+
+            return $purchaseOrder->refresh();
+        });
         $this->cacheInvalidator->procurementChanged();
 
-        return $purchaseOrder->refresh();
+        return $purchaseOrder;
     }
 
     private function nextPurchaseOrderNumber(): string

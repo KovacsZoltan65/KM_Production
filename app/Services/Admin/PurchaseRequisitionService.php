@@ -65,7 +65,9 @@ class PurchaseRequisitionService
                 ]);
             }
 
-            $this->auditLogService->log('purchase_requisition_created', $requisition, [], $causer);
+            $this->auditLogService->logCreated('purchase_requisition_created', $requisition, $causer, [
+                'items_count' => \count($items),
+            ]);
 
             return $requisition->refresh();
         });
@@ -77,14 +79,18 @@ class PurchaseRequisitionService
 
     public function update(PurchaseRequisition $purchaseRequisition, array $attributes, ?User $causer = null): PurchaseRequisition
     {
-        $purchaseRequisition->update([
-            'notes' => $attributes['notes'] ?? $purchaseRequisition->notes,
-        ]);
+        $purchaseRequisition = DB::transaction(function () use ($purchaseRequisition, $attributes, $causer): PurchaseRequisition {
+            $original = $purchaseRequisition->getRawOriginal();
+            $purchaseRequisition->update([
+                'notes' => $attributes['notes'] ?? $purchaseRequisition->notes,
+            ]);
+            $this->auditLogService->logUpdated('purchase_requisition_updated', $purchaseRequisition, $original, $causer);
 
-        $this->auditLogService->log('purchase_requisition_updated', $purchaseRequisition, [], $causer);
+            return $purchaseRequisition->refresh();
+        });
         $this->cacheInvalidator->procurementChanged();
 
-        return $purchaseRequisition->refresh();
+        return $purchaseRequisition;
     }
 
     public function delete(PurchaseRequisition $purchaseRequisition, ?User $causer = null): void
@@ -100,13 +106,19 @@ class PurchaseRequisitionService
             throw ValidationException::withMessages(['status' => __('procurement.purchase_requisitions.validation.only_draft_requested_approve')]);
         }
 
-        $purchaseRequisition->update(['status' => PurchaseRequisitionStatus::Approved->value]);
-        $purchaseRequisition->items()->update(['status' => PurchaseRequisitionItemStatus::Requested->value]);
+        $purchaseRequisition = DB::transaction(function () use ($purchaseRequisition, $causer): PurchaseRequisition {
+            $original = $purchaseRequisition->getRawOriginal();
+            $purchaseRequisition->update(['status' => PurchaseRequisitionStatus::Approved->value]);
+            $purchaseRequisition->items()->update(['status' => PurchaseRequisitionItemStatus::Requested->value]);
+            $this->auditLogService->logUpdated('purchase_requisition_approved', $purchaseRequisition, $original, $causer, [
+                'item_statuses_synchronized' => true,
+            ]);
 
-        $this->auditLogService->log('purchase_requisition_approved', $purchaseRequisition, [], $causer);
+            return $purchaseRequisition->refresh();
+        });
         $this->cacheInvalidator->procurementChanged();
 
-        return $purchaseRequisition->refresh();
+        return $purchaseRequisition;
     }
 
     public function generateFromMaterialRequirements(?User $causer = null): PurchaseRequisition

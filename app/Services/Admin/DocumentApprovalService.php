@@ -24,16 +24,17 @@ class DocumentApprovalService
                 throw ValidationException::withMessages(['document' => __('documents.validation.already_approved')]);
             }
 
+            $original = $document->getRawOriginal();
             $document->update([
                 'approved' => true,
                 'approved_by' => $causer?->id,
                 'approved_at' => now(),
             ]);
 
-            $this->auditLogService->log('document_approved', $document, [
+            $this->auditLogService->logUpdated('document_approved', $document, $original, $causer, [
                 'version' => $document->version,
                 'document_type' => $document->document_type->value,
-            ], $causer);
+            ]);
 
             return $document->refresh();
         });

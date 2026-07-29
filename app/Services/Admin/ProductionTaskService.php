@@ -51,12 +51,15 @@ class ProductionTaskService
      */
     public function create(array $attributes, ?User $causer = null): ProductionTask
     {
-        $task = ProductionTask::query()->create([
-            ...$attributes,
-            'status' => $attributes['status'] ?? ProductionTaskStatus::Planned->value,
-        ]);
+        $task = DB::transaction(function () use ($attributes, $causer): ProductionTask {
+            $task = ProductionTask::query()->create([
+                ...$attributes,
+                'status' => $attributes['status'] ?? ProductionTaskStatus::Planned->value,
+            ]);
+            $this->auditLogService->logCreated('production_task_created', $task, $causer);
 
-        $this->auditLogService->log('production_task_created', $task, [], $causer);
+            return $task;
+        });
         $this->cacheInvalidator->productionChanged();
 
         return $this->productionTasks->findForShow($task);
@@ -67,8 +70,13 @@ class ProductionTaskService
      */
     public function update(ProductionTask $productionTask, array $attributes, ?User $causer = null): ProductionTask
     {
-        $productionTask->update($attributes);
-        $this->auditLogService->log('production_task_updated', $productionTask, [], $causer);
+        $productionTask = DB::transaction(function () use ($productionTask, $attributes, $causer): ProductionTask {
+            $original = $productionTask->getRawOriginal();
+            $productionTask->update($attributes);
+            $this->auditLogService->logUpdated('production_task_updated', $productionTask, $original, $causer);
+
+            return $productionTask->refresh();
+        });
         $this->cacheInvalidator->productionChanged();
 
         return $this->productionTasks->findForShow($productionTask);
@@ -150,6 +158,7 @@ class ProductionTaskService
         }
 
         $productionTask = DB::transaction(function () use ($productionTask, $causer): ProductionTask {
+            $original = $productionTask->getRawOriginal();
             $productionTask->update([
                 'status' => ProductionTaskStatus::InProgress->value,
                 'started_at' => now(),
@@ -164,7 +173,7 @@ class ProductionTaskService
                 'started_at' => $productionTask->productionOrder->started_at ?? now(),
             ]);
 
-            $this->auditLogService->log('production_task_started', $productionTask, [], $causer);
+            $this->auditLogService->logUpdated('production_task_started', $productionTask, $original, $causer);
 
             return $this->productionTasks->findForShow($productionTask->refresh());
         });
@@ -182,6 +191,7 @@ class ProductionTaskService
 
         $productionTask = DB::transaction(function () use ($productionTask, $causer): ProductionTask {
             $productionTask->load('operationSequenceStep', 'itemInstance');
+            $original = $productionTask->getRawOriginal();
             $status = $productionTask->operationSequenceStep->requires_quality_check
                 ? ProductionTaskStatus::WaitingForCheck
                 : ProductionTaskStatus::Completed;
@@ -199,9 +209,9 @@ class ProductionTaskService
                 $this->advanceNextTaskOrFinalize($productionTask, $causer);
             }
 
-            $this->auditLogService->log('production_task_finished', $productionTask, [
+            $this->auditLogService->logUpdated('production_task_finished', $productionTask, $original, $causer, [
                 'requires_quality_check' => $productionTask->operationSequenceStep->requires_quality_check,
-            ], $causer);
+            ]);
 
             return $this->productionTasks->findForShow($productionTask->refresh());
         });
@@ -257,12 +267,13 @@ class ProductionTaskService
             return;
         }
 
+        $original = $productionOrder->getRawOriginal();
         $productionOrder->update([
             'status' => ProductionOrderStatus::Completed->value,
             'finished_at' => now(),
         ]);
 
-        $this->auditLogService->log('production_order_completed', $productionOrder, [], $causer);
+        $this->auditLogService->logUpdated('production_order_completed', $productionOrder, $original, $causer);
     }
 
     private function nextSerialNumber(string $prefix): string

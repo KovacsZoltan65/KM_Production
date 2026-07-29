@@ -37,6 +37,7 @@ class QualityCheckService
         }
 
         $qualityCheck = DB::transaction(function () use ($productionTask, $attributes, $causer): QualityCheck {
+            $taskOriginal = $productionTask->getRawOriginal();
             $qualityCheck = QualityCheck::query()->create([
                 'production_task_id' => $productionTask->id,
                 'checked_by' => $attributes['checked_by'],
@@ -52,15 +53,15 @@ class QualityCheckService
             } else {
                 $productionTask->update(['status' => ProductionTaskStatus::Rejected->value]);
                 $productionTask->itemInstance->update(['current_status' => ItemInstanceStatus::Rejected->value]);
-                $this->auditLogService->log('production_task_rejected', $productionTask, [
+                $this->auditLogService->logUpdated('production_task_rejected', $productionTask, $taskOriginal, $causer, [
                     'result' => $qualityCheck->result->value,
-                ], $causer);
+                ]);
             }
 
-            $this->auditLogService->log('production_task_quality_checked', $qualityCheck, [
+            $this->auditLogService->logCreated('production_task_quality_checked', $qualityCheck, $causer, [
                 'production_task_id' => $productionTask->id,
                 'result' => $qualityCheck->result->value,
-            ], $causer);
+            ]);
 
             return $qualityCheck->load('inspector');
         });

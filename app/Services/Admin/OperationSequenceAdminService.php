@@ -8,6 +8,7 @@ use App\Repositories\Contracts\OperationSequenceRepositoryInterface;
 use App\Services\AuditLogService;
 use App\Services\BusinessCacheInvalidator;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 
 /**
  * A műveletsorok és verziózott lépéseik adminisztrációs folyamatait koordinálja.
@@ -38,8 +39,14 @@ class OperationSequenceAdminService
         $steps = $payload['steps'] ?? [];
         unset($payload['steps']);
 
-        $operationSequence = $this->repository->createWithSteps($payload, $steps);
-        $this->auditLogService->log('admin_operation_sequence_created', $operationSequence, [], $causer);
+        $operationSequence = DB::transaction(function () use ($payload, $steps, $causer): OperationSequence {
+            $operationSequence = $this->repository->createWithSteps($payload, $steps);
+            $this->auditLogService->logCreated('admin_operation_sequence_created', $operationSequence, $causer, [
+                'steps_count' => \count($steps),
+            ]);
+
+            return $operationSequence;
+        });
         $this->cacheInvalidator->productionChanged();
 
         return $operationSequence;
@@ -53,8 +60,16 @@ class OperationSequenceAdminService
         $steps = $payload['steps'] ?? [];
         unset($payload['steps']);
 
-        $operationSequence = $this->repository->updateWithSteps($operationSequence, $payload, $steps);
-        $this->auditLogService->log('admin_operation_sequence_updated', $operationSequence, [], $causer);
+        $operationSequence = DB::transaction(function () use ($operationSequence, $payload, $steps, $causer): OperationSequence {
+            $original = $operationSequence->getRawOriginal();
+            $operationSequence = $this->repository->updateWithSteps($operationSequence, $payload, $steps);
+            $this->auditLogService->logUpdated('admin_operation_sequence_updated', $operationSequence, $original, $causer, [
+                'steps_synchronized' => true,
+                'steps_count' => \count($steps),
+            ]);
+
+            return $operationSequence;
+        });
         $this->cacheInvalidator->productionChanged();
 
         return $operationSequence;

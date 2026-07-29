@@ -91,12 +91,12 @@ class DocumentService
                 'uploaded_by' => $causer?->id,
             ]);
 
-            $this->auditLogService->log('document_uploaded', $document, [
+            $this->auditLogService->logCreated('document_uploaded', $document, $causer, [
                 'version' => $version,
                 'document_type' => $document->document_type->value,
                 'documentable_type' => $document->documentable_type,
                 'documentable_id' => $document->documentable_id,
-            ], $causer);
+            ]);
 
             if ($version > 1) {
                 $this->auditLogService->log('document_version_created', $document, [
@@ -117,14 +117,18 @@ class DocumentService
      */
     public function update(Document $document, array $attributes, ?User $causer = null): Document
     {
-        $document = $this->documents->updateDocument($document, [
-            'title' => $attributes['title'] ?? $document->title,
-            'description' => $attributes['notes'] ?? $document->description,
-        ]);
+        $document = DB::transaction(function () use ($document, $attributes, $causer): Document {
+            $original = $document->getRawOriginal();
+            $document = $this->documents->updateDocument($document, [
+                'title' => $attributes['title'] ?? $document->title,
+                'description' => $attributes['notes'] ?? $document->description,
+            ]);
+            $this->auditLogService->logUpdated('document_updated', $document, $original, $causer, [
+                'version' => $document->version,
+            ]);
 
-        $this->auditLogService->log('document_updated', $document, [
-            'version' => $document->version,
-        ], $causer);
+            return $document;
+        });
         $this->cacheInvalidator->documentsChanged();
 
         return $document;

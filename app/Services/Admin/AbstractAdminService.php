@@ -7,6 +7,7 @@ use App\Repositories\Contracts\AdminRepositoryInterface;
 use App\Services\AuditLogService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Az egyszerű adminisztrációs CRUD-szolgáltatások közös folyamatait biztosítja.
@@ -41,8 +42,17 @@ abstract class AbstractAdminService
     public function create(array $attributes, ?User $causer = null): Model
     {
         $attributes = $this->normalizeAttributes($attributes);
-        $model = $this->repository->create($attributes);
-        $this->auditLogService->log($this->createdEvent(), $model, [], $causer);
+        $model = DB::transaction(function () use ($attributes, $causer): Model {
+            $model = $this->repository->create($attributes);
+            $this->auditLogService->logCreated(
+                $this->createdEvent(),
+                $model,
+                $causer,
+                $this->createdAuditProperties($model, $attributes),
+            );
+
+            return $model;
+        });
         $this->afterWrite();
 
         return $model;
@@ -59,8 +69,20 @@ abstract class AbstractAdminService
     public function update(Model $model, array $attributes, ?User $causer = null): Model
     {
         $attributes = $this->normalizeAttributes($attributes);
-        $model = $this->repository->update($model, $attributes);
-        $this->auditLogService->log($this->updatedEvent(), $model, [], $causer);
+        $model = DB::transaction(function () use ($model, $attributes, $causer): Model {
+            $original = $model->getRawOriginal();
+            $context = $this->captureUpdateAuditContext($model, $attributes);
+            $model = $this->repository->update($model, $attributes);
+            $this->auditLogService->logUpdated(
+                $this->updatedEvent(),
+                $model,
+                $original,
+                $causer,
+                $this->updatedAuditProperties($model, $attributes, $context),
+            );
+
+            return $model;
+        });
         $this->afterWrite();
 
         return $model;
@@ -85,6 +107,36 @@ abstract class AbstractAdminService
     abstract protected function deletedEvent(): string;
 
     protected function afterWrite(): void {}
+
+    /**
+     * @param  array<string, mixed>  $attributes
+     * @return array<string, mixed>
+     */
+    protected function createdAuditProperties(Model $model, array $attributes): array
+    {
+        return [];
+    }
+
+    /**
+     * A kapcsolati vagy más, nem attribútumalapú változások mentés előtti kontextusa.
+     *
+     * @param  array<string, mixed>  $attributes
+     * @return array<string, mixed>
+     */
+    protected function captureUpdateAuditContext(Model $model, array $attributes): array
+    {
+        return [];
+    }
+
+    /**
+     * @param  array<string, mixed>  $attributes
+     * @param  array<string, mixed>  $context
+     * @return array<string, mixed>
+     */
+    protected function updatedAuditProperties(Model $model, array $attributes, array $context): array
+    {
+        return [];
+    }
 
     /**
      * Előkészíti az attribútumokat a repository számára.

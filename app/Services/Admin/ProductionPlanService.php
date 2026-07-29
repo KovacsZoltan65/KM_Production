@@ -72,8 +72,14 @@ class ProductionPlanService
             'notes' => $payload['notes'] ?? null,
         ];
 
-        $productionPlan = $this->repository->createWithItems($attributes, $items);
-        $this->auditLogService->log('production_plan_created', $productionPlan, [], $causer);
+        $productionPlan = DB::transaction(function () use ($attributes, $items, $causer): ProductionPlan {
+            $productionPlan = $this->repository->createWithItems($attributes, $items);
+            $this->auditLogService->logCreated('production_plan_created', $productionPlan, $causer, [
+                'items_count' => \count($items),
+            ]);
+
+            return $productionPlan;
+        });
         $this->cacheInvalidator->productionChanged();
 
         return $productionPlan;
@@ -102,8 +108,16 @@ class ProductionPlanService
             ->values()
             ->all();
 
-        $productionPlan = $this->repository->updateWithItems($productionPlan, $attributes, $items);
-        $this->auditLogService->log('production_plan_updated', $productionPlan, [], $causer);
+        $productionPlan = DB::transaction(function () use ($productionPlan, $attributes, $items, $causer): ProductionPlan {
+            $original = $productionPlan->getRawOriginal();
+            $productionPlan = $this->repository->updateWithItems($productionPlan, $attributes, $items);
+            $this->auditLogService->logUpdated('production_plan_updated', $productionPlan, $original, $causer, [
+                'items_synchronized' => true,
+                'items_count' => \count($items),
+            ]);
+
+            return $productionPlan;
+        });
         $this->cacheInvalidator->productionChanged();
 
         return $productionPlan;
@@ -117,8 +131,13 @@ class ProductionPlanService
             ]);
         }
 
-        $productionPlan = $this->repository->approve($productionPlan, $causer?->id);
-        $this->auditLogService->log('production_plan_approved', $productionPlan, [], $causer);
+        $productionPlan = DB::transaction(function () use ($productionPlan, $causer): ProductionPlan {
+            $original = $productionPlan->getRawOriginal();
+            $productionPlan = $this->repository->approve($productionPlan, $causer?->id);
+            $this->auditLogService->logUpdated('production_plan_approved', $productionPlan, $original, $causer);
+
+            return $productionPlan;
+        });
         $this->cacheInvalidator->productionChanged();
 
         return $productionPlan;

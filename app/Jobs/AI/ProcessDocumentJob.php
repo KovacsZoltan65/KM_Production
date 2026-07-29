@@ -154,12 +154,13 @@ class ProcessDocumentJob implements ShouldQueue
 
     private function markProcessing(Document $document, AuditLogService $auditLog): void
     {
+        $original = $document->getRawOriginal();
         $document->forceFill([
             'processing_status' => DocumentProcessingStatus::Processing,
             'processing_error' => null,
         ])->save();
 
-        $auditLog->log('document_ai_processing_started', $document, [
+        $auditLog->logUpdated('document_ai_processing_started', $document, $original, properties: [
             'task' => 'document_classification',
         ]);
     }
@@ -169,9 +170,10 @@ class ProcessDocumentJob implements ShouldQueue
      */
     private function markCompleted(Document $document, AuditLogService $auditLog, array $result): void
     {
+        $original = $document->getRawOriginal();
         $this->storeResult($document, DocumentProcessingStatus::Completed, $result);
 
-        $auditLog->log('document_ai_processing_completed', $document, [
+        $auditLog->logUpdated('document_ai_processing_completed', $document, $original, properties: [
             'confidence' => $result['confidence'],
             'suggested_type' => $result['data']['suggested_type'] ?? null,
         ]);
@@ -182,9 +184,10 @@ class ProcessDocumentJob implements ShouldQueue
      */
     private function markReviewRequired(Document $document, AuditLogService $auditLog, array $result): void
     {
+        $original = $document->getRawOriginal();
         $this->storeResult($document, DocumentProcessingStatus::ReviewRequired, $result);
 
-        $auditLog->log('document_ai_review_required', $document, [
+        $auditLog->logUpdated('document_ai_review_required', $document, $original, properties: [
             'confidence' => $result['confidence'],
             'suggested_type' => $result['data']['suggested_type'] ?? null,
         ]);
@@ -195,6 +198,7 @@ class ProcessDocumentJob implements ShouldQueue
      */
     private function markFailed(Document $document, AuditLogService $auditLog, array $result, string $reason): void
     {
+        $original = $document->getRawOriginal();
         $document->forceFill([
             'processing_status' => DocumentProcessingStatus::Failed,
             'processing_confidence' => is_numeric($result['confidence'] ?? null) ? (float) $result['confidence'] : 0.0,
@@ -206,7 +210,7 @@ class ProcessDocumentJob implements ShouldQueue
             'processed_at' => now(),
         ])->save();
 
-        $auditLog->log('document_ai_processing_failed', $document, [
+        $auditLog->logUpdated('document_ai_processing_failed', $document, $original, properties: [
             'reason' => $reason,
             'confidence' => $document->processing_confidence,
         ]);

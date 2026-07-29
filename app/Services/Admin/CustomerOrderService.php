@@ -65,8 +65,14 @@ class CustomerOrderService
         unset($payload['items']);
         $payload['created_by'] = $causer?->id;
 
-        $customerOrder = $this->repository->createWithItems($payload, $items);
-        $this->auditLogService->log('customer_order_created', $customerOrder, [], $causer);
+        $customerOrder = DB::transaction(function () use ($payload, $items, $causer): CustomerOrder {
+            $customerOrder = $this->repository->createWithItems($payload, $items);
+            $this->auditLogService->logCreated('customer_order_created', $customerOrder, $causer, [
+                'items_count' => \count($items),
+            ]);
+
+            return $customerOrder;
+        });
         $this->cacheInvalidator->customerOrdersChanged();
 
         return $customerOrder;
@@ -86,8 +92,16 @@ class CustomerOrderService
         $items = $this->itemsFromPayload($payload);
         unset($payload['items']);
 
-        $customerOrder = $this->repository->updateWithItems($customerOrder, $payload, $items);
-        $this->auditLogService->log('customer_order_updated', $customerOrder, [], $causer);
+        $customerOrder = DB::transaction(function () use ($customerOrder, $payload, $items, $causer): CustomerOrder {
+            $original = $customerOrder->getRawOriginal();
+            $customerOrder = $this->repository->updateWithItems($customerOrder, $payload, $items);
+            $this->auditLogService->logUpdated('customer_order_updated', $customerOrder, $original, $causer, [
+                'items_synchronized' => true,
+                'items_count' => \count($items),
+            ]);
+
+            return $customerOrder;
+        });
         $this->cacheInvalidator->customerOrdersChanged();
 
         return $customerOrder;
@@ -105,8 +119,9 @@ class CustomerOrderService
         $this->ensureStatus($customerOrder, [CustomerOrderStatus::Draft], __('orders.validation.only_draft_confirm'));
 
         $customerOrder = DB::transaction(function () use ($customerOrder, $causer): CustomerOrder {
+            $original = $customerOrder->getRawOriginal();
             $customerOrder = $this->repository->confirm($customerOrder);
-            $this->auditLogService->log('customer_order_confirmed', $customerOrder, [], $causer);
+            $this->auditLogService->logUpdated('customer_order_confirmed', $customerOrder, $original, $causer);
 
             return $customerOrder;
         });
@@ -130,8 +145,9 @@ class CustomerOrderService
         }
 
         $customerOrder = DB::transaction(function () use ($customerOrder, $causer): CustomerOrder {
+            $original = $customerOrder->getRawOriginal();
             $customerOrder = $this->repository->cancel($customerOrder);
-            $this->auditLogService->log('customer_order_cancelled', $customerOrder, [], $causer);
+            $this->auditLogService->logUpdated('customer_order_cancelled', $customerOrder, $original, $causer);
 
             return $customerOrder;
         });

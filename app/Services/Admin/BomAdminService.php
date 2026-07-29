@@ -8,6 +8,7 @@ use App\Repositories\Contracts\BomRepositoryInterface;
 use App\Services\AuditLogService;
 use App\Services\BusinessCacheInvalidator;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 
 class BomAdminService
 {
@@ -33,8 +34,14 @@ class BomAdminService
         $items = $payload['items'] ?? [];
         unset($payload['items']);
 
-        $bom = $this->repository->createWithItems($payload, $items);
-        $this->auditLogService->log('admin_bom_created', $bom, [], $causer);
+        $bom = DB::transaction(function () use ($payload, $items, $causer): Bom {
+            $bom = $this->repository->createWithItems($payload, $items);
+            $this->auditLogService->logCreated('admin_bom_created', $bom, $causer, [
+                'items_count' => \count($items),
+            ]);
+
+            return $bom;
+        });
         $this->cacheInvalidator->inventoryChanged();
 
         return $bom;
@@ -48,8 +55,16 @@ class BomAdminService
         $items = $payload['items'] ?? [];
         unset($payload['items']);
 
-        $bom = $this->repository->updateWithItems($bom, $payload, $items);
-        $this->auditLogService->log('admin_bom_updated', $bom, [], $causer);
+        $bom = DB::transaction(function () use ($bom, $payload, $items, $causer): Bom {
+            $original = $bom->getRawOriginal();
+            $bom = $this->repository->updateWithItems($bom, $payload, $items);
+            $this->auditLogService->logUpdated('admin_bom_updated', $bom, $original, $causer, [
+                'items_synchronized' => true,
+                'items_count' => \count($items),
+            ]);
+
+            return $bom;
+        });
         $this->cacheInvalidator->inventoryChanged();
 
         return $bom;

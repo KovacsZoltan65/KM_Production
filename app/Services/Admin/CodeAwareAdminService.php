@@ -8,6 +8,7 @@ use App\Services\AuditLogService;
 use App\Services\CodeCreationService;
 use App\Support\CodeGeneration\CodeCreationResult;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 /**
  * A kódérzékeny törzsadatok közös létrehozási és ütközéskezelési folyamata.
@@ -30,14 +31,22 @@ abstract class CodeAwareAdminService extends AbstractAdminService
     public function create(array $attributes, ?User $causer = null): Model
     {
         $attributes = $this->normalizeAttributes($attributes);
-        $this->lastCreation = $this->codeCreationService->create(
-            $this->codeType($attributes),
-            $attributes,
-            $this->repository,
-        );
-        $model = $this->lastCreation->model;
+        $model = DB::transaction(function () use ($attributes, $causer): Model {
+            $this->lastCreation = $this->codeCreationService->create(
+                $this->codeType($attributes),
+                $attributes,
+                $this->repository,
+            );
+            $model = $this->lastCreation->model;
+            $this->auditLogService->logCreated(
+                $this->createdEvent(),
+                $model,
+                $causer,
+                $this->createdAuditProperties($model, $attributes),
+            );
 
-        $this->auditLogService->log($this->createdEvent(), $model, [], $causer);
+            return $model;
+        });
         $this->afterWrite();
 
         return $model;

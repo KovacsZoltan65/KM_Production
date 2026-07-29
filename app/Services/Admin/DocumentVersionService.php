@@ -43,15 +43,16 @@ class DocumentVersionService
                 ->lockForUpdate()
                 ->firstOrFail();
 
+            $original = $document->getRawOriginal();
             $this->clearCurrentFor($this->groupFor($document));
             $document->update(['is_current' => true]);
 
-            $this->auditLogService->log('document_current_changed', $document, [
+            $this->auditLogService->logUpdated('document_current_changed', $document, $original, $causer, [
                 'documentable_type' => $document->documentable_type,
                 'documentable_id' => $document->documentable_id,
                 'document_type' => $document->document_type->value,
                 'version' => $document->version,
-            ], $causer);
+            ]);
 
             return $document->refresh();
         });
