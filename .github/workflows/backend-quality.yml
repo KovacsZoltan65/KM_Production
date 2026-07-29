@@ -49,7 +49,7 @@ jobs:
         run: vendor/bin/pint --test
 
       - name: Run Larastan
-        run: composer analyse
+        run: vendor/bin/phpstan analyse --memory-limit=1G --no-progress --error-format=github
 
       - name: Check patch whitespace
         run: git diff --check
@@ -82,6 +82,10 @@ jobs:
 
       - name: Run complete SQLite suite
         run: php scripts/backend-test-environment.php sqlite test --log-junit=test-results/sqlite-junit.xml
+
+      - name: Annotate SQLite test failures
+        if: failure()
+        run: php scripts/report-junit-failures.php test-results/sqlite-junit.xml
 
       - name: SQLite migration round-trip and seeder smoke
         run: composer test:backend:migrations:sqlite
@@ -147,6 +151,10 @@ jobs:
 
       - name: Run complete MySQL suite
         run: php scripts/backend-test-environment.php mysql test --log-junit=test-results/mysql-junit.xml
+
+      - name: Annotate MySQL test failures
+        if: failure()
+        run: php scripts/report-junit-failures.php test-results/mysql-junit.xml
 
       - name: Record MySQL test settings
         if: always()
