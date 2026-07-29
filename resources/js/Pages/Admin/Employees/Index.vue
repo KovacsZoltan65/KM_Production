@@ -70,9 +70,23 @@ const fields = [
         immutableOnEdit: true,
         generateCode: { type: "employee" },
     },
+    // Dolgozó nevét jelző mező, amely kötelező.
     { name: "name", labelKey: "fields.name", type: "text" },
-    { name: "email", labelKey: "fields.email", type: "email" },
-    { name: "phone", labelKey: "fields.phone", type: "text" },
+    // Dolgozó e-mail-címét jelző mező, amely a "contact" layout csoportba tartozik.
+    {
+        name: "email",
+        labelKey: "fields.email",
+        type: "email",
+        layoutGroup: "contact",
+    },
+    // Dolgozó telefonszámát jelző mező, amely a "contact" layout csoportba tartozik.
+    {
+        name: "phone",
+        labelKey: "fields.phone",
+        type: "text",
+        layoutGroup: "contact",
+    },
+    // Dolgozó szakmai szerepkörét jelző mező, amely a "professionalRoles" opciók közül választható.
     {
         name: "professional_role_id",
         labelKey: "fields.professional_role",
@@ -80,6 +94,7 @@ const fields = [
         options: "professionalRoles",
         optionLabel: "name",
         optionValue: "id",
+        layoutGroup: "roles",
     },
     {
         name: "user_id",
@@ -88,6 +103,19 @@ const fields = [
         options: "users",
         optionLabel: "email",
         optionValue: "id",
+        layoutGroup: "roles",
+    },
+    {
+        name: "hired_at",
+        labelKey: "fields.hired_at",
+        type: "date",
+        layoutGroup: "dates",
+    },
+    {
+        name: "left_at",
+        labelKey: "fields.left_at",
+        type: "date",
+        layoutGroup: "dates",
     },
     {
         name: "is_active",
@@ -95,8 +123,6 @@ const fields = [
         type: "checkbox",
         default: true,
     },
-    { name: "hired_at", labelKey: "fields.hired_at", type: "date" },
-    { name: "left_at", labelKey: "fields.left_at", type: "date" },
 ];
 </script>
 

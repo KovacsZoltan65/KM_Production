@@ -52,8 +52,18 @@ const fields = [
     },
     { name: "name", labelKey: "fields.name", type: "text" },
     { name: "tax_number", labelKey: "fields.tax_number", type: "text" },
-    { name: "email", labelKey: "fields.email", type: "email" },
-    { name: "phone", labelKey: "fields.phone", type: "text" },
+    {
+        name: "email",
+        labelKey: "fields.email",
+        type: "email",
+        layoutGroup: "media",
+    },
+    {
+        name: "phone",
+        labelKey: "fields.phone",
+        type: "text",
+        layoutGroup: "media",
+    },
     {
         name: "billing_address",
         labelKey: "fields.billing_address",
