@@ -12,7 +12,6 @@ return [
         'professional_role' => env('CODE_PREFIX_PROFESSIONAL_ROLE', 'ROLE'),
         'product' => env('CODE_PREFIX_PRODUCT', 'PRD'),
         'material' => env('CODE_PREFIX_MATERIAL', 'MAT'),
-        'operation_type' => env('CODE_PREFIX_OPERATION_TYPE', 'OP'),
         'customer' => env('CODE_PREFIX_CUSTOMER', 'CUST'),
         'supplier' => env('CODE_PREFIX_SUPPLIER', 'SUP'),
     ],

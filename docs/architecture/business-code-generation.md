@@ -6,23 +6,23 @@ A projekt üzleti azonosítóinak felderítése a modellekre, enumokra, migráci
 Requestekre, policy-kre, service-ekre, repository-kra, seederekre, factory-kra,
 admin modalokra és tesztekre terjedt ki.
 
-| Entitás | Modell / tábla / mező | DB-típus | Unique | Soft delete | Jelenlegi jelleg | Közös generátor |
-| --- | --- | --- | --- | --- | --- | --- |
-| Gyártóegység | `FactoryUnit` / `factory_units.code` | `varchar(255)`, Request max. 50 | igen | igen | kézi törzsadatkód | `FU` |
-| Dolgozó | `Employee` / `employees.employee_number` | `varchar(255)` | igen | igen | kézi törzsadatkód | `EMP` |
-| Hely | `Location` / `locations.code` | `varchar(255)`, Request max. 50 | igen | igen | kézi törzsadatkód | `LOC` |
-| Szakmai szerepkör | `ProfessionalRole` / `professional_roles.code` | `varchar(255)`, Request max. 50 | igen | igen | kézi törzsadatkód | `ROLE` |
-| Cikk | `Item` / `items.item_number` | `varchar(255)` | igen | igen | kézi törzsadatkód | `MAT` vagy `PRD` |
-| Vevő | `Customer` / `customers.code` | `varchar(255)` | igen | igen | kézi törzsadatkód | `CUST` |
-| Beszállító | `Supplier` / `suppliers.code` | `varchar(255)` | igen | igen | kézi törzsadatkód | `SUP` |
-| Művelettípus | `OperationType` / `operation_types.code` | `varchar(255)` | igen | igen | `OperationTypeCode` stabil enumérték | nem |
-| Vevői rendelés | `CustomerOrder.order_number` | `varchar(255)` | igen | igen | workflow-generátor | nem |
-| Gyártási terv | `ProductionPlan.plan_number` | `varchar(255)` | igen | igen | workflow-generátor | nem |
-| Gyártási rendelés | `ProductionOrder.order_number` | `varchar(255)` | igen | igen | workflow-generátor | nem |
-| Beszerzési igény | `PurchaseRequisition.requisition_number` | `varchar(255)` | igen | igen | workflow-generátor | nem |
-| Beszerzési rendelés | `PurchaseOrder.order_number` | `varchar(255)` | igen | igen | workflow-generátor | nem |
-| Áruátvétel | `GoodsReceipt.receipt_number` | `varchar(255)` | igen | igen | workflow-generátor | nem |
-| Cikkpéldány | `ItemInstance.serial_number` | `varchar(255)` | igen | nem | nyomonkövetési sorozatszám-generátor | nem |
+| Entitás             | Modell / tábla / mező                          | DB-típus                        | Unique | Soft delete | Jelenlegi jelleg                     | Közös generátor  |
+| ------------------- | ---------------------------------------------- | ------------------------------- | ------ | ----------- | ------------------------------------ | ---------------- |
+| Gyártóegység        | `FactoryUnit` / `factory_units.code`           | `varchar(255)`, Request max. 50 | igen   | igen        | kézi törzsadatkód                    | `FU`             |
+| Dolgozó             | `Employee` / `employees.employee_number`       | `varchar(255)`                  | igen   | igen        | kézi törzsadatkód                    | `EMP`            |
+| Hely                | `Location` / `locations.code`                  | `varchar(255)`, Request max. 50 | igen   | igen        | kézi törzsadatkód                    | `LOC`            |
+| Szakmai szerepkör   | `ProfessionalRole` / `professional_roles.code` | `varchar(255)`, Request max. 50 | igen   | igen        | kézi törzsadatkód                    | `ROLE`           |
+| Cikk                | `Item` / `items.item_number`                   | `varchar(255)`                  | igen   | igen        | kézi törzsadatkód                    | `MAT` vagy `PRD` |
+| Vevő                | `Customer` / `customers.code`                  | `varchar(255)`                  | igen   | igen        | kézi törzsadatkód                    | `CUST`           |
+| Beszállító          | `Supplier` / `suppliers.code`                  | `varchar(255)`                  | igen   | igen        | kézi törzsadatkód                    | `SUP`            |
+| Művelettípus        | `OperationType` / `operation_types.code`       | `varchar(255)`                  | igen   | igen        | `OperationTypeCode` stabil enumérték | nem              |
+| Vevői rendelés      | `CustomerOrder.order_number`                   | `varchar(255)`                  | igen   | igen        | workflow-generátor                   | nem              |
+| Gyártási terv       | `ProductionPlan.plan_number`                   | `varchar(255)`                  | igen   | igen        | workflow-generátor                   | nem              |
+| Gyártási rendelés   | `ProductionOrder.order_number`                 | `varchar(255)`                  | igen   | igen        | workflow-generátor                   | nem              |
+| Beszerzési igény    | `PurchaseRequisition.requisition_number`       | `varchar(255)`                  | igen   | igen        | workflow-generátor                   | nem              |
+| Beszerzési rendelés | `PurchaseOrder.order_number`                   | `varchar(255)`                  | igen   | igen        | workflow-generátor                   | nem              |
+| Áruátvétel          | `GoodsReceipt.receipt_number`                  | `varchar(255)`                  | igen   | igen        | workflow-generátor                   | nem              |
+| Cikkpéldány         | `ItemInstance.serial_number`                   | `varchar(255)`                  | igen   | nem         | nyomonkövetési sorozatszám-generátor | nem              |
 
 A művelettípus kódja nem sorszámozott azonosító: a validáció és a model cast az
 olyan stabil szemantikai enumértékekre épül, mint a `CUTTING` és a `WELDING`.
@@ -79,7 +79,6 @@ CODE_PREFIX_LOCATION=LOC
 CODE_PREFIX_PROFESSIONAL_ROLE=ROLE
 CODE_PREFIX_PRODUCT=PRD
 CODE_PREFIX_MATERIAL=MAT
-CODE_PREFIX_OPERATION_TYPE=OP
 CODE_PREFIX_CUSTOMER=CUST
 CODE_PREFIX_SUPPLIER=SUP
 CODE_SEQUENCE_LENGTH=4
