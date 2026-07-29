@@ -1,7 +1,6 @@
 import { resolve } from "node:path";
 import { test, expect } from "../helpers/test.js";
 import { loginThroughUi } from "../helpers/auth.js";
-import { resetE2EFixtures } from "../helpers/database.js";
 import { e2eUsers } from "../fixtures/users.js";
 
 const fixtureFile = (name) =>
@@ -25,8 +24,9 @@ async function fillUploadForm(page, dialog, { itemId, title, file }) {
 test("document upload creates deterministic versions and a previous version can become current", async ({
     page,
     browserErrors,
+    e2eData,
 }) => {
-    const { itemId } = resetE2EFixtures();
+    const { itemId } = e2eData;
     await loginThroughUi(page, e2eUsers.admin);
     await page.goto("/admin/documents");
 

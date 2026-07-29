@@ -1,6 +1,5 @@
 import { test, expect } from "../helpers/test.js";
 import { loginThroughUi } from "../helpers/auth.js";
-import { resetE2EFixtures } from "../helpers/database.js";
 import { selectComboboxOptionMatching } from "../helpers/forms.js";
 import { e2eUsers } from "../fixtures/users.js";
 
@@ -8,7 +7,6 @@ test("an authorized user can create and reopen a customer order", async ({
     page,
     browserErrors,
 }) => {
-    resetE2EFixtures();
     await loginThroughUi(page, e2eUsers.admin);
     await page.goto("/admin/customer-orders");
 
@@ -84,7 +82,6 @@ test("a user without create permission cannot create customer orders", async ({
     page,
     browserErrors,
 }) => {
-    resetE2EFixtures();
     await loginThroughUi(page, e2eUsers.inventoryViewer);
     await page.goto("/admin/customer-orders");
 

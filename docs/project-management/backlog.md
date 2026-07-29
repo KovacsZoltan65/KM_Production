@@ -400,13 +400,15 @@ Röviden: `CI-002`, `CI-004`, `CI-005`, `GOV-005`, `CI-006`, `CI-007`,
 
 #### CI-004 — A teljes Playwright E2E-kapu aktuális futtatása
 
-- **Állapot:** ready
+- **Állapot:** partially done
 - **Prioritás:** P1
 - **Kategória:** CI és release
 - **Célverzió:** v1.x Stabilizálás
 - **Összefoglaló:** Chromium, accessibility, keyboard, Firefox/WebKit és mobile
   projektek teljes aktuális futtatása.
-- **Indoklás:** Az infrastruktúra kész, de a baseline audit során nem futott.
+- **Indoklás:** A kapu determinisztikus resetje, readiness-e, failure
+  artifactjai és kibővített feedback-lefedettsége helyben igazolt. A zöld
+  GitHub Actions futás commit/push/PR engedély hiányában még nem bizonyítható.
 - **Scope:** Izolált E2E előkészítés, build, minden projekt és artifact.
 - **Scope-on kívül:** Windows Firefox compositorhiba alkalmazáskóddal történő
   elfedése.
@@ -416,7 +418,8 @@ Röviden: `CI-002`, `CI-004`, `CI-005`, `GOV-005`, `CI-006`, `CI-007`,
 - **Tesztelési követelmények:** `npm run test:e2e` és a dokumentált a11y,
   keyboard, cross-browser, mobile parancsok.
 - **Kapcsolódó fájlok és dokumentáció:** `playwright.config.js`, `package.json`,
-  `docs/e2e-testing.md`, `tests/e2e/`.
+  `docs/e2e-testing.md`,
+  `docs/audits/playwright-e2e-quality-gate-2026-07-29.md`, `tests/e2e/`.
 - **Becsült méret:** M
 - **Kockázat:** Böngésző- és OS-függő eltérés hamis negatívot adhat.
 

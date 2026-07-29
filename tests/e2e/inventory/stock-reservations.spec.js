@@ -1,13 +1,13 @@
 import { test, expect } from "../helpers/test.js";
 import { loginThroughUi } from "../helpers/auth.js";
-import { resetE2EFixtures } from "../helpers/database.js";
 import { e2eUsers } from "../fixtures/users.js";
 
 test("an authorized user can release a stock reservation and the state survives reload", async ({
     page,
     browserErrors,
+    e2eData,
 }) => {
-    const { reservationId } = resetE2EFixtures();
+    const { reservationId } = e2eData;
     await loginThroughUi(page, e2eUsers.admin);
     await page.goto("/admin/inventory/stock-reservations");
 
@@ -69,8 +69,9 @@ test("an authorized user can release a stock reservation and the state survives 
 test("a viewer cannot see or invoke the release action", async ({
     page,
     browserErrors,
+    e2eData,
 }) => {
-    const { reservationId } = resetE2EFixtures();
+    const { reservationId } = e2eData;
     await loginThroughUi(page, e2eUsers.inventoryViewer);
     await page.goto("/admin/inventory/stock-reservations");
 

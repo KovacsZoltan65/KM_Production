@@ -96,7 +96,9 @@ const search = ref(props.filters.search || "");
 const perPage = ref(
     Number(props.filters.per_page || props.records.per_page || 10),
 );
-const sortField = ref(props.filters.sort || "id");
+const sortField = ref(
+    typeof props.filters?.sort === "string" ? props.filters.sort : "id",
+);
 const sortOrder = ref((props.filters.direction || "asc") === "desc" ? -1 : 1);
 const form = reactive({});
 const errors = ref({});

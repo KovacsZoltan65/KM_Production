@@ -1,14 +1,14 @@
 import { test } from "../helpers/test.js";
 import { loginThroughUi } from "../helpers/auth.js";
-import { resetE2EFixtures } from "../helpers/database.js";
 import { expectNoSeriousAccessibilityViolations } from "../helpers/a11y.js";
 import { e2eUsers } from "../fixtures/users.js";
 
 test("critical pages have no serious or critical axe violations", async ({
     page,
     browserErrors,
+    e2eData,
 }) => {
-    const { productionTaskId } = resetE2EFixtures();
+    const { productionTaskId } = e2eData;
 
     await page.goto("/login");
     await expectNoSeriousAccessibilityViolations(page, "login");

@@ -1,14 +1,14 @@
 import { test, expect } from "../helpers/test.js";
 import { loginThroughUi } from "../helpers/auth.js";
-import { resetE2EFixtures } from "../helpers/database.js";
 import { selectComboboxOptionMatching } from "../helpers/forms.js";
 import { e2eUsers } from "../fixtures/users.js";
 
 test("a production task can be started, finished, and accepted by quality check", async ({
     page,
     browserErrors,
+    e2eData,
 }) => {
-    const { productionTaskId } = resetE2EFixtures();
+    const { productionTaskId } = e2eData;
     await loginThroughUi(page, e2eUsers.admin);
     await page.goto("/admin/production-tasks");
 

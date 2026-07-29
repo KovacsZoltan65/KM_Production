@@ -289,6 +289,21 @@ describe("AdminCrudPage", () => {
         );
     });
 
+    it("üres tömbként érkező Laravel filtereknél stabil alapértelmezett rendezést használ", () => {
+        const wrapper = mountPage({ filters: [] });
+
+        wrapper.vm.reload();
+
+        expect(inertiaRouter.get).toHaveBeenCalledWith(
+            "/admin/items",
+            expect.objectContaining({
+                sort: "id",
+                direction: "asc",
+            }),
+            { preserveState: true, replace: true },
+        );
+    });
+
     it("azonos layoutGroup numerikus mezőket legfeljebb hármas sorokba rendez", async () => {
         const wrapper = mountPage({
             fields: [

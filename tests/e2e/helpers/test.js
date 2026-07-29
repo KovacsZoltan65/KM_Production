@@ -1,6 +1,15 @@
 import { test as base, expect } from "@playwright/test";
+import { resetE2EFixtures } from "./database.js";
 
 export const test = base.extend({
+    e2eData: [
+        async ({ context }, use) => {
+            await context.clearCookies();
+            const fixtureData = resetE2EFixtures();
+            await use(fixtureData);
+        },
+        { auto: true },
+    ],
     browserErrors: async ({ page }, use) => {
         const errors = [];
         const allowedPatterns = [];
@@ -29,11 +38,19 @@ export const test = base.extend({
 
         page.on("response", (response) => {
             const resourceType = response.request().resourceType();
+            const applicationFailure =
+                response.status() >= 400 &&
+                ["document", "xhr", "fetch"].includes(resourceType) &&
+                response
+                    .url()
+                    .startsWith(
+                        process.env.E2E_BASE_URL || "http://127.0.0.1:8001",
+                    );
             const criticalAssetFailure =
                 response.status() >= 400 &&
                 ["script", "stylesheet", "font"].includes(resourceType);
 
-            if (response.status() >= 500 || criticalAssetFailure) {
+            if (applicationFailure || criticalAssetFailure) {
                 errors.push(
                     `response: ${response.status()} ${response.request().method()} ${response.url()}`,
                 );
