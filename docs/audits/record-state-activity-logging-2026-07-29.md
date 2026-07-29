@@ -187,6 +187,14 @@ Migráció nem készült, mert a szükséges `attribute_changes` JSON oszlop és
 már rendelkezésre állt. Frontend fájlt a feladat nem módosított, audit UI
 nincs, ezért frontend gate nem volt alkalmazandó.
 
+A változás két célzott commitban került az `origin/main` ágra:
+`8cf767b` (`feat(audit): log created and updated record states`) és `8dae6ed`
+(`docs(audit): document record state logging`). A push után a
+`main...origin/main` eltérés 0/0. A valós GitHub Actions futást ebben a
+környezetben nem lehetett hitelesíteni: a GitHub CLI nincs telepítve, a
+repository Actions oldala nem volt nyilvánosan olvasható, a beépített
+böngészőmunkamenethez pedig nem jött létre kapcsolat.
+
 ## Fennmaradó kockázatok
 
 - A régi activity rekordok `attribute_changes` mezője üres, ezért történeti
