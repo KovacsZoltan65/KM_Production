@@ -158,3 +158,17 @@ A magyar dokumentáció előnyei:
 - [Projekt architektúra](../architecture.md)
 - [i18n dokumentáció](../i18n.md)
 - [Learning Center specifikáció](../specifications/learning-center/README.md)
+
+## Auditnaplózás új CRUD implementációban
+
+- Create művelethez `AuditLogService::logCreated()` használandó.
+- Update előtt a modell `getRawOriginal()` állapotát meg kell őrizni, update
+  után pedig `AuditLogService::logUpdated()` hívandó.
+- Érzékeny új mezőt a központi kizárásban vagy az érzékeny modell
+  allowlistjében kell kezelni és negatív teszttel védeni.
+- Üzleti metaadat a `properties`, rekordállapot és dirty diff az
+  `attribute_changes` mezőbe kerül.
+- Üres CRUD diff nem naplózható; kapcsolati változás csak explicit,
+  méretkorlátozott properties struktúrában rögzíthető.
+- Az üzleti írás és az audit insert lehetőség szerint ugyanazon adatbázis-
+  tranzakció része.

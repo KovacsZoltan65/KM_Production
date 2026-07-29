@@ -46,24 +46,24 @@ A mezők, állapotátmenetek és lezárási szabályok részletes definíciójá
 | ----------------------------- | ------: | -----: | -----: | ------: | ----: | -------: |
 | Projektvezetés és Git         |       1 |      1 |      0 |       0 |     6 |        8 |
 | CI és release                 |       2 |      5 |      1 |       0 |     2 |       10 |
-| Tesztelés és statikus elemzés |       2 |      2 |      0 |       0 |     0 |        4 |
+| Tesztelés és statikus elemzés |       2 |      2 |      0 |       0 |     1 |        5 |
 | Learning Center               |      18 |      1 |      0 |       0 |     0 |       19 |
 | Document Intelligence és OCR  |      11 |      0 |      0 |       1 |     0 |       12 |
 | Manufacturing Intelligence    |       5 |      0 |      0 |       0 |     0 |        5 |
 | Üzemeltetés                   |       4 |      7 |      0 |       0 |     0 |       11 |
 | UX és skálázhatóság           |       0 |      0 |      0 |       0 |     0 |        0 |
-| **Összesen**                  |  **43** | **16** |  **1** |   **1** | **8** |   **69** |
+| **Összesen**                  |  **43** | **16** |  **1** |   **1** | **9** |   **70** |
 
 | Prioritás | Darabszám |
 | --------- | --------: |
-| P0        |         4 |
+| P0        |         5 |
 | P1        |        43 |
 | P2        |        17 |
 | P3        |         5 |
 
 | Célverzió                     | Feladatok száma |
 | ----------------------------- | --------------: |
-| v1.x Stabilizálás             |              33 |
+| v1.x Stabilizálás             |              34 |
 | Learning Center v1.0          |              19 |
 | Document Intelligence v1.0    |              12 |
 | Learning Center v1.1          |               0 |
@@ -335,7 +335,7 @@ Röviden: `CI-002`, `CI-004`, `CI-005`, `GOV-005`, `CI-006`, `CI-007`,
 
 #### CI-002 — Frontend unit, i18n és build quality gate stabilizálása
 
-- **Állapot:** review
+- **Állapot:** done
 - **Prioritás:** P1
 - **Kategória:** CI és release
 - **Célverzió:** v1.x Stabilizálás
@@ -553,6 +553,37 @@ Röviden: `CI-002`, `CI-004`, `CI-005`, `GOV-005`, `CI-006`, `CI-007`,
 - **Kockázat:** Platformfüggő PowerShell-futtatás Linux CI-n külön kezelést kér.
 
 ### Tesztelés és statikus elemzés
+
+#### AUD-001 — Rekordállapot-alapú activity log bevezetése
+
+- **Állapot:** review
+- **Prioritás:** P0
+- **Kategória:** Tesztelés és statikus elemzés
+- **Célverzió:** v1.x Stabilizálás
+- **Összefoglaló:** Biztonságosan szűrt create állapot és dirty-only update
+  diff a service-alapú Spatie activity naplóban.
+- **Indoklás:** Az egyszerű CRUD activityk korábban nem tartalmaztak
+  rekordállapotot, régi/új értéket vagy változottmező-listát.
+- **Scope:** Központi audit API, admin CRUD, egyszerű egyedi service-ek,
+  releváns állapotváltások, érzékeny mezők, no-op és tranzakciós konzisztencia.
+- **Scope-on kívül:** Automatikus `LogsActivity` minden modellen, audit UI és
+  törlés előtti teljes rekordállapot.
+- **Függőségek:** Nincs.
+- **Elfogadási feltételek:** Create állapot és update old/new dirty diff;
+  jelszó/token/secret kizárás; business properties elkülönítés; nincs
+  duplikáció vagy no-op activity; SQLite és MySQL gate zöld.
+- **Tesztelési követelmények:** Célzott activity 3/3 SQLite és MySQL; teljes
+  SQLite 3/3, teljes MySQL 2/2; Pint, Larastan és tranzakciós rollback.
+- **Kapcsolódó fájlok és dokumentáció:**
+  `app/Services/AuditLogService.php`,
+  `tests/Feature/RecordStateActivityLoggingTest.php`,
+  `docs/audits/record-state-activity-logging-2026-07-29.md`.
+- **Becsült méret:** L
+- **Kockázat:** Régi activityk eltérő szerkezete, retention és személyes adatok
+  megőrzési szabálya.
+- **Eredmény:** A központi és egyedi service-integráció, a dirty-only diff,
+  érzékenymező-szűrés, role-kapcsolati diff és tranzakciós rollback elkészült.
+  A célzott SQLite/MySQL és a teljes SQLite 3/3, MySQL 2/2 quality gate zöld.
 
 #### TEST-001 — PHPStan level 6 alkalmassági emelés
 

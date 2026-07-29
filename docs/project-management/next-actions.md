@@ -55,6 +55,14 @@ kockázat és tesztkövetelmény a hivatkozott backlogelemnél található.
   [30428224526](https://github.com/KovacsZoltan65/KM_Production/actions/runs/30428224526)
   futásának mind a négy backend jobja sikeres.
 
+### AUD-001 — Rekordállapot-alapú activity log bevezetése
+
+- **Állapot:** done
+- **Eredmény:** A service-alapú Spatie naplózás create állapotot, dirty-only
+  update diffet és explicit User role-diffet rögzít; az érzékeny mezők
+  allowlisttel és központi kizárással védettek. A célzott SQLite/MySQL, a teljes
+  SQLite 3/3 és MySQL 2/2 backend gate sikeres.
+
 A lezárt elemek nem részei az alábbi tíz végrehajtási lépésnek.
 
 ## Végrehajtási sorrend
