@@ -4,12 +4,18 @@
 
 A backend quality gate ugyanazt a Laravel/Pest tesztcsomagot futtatja PHP 8.4 alatt SQLite és MySQL 8.4 adatbázismotoron. Az SQLite gyors, izolált visszajelzést ad, a MySQL pedig a productionhöz közeli strict SQL-, collation-, tranzakciós és séma-viselkedést ellenőrzi. Egyik motor sikere sem helyettesíti a másikat.
 
-A blokkoló ellenőrzési lánc:
+A blokkoló ellenőrzések négy, egymástól független GitHub Actions jobban futnak:
 
 ```text
-Composer validate → Pint → Larastan level 5 → teljes SQLite suite
-→ teljes MySQL suite → migration round-trip → alapseeder smoke → git diff check
+Backend Static Analysis
+Backend Tests / SQLite → teljes SQLite suite → SQLite migration round-trip
+Backend Tests / MySQL → kapcsolatpróba → teljes MySQL suite
+Database Migrations / MySQL → kapcsolatpróba → migration round-trip → alapseeder smoke
 ```
+
+Egyik job sem használ `needs` függőséget: minden kapu önállóan indul, és saját
+hibájával blokkol. Az SQLite migration round-trip az SQLite job része; a külön
+migrációs check kizárólag a productionhöz közeli MySQL 8.4 sémát ellenőrzi.
 
 ## Biztonsági guard
 
@@ -125,9 +131,14 @@ A [.github/workflows/backend-quality.yml](../.github/workflows/backend-quality.y
 - `Backend Static Analysis` — 15 perc;
 - `Backend Tests / SQLite` — 40 perc;
 - `Backend Tests / MySQL` — 50 perc;
-- `Backend Migrations` — 20 perc.
+- `Database Migrations / MySQL` — 20 perc.
 
-A MySQL job és migration job ephemeral `mysql:8.4` service-t, dedikált tesztadatbázist, health checket, `utf8mb4` charsetet és `utf8mb4_unicode_ci` collationt használ. A Composer cache kulcsa tartalmazza az operációs rendszert, a PHP 8.4 verziót és a `composer.lock` hashét; a `vendor`, környezeti fájl és adatbázis nem kerül a cache-be.
+A MySQL job és migration job ephemeral `mysql:8.4` service-t, dedikált
+tesztadatbázist, service health checket és külön SQL kapcsolatpróbát,
+`utf8mb4` charsetet, valamint `utf8mb4_unicode_ci` collationt használ. A
+Composer cache kulcsa tartalmazza az operációs rendszert, a PHP 8.4 verziót és
+a `composer.lock` hashét; a `vendor`, környezeti fájl és adatbázis nem kerül a
+cache-be.
 
 Az SQLite és MySQL JUnit riportok hét napos artifactként töltődnek fel. A MySQL artifact ezen felül csak a verziót, charsetet, collationt, session SQL mode-ot és időzónát tartalmazza. `.env`, dump, storage vagy credential nem kerül artifactba.
 

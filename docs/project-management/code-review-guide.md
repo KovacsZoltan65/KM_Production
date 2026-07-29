@@ -272,7 +272,7 @@ nem igazolt:
 | Composer validáció, Pint és Larastan | `Backend quality gate` | `Backend Static Analysis`                         | Igen              | A check kontextusát `CI-005` alatt GitHubon igazolni kell.      |
 | SQLite backend és cache regresszió   | `Backend quality gate` | `Backend Tests / SQLite`                          | Igen              | Stabil PR-futás után.                                           |
 | MySQL backend tesztek                | `Backend quality gate` | `Backend Tests / MySQL`                           | Feltételes        | `CI-003` aktuális stabilitási bizonyítéka után.                 |
-| SQLite és MySQL migráció             | `Backend quality gate` | `Backend Migrations`                              | Feltételes        | `CI-003` után.                                                  |
+| MySQL migráció és seeder smoke       | `Backend quality gate` | `Database Migrations / MySQL`                     | Feltételes        | `CI-003` után.                                                  |
 | Frontend unit tesztek                | `Frontend`             | `Frontend Unit Tests`                             | Még nem           | A stabil checkkontextust `CI-005` alatt GitHubon igazolni kell. |
 | Frontend lokalizáció                 | `Frontend`             | `Frontend i18n Check`                             | Még nem           | A stabil checkkontextust `CI-005` alatt GitHubon igazolni kell. |
 | Frontend production build            | `Frontend`             | `Frontend Production Build`                       | Még nem           | A stabil checkkontextust `CI-005` alatt GitHubon igazolni kell. |

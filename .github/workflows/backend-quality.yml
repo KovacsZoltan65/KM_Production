@@ -83,6 +83,9 @@ jobs:
       - name: Run complete SQLite suite
         run: php scripts/backend-test-environment.php sqlite test --log-junit=test-results/sqlite-junit.xml
 
+      - name: SQLite migration round-trip and seeder smoke
+        run: composer test:backend:migrations:sqlite
+
       - name: Upload SQLite JUnit report
         if: always()
         uses: actions/upload-artifact@v4
@@ -137,6 +140,11 @@ jobs:
       - name: Create test result directory
         run: mkdir -p test-results
 
+      - name: Verify MySQL test connection
+        run: >-
+          mysql --host=127.0.0.1 --port=3306 --user=km_testing --password=testing_only
+          --batch --skip-column-names --execute="SELECT 1" km_production_testing
+
       - name: Run complete MySQL suite
         run: php scripts/backend-test-environment.php mysql test --log-junit=test-results/mysql-junit.xml
 
@@ -159,8 +167,8 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
 
-  migrations:
-    name: Backend Migrations
+  migrations-mysql:
+    name: Database Migrations / MySQL
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env: *mysql-test-environment
@@ -190,14 +198,16 @@ jobs:
         with:
           php-version: ${{ env.PHP_VERSION }}
           coverage: none
-          extensions: pdo_mysql, pdo_sqlite, sqlite3
+          extensions: pdo_mysql
           tools: composer:v2
 
       - *composer-cache
       - *composer-install
 
-      - name: SQLite migration round-trip and seeder smoke
-        run: composer test:backend:migrations:sqlite
+      - name: Verify MySQL test connection
+        run: >-
+          mysql --host=127.0.0.1 --port=3306 --user=km_testing --password=testing_only
+          --batch --skip-column-names --execute="SELECT 1" km_production_testing
 
       - name: MySQL migration round-trip and seeder smoke
         run: composer test:backend:migrations:mysql
