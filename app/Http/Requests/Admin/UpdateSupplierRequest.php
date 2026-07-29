@@ -33,7 +33,7 @@ class UpdateSupplierRequest extends FormRequest
         $supplier = $this->route('supplier');
 
         return [
-            'code' => ['required', 'string', 'max:255', Rule::unique('suppliers', 'code')->ignore($supplier)],
+            'code' => ['sometimes', 'string', Rule::in([$supplier->code])],
             'name' => ['required', 'string', 'max:255'],
             'tax_number' => ['nullable', 'string', 'max:255'],
             'email' => ['nullable', 'email', 'max:255'],

@@ -70,7 +70,7 @@ class CustomerController extends Controller
         $this->service->create($request->validated(), $request->user());
 
         // Visszatér az előző oldalra sikeres mentési üzenettel.
-        return back()->with('success', __('messages.created'));
+        return back()->with('success', $this->service->creationMessage());
     }
 
     /**

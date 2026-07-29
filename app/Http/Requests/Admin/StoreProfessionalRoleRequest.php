@@ -30,7 +30,8 @@ class StoreProfessionalRoleRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'code' => ['required', 'string', 'max:50', 'unique:professional_roles,code'],
+            'code' => ['required', 'string', 'max:50'],
+            '_code_was_generated' => ['sometimes', 'boolean'],
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'is_active' => ['boolean'],

@@ -6,12 +6,18 @@ use App\Enums\ItemType;
 use App\Repositories\Contracts\ItemRepositoryInterface;
 use App\Services\AuditLogService;
 use App\Services\BusinessCacheInvalidator;
+use App\Services\CodeCreationService;
 
-class ItemAdminService extends AbstractAdminService
+class ItemAdminService extends CodeAwareAdminService
 {
-    public function __construct(ItemRepositoryInterface $repository, AuditLogService $auditLogService, private readonly BusinessCacheInvalidator $cacheInvalidator)
+    public function __construct(ItemRepositoryInterface $repository, AuditLogService $auditLogService, CodeCreationService $codeCreationService, private readonly BusinessCacheInvalidator $cacheInvalidator)
     {
-        parent::__construct($repository, $auditLogService);
+        parent::__construct($repository, $auditLogService, $codeCreationService);
+    }
+
+    protected function codeType(array $attributes): string
+    {
+        return 'item';
     }
 
     /**

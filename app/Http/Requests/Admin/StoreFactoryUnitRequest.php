@@ -30,7 +30,8 @@ class StoreFactoryUnitRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'code' => ['required', 'string', 'max:50', 'unique:factory_units,code'],
+            'code' => ['required', 'string', 'max:50'],
+            '_code_was_generated' => ['sometimes', 'boolean'],
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'daily_capacity_minutes' => ['nullable', 'integer', 'min:0'],

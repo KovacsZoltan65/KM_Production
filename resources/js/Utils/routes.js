@@ -18,6 +18,7 @@ export const routes = {
     'preferences.locale': '/preferences/locale',
     logout: '/logout',
     'admin.dashboard': '/admin/dashboard',
+    'admin.code-generation.show': '/admin/code-generation/{type}',
     'admin.capacity.dashboard': '/admin/capacity/dashboard',
     'admin.capacity.factory-units': '/admin/capacity/factory-units',
     'admin.capacity.employees': '/admin/capacity/employees',

@@ -31,7 +31,8 @@ class StoreItemRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'item_number' => ['required', 'string', 'max:255', 'unique:items,item_number'],
+            'item_number' => ['required', 'string', 'max:255'],
+            '_code_was_generated' => ['sometimes', 'boolean'],
             'name' => ['required', 'string', 'max:255'],
             'item_type' => ['required', Rule::enum(ItemType::class)],
             'unit' => ['required', 'string', 'max:50'],

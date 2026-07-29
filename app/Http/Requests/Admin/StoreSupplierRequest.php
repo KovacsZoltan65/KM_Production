@@ -30,7 +30,8 @@ class StoreSupplierRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'code' => ['required', 'string', 'max:255', 'unique:suppliers,code'],
+            'code' => ['required', 'string', 'max:255'],
+            '_code_was_generated' => ['sometimes', 'boolean'],
             'name' => ['required', 'string', 'max:255'],
             'tax_number' => ['nullable', 'string', 'max:255'],
             'email' => ['nullable', 'email', 'max:255'],

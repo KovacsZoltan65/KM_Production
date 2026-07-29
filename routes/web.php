@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\BomController as AdminBomController;
 use App\Http\Controllers\Admin\CapacityController as AdminCapacityController;
+use App\Http\Controllers\Admin\CodeGenerationController as AdminCodeGenerationController;
 use App\Http\Controllers\Admin\CustomerController as AdminCustomerController;
 use App\Http\Controllers\Admin\CustomerOrderController as AdminCustomerOrderController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
@@ -58,6 +59,8 @@ Route::middleware(['auth', 'verified'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function (): void {
+        Route::get('code-generation/{type}', AdminCodeGenerationController::class)
+            ->name('code-generation.show');
         Route::get('dashboard', AdminDashboardController::class)->name('dashboard');
         Route::prefix('capacity')
             ->name('capacity.')

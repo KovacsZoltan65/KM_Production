@@ -33,7 +33,7 @@ class UpdateCustomerRequest extends FormRequest
         $customer = $this->route('customer');
 
         return [
-            'code' => ['required', 'string', 'max:255', Rule::unique('customers', 'code')->ignore($customer)],
+            'code' => ['sometimes', 'string', Rule::in([$customer->code])],
             'name' => ['required', 'string', 'max:255'],
             'tax_number' => ['nullable', 'string', 'max:255'],
             'email' => ['nullable', 'email', 'max:255'],

@@ -5,12 +5,18 @@ namespace App\Services\Admin;
 use App\Repositories\Contracts\EmployeeRepositoryInterface;
 use App\Services\AuditLogService;
 use App\Services\BusinessCacheInvalidator;
+use App\Services\CodeCreationService;
 
-class EmployeeAdminService extends AbstractAdminService
+class EmployeeAdminService extends CodeAwareAdminService
 {
-    public function __construct(EmployeeRepositoryInterface $repository, AuditLogService $auditLogService, private readonly BusinessCacheInvalidator $cacheInvalidator)
+    public function __construct(EmployeeRepositoryInterface $repository, AuditLogService $auditLogService, CodeCreationService $codeCreationService, private readonly BusinessCacheInvalidator $cacheInvalidator)
     {
-        parent::__construct($repository, $auditLogService);
+        parent::__construct($repository, $auditLogService, $codeCreationService);
+    }
+
+    protected function codeType(array $attributes): string
+    {
+        return 'employee';
     }
 
     protected function createdEvent(): string

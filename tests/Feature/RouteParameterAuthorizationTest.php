@@ -22,18 +22,20 @@ class RouteParameterAuthorizationTest extends TestCase
         RecordingProfessionalRolePolicy::$received = null;
     }
 
-    public function test_factory_unit_can_be_updated_with_permission(): void
+    public function test_factory_unit_editable_fields_can_be_updated_with_permission(): void
     {
         $user = $this->userWithPermission('factory-units.update');
         $factoryUnit = FactoryUnit::factory()->create(['code' => 'FU-OLD']);
+        $payload = $this->factoryUnitPayload($factoryUnit->code, 'Updated Factory');
+        unset($payload['code']);
 
         $this->actingAs($user)
-            ->put(route('admin.factory-units.update', $factoryUnit), $this->factoryUnitPayload('FU-NEW', 'Updated Factory'))
+            ->put(route('admin.factory-units.update', $factoryUnit), $payload)
             ->assertRedirect();
 
         $this->assertDatabaseHas('factory_units', [
             'id' => $factoryUnit->id,
-            'code' => 'FU-NEW',
+            'code' => 'FU-OLD',
             'name' => 'Updated Factory',
         ]);
     }
@@ -101,18 +103,20 @@ class RouteParameterAuthorizationTest extends TestCase
         $this->assertDatabaseHas('factory_units', ['id' => $factoryUnit->id, 'name' => 'Bound Factory']);
     }
 
-    public function test_professional_role_can_be_updated_with_permission(): void
+    public function test_professional_role_editable_fields_can_be_updated_with_permission(): void
     {
         $user = $this->userWithPermission('professional-roles.update');
         $professionalRole = ProfessionalRole::factory()->create(['code' => 'ROLE-OLD']);
+        $payload = $this->professionalRolePayload($professionalRole->code, 'Updated Role');
+        unset($payload['code']);
 
         $this->actingAs($user)
-            ->put(route('admin.professional-roles.update', $professionalRole), $this->professionalRolePayload('ROLE-NEW', 'Updated Role'))
+            ->put(route('admin.professional-roles.update', $professionalRole), $payload)
             ->assertRedirect();
 
         $this->assertDatabaseHas('professional_roles', [
             'id' => $professionalRole->id,
-            'code' => 'ROLE-NEW',
+            'code' => 'ROLE-OLD',
             'name' => 'Updated Role',
         ]);
     }

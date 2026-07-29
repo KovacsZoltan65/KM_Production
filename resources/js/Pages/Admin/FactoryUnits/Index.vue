@@ -41,7 +41,14 @@ const columns = [
 ];
 
 const fields = [
-    { name: "code", labelKey: "fields.code", type: "text" },
+    {
+        name: "code",
+        labelKey: "fields.code",
+        type: "text",
+        required: true,
+        immutableOnEdit: true,
+        generateCode: { type: "factory_unit" },
+    },
     { name: "name", labelKey: "fields.name", type: "text" },
     { name: "description", labelKey: "fields.description", type: "textarea" },
     {

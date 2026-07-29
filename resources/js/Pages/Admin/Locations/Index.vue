@@ -69,7 +69,14 @@ const fields = [
         optionLabel: "name",
         optionValue: "id",
     },
-    { name: "code", labelKey: "fields.code", type: "text" },
+    {
+        name: "code",
+        labelKey: "fields.code",
+        type: "text",
+        required: true,
+        immutableOnEdit: true,
+        generateCode: { type: "location" },
+    },
     { name: "name", labelKey: "fields.name", type: "text" },
     {
         name: "location_type",

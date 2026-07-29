@@ -1,5 +1,9 @@
 # Architecture
 
+Az üzleti törzsadat-azonosítók közös generálási és ütközéskezelési szabályait az
+[Automatikus üzleti kódgenerálás](architecture/business-code-generation.md)
+dokumentum rögzíti.
+
 ## Purpose
 
 This page is the reader-facing architecture overview for KM_Production. Detailed AI-agent rules live in [.kiro/steering/architecture.md](../.kiro/steering/architecture.md).
