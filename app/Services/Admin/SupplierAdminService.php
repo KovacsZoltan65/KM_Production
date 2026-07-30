@@ -36,6 +36,6 @@ class SupplierAdminService extends CodeAwareAdminService
 
     protected function afterWrite(): void
     {
-        $this->cacheInvalidator->procurementChanged();
+        $this->cacheInvalidator->suppliersChanged();
     }
 }

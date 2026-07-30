@@ -4,11 +4,15 @@ namespace App\Services\Admin;
 
 use App\Repositories\Contracts\OperationTypeRepositoryInterface;
 use App\Services\AuditLogService;
+use App\Services\BusinessCacheInvalidator;
 
 class OperationTypeAdminService extends AbstractAdminService
 {
-    public function __construct(OperationTypeRepositoryInterface $repository, AuditLogService $auditLogService)
-    {
+    public function __construct(
+        OperationTypeRepositoryInterface $repository,
+        AuditLogService $auditLogService,
+        private readonly BusinessCacheInvalidator $cacheInvalidator,
+    ) {
         parent::__construct($repository, $auditLogService);
     }
 
@@ -25,5 +29,10 @@ class OperationTypeAdminService extends AbstractAdminService
     protected function deletedEvent(): string
     {
         return 'admin_operation_type_deleted';
+    }
+
+    protected function afterWrite(): void
+    {
+        $this->cacheInvalidator->operationTypesChanged();
     }
 }

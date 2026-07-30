@@ -46,24 +46,24 @@ A mezők, állapotátmenetek és lezárási szabályok részletes definíciójá
 | ----------------------------- | ------: | -----: | -----: | ------: | ----: | -------: |
 | Projektvezetés és Git         |       1 |      1 |      0 |       0 |     6 |        8 |
 | CI és release                 |       2 |      5 |      1 |       0 |     2 |       10 |
-| Tesztelés és statikus elemzés |       2 |      2 |      0 |       0 |     1 |        5 |
+| Tesztelés és statikus elemzés |       2 |      2 |      1 |       0 |     1 |        6 |
 | Learning Center               |      18 |      1 |      0 |       0 |     0 |       19 |
 | Document Intelligence és OCR  |      11 |      0 |      0 |       1 |     0 |       12 |
 | Manufacturing Intelligence    |       5 |      0 |      0 |       0 |     0 |        5 |
 | Üzemeltetés                   |       4 |      7 |      0 |       0 |     0 |       11 |
 | UX és skálázhatóság           |       0 |      0 |      0 |       0 |     0 |        0 |
-| **Összesen**                  |  **43** | **16** |  **1** |   **1** | **9** |   **70** |
+| **Összesen**                  |  **43** | **16** |  **2** |   **1** | **9** |   **71** |
 
 | Prioritás | Darabszám |
 | --------- | --------: |
 | P0        |         5 |
-| P1        |        43 |
+| P1        |        44 |
 | P2        |        17 |
 | P3        |         5 |
 
 | Célverzió                     | Feladatok száma |
 | ----------------------------- | --------------: |
-| v1.x Stabilizálás             |              34 |
+| v1.x Stabilizálás             |              35 |
 | Learning Center v1.0          |              19 |
 | Document Intelligence v1.0    |              12 |
 | Learning Center v1.1          |               0 |
@@ -672,6 +672,36 @@ quality:backend:sqlite` és MySQL gate releváns része.
   `tests/frontend/pages/`, `tests/frontend/components/`.
 - **Becsült méret:** M
 - **Kockázat:** A backend szerződés tesztkedvéért történő fellazítása tilos.
+
+#### CACHE-001 — Cache-invalidation mátrix készítése üzleti eseményenként
+
+- **Állapot:** review
+- **Feladatstátusz:** partially done
+- **Prioritás:** P1
+- **Kategória:** Tesztelés és statikus elemzés
+- **Célverzió:** v1.x Stabilizálás
+- **Összefoglaló:** A teljes cache-leltár, központi kulcsképzés,
+  driverfüggetlen domain-generáció és commit utáni invalidálás igazolása.
+- **Indoklás:** Stale dashboard-, riport-, intelligence- vagy capacity-adat
+  hibás üzleti döntést okozhat.
+- **Scope:** 18 üzleti cache, Spatie permission cache, write workflow-k,
+  rollback, cache-driver contract, negatív scope-védelem és dokumentáció.
+- **Scope-on kívül:** Új selector cache, Redis-követelmény, cache tag, prewarm és
+  nem igazolt distributed stampede platform.
+- **Függőségek:** Nincs.
+- **Elfogadási feltételek:** A kanonikus mátrix teljes; a bizonyított
+  invalidációs hiányok javítottak; array/file driver, rollback és cache-hiba
+  viselkedés tesztelt; teljes regressziós gate dokumentált. A `done` állapothoz
+  a MySQL és Chromium környezeti/regressziós kapunak is zöldnek kell lennie.
+- **Tesztelési követelmények:** `composer test:cache`, architecture contract,
+  teljes backend/frontend/coverage/i18n/build/Playwright és `git diff --check`.
+- **Kapcsolódó fájlok és dokumentáció:**
+  `docs/architecture/cache-invalidation-matrix.md`,
+  `docs/development/caching.md`,
+  `docs/audits/cache-invalidation-audit-2026-07-30.md`.
+- **Becsült méret:** L
+- **Kockázat:** Hiányos eseménytérkép stale adatot, túl széles invalidálás
+  indokolatlan újraszámítást okoz.
 
 ### Learning Center
 

@@ -10,6 +10,29 @@ use RuntimeException;
 
 final class BusinessCacheInvalidator
 {
+    public function customersChanged(): void
+    {
+        $this->invalidate([
+            BusinessCacheDomain::ReportsCustomerOrders,
+            BusinessCacheDomain::IntelligenceDashboard,
+            BusinessCacheDomain::IntelligenceRisks,
+        ]);
+    }
+
+    public function suppliersChanged(): void
+    {
+        $this->invalidate([
+            BusinessCacheDomain::ReportsProcurement,
+            BusinessCacheDomain::IntelligenceDashboard,
+            BusinessCacheDomain::IntelligenceSupplierPerformance,
+        ]);
+    }
+
+    public function operationTypesChanged(): void
+    {
+        $this->invalidate([BusinessCacheDomain::Capacity]);
+    }
+
     public function customerOrdersChanged(): void
     {
         $this->invalidate([
@@ -86,8 +109,6 @@ final class BusinessCacheInvalidator
         $this->invalidate([
             BusinessCacheDomain::ReportsShopFloor,
             BusinessCacheDomain::Capacity,
-            BusinessCacheDomain::IntelligenceDashboard,
-            BusinessCacheDomain::IntelligenceBottlenecks,
         ]);
     }
 

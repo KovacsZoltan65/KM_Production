@@ -31,15 +31,18 @@ km-production:{domain}:g{generation}:{name}:{parameter-hash}
 
 - A domain stabil enumérték.
 - A generáció cache-domainenként változik.
-- A paraméterek null és üres string értékei kimaradnak, a kulcsok rendezettek.
-- A filterhash SHA-256, ezért a paramétersorrend nem változtatja meg a kulcsot.
+- A paraméterek rekurzívan normalizáltak; az asszociatív és filterlista-sorrend
+  nem változtatja meg a kulcsot.
+- A `null`, üres és hiányzó érték különbözik, a filterhash SHA-256.
 - Locale, user, factory unit vagy location paramétert minden jövőbeli cache-nek át kell adnia, ha az eredmény ezektől függ.
 
 A generációs megoldás a dinamikus riportfilterek miatt szükséges. Invalidáció után a régi bejegyzések nem olvashatók, majd a saját 60 másodperces vagy 5 perces TTL-jük szerint lejárnak.
 
 ## Invalidációs architektúra
 
-Az `App\Services\BusinessCacheInvalidator` üzleti eseménycsaládokra nevezett metódusokat biztosít: customer order, production, inventory, procurement, quality, capacity, workforce és document változás.
+Az `App\Services\BusinessCacheInvalidator` üzleti eseménycsaládokra nevezett
+metódusokat biztosít: customer/customer order, supplier/procurement, production,
+inventory, quality, capacity, workforce, operation type és document változás.
 
 Egy metódus csak az esemény adatforrásait használó domain-generációkat lépteti. Nincs `Cache::flush()` és nincs közös `invalidateEverything()` útvonal.
 
@@ -55,6 +58,9 @@ Nyitott adatbázis-tranzakció esetén az invalidáció `DB::afterCommit()` call
 | Spatie permission | 24 óra | package API automatikusan reseteli | 0 s |
 
 A TTL csak hibatűrési és hulladékgyűjtési korlát, nem helyettesíti az üzleti invalidációt.
+A rendszeridő múlása miatt változó mezők — például `days_open`, a mai
+teljesítések és a gördülő capacity/intelligence időablakok — üzleti write nélkül
+a TTL lejáratakor frissülnek. Ez dokumentált TTL-only időbeli szabály.
 
 ## Failure viselkedés
 
@@ -84,5 +90,7 @@ A sikertelen generációnövelés `RuntimeException` kivételt okoz; kritikus st
 
 - A riportok jelenleg globálisak; factory unit vagy location scope bevezetésekor a repository-filtert és a kulcsparamétert együtt kell bővíteni.
 - Többszörös eseménynél a generation counter többször léphet. Ez helyes, de csökkentheti a hit rate-et.
+- A Purchase Requisition write-ok konzervatívan invalidálják a procurement
+  családot, noha a jelenlegi üzleti cache-ek nem olvasnak közvetlen PR táblát.
 - Redis-specifikus stampede/lock viselkedés nem került terheléses tesztelésre.
 - Prewarming nincs; invalidáció után az első olvasó számolja újra az aggregátumot.
