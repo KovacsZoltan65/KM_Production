@@ -3,6 +3,7 @@ import UnitSelect from "@/Components/Admin/UnitSelect.vue";
 import Checkbox from "primevue/checkbox";
 import InputText from "primevue/inputtext";
 import MultiSelect from "primevue/multiselect";
+import DatePicker from "primevue/datepicker";
 import Select from "primevue/select";
 import Textarea from "primevue/textarea";
 import { trans } from "laravel-vue-i18n";
@@ -34,16 +35,15 @@ const props = defineProps({
 const model = defineModel({ default: null });
 
 const label = computed(() =>
-    props.field.labelKey ? trans(props.field.labelKey) : props.field.label,
+    props.field.labelKey ? trans(props.field.labelKey) : props.field.label
 );
 const checkboxLabel = computed(() =>
     props.field.checkboxLabelKey
         ? trans(props.field.checkboxLabelKey)
-        : props.field.checkboxLabel || label.value,
+        : props.field.checkboxLabel || label.value
 );
 const optionItems = computed(() => {
-    const source =
-        props.options[props.field.options] || props.field.options || [];
+    const source = props.options[props.field.options] || props.field.options || [];
 
     return source.map((option) => {
         if (typeof option === "string" || typeof option === "number") {
@@ -53,15 +53,13 @@ const optionItems = computed(() => {
         return {
             label:
                 props.field.enumKey && (option.value ?? option.id)
-                    ? trans(
-                          `${props.field.enumKey}.${option.value ?? option.id}`,
-                      )
+                    ? trans(`${props.field.enumKey}.${option.value ?? option.id}`)
                     : props.field.optionLabel
-                      ? option[props.field.optionLabel]
-                      : option.label || option.name || option.code,
+                    ? option[props.field.optionLabel]
+                    : option.label || option.name || option.code,
             value: props.field.optionValue
                 ? option[props.field.optionValue]
-                : (option.value ?? option.id),
+                : option.value ?? option.id,
         };
     });
 });
@@ -74,11 +72,7 @@ const optionItems = computed(() => {
         </label>
 
         <div
-            v-if="
-                ['text', 'email', 'password', 'date', 'number'].includes(
-                    field.type,
-                )
-            "
+            v-if="['text', 'email', 'password', 'number'].includes(field.type)"
             class="flex items-start gap-2"
             data-test="field-control-row"
         >
@@ -97,6 +91,32 @@ const optionItems = computed(() => {
             />
             <slot name="action" />
         </div>
+
+        <div
+            v-else-if="field.type === 'date'"
+            class="flex items-start gap-2"
+            data-test="field-control-row"
+        >
+            <DatePicker
+                :input-id="field.name"
+                v-model="model"
+                update-model-type="string"
+                date-format="yy-mm-dd"
+                show-icon
+                icon-display="input"
+                show-button-bar
+                :invalid="Boolean(error)"
+                :disabled="Boolean(field.disabled)"
+                :placeholder="field.placeholder"
+                :required="Boolean(field.required)"
+                :manual-input="true"
+                fluid
+                class="min-w-0 flex-1"
+            />
+
+            <slot name="action" />
+        </div>
+
         <Textarea
             v-else-if="field.type === 'textarea'"
             :id="field.name"
