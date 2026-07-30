@@ -6,6 +6,7 @@ import MultiSelect from "primevue/multiselect";
 import DatePicker from "primevue/datepicker";
 import Select from "primevue/select";
 import Textarea from "primevue/textarea";
+import IftaLabel from "primevue/iftalabel";
 import { trans } from "laravel-vue-i18n";
 import { computed } from "vue";
 
@@ -67,9 +68,9 @@ const optionItems = computed(() => {
 
 <template>
     <div class="min-w-0 space-y-2">
-        <label :for="field.name" class="text-sm font-medium">
+        <IftaLabel :for="field.name" class="text-sm font-medium">
             {{ label }}<span v-if="field.required" aria-hidden="true"> *</span>
-        </label>
+        </IftaLabel>
 
         <div
             v-if="['text', 'email', 'password', 'number'].includes(field.type)"
@@ -128,6 +129,7 @@ const optionItems = computed(() => {
             :required="Boolean(field.required)"
             class="w-full"
         />
+
         <UnitSelect
             v-else-if="field.type === 'unit'"
             :id="field.name"
@@ -138,6 +140,7 @@ const optionItems = computed(() => {
             :required="Boolean(field.required)"
             class="w-full"
         />
+
         <Select
             v-else-if="field.type === 'select'"
             :id="field.name"
@@ -152,6 +155,7 @@ const optionItems = computed(() => {
             show-clear
             class="w-full"
         />
+
         <MultiSelect
             v-else-if="field.type === 'multiselect'"
             :id="field.name"
@@ -166,8 +170,10 @@ const optionItems = computed(() => {
             display="chip"
             class="w-full"
         />
-        <label
+
+        <IftaLabel
             v-else-if="field.type === 'checkbox'"
+            :for="field.name"
             class="flex items-center gap-2 text-sm"
         >
             <Checkbox
@@ -179,7 +185,7 @@ const optionItems = computed(() => {
                 binary
             />
             <span>{{ checkboxLabel }}</span>
-        </label>
+        </IftaLabel>
 
         <p v-if="error" class="text-sm text-red-600">
             {{ error }}
