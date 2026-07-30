@@ -1,6 +1,5 @@
 import { test, expect } from "../helpers/test.js";
 import { loginThroughUi } from "../helpers/auth.js";
-import { resetE2EFixtures } from "../helpers/database.js";
 import { e2eUsers } from "../fixtures/users.js";
 
 test("login form supports tab order and enter submission", async ({
@@ -29,7 +28,6 @@ test("admin navigation and modal interactions are keyboard reachable", async ({
     page,
     browserErrors,
 }) => {
-    resetE2EFixtures();
     await loginThroughUi(page, e2eUsers.admin);
     await page.goto("/admin/customer-orders");
 
@@ -86,7 +84,6 @@ test("confirmation dialogs are reachable and cancelable from the keyboard", asyn
     page,
     browserErrors,
 }) => {
-    resetE2EFixtures();
     await loginThroughUi(page, e2eUsers.admin);
     await page.goto("/admin/inventory/stock-reservations");
 

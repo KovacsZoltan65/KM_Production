@@ -2,16 +2,14 @@
 import AdminLayout from "@/Layouts/AdminLayout.vue";
 import CustomerOrderStatusBadge from "@/Pages/Admin/CustomerOrders/Partials/CustomerOrderStatusBadge.vue";
 import { route } from "@/Utils/routes";
-import { Head, Link, router, usePage } from "@inertiajs/vue3";
+import { Head, Link, router } from "@inertiajs/vue3";
 import Button from "primevue/button";
 import Column from "primevue/column";
 import ConfirmDialog from "primevue/confirmdialog";
 import DataTable from "primevue/datatable";
-import Toast from "primevue/toast";
 import { useConfirm } from "primevue/useconfirm";
-import { useToast } from "primevue/usetoast";
 import { trans } from "laravel-vue-i18n";
-import { onMounted, watch } from "vue";
+import { ref } from "vue";
 
 /** @typedef {{id: number, code: string, name: string}} Customer */
 /** @typedef {{id: number, item_number: string, name: string, unit: string}} Item */
@@ -29,9 +27,26 @@ const props = defineProps({
     statusOptions: Array,
 });
 
-const page = usePage();
-const toast = useToast();
 const confirm = useConfirm();
+const pendingAction = ref(null);
+
+const runAction = (action, routeName) => {
+    if (pendingAction.value) {
+        return;
+    }
+
+    pendingAction.value = action;
+    router.patch(
+        route(routeName, props.customerOrder.id),
+        {},
+        {
+            preserveScroll: true,
+            onFinish: () => {
+                pendingAction.value = null;
+            },
+        },
+    );
+};
 
 const dateValue = (value) => (value ? String(value).slice(0, 10) : "-");
 const canConfirm = () => props.customerOrder.status === "draft";
@@ -45,12 +60,7 @@ const confirmOrder = () => {
         }),
         header: trans("orders.confirm.confirm_header"),
         icon: "pi pi-check-circle",
-        accept: () =>
-            router.patch(
-                route("admin.customer-orders.confirm", props.customerOrder.id),
-                {},
-                { preserveScroll: true },
-            ),
+        accept: () => runAction("confirm", "admin.customer-orders.confirm"),
     });
 };
 
@@ -62,40 +72,15 @@ const cancelOrder = () => {
         header: trans("orders.confirm.cancel_header"),
         icon: "pi pi-exclamation-triangle",
         acceptClass: "p-button-danger",
-        accept: () =>
-            router.patch(
-                route("admin.customer-orders.cancel", props.customerOrder.id),
-                {},
-                { preserveScroll: true },
-            ),
+        accept: () => runAction("cancel", "admin.customer-orders.cancel"),
     });
 };
-
-onMounted(() => {
-    if (page.props.flash?.success) {
-        toast.add({
-            severity: "success",
-            summary: page.props.flash.success,
-            life: 2500,
-        });
-    }
-});
-
-watch(
-    () => page.props.flash?.success,
-    (message) => {
-        if (message) {
-            toast.add({ severity: "success", summary: message, life: 2500 });
-        }
-    },
-);
 </script>
 
 <template>
     <Head :title="customerOrder.order_number" />
 
     <AdminLayout>
-        <Toast />
         <ConfirmDialog />
 
         <div class="space-y-4">
@@ -128,6 +113,8 @@ watch(
                         :label="trans('actions.confirm')"
                         icon="pi pi-check"
                         severity="success"
+                        :loading="pendingAction === 'confirm'"
+                        :disabled="Boolean(pendingAction)"
                         @click="confirmOrder"
                     />
                     <Button
@@ -137,6 +124,8 @@ watch(
                         icon="pi pi-ban"
                         severity="warning"
                         outlined
+                        :loading="pendingAction === 'cancel'"
+                        :disabled="Boolean(pendingAction)"
                         @click="cancelOrder"
                     />
                 </div>

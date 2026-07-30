@@ -86,11 +86,15 @@ class DocumentableRegistry
         $class = self::classFrom($type);
 
         if (! \in_array($class, array_values(self::aliases()), true)) {
-            throw ValidationException::withMessages(['documentable_type' => 'Unsupported documentable type.']);
+            throw ValidationException::withMessages([
+                'documentable_type' => __('documents.validation.unsupported_documentable_type'),
+            ]);
         }
 
         if (! $class::query()->whereKey($id)->exists()) {
-            throw ValidationException::withMessages(['documentable_id' => 'The selected linked entity does not exist.']);
+            throw ValidationException::withMessages([
+                'documentable_id' => __('documents.validation.documentable_not_found'),
+            ]);
         }
 
         return $class;

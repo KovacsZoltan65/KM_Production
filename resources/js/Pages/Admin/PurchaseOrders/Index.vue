@@ -3,15 +3,13 @@ import AdminPageHeader from "@/Components/Admin/AdminPageHeader.vue";
 import AdminSearchBar from "@/Components/Admin/AdminSearchBar.vue";
 import AdminLayout from "@/Layouts/AdminLayout.vue";
 import { route } from "@/Utils/routes";
-import { Head, Link, router, usePage } from "@inertiajs/vue3";
+import { Head, Link, router } from "@inertiajs/vue3";
 import Column from "primevue/column";
 import DataTable from "primevue/datatable";
 import Select from "primevue/select";
 import Tag from "primevue/tag";
-import Toast from "primevue/toast";
-import { useToast } from "primevue/usetoast";
 import { trans } from "laravel-vue-i18n";
-import { onMounted, ref, watch } from "vue";
+import { ref } from "vue";
 
 /** @typedef {{label: string, value: string}} StatusOption */
 /** @typedef {{id: number, label: string}} SupplierOption */
@@ -49,8 +47,6 @@ const props = defineProps({
     statusOptions: Array,
     supplierOptions: Array,
 });
-const page = usePage();
-const toast = useToast();
 const search = ref(props.filters.search || "");
 const status = ref(props.filters.status || null);
 const supplierId = ref(
@@ -83,16 +79,11 @@ const severity = (value) =>
         cancelled: "danger",
     })[value] || "secondary";
 const dateValue = (value) => (value ? String(value).slice(0, 10) : "-");
-const flash = (message) =>
-    message && toast.add({ severity: "success", summary: message, life: 2500 });
-onMounted(() => flash(page.props.flash?.success));
-watch(() => page.props.flash?.success, flash);
 </script>
 
 <template>
     <Head :title="trans('procurement.purchase_orders.title')" />
     <AdminLayout>
-        <Toast />
         <div class="space-y-4">
             <AdminPageHeader
                 title=""

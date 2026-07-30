@@ -6,7 +6,7 @@ import AdminLayout from "@/Layouts/AdminLayout.vue";
 import ProductionPlanForm from "@/Pages/Admin/ProductionPlans/Partials/ProductionPlanForm.vue";
 import ProductionPlanStatusBadge from "@/Pages/Admin/ProductionPlans/Partials/ProductionPlanStatusBadge.vue";
 import { route } from "@/Utils/routes";
-import { Head, Link, router, usePage } from "@inertiajs/vue3";
+import { Head, Link, router } from "@inertiajs/vue3";
 import { trans } from "laravel-vue-i18n";
 import Button from "primevue/button";
 import Column from "primevue/column";
@@ -14,10 +14,8 @@ import ConfirmDialog from "primevue/confirmdialog";
 import DataTable from "primevue/datatable";
 import Dialog from "primevue/dialog";
 import Select from "primevue/select";
-import Toast from "primevue/toast";
 import { useConfirm } from "primevue/useconfirm";
-import { useToast } from "primevue/usetoast";
-import { computed, onMounted, reactive, ref, watch } from "vue";
+import { computed, reactive, ref } from "vue";
 
 /** @typedef {{id: number, order_number: string, customer_name: string, label: string}} CustomerOrderOption */
 /** @typedef {{id: number, item_id: number, label: string}} ItemDefinitionOption */
@@ -62,8 +60,6 @@ const props = defineProps({
     statusOptions: Array,
 });
 
-const page = usePage();
-const toast = useToast();
 const confirm = useConfirm();
 const dialogVisible = ref(false);
 const editingRecord = ref(null);
@@ -212,32 +208,12 @@ const destroyRecord = (record) => {
 };
 
 const canApprove = (record) => ["draft", "calculated"].includes(record.status);
-
-onMounted(() => {
-    if (page.props.flash?.success) {
-        toast.add({
-            severity: "success",
-            summary: page.props.flash.success,
-            life: 2500,
-        });
-    }
-});
-
-watch(
-    () => page.props.flash?.success,
-    (message) => {
-        if (message) {
-            toast.add({ severity: "success", summary: message, life: 2500 });
-        }
-    },
-);
 </script>
 
 <template>
     <Head :title="$t('production.plans.title')" />
 
     <AdminLayout>
-        <Toast />
         <ConfirmDialog />
 
         <div class="space-y-4">

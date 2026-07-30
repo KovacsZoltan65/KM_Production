@@ -58,6 +58,8 @@ const resolvedOptions = computed(() =>
         option-label="label"
         option-value="value"
         :placeholder="placeholder"
+        :aria-label="trans('common.language')"
+        data-test="locale-selector"
         class="w-full"
     />
 </template>

@@ -277,7 +277,7 @@ nem igazolt:
 | Frontend lokalizáció                 | `Frontend`             | `Frontend i18n Check`                             | Még nem           | A stabil checkkontextust `CI-005` alatt GitHubon igazolni kell. |
 | Frontend production build            | `Frontend`             | `Frontend Production Build`                       | Még nem           | A stabil checkkontextust `CI-005` alatt GitHubon igazolni kell. |
 | npm dependency audit                 | `Frontend`             | `Frontend Dependency Audit`                       | Még nem           | A finding- és kivételpolicy a `CI-007` feladata.                |
-| Chromium, accessibility és keyboard  | `Frontend`             | `Playwright Chromium, accessibility and keyboard` | Még nem           | `CI-004` stabilitási auditja után.                              |
+| Chromium, accessibility és keyboard  | `Frontend`             | `Playwright E2E`                                  | Igen              | Kötelezőkapu-jelölt; a check kontextust GitHubon még igazolni kell. |
 | Cross-browser és mobile smoke        | `Frontend`             | `Playwright cross-browser and mobile smoke`       | Még nem           | `CI-004` után; költség- és flakység-review szükséges.           |
 | Prettier                             | Nincs                  | Nincs                                             | Nem               | Előbb ellenőrizhető workflow vagy projekt-script szükséges.     |
 | Composer security audit              | Nincs                  | Nincs                                             | Nem               | `CI-006`.                                                       |

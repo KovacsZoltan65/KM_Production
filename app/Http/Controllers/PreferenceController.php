@@ -21,6 +21,6 @@ class PreferenceController extends Controller
         app()->setLocale($locale);
         $request->setLocale($locale);
 
-        return back();
+        return back()->with('success', __('preferences.locale_updated'));
     }
 }

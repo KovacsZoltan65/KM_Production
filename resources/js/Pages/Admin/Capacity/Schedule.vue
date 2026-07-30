@@ -44,13 +44,21 @@ const props = defineProps({
 });
 
 const selectedProductionOrderId = ref(null);
+const generating = ref(false);
 
 const generate = () => {
     if (!selectedProductionOrderId.value) return;
 
-    router.post(route("admin.capacity.schedule.store"), {
-        production_order_id: selectedProductionOrderId.value,
-    });
+    generating.value = true;
+    router.post(
+        route("admin.capacity.schedule.store"),
+        { production_order_id: selectedProductionOrderId.value },
+        {
+            onFinish: () => {
+                generating.value = false;
+            },
+        },
+    );
 };
 </script>
 
@@ -79,7 +87,8 @@ const generate = () => {
                 <Button
                     :label="$t('actions.generate')"
                     icon="pi pi-calendar-plus"
-                    :disabled="!selectedProductionOrderId"
+                    :loading="generating"
+                    :disabled="!selectedProductionOrderId || generating"
                     @click="generate"
                 />
             </div>

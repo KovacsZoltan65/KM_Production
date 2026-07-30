@@ -10,11 +10,9 @@ import ConfirmDialog from "primevue/confirmdialog";
 import DataTable from "primevue/datatable";
 import Select from "primevue/select";
 import Tag from "primevue/tag";
-import Toast from "primevue/toast";
 import { useConfirm } from "primevue/useconfirm";
-import { useToast } from "primevue/usetoast";
 import { trans } from "laravel-vue-i18n";
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, ref } from "vue";
 
 /** @typedef {{label: string, value: string}} StatusOption */
 /** @typedef {{id: number, reserved_quantity: string|number, status: string, reserved_at: string|null, released_at: string|null, item: {item_number: string, name: string}|null, location: {code: string}|null, item_batch: {batch_number: string}|null, customer_order_item: {customer_order: {order_number: string}|null}|null, production_order: {order_number: string}|null, reserver: {name: string}|null}} StockReservationRecord */
@@ -50,7 +48,6 @@ const props = defineProps({
     statusOptions: { type: Array, default: () => [] },
 });
 const page = usePage();
-const toast = useToast();
 const confirm = useConfirm();
 const search = ref(props.filters.search || "");
 const perPage = ref(
@@ -115,29 +112,12 @@ const release = (record) => {
         },
     });
 };
-
-onMounted(
-    () =>
-        page.props.flash?.success &&
-        toast.add({
-            severity: "success",
-            summary: page.props.flash.success,
-            life: 2500,
-        }),
-);
-watch(
-    () => page.props.flash?.success,
-    (message) =>
-        message &&
-        toast.add({ severity: "success", summary: message, life: 2500 }),
-);
 </script>
 
 <template>
     <Head :title="trans('inventory.stock_reservations.title')" />
 
     <AdminLayout>
-        <Toast />
         <ConfirmDialog />
         <div class="space-y-4">
             <AdminPageHeader

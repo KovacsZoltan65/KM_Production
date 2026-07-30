@@ -243,9 +243,14 @@ describe("AdminCrudPage", () => {
 
         expect(serviceMocks.confirm.require).toHaveBeenCalledOnce();
         serviceMocks.confirm.require.mock.calls[0][0].accept();
-        expect(inertiaRouter.delete).toHaveBeenCalledWith("/admin/items/9", {
-            preserveScroll: true,
-        });
+        expect(inertiaRouter.delete).toHaveBeenCalledWith(
+            "/admin/items/9",
+            expect.objectContaining({ preserveScroll: true }),
+        );
+        expect(wrapper.vm.deletingRecordId).toBe(9);
+
+        inertiaRouter.delete.mock.calls[0][1].onFinish();
+        expect(wrapper.vm.deletingRecordId).toBeNull();
     });
 
     it("lapozáskor megtartja a keresést és a szerveroldali rendezést", () => {
@@ -279,6 +284,21 @@ describe("AdminCrudPage", () => {
                 sort: "name",
                 direction: "desc",
                 page: 1,
+            }),
+            { preserveState: true, replace: true },
+        );
+    });
+
+    it("üres tömbként érkező Laravel filtereknél stabil alapértelmezett rendezést használ", () => {
+        const wrapper = mountPage({ filters: [] });
+
+        wrapper.vm.reload();
+
+        expect(inertiaRouter.get).toHaveBeenCalledWith(
+            "/admin/items",
+            expect.objectContaining({
+                sort: "id",
+                direction: "asc",
             }),
             { preserveState: true, replace: true },
         );

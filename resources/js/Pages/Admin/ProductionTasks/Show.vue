@@ -5,12 +5,9 @@ import ProductionTaskStatusBadge from "@/Components/ProductionTaskStatusBadge.vu
 import QualityCheckForm from "@/Components/QualityCheckForm.vue";
 import AdminLayout from "@/Layouts/AdminLayout.vue";
 import { route } from "@/Utils/routes";
-import { Head, Link, usePage } from "@inertiajs/vue3";
+import { Head, Link } from "@inertiajs/vue3";
 import Column from "primevue/column";
 import DataTable from "primevue/datatable";
-import Toast from "primevue/toast";
-import { useToast } from "primevue/usetoast";
-import { onMounted, watch } from "vue";
 
 /** @typedef {{id: number, label: string}} EntityOption */
 /** @typedef {{id: number, unit: string, label: string}} ItemOption */
@@ -66,13 +63,7 @@ const props = defineProps({
     qualityResultOptions: Array,
 });
 
-const page = usePage();
-const toast = useToast();
 const number = (value) => Number(value || 0).toFixed(3);
-const flash = (message) =>
-    message && toast.add({ severity: "success", summary: message, life: 2500 });
-onMounted(() => flash(page.props.flash?.success));
-watch(() => page.props.flash?.success, flash);
 </script>
 
 <template>
@@ -83,7 +74,6 @@ watch(() => page.props.flash?.success, flash);
         "
     />
     <AdminLayout>
-        <Toast />
         <div class="space-y-4">
             <div
                 class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"

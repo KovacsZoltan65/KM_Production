@@ -1,6 +1,5 @@
 import { test, expect } from "../helpers/test.js";
 import { loginThroughUi } from "../helpers/auth.js";
-import { resetE2EFixtures } from "../helpers/database.js";
 import { selectComboboxOptionMatching } from "../helpers/forms.js";
 import { e2eUsers } from "../fixtures/users.js";
 
@@ -8,7 +7,6 @@ test("an authorized user can create and reopen a customer order", async ({
     page,
     browserErrors,
 }) => {
-    resetE2EFixtures();
     await loginThroughUi(page, e2eUsers.admin);
     await page.goto("/admin/customer-orders");
 
@@ -56,7 +54,12 @@ test("an authorized user can create and reopen a customer order", async ({
     await intercepted;
     await expect(save).toBeDisabled();
     continueRequest();
-    await expect(dialog).toBeHidden();
+    await expect(dialog).toBeHidden({ timeout: 15_000 });
+    await expect(
+        page.locator(".p-toast-message-success").filter({
+            hasText: "Customer order created.",
+        }),
+    ).toBeVisible();
     await page.unroute("**/admin/customer-orders");
 
     const row = page
@@ -79,7 +82,6 @@ test("a user without create permission cannot create customer orders", async ({
     page,
     browserErrors,
 }) => {
-    resetE2EFixtures();
     await loginThroughUi(page, e2eUsers.inventoryViewer);
     await page.goto("/admin/customer-orders");
 

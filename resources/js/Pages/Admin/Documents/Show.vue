@@ -8,11 +8,9 @@ import { trans } from "laravel-vue-i18n";
 import Button from "primevue/button";
 import InputText from "primevue/inputtext";
 import Textarea from "primevue/textarea";
-import Toast from "primevue/toast";
 import ConfirmDialog from "primevue/confirmdialog";
 import { useConfirm } from "primevue/useconfirm";
-import { useToast } from "primevue/usetoast";
-import { computed, onMounted, watch } from "vue";
+import { computed, ref } from "vue";
 
 /**
  * Megjelenített dokumentum.
@@ -47,8 +45,8 @@ const props = defineProps({
 });
 
 const page = usePage();
-const toast = useToast();
 const confirm = useConfirm();
+const pendingAction = ref(null);
 const form = useForm({
     title: props.document.title || "",
     notes: props.document.description || "",
@@ -72,18 +70,38 @@ const save = () => {
 };
 
 const approve = () => {
+    if (pendingAction.value) {
+        return;
+    }
+
+    pendingAction.value = "approve";
     router.patch(
         route("admin.documents.approve", props.document.id),
         {},
-        { preserveScroll: true },
+        {
+            preserveScroll: true,
+            onFinish: () => {
+                pendingAction.value = null;
+            },
+        },
     );
 };
 
 const makeCurrent = () => {
+    if (pendingAction.value) {
+        return;
+    }
+
+    pendingAction.value = "make-current";
     router.patch(
         route("admin.documents.make-current", props.document.id),
         {},
-        { preserveScroll: true },
+        {
+            preserveScroll: true,
+            onFinish: () => {
+                pendingAction.value = null;
+            },
+        },
     );
 };
 
@@ -95,21 +113,21 @@ const destroy = () => {
         header: trans("admin.crud.confirm_delete_header"),
         icon: "pi pi-exclamation-triangle",
         acceptClass: "p-button-danger",
-        accept: () =>
-            router.delete(route("admin.documents.destroy", props.document.id)),
+        accept: () => {
+            pendingAction.value = "delete";
+            router.delete(route("admin.documents.destroy", props.document.id), {
+                onFinish: () => {
+                    pendingAction.value = null;
+                },
+            });
+        },
     });
 };
-
-const flash = (message) =>
-    message && toast.add({ severity: "success", summary: message, life: 2500 });
-onMounted(() => flash(page.props.flash?.success));
-watch(() => page.props.flash?.success, flash);
 </script>
 
 <template>
     <Head :title="document.title" />
     <AdminLayout>
-        <Toast />
         <ConfirmDialog />
         <div class="space-y-4">
             <div
@@ -139,6 +157,8 @@ watch(() => page.props.flash?.success, flash);
                         :label="$t('actions.approve')"
                         icon="pi pi-check"
                         outlined
+                        :loading="pendingAction === 'approve'"
+                        :disabled="Boolean(pendingAction)"
                         @click="approve"
                     />
                     <Button
@@ -147,6 +167,8 @@ watch(() => page.props.flash?.success, flash);
                         :label="$t('actions.make_current')"
                         icon="pi pi-check-circle"
                         outlined
+                        :loading="pendingAction === 'make-current'"
+                        :disabled="Boolean(pendingAction)"
                         @click="makeCurrent"
                     />
                     <Button
@@ -156,6 +178,8 @@ watch(() => page.props.flash?.success, flash);
                         icon="pi pi-trash"
                         severity="danger"
                         outlined
+                        :loading="pendingAction === 'delete'"
+                        :disabled="Boolean(pendingAction)"
                         @click="destroy"
                     />
                 </div>

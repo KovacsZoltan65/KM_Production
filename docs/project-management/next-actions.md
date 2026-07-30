@@ -84,13 +84,14 @@ A lezárt elemek nem részei az alábbi tíz végrehajtási lépésnek.
 ### 2. CI-004 — A teljes Playwright E2E-kapu aktuális futtatása
 
 - **Prioritás / méret:** P1 / M
-- **Miért most:** az E2E-infrastruktúra elkészült, de az audit során a teljes
-  Chromium, accessibility, keyboard, cross-browser és mobile készlet nem
-  futott.
+- **Miért most:** a helyi Chromium, accessibility, keyboard, WebKit és mobile
+  készlet stabilizálva; a Linux GitHub Actions igazolás és run URL még hiányzik.
 - **Előfeltétel:** izolált `.env.e2e`, SQLite adatbázis, E2E filesystem és
   telepített Playwright böngészők.
 - **Kész definíciója:** minden konfigurált Playwright projekt lefut; eltérés
   esetén artifact és dokumentált környezeti kivétel készül, tiltott teszt nincs.
+- **Aktuális állapot:** partially done; részletes evidence:
+  `docs/audits/playwright-e2e-quality-gate-2026-07-29.md`.
 
 ### 3. CI-005 — A GitHub Actions quality gate és required check mátrix auditja
 

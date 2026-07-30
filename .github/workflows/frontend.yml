@@ -97,7 +97,7 @@ jobs:
         run: npm audit --omit=dev
 
   e2e-chromium:
-    name: Playwright Chromium, accessibility and keyboard
+    name: Playwright E2E
     runs-on: ubuntu-latest
     timeout-minutes: 35
 
@@ -140,11 +140,12 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-chromium
+          name: playwright-chromium-${{ github.run_attempt }}
           path: |
             playwright-report
             test-results
           if-no-files-found: ignore
+          retention-days: 7
 
   e2e-cross-browser:
     name: Playwright cross-browser and mobile smoke
@@ -183,18 +184,16 @@ jobs:
       - name: Build frontend assets
         run: npm run build
 
-      - name: Firefox and WebKit smoke
-        run: npm run test:e2e:cross-browser
-
-      - name: Mobile Chromium smoke
-        run: npm run test:e2e:mobile
+      - name: Firefox, WebKit and mobile Chromium smoke
+        run: npx playwright test --project=firefox --project=webkit --project=mobile-chromium
 
       - name: Upload Playwright artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-cross-browser
+          name: playwright-cross-browser-${{ github.run_attempt }}
           path: |
             playwright-report
             test-results
           if-no-files-found: ignore
+          retention-days: 7

@@ -16,7 +16,7 @@ test("mobile viewport can use login and reach admin content without critical err
     await loginThroughUi(page, e2eUsers.admin);
     await page.goto("/admin/dashboard");
     await expect(
-        page.getByRole("heading", { name: "Dashboard" }),
+        page.getByRole("heading", { level: 1, name: "Admin Dashboard" }),
     ).toBeVisible();
     await expect(page.getByText("KM Production")).toBeVisible();
     expect(browserErrors).toBeDefined();

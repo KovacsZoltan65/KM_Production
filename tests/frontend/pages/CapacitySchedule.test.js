@@ -47,6 +47,7 @@ describe("Capacity Schedule oldal", () => {
         expect(inertiaRouter.post).toHaveBeenCalledWith(
             "/admin/capacity/schedule",
             { production_order_id: 4 },
+            expect.objectContaining({ onFinish: expect.any(Function) }),
         );
     });
 });

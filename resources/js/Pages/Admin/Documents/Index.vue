@@ -12,9 +12,7 @@ import Column from "primevue/column";
 import DataTable from "primevue/datatable";
 import Dialog from "primevue/dialog";
 import Select from "primevue/select";
-import Toast from "primevue/toast";
-import { useToast } from "primevue/usetoast";
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, ref } from "vue";
 
 /** @typedef {{label: string, value: string}} DocumentTypeOption */
 /** @typedef {{label: string, value: string, class: string}} DocumentableTypeOption */
@@ -54,7 +52,6 @@ const props = defineProps({
 });
 
 const page = usePage();
-const toast = useToast();
 const dialogVisible = ref(false);
 const search = ref(props.filters.search || "");
 const documentType = ref(props.filters.document_type || null);
@@ -104,17 +101,11 @@ const reload = (pageNumber = 1) => {
 
 const typeLabel = (value) => trans(`enum.document_type.${value}`);
 const dateValue = (value) => (value ? String(value).slice(0, 16) : "-");
-
-const flash = (message) =>
-    message && toast.add({ severity: "success", summary: message, life: 2500 });
-onMounted(() => flash(page.props.flash?.success));
-watch(() => page.props.flash?.success, flash);
 </script>
 
 <template>
     <Head :title="$t('documents.title')" />
     <AdminLayout>
-        <Toast />
         <div class="space-y-4">
             <AdminPageHeader
                 :title="$t('documents.title')"

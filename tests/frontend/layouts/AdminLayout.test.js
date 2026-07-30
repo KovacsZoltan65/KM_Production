@@ -26,6 +26,10 @@ const ButtonStub = defineComponent({
     name: "Button",
     template: "<button><slot /></button>",
 });
+const FlashToastStub = defineComponent({
+    name: "FlashToast",
+    template: "<div data-test='flash-toast' />",
+});
 
 const mountLayout = ({ permissions = [], roles = [], url = "/" } = {}) => {
     inertiaPage.props = makeAuthPageProps({
@@ -46,6 +50,7 @@ const mountLayout = ({ permissions = [], roles = [], url = "/" } = {}) => {
                 Button: ButtonStub,
                 Avatar: true,
                 TopbarLocaleSwitch: TopbarLocaleSwitchStub,
+                FlashToast: FlashToastStub,
             },
         },
     });
@@ -124,6 +129,7 @@ describe("AdminLayout", () => {
                     Button: ButtonStub,
                     Avatar: true,
                     TopbarLocaleSwitch: TopbarLocaleSwitchStub,
+                    FlashToast: FlashToastStub,
                 },
             },
         });

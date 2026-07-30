@@ -1,5 +1,6 @@
 import { mount } from "@vue/test-utils";
 import PrimeVue from "primevue/config";
+import ToastService from "primevue/toastservice";
 
 /**
  * A közös alkalmazáspluginekkel mountolja a komponenst, miközben minden opció
@@ -12,7 +13,7 @@ export const mountWithApp = (component, options = {}) => {
         ...options,
         global: {
             ...global,
-            plugins: [PrimeVue, ...(global.plugins || [])],
+            plugins: [PrimeVue, ToastService, ...(global.plugins || [])],
             mocks: {
                 $t: (key) => key,
                 ...(global.mocks || {}),

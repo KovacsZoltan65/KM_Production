@@ -5,19 +5,19 @@ import AdminPageHeader from "@/Components/Admin/AdminPageHeader.vue";
 import AdminSearchBar from "@/Components/Admin/AdminSearchBar.vue";
 import AdminStatusBadge from "@/Components/Admin/AdminStatusBadge.vue";
 import AdminLayout from "@/Layouts/AdminLayout.vue";
+import { notifyRequestError } from "@/Composables/useRequestError";
 import { route } from "@/Utils/routes";
-import { Head, router, usePage } from "@inertiajs/vue3";
+import { Head, router } from "@inertiajs/vue3";
 import axios from "axios";
 import Button from "primevue/button";
 import Column from "primevue/column";
 import ConfirmDialog from "primevue/confirmdialog";
 import DataTable from "primevue/datatable";
 import Dialog from "primevue/dialog";
-import Toast from "primevue/toast";
 import { useConfirm } from "primevue/useconfirm";
 import { useToast } from "primevue/usetoast";
 import { trans } from "laravel-vue-i18n";
-import { computed, onMounted, reactive, ref, watch } from "vue";
+import { computed, nextTick, reactive, ref } from "vue";
 
 /**
  * Választható listaelem.
@@ -88,7 +88,6 @@ const props = defineProps({
     options: { type: Object, default: () => ({}) },
 });
 
-const page = usePage();
 const toast = useToast();
 const confirm = useConfirm();
 const dialogVisible = ref(false);
@@ -97,13 +96,16 @@ const search = ref(props.filters.search || "");
 const perPage = ref(
     Number(props.filters.per_page || props.records.per_page || 10),
 );
-const sortField = ref(props.filters.sort || "id");
+const sortField = ref(
+    typeof props.filters?.sort === "string" ? props.filters.sort : "id",
+);
 const sortOrder = ref((props.filters.direction || "asc") === "desc" ? -1 : 1);
 const form = reactive({});
 const errors = ref({});
 const generatedValues = reactive({});
 const generatingFields = reactive({});
 const submitting = ref(false);
+const deletingRecordId = ref(null);
 
 const resolvedTitle = computed(() =>
     props.titleKey ? trans(props.titleKey) : props.title,
@@ -125,25 +127,6 @@ const indexRoute = computed(() => `${props.routeName}.index`);
 const storeRoute = computed(() => `${props.routeName}.store`);
 const updateRoute = computed(() => `${props.routeName}.update`);
 const destroyRoute = computed(() => `${props.routeName}.destroy`);
-
-onMounted(() => {
-    if (page.props.flash?.success) {
-        toast.add({
-            severity: "success",
-            summary: page.props.flash.success,
-            life: 2500,
-        });
-    }
-});
-
-watch(
-    () => page.props.flash?.success,
-    (message) => {
-        if (message) {
-            toast.add({ severity: "success", summary: message, life: 2500 });
-        }
-    },
-);
 
 const fieldRows = computed(() => {
     const rows = [];
@@ -256,10 +239,8 @@ const generateCode = async (field) => {
                 responseErrors.type?.[0] ||
                 trans("code_generation.errors.generation_failed"),
         };
-        toast.add({
-            severity: "error",
-            summary: trans("code_generation.errors.generation_failed"),
-            life: 3500,
+        notifyRequestError(toast, error, {
+            fallbackKey: "code_generation.errors.generation_failed",
         });
     } finally {
         generatingFields[field.name] = false;
@@ -326,10 +307,12 @@ const submit = () => {
                 const { code_suggestion: ignored, ...visibleErrors } =
                     responseErrors;
                 errors.value = visibleErrors;
+                focusFirstInvalidField(visibleErrors);
                 return;
             }
 
             errors.value = responseErrors;
+            focusFirstInvalidField(responseErrors);
         },
         onFinish: () => {
             submitting.value = false;
@@ -349,16 +332,43 @@ const submit = () => {
 };
 
 const destroyRecord = (record) => {
+    if (deletingRecordId.value !== null) {
+        return;
+    }
+
     confirm.require({
         message: trans("admin.crud.confirm_delete_message"),
         header: trans("admin.crud.confirm_delete_header"),
         icon: "pi pi-exclamation-triangle",
         acceptClass: "p-button-danger",
-        accept: () =>
+        accept: () => {
+            deletingRecordId.value = record.id;
             router.delete(route(destroyRoute.value, record.id), {
                 preserveScroll: true,
-            }),
+                onFinish: () => {
+                    deletingRecordId.value = null;
+                },
+            });
+        },
     });
+};
+
+/**
+ * A modál első hibás mezőjére viszi a fókuszt.
+ *
+ * @param {Record<string, string|string[]>} responseErrors A szerver mezőhibái.
+ * @returns {void}
+ */
+const focusFirstInvalidField = (responseErrors) => {
+    const firstField = Object.keys(responseErrors).find(
+        (field) => field !== "code_suggestion",
+    );
+
+    if (!firstField || typeof document === "undefined") {
+        return;
+    }
+
+    nextTick(() => document.getElementById(firstField)?.focus());
 };
 
 const resolveValue = (record, column) => {
@@ -377,7 +387,6 @@ const resolveColumnHeader = (column) =>
     <Head :title="resolvedTitle" />
 
     <AdminLayout>
-        <Toast />
         <ConfirmDialog />
 
         <div class="space-y-4">
@@ -432,6 +441,7 @@ const resolveColumnHeader = (column) =>
                 >
                     <template #body="{ data }">
                         <AdminActionButtons
+                            :deleting="deletingRecordId === data.id"
                             @edit="openEdit(data)"
                             @delete="destroyRecord(data)"
                         />

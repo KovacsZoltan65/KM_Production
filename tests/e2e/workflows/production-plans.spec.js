@@ -1,6 +1,5 @@
 import { test, expect } from "../helpers/test.js";
 import { loginThroughUi } from "../helpers/auth.js";
-import { resetE2EFixtures } from "../helpers/database.js";
 import { selectComboboxOptionMatching } from "../helpers/forms.js";
 import { e2eUsers } from "../fixtures/users.js";
 
@@ -8,7 +7,6 @@ test("a production plan can be created from a seeded customer order", async ({
     page,
     browserErrors,
 }) => {
-    resetE2EFixtures();
     await loginThroughUi(page, e2eUsers.admin);
     await page.goto("/admin/production-plans");
 

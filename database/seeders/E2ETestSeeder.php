@@ -15,6 +15,7 @@ use App\Models\CustomerOrderItem;
 use App\Models\Document;
 use App\Models\Employee;
 use App\Models\FactoryUnit;
+use App\Models\GoodsReceipt;
 use App\Models\Item;
 use App\Models\Location;
 use App\Models\ProductionOrder;
@@ -22,9 +23,11 @@ use App\Models\ProductionPlan;
 use App\Models\ProductionTask;
 use App\Models\PurchaseOrder;
 use App\Models\QualityCheck;
+use App\Models\StockMovement;
 use App\Models\StockReservation;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -64,6 +67,8 @@ class E2ETestSeeder extends Seeder
         );
         $restrictedUser->syncRoles([]);
         $restrictedUser->syncPermissions(['inventory.view']);
+
+        $this->resetTestOwnedData($admin, $restrictedUser);
 
         $factoryUnit = FactoryUnit::query()->updateOrCreate(
             ['code' => 'E2E-FU'],
@@ -195,6 +200,38 @@ class E2ETestSeeder extends Seeder
                 'locationId' => $location->id,
             ], JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT),
         );
+    }
+
+    private function resetTestOwnedData(User $admin, User $restrictedUser): void
+    {
+        DB::table('sessions')->delete();
+        DB::table('activity_log')
+            ->where('causer_type', User::class)
+            ->whereIn('causer_id', [$admin->id, $restrictedUser->id])
+            ->delete();
+
+        Item::withTrashed()
+            ->where('item_number', 'like', 'E2E-NOTIFY-%')
+            ->forceDelete();
+
+        $testReceiptIds = GoodsReceipt::withTrashed()
+            ->where('receipt_number', '!=', 'GR-2026-000001')
+            ->pluck('id');
+
+        if ($testReceiptIds->isNotEmpty()) {
+            StockMovement::query()
+                ->where('source_type', GoodsReceipt::class)
+                ->whereIn('source_id', $testReceiptIds)
+                ->delete();
+            GoodsReceipt::withTrashed()
+                ->whereIn('id', $testReceiptIds)
+                ->forceDelete();
+        }
+
+        $this->call([
+            InventorySeeder::class,
+            ProcurementSeeder::class,
+        ]);
     }
 
     private function assertSafeEnvironment(): void

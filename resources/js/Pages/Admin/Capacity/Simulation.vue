@@ -42,13 +42,21 @@ const props = defineProps({
 });
 
 const selectedCustomerOrderId = ref(props.selectedCustomerOrderId);
+const simulating = ref(false);
 
 const simulate = () => {
     if (!selectedCustomerOrderId.value) return;
 
-    router.post(route("admin.capacity.simulate.run"), {
-        customer_order_id: selectedCustomerOrderId.value,
-    });
+    simulating.value = true;
+    router.post(
+        route("admin.capacity.simulate.run"),
+        { customer_order_id: selectedCustomerOrderId.value },
+        {
+            onFinish: () => {
+                simulating.value = false;
+            },
+        },
+    );
 };
 </script>
 
@@ -75,7 +83,8 @@ const simulate = () => {
             <Button
                 :label="$t('capacity.actions.simulate')"
                 icon="pi pi-chart-line"
-                :disabled="!selectedCustomerOrderId"
+                :loading="simulating"
+                :disabled="!selectedCustomerOrderId || simulating"
                 @click="simulate"
             />
         </div>

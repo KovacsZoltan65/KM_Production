@@ -1,6 +1,5 @@
 import { test, expect } from "../helpers/test.js";
 import { loginThroughUi } from "../helpers/auth.js";
-import { resetE2EFixtures } from "../helpers/database.js";
 import { selectComboboxOptionMatching } from "../helpers/forms.js";
 import { e2eUsers } from "../fixtures/users.js";
 
@@ -8,7 +7,6 @@ test("a goods receipt can be created, opened, posted, and reloaded", async ({
     page,
     browserErrors,
 }) => {
-    resetE2EFixtures();
     await loginThroughUi(page, e2eUsers.admin);
     await page.goto("/admin/goods-receipts");
 
@@ -42,8 +40,8 @@ test("a goods receipt can be created, opened, posted, and reloaded", async ({
     });
     await expect(confirm).toBeVisible();
     await confirm.getByRole("button", { name: "Yes" }).click();
-    await expect(page.getByText("Posted")).toBeVisible();
+    await expect(page.getByText("Posted", { exact: true })).toBeVisible();
     await page.reload();
-    await expect(page.getByText("Posted")).toBeVisible();
+    await expect(page.getByText("Posted", { exact: true })).toBeVisible();
     expect(browserErrors).toBeDefined();
 });
