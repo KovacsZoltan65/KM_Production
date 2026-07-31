@@ -6,7 +6,12 @@ import MultiSelect from "primevue/multiselect";
 import DatePicker from "primevue/datepicker";
 import Select from "primevue/select";
 import Textarea from "primevue/textarea";
+import Password from "primevue/password";
 import IftaLabel from "primevue/iftalabel";
+
+import IconField from "primevue/iconfield";
+import InputIcon from "primevue/inputicon";
+
 import { trans } from "laravel-vue-i18n";
 import { computed } from "vue";
 
@@ -38,11 +43,15 @@ const model = defineModel({ default: null });
 const label = computed(() =>
     props.field.labelKey ? trans(props.field.labelKey) : props.field.label
 );
+
 const checkboxLabel = computed(() =>
     props.field.checkboxLabelKey
         ? trans(props.field.checkboxLabelKey)
         : props.field.checkboxLabel || label.value
 );
+
+const iconClass = computed(() => (props.field.icon ? `pi pi-${props.field.icon}` : null));
+
 const optionItems = computed(() => {
     const source = props.options[props.field.options] || props.field.options || [];
 
@@ -69,15 +78,38 @@ const optionItems = computed(() => {
 <template>
     <div class="min-w-0 space-y-2">
         <IftaLabel :for="field.name" class="text-sm font-medium">
-            {{ label }}<span v-if="field.required" aria-hidden="true"> *</span>
+            {{ label }}
+            <span v-if="field.required" class="ml-0.5 text-red-500" aria-hidden="true">
+                *
+            </span>
         </IftaLabel>
 
         <div
-            v-if="['text', 'email', 'password', 'number'].includes(field.type)"
+            v-if="['text', 'email', 'number'].includes(field.type)"
             class="flex items-start gap-2"
             data-test="field-control-row"
         >
+            <IconField v-if="field.icon" class="min-w-0 flex-1">
+                <InputIcon :class="iconClass" />
+
+                <InputText
+                    :id="field.name"
+                    v-model="model"
+                    :type="field.type"
+                    :invalid="Boolean(error)"
+                    :disabled="Boolean(field.disabled)"
+                    :placeholder="field.placeholder"
+                    :required="Boolean(field.required)"
+                    :min="field.min"
+                    :max="field.max"
+                    :step="field.step"
+                    :aria-required="field.required"
+                    class="w-full"
+                />
+            </IconField>
+
             <InputText
+                v-else
                 :id="field.name"
                 v-model="model"
                 :type="field.type"
@@ -88,8 +120,34 @@ const optionItems = computed(() => {
                 :min="field.min"
                 :max="field.max"
                 :step="field.step"
+                :aria-required="field.required"
                 class="min-w-0 flex-1"
             />
+
+            <slot name="action" />
+        </div>
+
+        <!-- PASSWORD -->
+        <div
+            v-else-if="field.type === 'password'"
+            class="flex items-start gap-2"
+            data-test="field-control-row"
+        >
+            <Password
+                :input-id="field.name"
+                v-model="model"
+                :invalid="Boolean(error)"
+                :disabled="Boolean(field.disabled)"
+                :placeholder="field.placeholder"
+                :required="Boolean(field.required)"
+                :aria-required="field.required"
+                :feedback="false"
+                toggle-mask
+                fluid
+                class="min-w-0 flex-1"
+                input-class="w-full"
+            />
+
             <slot name="action" />
         </div>
 
@@ -105,12 +163,13 @@ const optionItems = computed(() => {
                 date-format="yy-mm-dd"
                 show-icon
                 icon-display="input"
-                show-button-bar
+                :show-button-bar="field.showButtonBar !== false"
+                :manual-input="field.manualInput !== false"
                 :invalid="Boolean(error)"
                 :disabled="Boolean(field.disabled)"
                 :placeholder="field.placeholder"
                 :required="Boolean(field.required)"
-                :manual-input="true"
+                :aria-required="field.required"
                 fluid
                 class="min-w-0 flex-1"
             />
@@ -174,17 +233,22 @@ const optionItems = computed(() => {
         <IftaLabel
             v-else-if="field.type === 'checkbox'"
             :for="field.name"
-            class="flex items-center gap-2 text-sm"
+            class="inline-flex cursor-pointer items-center gap-3"
         >
             <Checkbox
                 v-model="model"
+                :name="field.name"
                 :input-id="field.name"
                 :invalid="Boolean(error)"
                 :disabled="Boolean(field.disabled)"
                 :required="Boolean(field.required)"
                 binary
             />
-            <span>{{ checkboxLabel }}</span>
+
+            <span class="select-none"
+                >&nbsp;
+                {{ checkboxLabel }}
+            </span>
         </IftaLabel>
 
         <p v-if="error" class="text-sm text-red-600">

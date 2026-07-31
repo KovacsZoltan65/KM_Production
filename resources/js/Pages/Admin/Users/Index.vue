@@ -46,9 +46,23 @@ const columns = [
 ];
 
 const fields = [
-    { name: "name", labelKey: "fields.name", type: "text" },
-    { name: "email", labelKey: "fields.email", type: "email" },
-    { name: "password", labelKey: "fields.password", type: "password" },
+    {
+        name: "name",
+        labelKey: "fields.name",
+        type: "text",
+        icon: "tag",
+    },
+    {
+        name: "email",
+        labelKey: "fields.email",
+        type: "email",
+        icon: "envelope",
+    },
+    {
+        name: "password",
+        labelKey: "fields.password",
+        type: "password",
+    },
     {
         name: "roles",
         labelKey: "fields.roles",

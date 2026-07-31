@@ -471,6 +471,14 @@ const resolveColumnHeader = (column) =>
             class="w-[min(42rem,calc(100vw-2rem))]"
         >
             <form class="space-y-4" @submit.prevent="submit">
+                <p
+                    v-if="fields.some((field) => field.required)"
+                    class="text-sm text-slate-500"
+                >
+                    <span class="font-medium text-red-500" aria-hidden="true">*</span>
+                    {{ trans("admin.crud.required_fields_hint").replace("*", "").trim() }}
+                </p>
+
                 <div
                     v-for="(row, index) in fieldRows"
                     :key="

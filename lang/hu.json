@@ -28,6 +28,7 @@
     "admin.crud.confirm_delete_header": "Törlés megerősítése",
     "admin.crud.confirm_delete_message": "Törölhető ez a rekord?",
     "admin.crud.edit_title": ":title szerkesztése",
+    "admin.crud.required_fields_hint": "A csillaggal jelölt mezők kitöltése kötelező.",
     "admin.dashboard.charts.orders_by_status": "Rendelések státusz szerint",
     "admin.dashboard.charts.production_orders_by_status": "Gyártási rendelések státusz szerint",
     "admin.dashboard.charts.production_tasks_by_status": "Gyártási feladatok státusz szerint",
