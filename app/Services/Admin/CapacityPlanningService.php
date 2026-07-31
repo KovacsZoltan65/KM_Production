@@ -5,7 +5,6 @@ namespace App\Services\Admin;
 use App\Models\CustomerOrder;
 use App\Repositories\Contracts\CapacityRepositoryInterface;
 use App\Services\BusinessCacheInvalidator;
-use App\Support\Cache\BusinessCacheDomain;
 use App\Support\Cache\BusinessCacheKey;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
@@ -50,7 +49,7 @@ class CapacityPlanningService
      */
     public function dashboard(): array
     {
-        return Cache::remember(BusinessCacheKey::make(BusinessCacheDomain::Capacity, 'dashboard'), 60, function (): array {
+        return Cache::remember(BusinessCacheKey::capacityDashboard(), 60, function (): array {
             $factoryLoads = $this->factoryUnitLoads();
             $employeeLoads = $this->employeeLoads();
             $schedule = $this->scheduleRows();
@@ -93,7 +92,7 @@ class CapacityPlanningService
     public function factoryUnitLoads(): Collection
     {
         return Cache::remember(
-            BusinessCacheKey::make(BusinessCacheDomain::Capacity, 'factory-units'),
+            BusinessCacheKey::capacityFactoryUnits(),
             60,
             fn (): Collection => $this->capacity->factoryUnitLoads(now()->startOfDay(), now()->addDays(7)->endOfDay()),
         );
@@ -109,7 +108,7 @@ class CapacityPlanningService
     public function employeeLoads(): Collection
     {
         return Cache::remember(
-            BusinessCacheKey::make(BusinessCacheDomain::Capacity, 'employees'),
+            BusinessCacheKey::capacityEmployees(),
             60,
             fn (): Collection => $this->capacity->employeeLoads(now()->startOfDay(), now()->addDays(7)->endOfDay()),
         );
@@ -125,7 +124,7 @@ class CapacityPlanningService
     public function scheduleRows(): Collection
     {
         return Cache::remember(
-            BusinessCacheKey::make(BusinessCacheDomain::Capacity, 'schedule'),
+            BusinessCacheKey::capacitySchedule(),
             60,
             fn (): Collection => $this->capacity->scheduleRows(now()->subDay()->startOfDay(), now()->addDays(14)->endOfDay()),
         );

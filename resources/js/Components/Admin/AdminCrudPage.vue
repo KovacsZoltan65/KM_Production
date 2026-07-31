@@ -93,11 +93,9 @@ const confirm = useConfirm();
 const dialogVisible = ref(false);
 const editingRecord = ref(null);
 const search = ref(props.filters.search || "");
-const perPage = ref(
-    Number(props.filters.per_page || props.records.per_page || 10),
-);
+const perPage = ref(Number(props.filters.per_page || props.records.per_page || 10));
 const sortField = ref(
-    typeof props.filters?.sort === "string" ? props.filters.sort : "id",
+    typeof props.filters?.sort === "string" ? props.filters.sort : "id"
 );
 const sortOrder = ref((props.filters.direction || "asc") === "desc" ? -1 : 1);
 const form = reactive({});
@@ -108,20 +106,20 @@ const submitting = ref(false);
 const deletingRecordId = ref(null);
 
 const resolvedTitle = computed(() =>
-    props.titleKey ? trans(props.titleKey) : props.title,
+    props.titleKey ? trans(props.titleKey) : props.title
 );
 const resolvedSubtitle = computed(() =>
-    props.subtitleKey ? trans(props.subtitleKey) : props.subtitle,
+    props.subtitleKey ? trans(props.subtitleKey) : props.subtitle
 );
 const resolvedCreateLabel = computed(() =>
     props.createLabelKey
         ? trans(props.createLabelKey)
-        : props.createLabel || trans("actions.create"),
+        : props.createLabel || trans("actions.create")
 );
 const pageTitle = computed(() =>
     editingRecord.value
         ? trans("admin.crud.edit_title", { title: resolvedTitle.value })
-        : resolvedCreateLabel.value,
+        : resolvedCreateLabel.value
 );
 const indexRoute = computed(() => `${props.routeName}.index`);
 const storeRoute = computed(() => `${props.routeName}.store`);
@@ -133,8 +131,8 @@ const fieldRows = computed(() => {
 
     props.fields.forEach((field) => {
         /*
-        const layoutGroup = field.type === "number" 
-            ? field.layoutGroup || field.layout?.group 
+        const layoutGroup = field.type === "number"
+            ? field.layoutGroup || field.layout?.group
             : null;
         */
         const layoutGroup = field.layoutGroup || field.layout?.group || null;
@@ -166,13 +164,11 @@ const resetForm = () => {
             (field.type === "multiselect"
                 ? []
                 : field.type === "checkbox"
-                  ? false
-                  : null);
+                ? false
+                : null);
     });
     Object.keys(generatedValues).forEach((key) => delete generatedValues[key]);
-    Object.keys(generatingFields).forEach(
-        (key) => delete generatingFields[key],
-    );
+    Object.keys(generatingFields).forEach((key) => delete generatingFields[key]);
     errors.value = {};
 };
 
@@ -182,32 +178,55 @@ const openCreate = () => {
     dialogVisible.value = true;
 };
 
+/**
+ * A natív HTML dátummező számára megfelelő YYYY-MM-DD értéket készít.
+ *
+ * @param {unknown} value A backendből érkező dátumérték.
+ * @returns {string|null} A normalizált dátum vagy null.
+ */
+const normalizeDateValue = (value) => {
+    if (!value) {
+        return null;
+    }
+
+    const normalizedValue = String(value).slice(0, 10);
+
+    return /^\d{4}-\d{2}-\d{2}$/.test(normalizedValue) ? normalizedValue : null;
+};
+
 const openEdit = (record) => {
     editingRecord.value = record;
+
     props.fields.forEach((field) => {
+        const value = record[field.name];
+
         if (field.type === "multiselect") {
-            form[field.name] = record[field.name] || [];
+            form[field.name] = value || [];
             return;
         }
 
-        form[field.name] = record[field.name] ?? field.default ?? null;
+        if (field.type === "date") {
+            form[field.name] = normalizeDateValue(value ?? field.default ?? null);
+            return;
+        }
+
+        form[field.name] = value ?? field.default ?? null;
     });
+
     errors.value = {};
     dialogVisible.value = true;
 };
 
 const fieldForMode = (field) => ({
     ...field,
-    disabled: Boolean(
-        field.disabled || (editingRecord.value && field.immutableOnEdit),
-    ),
+    disabled: Boolean(field.disabled || (editingRecord.value && field.immutableOnEdit)),
 });
 
 const generationParameters = (field) =>
     Object.fromEntries(
-        Object.entries(field.generateCode?.parameters || {}).map(
-            ([parameter, formField]) => [parameter, form[formField]],
-        ),
+        Object.entries(
+            field.generateCode?.parameters || {}
+        ).map(([parameter, formField]) => [parameter, form[formField]])
     );
 
 const generateCode = async (field) => {
@@ -221,7 +240,7 @@ const generateCode = async (field) => {
     try {
         const response = await axios.get(
             route("admin.code-generation.show", field.generateCode.type),
-            { params: generationParameters(field) },
+            { params: generationParameters(field) }
         );
         form[field.name] = response.data.code;
         generatedValues[field.name] = response.data.code;
@@ -286,7 +305,7 @@ const submit = () => {
         payload._code_was_generated = codeFields.some(
             (field) =>
                 generatedValues[field.name] !== undefined &&
-                form[field.name] === generatedValues[field.name],
+                form[field.name] === generatedValues[field.name]
         );
     }
 
@@ -304,8 +323,7 @@ const submit = () => {
             if (suggestion && generatedField) {
                 form[generatedField.name] = suggestion;
                 generatedValues[generatedField.name] = suggestion;
-                const { code_suggestion: ignored, ...visibleErrors } =
-                    responseErrors;
+                const { code_suggestion: ignored, ...visibleErrors } = responseErrors;
                 errors.value = visibleErrors;
                 focusFirstInvalidField(visibleErrors);
                 return;
@@ -320,11 +338,7 @@ const submit = () => {
     };
 
     if (editingRecord.value) {
-        router.put(
-            route(updateRoute.value, editingRecord.value.id),
-            payload,
-            callbacks,
-        );
+        router.put(route(updateRoute.value, editingRecord.value.id), payload, callbacks);
         return;
     }
 
@@ -361,7 +375,7 @@ const destroyRecord = (record) => {
  */
 const focusFirstInvalidField = (responseErrors) => {
     const firstField = Object.keys(responseErrors).find(
-        (field) => field !== "code_suggestion",
+        (field) => field !== "code_suggestion"
     );
 
     if (!firstField || typeof document === "undefined") {
@@ -457,6 +471,14 @@ const resolveColumnHeader = (column) =>
             class="w-[min(42rem,calc(100vw-2rem))]"
         >
             <form class="space-y-4" @submit.prevent="submit">
+                <p
+                    v-if="fields.some((field) => field.required)"
+                    class="text-sm text-slate-500"
+                >
+                    <span class="font-medium text-red-500" aria-hidden="true">*</span>
+                    {{ trans("admin.crud.required_fields_hint").replace("*", "").trim() }}
+                </p>
+
                 <div
                     v-for="(row, index) in fieldRows"
                     :key="
@@ -472,38 +494,23 @@ const resolveColumnHeader = (column) =>
                     }"
                     :data-layout-group="row.layoutGroup || undefined"
                 >
-                    <div
-                        v-for="field in row.fields"
-                        :key="field.name"
-                        class="min-w-0"
-                    >
+                    <div v-for="field in row.fields" :key="field.name" class="min-w-0">
                         <AdminCrudField
                             v-model="form[field.name]"
                             :field="fieldForMode(field)"
                             :error="errors[field.name]"
                             :options="options"
                         >
-                            <template
-                                v-if="field.generateCode && !editingRecord"
-                                #action
-                            >
+                            <template v-if="field.generateCode && !editingRecord" #action>
                                 <Button
                                     type="button"
                                     class="shrink-0"
-                                    :label="
-                                        trans(
-                                            'code_generation.actions.generate',
-                                        )
-                                    "
+                                    :label="trans('code_generation.actions.generate')"
                                     icon="pi pi-sparkles"
                                     severity="secondary"
                                     outlined
-                                    :loading="
-                                        Boolean(generatingFields[field.name])
-                                    "
-                                    :disabled="
-                                        Boolean(generatingFields[field.name])
-                                    "
+                                    :loading="Boolean(generatingFields[field.name])"
+                                    :disabled="Boolean(generatingFields[field.name])"
                                     :data-test="`generate-${field.name}`"
                                     @click="generateCode(field)"
                                 />

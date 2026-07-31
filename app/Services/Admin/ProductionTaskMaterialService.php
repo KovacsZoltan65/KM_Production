@@ -11,12 +11,16 @@ use App\Models\StockMovement;
 use App\Models\StockReservation;
 use App\Models\User;
 use App\Services\AuditLogService;
+use App\Services\BusinessCacheInvalidator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class ProductionTaskMaterialService
 {
-    public function __construct(private readonly AuditLogService $auditLogService) {}
+    public function __construct(
+        private readonly AuditLogService $auditLogService,
+        private readonly BusinessCacheInvalidator $cacheInvalidator,
+    ) {}
 
     /**
      * @param  array<string, mixed>  $attributes
@@ -82,6 +86,7 @@ class ProductionTaskMaterialService
                 'production_task_id' => $productionTask->id,
                 'used_quantity' => $quantity,
             ], $causer);
+            $this->cacheInvalidator->inventoryChanged();
 
             return $material->load(['item', 'itemBatch']);
         });

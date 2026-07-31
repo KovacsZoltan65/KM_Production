@@ -36,6 +36,6 @@ class CustomerAdminService extends CodeAwareAdminService
 
     protected function afterWrite(): void
     {
-        $this->cacheInvalidator->customerOrdersChanged();
+        $this->cacheInvalidator->customersChanged();
     }
 }

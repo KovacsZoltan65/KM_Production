@@ -28,6 +28,7 @@
     "admin.crud.confirm_delete_header": "Confirm delete",
     "admin.crud.confirm_delete_message": "Delete this record?",
     "admin.crud.edit_title": "Edit :title",
+    "admin.crud.required_fields_hint": "Fields marked with an asterisk (*) are required.",
     "admin.dashboard.charts.orders_by_status": "Orders by Status",
     "admin.dashboard.charts.production_orders_by_status": "Production Orders by Status",
     "admin.dashboard.charts.production_tasks_by_status": "Production Tasks by Status",

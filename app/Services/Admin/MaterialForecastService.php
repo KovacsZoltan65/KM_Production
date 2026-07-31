@@ -3,7 +3,6 @@
 namespace App\Services\Admin;
 
 use App\Repositories\Contracts\ManufacturingIntelligenceRepositoryInterface;
-use App\Support\Cache\BusinessCacheDomain;
 use App\Support\Cache\BusinessCacheKey;
 use Illuminate\Support\Facades\Cache;
 
@@ -15,6 +14,6 @@ class MaterialForecastService
     /** @return array{rows: list<array<string, mixed>>} Az anyagkészlet-előrejelzés. */
     public function forecast(): array
     {
-        return Cache::remember(BusinessCacheKey::make(BusinessCacheDomain::IntelligenceMaterialForecast, 'forecast'), now()->addMinutes(5), fn (): array => $this->repository->materialForecast());
+        return Cache::remember(BusinessCacheKey::materialForecast(), now()->addMinutes(5), fn (): array => $this->repository->materialForecast());
     }
 }

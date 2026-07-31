@@ -11,6 +11,13 @@ class InitialInstallationSeeder extends Seeder
         $this->call([
             RolesAndPermissionsSeeder::class,
             AdminUserSeeder::class,
+
+            FactoryUnitsSeeder::class,
+            LocationsSeeder::class,
+            ProfessionalRolesSeeder::class,
+            EmployeeSeeder::class,
+            SuppliersSeeder::class,
+            
         ]);
     }
 }

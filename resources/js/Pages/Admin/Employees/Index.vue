@@ -69,15 +69,22 @@ const fields = [
         required: true,
         immutableOnEdit: true,
         generateCode: { type: "employee" },
+        icon: "hashtag",
     },
     // Dolgozó nevét jelző mező, amely kötelező.
-    { name: "name", labelKey: "fields.name", type: "text" },
+    {
+        name: "name",
+        labelKey: "fields.name",
+        type: "text",
+        icon: "tag",
+    },
     // Dolgozó e-mail-címét jelző mező, amely a "contact" layout csoportba tartozik.
     {
         name: "email",
         labelKey: "fields.email",
         type: "email",
         layoutGroup: "contact",
+        icon: "envelope",
     },
     // Dolgozó telefonszámát jelző mező, amely a "contact" layout csoportba tartozik.
     {
@@ -85,6 +92,7 @@ const fields = [
         labelKey: "fields.phone",
         type: "text",
         layoutGroup: "contact",
+        icon: "phone",
     },
     // Dolgozó szakmai szerepkörét jelző mező, amely a "professionalRoles" opciók közül választható.
     {
@@ -96,6 +104,8 @@ const fields = [
         optionValue: "id",
         layoutGroup: "roles",
     },
+
+    // Dolgozóhoz tartozó felhasználót jelző mező, amely a "users" opciók közül választható.
     {
         name: "user_id",
         labelKey: "fields.user",
@@ -104,19 +114,26 @@ const fields = [
         optionLabel: "email",
         optionValue: "id",
         layoutGroup: "roles",
+        icon: "user",
     },
+
+    // Dolgozó felvételének dátumát jelző mező, amely a "dates" layout csoportba tartozik.
     {
         name: "hired_at",
         labelKey: "fields.hired_at",
         type: "date",
         layoutGroup: "dates",
     },
+
+    // Dolgozó kilépésének dátumát jelző mező, amely a "dates" layout csoportba tartozik.
     {
         name: "left_at",
         labelKey: "fields.left_at",
         type: "date",
         layoutGroup: "dates",
     },
+
+    // Dolgozó aktív státuszát jelző mező, amely alapértelmezés szerint be van jelölve.
     {
         name: "is_active",
         labelKey: "status.active",
