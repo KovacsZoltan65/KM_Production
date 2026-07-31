@@ -45,7 +45,12 @@ const columns = [
 ];
 
 const fields = [
-    { name: "name", labelKey: "fields.name", type: "text" },
+    {
+        name: "name",
+        labelKey: "fields.name",
+        type: "text",
+        icon: "tag",
+    },
     {
         name: "permissions",
         labelKey: "fields.permissions",

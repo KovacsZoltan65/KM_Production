@@ -48,8 +48,9 @@ const fields = [
         labelKey: "fields.code",
         type: "select",
         options: "operationTypeCodes",
+        icon: "hashtag",
     },
-    { name: "name", labelKey: "fields.name", type: "text" },
+    { name: "name", labelKey: "fields.name", type: "text", icon: "tag" },
     { name: "description", labelKey: "fields.description", type: "textarea" },
     {
         name: "is_active",

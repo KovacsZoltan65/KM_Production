@@ -31,7 +31,7 @@ class ItemAdminService extends CodeAwareAdminService
             : ItemType::from((string) $attributes['item_type']);
 
         $attributes['item_type'] = $itemType->value;
-        $attributes['requires_serial_number'] = $itemType->requiresSerialNumber();
+        //$attributes['requires_serial_number'] = $itemType->requiresSerialNumber();
 
         return $attributes;
     }

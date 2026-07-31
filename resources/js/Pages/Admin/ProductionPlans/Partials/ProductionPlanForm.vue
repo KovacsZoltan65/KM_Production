@@ -4,6 +4,7 @@ import Button from "primevue/button";
 import InputText from "primevue/inputtext";
 import Select from "primevue/select";
 import Textarea from "primevue/textarea";
+import DatePicker from "primevue/datepicker";
 
 /** @typedef {{id: number, order_number: string, customer_name: string, label: string}} CustomerOrderOption */
 /** @typedef {{id: number, item_id: number, label: string}} ItemDefinitionOption */
@@ -60,31 +61,68 @@ defineEmits(["submit", "cancel"]);
                     {{ errors.customer_order_id }}
                 </p>
             </div>
+
+            <!-- DÁTUM -->
             <div class="space-y-2">
                 <label for="planned_start_date" class="text-sm font-medium">{{
                     $t("fields.planned_start")
                 }}</label>
-                <InputText
+                <DatePicker
+                    v-model="form.planned_start_date"
+                    input-id="planned_start_date"
+                    update-model-type="string"
+                    date-format="yy-mm-dd"
+                    show-icon
+                    icon-display="input"
+                    show-button-bar
+                    :manual-input="true"
+                    :invalid="Boolean(errors.planned_start_date)"
+                    :aria-describedby="
+                        errors.planned_start_date
+                            ? 'errors.planned_start_date-error'
+                            : undefined
+                    "
+                    fluid
+                    class="w-full"
+                />
+                <!--<InputText
                     id="planned_start_date"
                     v-model="form.planned_start_date"
                     type="date"
                     class="w-full"
-                />
+                />-->
             </div>
+
+            <!-- DÁTUM -->
             <div class="space-y-2">
                 <label for="planned_finish_date" class="text-sm font-medium">{{
                     $t("fields.planned_finish")
                 }}</label>
-                <InputText
+                <DatePicker
+                    v-model="form.planned_finish_date"
+                    input-id="planned_finish_date"
+                    update-model-type="string"
+                    date-format="yy-mm-dd"
+                    show-icon
+                    icon-display="input"
+                    show-button-bar
+                    :manual-input="true"
+                    :invalid="Boolean(errors.planned_finish_date)"
+                    :aria-describedby="
+                        errors.planned_finish_date
+                            ? 'errors.planned_finish_date-error'
+                            : undefined
+                    "
+                    fluid
+                    class="w-full"
+                />
+                <!--<InputText
                     id="planned_finish_date"
                     v-model="form.planned_finish_date"
                     type="date"
                     class="w-full"
-                />
-                <p
-                    v-if="errors.planned_finish_date"
-                    class="text-sm text-red-600"
-                >
+                />-->
+                <p v-if="errors.planned_finish_date" class="text-sm text-red-600">
                     {{ errors.planned_finish_date }}
                 </p>
             </div>
@@ -113,11 +151,7 @@ defineEmits(["submit", "cancel"]);
                 outlined
                 @click="$emit('cancel')"
             />
-            <Button
-                type="submit"
-                :label="$t('actions.save')"
-                icon="pi pi-save"
-            />
+            <Button type="submit" :label="$t('actions.save')" icon="pi pi-save" />
         </div>
     </form>
 </template>

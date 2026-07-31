@@ -50,9 +50,7 @@ const columns = [
         field: "requires_serial_number",
         headerKey: "fields.serial",
         format: (record) =>
-            record.requires_serial_number
-                ? trans("common.yes")
-                : trans("common.no"),
+            record.requires_serial_number ? trans("common.yes") : trans("common.no"),
     },
     { field: "is_active", headerKey: "fields.status", type: "status" },
 ];
@@ -71,9 +69,10 @@ const fields = [
             type: "item",
             parameters: { item_type: "item_type" },
         },
+        icon: "hashtag",
     },
     // A cikk nevét jelző mező, amely kötelező.
-    { name: "name", labelKey: "fields.name", type: "text" },
+    { name: "name", labelKey: "fields.name", type: "text", icon: "tag" },
 
     // A cikk típusát jelző mező, amely a "itemTypes" opciók közül választható, és alapértelmezett értéke "purchased_material".
     {

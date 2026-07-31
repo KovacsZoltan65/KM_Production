@@ -17,7 +17,7 @@ class InitialInstallationSeeder extends Seeder
             ProfessionalRolesSeeder::class,
             EmployeeSeeder::class,
             SuppliersSeeder::class,
-            
+            CustomersSeeder::class,
         ]);
     }
 }

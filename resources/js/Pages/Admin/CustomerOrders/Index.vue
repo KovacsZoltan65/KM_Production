@@ -79,9 +79,7 @@ const editingRecord = ref(null);
 const submitting = ref(false);
 const search = ref(props.filters.search || "");
 const status = ref(props.filters.status || null);
-const perPage = ref(
-    Number(props.filters.per_page || props.records.per_page || 10),
-);
+const perPage = ref(Number(props.filters.per_page || props.records.per_page || 10));
 const sortField = ref(props.filters.sort || "id");
 const sortOrder = ref((props.filters.direction || "asc") === "desc" ? -1 : 1);
 const errors = ref({});
@@ -92,10 +90,25 @@ const form = reactive({
     items: [],
 });
 
+//const dateValue = (value) => (value ? String(value).slice(0, 10) : null);
+/**
+ * A backend dátumértékét a DatePicker által kezelt YYYY-MM-DD formátumra alakítja.
+ *
+ * @param {string|null|undefined} value A normalizálandó dátumérték.
+ * @returns {string|null} A normalizált dátum vagy null.
+ */
+const normalizeDateValue = (value) => {
+    if (!value) {
+        return null;
+    }
+
+    const normalizedValue = String(value).slice(0, 10);
+
+    return /^\d{4}-\d{2}-\d{2}$/.test(normalizedValue) ? normalizedValue : null;
+};
+
 const dialogTitle = computed(() =>
-    editingRecord.value
-        ? trans("orders.dialogs.edit")
-        : trans("orders.dialogs.create"),
+    editingRecord.value ? trans("orders.dialogs.edit") : trans("orders.dialogs.create")
 );
 
 const resetForm = () => {
@@ -107,8 +120,6 @@ const resetForm = () => {
     });
     errors.value = {};
 };
-
-const dateValue = (value) => (value ? String(value).slice(0, 10) : null);
 
 const normalizeItems = (record) =>
     (record.items || []).map((item) => ({
@@ -126,12 +137,14 @@ const openCreate = () => {
 
 const openEdit = (record) => {
     editingRecord.value = record;
+
     Object.assign(form, {
         customer_id: record.customer_id,
-        requested_delivery_date: dateValue(record.requested_delivery_date),
-        notes: record.notes,
+        requested_delivery_date: normalizeDateValue(record.requested_delivery_date),
+        notes: record.notes ?? "",
         items: normalizeItems(record),
     });
+
     errors.value = {};
     dialogVisible.value = true;
 };
@@ -174,7 +187,7 @@ const submit = () => {
         router.put(
             route("admin.customer-orders.update", editingRecord.value.id),
             payload,
-            callbacks,
+            callbacks
         );
         return;
     }
@@ -193,7 +206,7 @@ const confirmOrder = (record) => {
             router.patch(
                 route("admin.customer-orders.confirm", record.id),
                 {},
-                { preserveScroll: true },
+                { preserveScroll: true }
             ),
     });
 };
@@ -210,7 +223,7 @@ const cancelOrder = (record) => {
             router.patch(
                 route("admin.customer-orders.cancel", record.id),
                 {},
-                { preserveScroll: true },
+                { preserveScroll: true }
             ),
     });
 };
@@ -231,11 +244,11 @@ const destroyRecord = (record) => {
 };
 
 const canConfirm = (record) => record.status === "draft";
-const canCancel = (record) =>
-    !["completed", "cancelled"].includes(record.status);
+const canCancel = (record) => !["completed", "cancelled"].includes(record.status);
 const canDelete = (record) => ["draft", "cancelled"].includes(record.status);
 
-const formatDate = (value) => dateValue(value) || "-";
+//const formatDate = (value) => dateValue(value) || "-";
+const formatDate = (value) => normalizeDateValue(value) || "-";
 </script>
 
 <template>
@@ -262,11 +275,9 @@ const formatDate = (value) => dateValue(value) || "-";
             <div
                 class="flex flex-col gap-2 rounded border border-slate-200 bg-white p-3 sm:flex-row sm:items-center"
             >
-                <label
-                    for="status"
-                    class="text-sm font-medium text-slate-700"
-                    >{{ trans("fields.status") }}</label
-                >
+                <label for="status" class="text-sm font-medium text-slate-700">{{
+                    trans("fields.status")
+                }}</label>
                 <Select
                     id="status"
                     v-model="status"
@@ -321,15 +332,10 @@ const formatDate = (value) => dateValue(value) || "-";
                 </Column>
                 <Column field="customer_id" :header="trans('fields.customer')">
                     <template #body="{ data }"
-                        >{{ data.customer?.code }} -
-                        {{ data.customer?.name }}</template
+                        >{{ data.customer?.code }} - {{ data.customer?.name }}</template
                     >
                 </Column>
-                <Column
-                    field="status"
-                    :header="trans('fields.status')"
-                    sortable
-                >
+                <Column field="status" :header="trans('fields.status')" sortable>
                     <template #body="{ data }"
                         ><CustomerOrderStatusBadge :status="data.status"
                     /></template>
@@ -346,21 +352,15 @@ const formatDate = (value) => dateValue(value) || "-";
                 <Column field="items_count" :header="trans('fields.items')">
                     <template #body="{ data }">{{ data.items_count }}</template>
                 </Column>
-                <Column
-                    field="created_at"
-                    :header="trans('fields.created')"
-                    sortable
-                >
+                <Column field="created_at" :header="trans('fields.created')" sortable>
                     <template #body="{ data }">{{
                         formatDate(data.created_at)
                     }}</template>
                 </Column>
-                <Column
-                    header=""
-                    body-style="text-align: right; min-width: 14rem"
-                >
+                <Column header="" body-style="text-align: right; min-width: 14rem">
                     <template #body="{ data }">
                         <div class="flex justify-end gap-1">
+                            <!-- Confirm button is only shown if the order can be confirmed -->
                             <Button
                                 v-if="canConfirm(data)"
                                 type="button"
@@ -371,6 +371,8 @@ const formatDate = (value) => dateValue(value) || "-";
                                 :aria-label="trans('actions.confirm')"
                                 @click="confirmOrder(data)"
                             />
+
+                            <!-- Cancel button is only shown if the order can be cancelled -->
                             <Button
                                 v-if="canCancel(data)"
                                 type="button"
@@ -381,6 +383,8 @@ const formatDate = (value) => dateValue(value) || "-";
                                 :aria-label="trans('actions.cancel')"
                                 @click="cancelOrder(data)"
                             />
+
+                            <!-- AdminActionButtons component handles edit and delete actions -->
                             <AdminActionButtons
                                 :can-delete="canDelete(data)"
                                 @edit="openEdit(data)"

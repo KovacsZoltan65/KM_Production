@@ -46,8 +46,9 @@ const fields = [
         required: true,
         immutableOnEdit: true,
         generateCode: { type: "professional_role" },
+        icon: "hashtag",
     },
-    { name: "name", labelKey: "fields.name", type: "text" },
+    { name: "name", labelKey: "fields.name", type: "text", icon: "tag" },
     { name: "description", labelKey: "fields.description", type: "textarea" },
     {
         name: "is_active",

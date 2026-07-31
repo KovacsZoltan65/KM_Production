@@ -48,8 +48,9 @@ const fields = [
         required: true,
         immutableOnEdit: true,
         generateCode: { type: "factory_unit" },
+        icon: "hashtag",
     },
-    { name: "name", labelKey: "fields.name", type: "text" },
+    { name: "name", labelKey: "fields.name", type: "text", icon: "tag" },
     { name: "description", labelKey: "fields.description", type: "textarea" },
     {
         name: "daily_capacity_minutes",

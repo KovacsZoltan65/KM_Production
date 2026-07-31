@@ -76,8 +76,9 @@ const fields = [
         required: true,
         immutableOnEdit: true,
         generateCode: { type: "location" },
+        icon: "hashtag",
     },
-    { name: "name", labelKey: "fields.name", type: "text" },
+    { name: "name", labelKey: "fields.name", type: "text", icon: "tag" },
     {
         name: "location_type",
         labelKey: "fields.location_type",

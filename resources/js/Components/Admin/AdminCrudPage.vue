@@ -130,11 +130,6 @@ const fieldRows = computed(() => {
     const rows = [];
 
     props.fields.forEach((field) => {
-        /*
-        const layoutGroup = field.type === "number"
-            ? field.layoutGroup || field.layout?.group
-            : null;
-        */
         const layoutGroup = field.layoutGroup || field.layout?.group || null;
 
         const previousRow = rows.at(-1);
@@ -185,9 +180,7 @@ const openCreate = () => {
  * @returns {string|null} A normalizált dátum vagy null.
  */
 const normalizeDateValue = (value) => {
-    if (!value) {
-        return null;
-    }
+    if (!value) return null;
 
     const normalizedValue = String(value).slice(0, 10);
 

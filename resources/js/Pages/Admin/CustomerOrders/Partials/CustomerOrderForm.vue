@@ -1,7 +1,7 @@
 <script setup>
 import CustomerOrderItemsEditor from "@/Pages/Admin/CustomerOrders/Partials/CustomerOrderItemsEditor.vue";
 import Button from "primevue/button";
-import InputText from "primevue/inputtext";
+import DatePicker from "primevue/datepicker";
 import Select from "primevue/select";
 import Textarea from "primevue/textarea";
 import { trans } from "laravel-vue-i18n";
@@ -60,20 +60,35 @@ defineEmits(["submit", "cancel"]);
                     {{ errors.customer_id }}
                 </p>
             </div>
+
+            <!-- SZÁLLÍTÁS DÁTUMA -->
             <div class="space-y-2">
-                <label
-                    for="requested_delivery_date"
-                    class="text-sm font-medium"
-                    >{{ trans("orders.fields.requested_delivery_date") }}</label
-                >
-                <InputText
-                    id="requested_delivery_date"
+                <label for="requested_delivery_date" class="text-sm font-medium">
+                    {{ trans("orders.fields.requested_delivery_date") }}
+                </label>
+
+                <DatePicker
                     v-model="form.requested_delivery_date"
-                    type="date"
+                    input-id="requested_delivery_date"
+                    update-model-type="string"
+                    date-format="yy-mm-dd"
+                    show-icon
+                    icon-display="input"
+                    show-button-bar
+                    :manual-input="true"
+                    :invalid="Boolean(errors.requested_delivery_date)"
+                    :aria-describedby="
+                        errors.requested_delivery_date
+                            ? 'requested_delivery_date-error'
+                            : undefined
+                    "
+                    fluid
                     class="w-full"
                 />
+
                 <p
                     v-if="errors.requested_delivery_date"
+                    id="requested_delivery_date-error"
                     class="text-sm text-red-600"
                 >
                     {{ errors.requested_delivery_date }}
