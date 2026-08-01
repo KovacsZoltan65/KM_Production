@@ -31,9 +31,9 @@ class ItemController extends Controller
         $this->authorize('viewAny', Item::class);
 
         return Inertia::render('Admin/Items/Index', [
-            'records' => $this->service->paginateForAdminIndex($request->filters(), $request->perPage()),
+            'records' => fn () => $this->service->paginateForAdminIndex($request->filters(), $request->perPage()),
             'filters' => $request->filters(),
-            'itemTypes' => collect(ItemType::cases())
+            'itemTypes' => fn () => collect(ItemType::cases())
                 ->map(fn (ItemType $type): array => [
                     'label' => str($type->value)->replace('_', ' ')->title()->toString(),
                     'value' => $type->value,

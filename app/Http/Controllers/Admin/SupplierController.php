@@ -21,7 +21,7 @@ class SupplierController extends Controller
         $this->authorize('viewAny', Supplier::class);
 
         return Inertia::render('Admin/Suppliers/Index', [
-            'records' => $this->service->paginateForAdminIndex($request->filters(), $request->perPage()),
+            'records' => fn () => $this->service->paginateForAdminIndex($request->filters(), $request->perPage()),
             'filters' => $request->filters(),
         ]);
     }

@@ -23,8 +23,10 @@ use App\Models\ProductionPlan;
 use App\Models\ProductionTask;
 use App\Models\PurchaseOrder;
 use App\Models\QualityCheck;
+use App\Models\StockBalance;
 use App\Models\StockMovement;
 use App\Models\StockReservation;
+use App\Models\Supplier;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -120,6 +122,15 @@ class E2ETestSeeder extends Seeder
             $reservation->restore();
         }
 
+        $stockBalance = StockBalance::query()->updateOrCreate(
+            [
+                'item_id' => $item->id,
+                'location_id' => $location->id,
+                'item_batch_id' => null,
+            ],
+            ['quantity' => 12],
+        );
+
         Document::withTrashed()
             ->where('documentable_type', Item::class)
             ->where('documentable_id', $item->id)
@@ -131,6 +142,14 @@ class E2ETestSeeder extends Seeder
             [
                 'name' => 'E2E Customer',
                 'email' => 'customer-e2e@example.test',
+                'is_active' => true,
+            ],
+        );
+        $supplier = Supplier::query()->updateOrCreate(
+            ['code' => 'E2E-SUP'],
+            [
+                'name' => 'E2E Supplier Before Partial Reload',
+                'email' => 'supplier-e2e@example.test',
                 'is_active' => true,
             ],
         );
@@ -190,7 +209,9 @@ class E2ETestSeeder extends Seeder
             json_encode([
                 'itemId' => $item->id,
                 'reservationId' => $reservation->id,
+                'stockBalanceId' => $stockBalance->id,
                 'customerId' => $customer->id,
+                'supplierId' => $supplier->id,
                 'productId' => $product->id,
                 'customerOrderId' => $customerOrder->id,
                 'productionOrderId' => $productionOrder->id,

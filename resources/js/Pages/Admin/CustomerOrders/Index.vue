@@ -5,6 +5,7 @@ import AdminSearchBar from "@/Components/Admin/AdminSearchBar.vue";
 import AdminLayout from "@/Layouts/AdminLayout.vue";
 import CustomerOrderForm from "@/Pages/Admin/CustomerOrders/Partials/CustomerOrderForm.vue";
 import CustomerOrderStatusBadge from "@/Pages/Admin/CustomerOrders/Partials/CustomerOrderStatusBadge.vue";
+import { notifyRequestError } from "@/Composables/useRequestError";
 import { route } from "@/Utils/routes";
 import { Head, Link, router } from "@inertiajs/vue3";
 import Button from "primevue/button";
@@ -14,6 +15,7 @@ import DataTable from "primevue/datatable";
 import Dialog from "primevue/dialog";
 import Select from "primevue/select";
 import { useConfirm } from "primevue/useconfirm";
+import { useToast } from "primevue/usetoast";
 import { trans } from "laravel-vue-i18n";
 import { computed, reactive, ref } from "vue";
 
@@ -74,6 +76,8 @@ const props = defineProps({
 });
 
 const confirm = useConfirm();
+const toast = useToast();
+const refreshing = ref(false);
 const dialogVisible = ref(false);
 const editingRecord = ref(null);
 const submitting = ref(false);
@@ -162,6 +166,29 @@ const reload = (pageNumber = 1) => {
     router.get(route("admin.customer-orders.index"), query(pageNumber), {
         preserveState: true,
         replace: true,
+    });
+};
+
+const refreshRecords = () => {
+    if (refreshing.value) {
+        return;
+    }
+
+    router.reload({
+        only: ["records"],
+        preserveState: true,
+        preserveScroll: true,
+        onStart: () => {
+            refreshing.value = true;
+        },
+        onError: (error) => {
+            notifyRequestError(toast, error, {
+                fallbackKey: "notifications.error.refresh_failed",
+            });
+        },
+        onFinish: () => {
+            refreshing.value = false;
+        },
     });
 };
 
@@ -264,7 +291,21 @@ const formatDate = (value) => normalizeDateValue(value) || "-";
                 subtitle-key="orders.subtitle"
                 create-label-key="orders.actions.create"
                 @create="openCreate"
-            />
+            >
+                <template #actions>
+                    <Button
+                        type="button"
+                        :label="trans('actions.refresh')"
+                        icon="pi pi-refresh"
+                        severity="secondary"
+                        outlined
+                        :loading="refreshing"
+                        :disabled="refreshing"
+                        data-test="refresh-records"
+                        @click="refreshRecords"
+                    />
+                </template>
+            </AdminPageHeader>
 
             <AdminSearchBar
                 v-model="search"
