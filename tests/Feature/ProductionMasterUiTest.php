@@ -56,7 +56,7 @@ class ProductionMasterUiTest extends TestCase
 
         $this->assertDatabaseHas('items', [
             'item_number' => 'ITEM-UI-001',
-            'requires_serial_number' => true,
+            'requires_serial_number' => false,
         ]);
     }
 
@@ -76,7 +76,7 @@ class ProductionMasterUiTest extends TestCase
         $this->assertDatabaseHas('items', [
             'id' => $item->id,
             'name' => 'Updated Item',
-            'requires_serial_number' => true,
+            'requires_serial_number' => false,
         ]);
     }
 
@@ -92,7 +92,7 @@ class ProductionMasterUiTest extends TestCase
         $this->assertSoftDeleted('items', ['id' => $item->id]);
     }
 
-    public function test_purchased_material_forces_serial_flag_false(): void
+    public function test_purchased_material_preserves_enabled_serial_flag(): void
     {
         $admin = $this->superAdmin();
 
@@ -106,11 +106,11 @@ class ProductionMasterUiTest extends TestCase
 
         $this->assertDatabaseHas('items', [
             'item_number' => 'ITEM-UI-003',
-            'requires_serial_number' => false,
+            'requires_serial_number' => true,
         ]);
     }
 
-    public function test_manufactured_and_finished_items_force_serial_flag_true(): void
+    public function test_manufactured_and_finished_items_preserve_disabled_serial_flag(): void
     {
         $admin = $this->superAdmin();
 
@@ -125,7 +125,7 @@ class ProductionMasterUiTest extends TestCase
 
             $this->assertDatabaseHas('items', [
                 'item_number' => 'ITEM-UI-SERIAL-'.$index,
-                'requires_serial_number' => true,
+                'requires_serial_number' => false,
             ]);
         }
     }
