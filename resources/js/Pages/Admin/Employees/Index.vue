@@ -1,5 +1,11 @@
 <script setup>
 import AdminCrudPage from "@/Components/Admin/AdminCrudPage.vue";
+import { notifyRequestError } from "@/Composables/useRequestError";
+import { router } from "@inertiajs/vue3";
+import { trans } from "laravel-vue-i18n";
+import Button from "primevue/button";
+import { useToast } from "primevue/usetoast";
+import { ref } from "vue";
 
 /** @typedef {{id: number, employee_number: string, name: string, email: string|null, phone: string|null, professional_role_id: number|null, user_id: number|null, is_active: boolean, hired_at: string|null, left_at: string|null, professional_role: {name: string}|null}} EmployeeRecord */
 /**
@@ -47,6 +53,32 @@ defineProps({
     filters: Object,
     options: Object,
 });
+
+const toast = useToast();
+const refreshing = ref(false);
+
+const refreshRecords = () => {
+    if (refreshing.value) {
+        return;
+    }
+
+    router.reload({
+        only: ["records"],
+        preserveScroll: true,
+        preserveState: true,
+        onStart: () => {
+            refreshing.value = true;
+        },
+        onError: (error) => {
+            notifyRequestError(toast, error, {
+                fallbackKey: "notifications.error.refresh_failed",
+            });
+        },
+        onFinish: () => {
+            refreshing.value = false;
+        },
+    });
+};
 
 const columns = [
     { field: "employee_number", headerKey: "fields.employee_number" },
@@ -155,5 +187,19 @@ const fields = [
         :options="options"
         :columns="columns"
         :fields="fields"
-    />
+    >
+        <template #header-actions>
+            <Button
+                type="button"
+                :label="trans('actions.refresh')"
+                icon="pi pi-refresh"
+                severity="secondary"
+                outlined
+                :loading="refreshing"
+                :disabled="refreshing"
+                data-test="refresh-records"
+                @click="refreshRecords"
+            />
+        </template>
+    </AdminCrudPage>
 </template>

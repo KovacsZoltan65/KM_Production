@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Models\ProfessionalRole;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\PermissionRegistrar;
-use App\Models\ProfessionalRole;
 
 class ProfessionalRolesSeeder extends Seeder
 {
@@ -24,10 +24,10 @@ class ProfessionalRolesSeeder extends Seeder
                 'name' => 'Minőségellenőr',
                 'description' => 'Minőségellenőrzési feladatokat végző dolgozó.',
                 'is_active' => true,
-            ]
+            ],
         ];
 
-        foreach($professionalRoles as $role) {
+        foreach ($professionalRoles as $role) {
             // Create professional role logic here
             ProfessionalRole::create($role);
         }

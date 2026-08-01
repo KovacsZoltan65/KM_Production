@@ -134,7 +134,7 @@ class ProductionStructureTest extends TestCase
         $this->seed(ProductionStructureSeeder::class);
         $this->seed(ProductionStructureSeeder::class);
 
-        $this->assertDatabaseCount('operation_types', 8);
+        $this->assertDatabaseCount('operation_types', count(OperationTypeCode::cases()));
         $this->assertDatabaseCount('boms', 1);
         $this->assertDatabaseCount('bom_items', 4);
         $this->assertDatabaseCount('operation_sequences', 1);

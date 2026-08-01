@@ -24,31 +24,31 @@ class LocationsSeeder extends Seeder
                 'location_type' => 'warehouse',
                 'description' => 'Beérkező acéllemezek és csavarok tárolása.',
                 'is_active' => true,
-            ],[
+            ], [
                 'factory_unit_id' => $factory_units['BP-GYARTAS'],
                 'code' => 'MUHELY-1',
                 'name' => 'Megmunkáló műhely',
                 'location_type' => 'quality_area',
                 'description' => 'Gyártásközi és végellenőrzési terület.',
                 'is_active' => true,
-            ],[
+            ], [
                 'factory_unit_id' => $factory_units['BP-GYARTAS'],
                 'code' => 'ME-1',
                 'name' => 'Minőségellenőrzési pont',
                 'location_type' => 'quality_area',
                 'description' => 'Gyártásközi és végellenőrzési terület.',
                 'is_active' => true,
-            ],[
+            ], [
                 'factory_unit_id' => $factory_units['BP-GYARTAS'],
                 'code' => 'KESZ-R1',
                 'name' => 'Készáru raktár',
                 'location_type' => 'finished_goods',
                 'description' => 'Elkészült termékek átmeneti tárolása.',
                 'is_active' => true,
-            ]
+            ],
         ];
 
-        foreach($locations as $location) {
+        foreach ($locations as $location) {
             // Create location logic here
             Location::create($location);
         }

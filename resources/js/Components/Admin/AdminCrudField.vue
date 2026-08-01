@@ -242,6 +242,7 @@ const optionItems = computed(() => {
                 :invalid="Boolean(error)"
                 :disabled="Boolean(field.disabled)"
                 :required="Boolean(field.required)"
+                :aria-required="field.required"
                 binary
             />
 

@@ -403,7 +403,11 @@ const resolveColumnHeader = (column) =>
                 :create-label="resolvedCreateLabel"
                 :can-create="!readOnly"
                 @create="openCreate"
-            />
+            >
+                <template v-if="$slots['header-actions']" #actions>
+                    <slot name="header-actions" />
+                </template>
+            </AdminPageHeader>
 
             <AdminSearchBar
                 v-model="search"

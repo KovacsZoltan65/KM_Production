@@ -7,15 +7,15 @@ namespace App\Enums;
  */
 enum OperationTypeCode: string
 {
-    case CUTTING = "VÁGÁS";
-    case WELDING = "ÖSSZEÁLLÍTÁS";
-    case GRINDING = "CSISZOLÁS";
-    case PAINTING = "FESTÉS";
-    case WIRING = "VEZETÉKEZÉS";
-    case ASSEMBLY = "ÖSSZESZERELÉS";
-    case QUALITY_CHECK = "MINŐSÉGELLENŐRZÉS";
-    case PACKAGING = "CSOMAGOLÁS";
-    case PRODUCTION = "GYÁRTÁS";
+    case CUTTING = 'VÁGÁS';
+    case WELDING = 'ÖSSZEÁLLÍTÁS';
+    case GRINDING = 'CSISZOLÁS';
+    case PAINTING = 'FESTÉS';
+    case WIRING = 'VEZETÉKEZÉS';
+    case ASSEMBLY = 'ÖSSZESZERELÉS';
+    case QUALITY_CHECK = 'MINŐSÉGELLENŐRZÉS';
+    case PACKAGING = 'CSOMAGOLÁS';
+    case PRODUCTION = 'GYÁRTÁS';
     /*
     case CUTTING = 'CUTTING';
     case WELDING = 'WELDING';
