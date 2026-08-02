@@ -22,16 +22,19 @@ class RoleController extends Controller
         $this->authorize('viewAny', Role::class);
 
         return Inertia::render('Admin/Roles/Index', [
-            'records' => $this->service
-                ->paginateForAdminIndex($request->filters(), $request->perPage())
-                ->through(fn (Role $role): array => [
-                    'id' => $role->id,
-                    'name' => $role->name,
-                    'permissions' => $role->permissions->pluck('name')->values()->all(),
-                    'created_at' => $role->created_at,
-                ]),
+            'records' => function () use ($request): array {
+                return $this->service
+                    ->paginateForAdminIndex($request->filters(), $request->perPage())
+                    ->through(fn (Role $role): array => [
+                        'id' => $role->id,
+                        'name' => $role->name,
+                        'permissions' => $role->permissions->pluck('name')->values()->all(),
+                        'created_at' => $role->created_at,
+                    ])
+                    ->toArray();
+            },
             'filters' => $request->filters(),
-            'options' => [
+            'options' => fn (): array => [
                 'permissions' => Permission::query()->orderBy('name')->pluck('name')->all(),
             ],
         ]);

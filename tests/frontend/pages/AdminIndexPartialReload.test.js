@@ -3,9 +3,16 @@ import { shallowMount } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import CustomerIndex from "@/Pages/Admin/Customers/Index.vue";
 import CustomerOrderIndex from "@/Pages/Admin/CustomerOrders/Index.vue";
+import FactoryUnitIndex from "@/Pages/Admin/FactoryUnits/Index.vue";
 import StockBalanceIndex from "@/Pages/Admin/Inventory/StockBalances/Index.vue";
 import ItemIndex from "@/Pages/Admin/Items/Index.vue";
+import LocationIndex from "@/Pages/Admin/Locations/Index.vue";
+import OperationTypeIndex from "@/Pages/Admin/OperationTypes/Index.vue";
+import PermissionIndex from "@/Pages/Admin/Permissions/Index.vue";
+import ProfessionalRoleIndex from "@/Pages/Admin/ProfessionalRoles/Index.vue";
+import RoleIndex from "@/Pages/Admin/Roles/Index.vue";
 import SupplierIndex from "@/Pages/Admin/Suppliers/Index.vue";
+import UserIndex from "@/Pages/Admin/Users/Index.vue";
 import { inertiaRouter } from "../mocks/inertia.js";
 
 const services = {
@@ -98,6 +105,45 @@ const pages = [
             itemOptions: [],
             statusOptions: [],
         },
+    },
+    {
+        name: "Factory Units",
+        component: FactoryUnitIndex,
+        props: { records, filters },
+    },
+    {
+        name: "Locations",
+        component: LocationIndex,
+        props: {
+            records,
+            filters,
+            options: { factoryUnits: [], locationTypes: [] },
+        },
+    },
+    {
+        name: "Professional Roles",
+        component: ProfessionalRoleIndex,
+        props: { records, filters },
+    },
+    {
+        name: "Operation Types",
+        component: OperationTypeIndex,
+        props: { records, filters, operationTypeCodes: [] },
+    },
+    {
+        name: "Users",
+        component: UserIndex,
+        props: { records, filters, options: { roles: [] } },
+    },
+    {
+        name: "Roles",
+        component: RoleIndex,
+        props: { records, filters, options: { permissions: [] } },
+    },
+    {
+        name: "Permissions",
+        component: PermissionIndex,
+        props: { records, filters },
     },
 ];
 

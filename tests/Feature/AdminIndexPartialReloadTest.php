@@ -2,16 +2,22 @@
 
 namespace Tests\Feature;
 
+use App\Enums\OperationTypeCode;
 use App\Models\Customer;
 use App\Models\CustomerOrder;
+use App\Models\FactoryUnit;
 use App\Models\Item;
 use App\Models\Location;
+use App\Models\OperationType;
+use App\Models\ProfessionalRole;
 use App\Models\StockBalance;
 use App\Models\Supplier;
 use App\Models\User;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class AdminIndexPartialReloadTest extends TestCase
@@ -125,6 +131,153 @@ class AdminIndexPartialReloadTest extends TestCase
                     ->missing('customerOptions')
                     ->missing('itemOptions')
                     ->missing('statusOptions')));
+    }
+
+    public function test_factory_units_index_supports_records_only_partial_reload(): void
+    {
+        FactoryUnit::factory()->create(['code' => 'REFRESH-FACTORY', 'name' => 'Refresh Factory']);
+
+        $this->assertRecordsOnlyReload(
+            '/admin/factory-units?search=REFRESH-FACTORY&per_page=25&sort=name&direction=desc',
+            'Admin/FactoryUnits/Index',
+            'records.data.0.code',
+            'REFRESH-FACTORY',
+        );
+    }
+
+    public function test_locations_index_supports_records_only_partial_reload(): void
+    {
+        $factoryUnit = FactoryUnit::factory()->create();
+        Location::factory()->create([
+            'factory_unit_id' => $factoryUnit->id,
+            'code' => 'REFRESH-LOCATION',
+            'name' => 'Refresh Location',
+        ]);
+
+        $this->assertRecordsOnlyReload(
+            '/admin/locations?search=REFRESH-LOCATION&per_page=25&sort=name&direction=desc',
+            'Admin/Locations/Index',
+            'records.data.0.code',
+            'REFRESH-LOCATION',
+            ['options'],
+        );
+    }
+
+    public function test_professional_roles_index_supports_records_only_partial_reload(): void
+    {
+        ProfessionalRole::factory()->create(['code' => 'REFRESH-PROFESSIONAL', 'name' => 'Refresh Professional Role']);
+
+        $this->assertRecordsOnlyReload(
+            '/admin/professional-roles?search=REFRESH-PROFESSIONAL&per_page=25&sort=name&direction=desc',
+            'Admin/ProfessionalRoles/Index',
+            'records.data.0.code',
+            'REFRESH-PROFESSIONAL',
+        );
+    }
+
+    public function test_operation_types_index_supports_records_only_partial_reload(): void
+    {
+        OperationType::factory()->create([
+            'code' => OperationTypeCode::CUTTING,
+            'name' => 'Refresh Operation Type',
+        ]);
+
+        $this->assertRecordsOnlyReload(
+            '/admin/operation-types?search=Refresh%20Operation&per_page=25&sort=name&direction=desc',
+            'Admin/OperationTypes/Index',
+            'records.data.0.name',
+            'Refresh Operation Type',
+            ['operationTypeCodes'],
+        );
+    }
+
+    public function test_users_index_supports_records_only_partial_reload(): void
+    {
+        User::factory()->create([
+            'name' => 'Refresh User',
+            'email' => 'refresh-user@example.test',
+            'email_verified_at' => now(),
+        ]);
+
+        $this->assertRecordsOnlyReload(
+            '/admin/users?search=refresh-user%40example.test&per_page=25&sort=name&direction=desc',
+            'Admin/Users/Index',
+            'records.data.0.email',
+            'refresh-user@example.test',
+            ['options'],
+        );
+    }
+
+    public function test_roles_index_supports_records_only_partial_reload(): void
+    {
+        Role::query()->create(['name' => 'REFRESH-ROLE', 'guard_name' => 'web']);
+
+        $this->assertRecordsOnlyReload(
+            '/admin/roles?search=REFRESH-ROLE&per_page=25&sort=name&direction=desc',
+            'Admin/Roles/Index',
+            'records.data.0.name',
+            'REFRESH-ROLE',
+            ['options'],
+        );
+    }
+
+    public function test_permissions_index_supports_records_only_partial_reload(): void
+    {
+        Permission::query()->create(['name' => 'REFRESH-PERMISSION', 'guard_name' => 'web']);
+
+        $this->assertRecordsOnlyReload(
+            '/admin/permissions?search=REFRESH-PERMISSION&per_page=25&sort=name&direction=desc',
+            'Admin/Permissions/Index',
+            'records.data.0.name',
+            'REFRESH-PERMISSION',
+        );
+    }
+
+    /**
+     * @param  list<string>  $optionProps
+     */
+    private function assertRecordsOnlyReload(
+        string $url,
+        string $component,
+        string $recordPath,
+        mixed $expectedRecordValue,
+        array $optionProps = [],
+    ): void {
+        $pageAssertion = fn (AssertableInertia $page) => $page
+            ->component($component)
+            ->has('records.data', 1)
+            ->has('filters');
+
+        $this->actingAs($this->superAdmin())
+            ->get($url)
+            ->assertOk()
+            ->assertInertia(function (AssertableInertia $page) use (
+                $pageAssertion,
+                $optionProps,
+                $recordPath,
+                $expectedRecordValue,
+            ): void {
+                $pageAssertion($page);
+
+                foreach ($optionProps as $optionProp) {
+                    $page->has($optionProp);
+                }
+
+                $page->reloadOnly('records', function (AssertableInertia $reload) use (
+                    $optionProps,
+                    $recordPath,
+                    $expectedRecordValue,
+                ): void {
+                    $reload
+                        ->has('records.data', 1)
+                        ->where($recordPath, $expectedRecordValue)
+                        ->missing('filters');
+
+                    foreach ($optionProps as $optionProp) {
+                        $reload->missing($optionProp);
+                    }
+                });
+            });
     }
 
     private function superAdmin(): User

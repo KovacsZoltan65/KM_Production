@@ -21,7 +21,7 @@ class FactoryUnitController extends Controller
         $this->authorize('viewAny', FactoryUnit::class);
 
         return Inertia::render('Admin/FactoryUnits/Index', [
-            'records' => $this->service->paginateForAdminIndex($request->filters(), $request->perPage()),
+            'records' => fn () => $this->service->paginateForAdminIndex($request->filters(), $request->perPage()),
             'filters' => $request->filters(),
         ]);
     }

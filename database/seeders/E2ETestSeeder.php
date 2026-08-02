@@ -7,6 +7,7 @@ use App\Enums\CustomerOrderStatus;
 use App\Enums\ItemInstanceStatus;
 use App\Enums\ItemType;
 use App\Enums\LocationType;
+use App\Enums\OperationTypeCode;
 use App\Enums\ProductionTaskStatus;
 use App\Enums\StockReservationStatus;
 use App\Models\Customer;
@@ -18,9 +19,11 @@ use App\Models\FactoryUnit;
 use App\Models\GoodsReceipt;
 use App\Models\Item;
 use App\Models\Location;
+use App\Models\OperationType;
 use App\Models\ProductionOrder;
 use App\Models\ProductionPlan;
 use App\Models\ProductionTask;
+use App\Models\ProfessionalRole;
 use App\Models\PurchaseOrder;
 use App\Models\QualityCheck;
 use App\Models\StockBalance;
@@ -35,6 +38,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use LogicException;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 class E2ETestSeeder extends Seeder
 {
@@ -91,6 +95,31 @@ class E2ETestSeeder extends Seeder
                 'is_active' => true,
             ],
         );
+
+        $professionalRole = ProfessionalRole::query()->updateOrCreate(
+            ['code' => 'E2E-PRO'],
+            [
+                'name' => 'E2E Professional Role Before Partial Reload',
+                'is_active' => true,
+            ],
+        );
+
+        $operationType = OperationType::query()->updateOrCreate(
+            ['code' => OperationTypeCode::PRODUCTION],
+            [
+                'name' => 'E2E Operation Type Before Partial Reload',
+                'is_active' => true,
+            ],
+        );
+
+        $refreshRole = Role::query()->create([
+            'name' => 'e2e-refresh-role-before',
+            'guard_name' => 'web',
+        ]);
+        $refreshPermission = Permission::query()->create([
+            'name' => 'e2e-refresh-permission-before',
+            'guard_name' => 'web',
+        ]);
 
         $item = Item::query()->updateOrCreate(
             ['item_number' => 'E2E-MAT-001'],
@@ -208,6 +237,12 @@ class E2ETestSeeder extends Seeder
             storage_path('framework/testing/e2e-fixtures.json'),
             json_encode([
                 'itemId' => $item->id,
+                'adminId' => $admin->id,
+                'factoryUnitId' => $factoryUnit->id,
+                'professionalRoleId' => $professionalRole->id,
+                'operationTypeId' => $operationType->id,
+                'roleId' => $refreshRole->id,
+                'permissionId' => $refreshPermission->id,
                 'reservationId' => $reservation->id,
                 'stockBalanceId' => $stockBalance->id,
                 'customerId' => $customer->id,
@@ -230,6 +265,9 @@ class E2ETestSeeder extends Seeder
             ->where('causer_type', User::class)
             ->whereIn('causer_id', [$admin->id, $restrictedUser->id])
             ->delete();
+
+        Role::query()->where('name', 'like', 'e2e-refresh-role-%')->delete();
+        Permission::query()->where('name', 'like', 'e2e-refresh-permission-%')->delete();
 
         Item::withTrashed()
             ->where('item_number', 'like', 'E2E-NOTIFY-%')

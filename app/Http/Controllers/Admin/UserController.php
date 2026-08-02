@@ -22,18 +22,21 @@ class UserController extends Controller
         $this->authorize('viewAny', User::class);
 
         return Inertia::render('Admin/Users/Index', [
-            'records' => $this->service
-                ->paginateForAdminIndex($request->filters(), $request->perPage())
-                ->through(fn (User $user): array => [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'email_verified_at' => $user->email_verified_at,
-                    'roles' => $user->roles->pluck('name')->values()->all(),
-                    'created_at' => $user->created_at,
-                ]),
+            'records' => function () use ($request): array {
+                return $this->service
+                    ->paginateForAdminIndex($request->filters(), $request->perPage())
+                    ->through(fn (User $user): array => [
+                        'id' => $user->id,
+                        'name' => $user->name,
+                        'email' => $user->email,
+                        'email_verified_at' => $user->email_verified_at,
+                        'roles' => $user->roles->pluck('name')->values()->all(),
+                        'created_at' => $user->created_at,
+                    ])
+                    ->toArray();
+            },
             'filters' => $request->filters(),
-            'options' => [
+            'options' => fn (): array => [
                 'roles' => Role::query()->orderBy('name')->pluck('name')->all(),
             ],
         ]);

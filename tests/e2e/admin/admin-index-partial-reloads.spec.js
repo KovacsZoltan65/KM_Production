@@ -98,6 +98,90 @@ const pages = [
                 ["2027-03-15", fixtures.customerOrderId],
             ),
     },
+    {
+        name: "factory units",
+        path: "/admin/factory-units",
+        search: "E2E-FU",
+        initialText: "E2E Factory Unit",
+        updatedText: "E2E Factory Unit After Partial Reload",
+        update: (fixtures) =>
+            executeSql("UPDATE factory_units SET name = ? WHERE id = ?", [
+                "E2E Factory Unit After Partial Reload",
+                fixtures.factoryUnitId,
+            ]),
+    },
+    {
+        name: "locations",
+        path: "/admin/locations",
+        search: "E2E-LOC",
+        initialText: "E2E Warehouse",
+        updatedText: "E2E Location After Partial Reload",
+        update: (fixtures) =>
+            executeSql("UPDATE locations SET name = ? WHERE id = ?", [
+                "E2E Location After Partial Reload",
+                fixtures.locationId,
+            ]),
+    },
+    {
+        name: "professional roles",
+        path: "/admin/professional-roles",
+        search: "E2E-PRO",
+        initialText: "E2E Professional Role Before Partial Reload",
+        updatedText: "E2E Professional Role After Partial Reload",
+        update: (fixtures) =>
+            executeSql("UPDATE professional_roles SET name = ? WHERE id = ?", [
+                "E2E Professional Role After Partial Reload",
+                fixtures.professionalRoleId,
+            ]),
+    },
+    {
+        name: "operation types",
+        path: "/admin/operation-types",
+        search: "E2E Operation Type",
+        initialText: "E2E Operation Type Before Partial Reload",
+        updatedText: "E2E Operation Type After Partial Reload",
+        update: (fixtures) =>
+            executeSql("UPDATE operation_types SET name = ? WHERE id = ?", [
+                "E2E Operation Type After Partial Reload",
+                fixtures.operationTypeId,
+            ]),
+    },
+    {
+        name: "users",
+        path: "/admin/users",
+        search: "e2e-admin@example.test",
+        initialText: "E2E Admin",
+        updatedText: "E2E Admin After Partial Reload",
+        update: (fixtures) =>
+            executeSql("UPDATE users SET name = ? WHERE id = ?", [
+                "E2E Admin After Partial Reload",
+                fixtures.adminId,
+            ]),
+    },
+    {
+        name: "roles",
+        path: "/admin/roles",
+        search: "e2e-refresh-role",
+        initialText: "e2e-refresh-role-before",
+        updatedText: "e2e-refresh-role-after",
+        update: (fixtures) =>
+            executeSql("UPDATE roles SET name = ? WHERE id = ?", [
+                "e2e-refresh-role-after",
+                fixtures.roleId,
+            ]),
+    },
+    {
+        name: "permissions",
+        path: "/admin/permissions",
+        search: "e2e-refresh-permission",
+        initialText: "e2e-refresh-permission-before",
+        updatedText: "e2e-refresh-permission-after",
+        update: (fixtures) =>
+            executeSql("UPDATE permissions SET name = ? WHERE id = ?", [
+                "e2e-refresh-permission-after",
+                fixtures.permissionId,
+            ]),
+    },
 ];
 
 for (const pageDefinition of pages) {
