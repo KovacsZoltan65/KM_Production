@@ -87,6 +87,18 @@ const pages = [
             ]),
     },
     {
+        name: "shortages",
+        path: "/admin/inventory/shortages",
+        search: "E2E-SO-0001",
+        initialText: "987.123",
+        updatedText: "876.543",
+        update: (fixtures) =>
+            executeSql(
+                "UPDATE material_requirements SET missing_quantity = ? WHERE id = ?",
+                [876.543, fixtures.shortageId],
+            ),
+    },
+    {
         name: "customer orders",
         path: "/admin/customer-orders",
         search: "E2E-CUST",
@@ -201,6 +213,13 @@ for (const pageDefinition of pages) {
 
         const filteredUrl = page.url();
         const refreshButton = page.locator('[data-test="refresh-records"]');
+        let documentRequests = 0;
+
+        page.on("request", (request) => {
+            if (request.resourceType() === "document") {
+                documentRequests += 1;
+            }
+        });
 
         await expect(refreshButton).toBeVisible();
         await expect(
@@ -235,6 +254,7 @@ for (const pageDefinition of pages) {
         const request = await partialRequest;
         expect(["xhr", "fetch"]).toContain(request.resourceType());
         await expect(refreshButton).toBeDisabled();
+        await expect(refreshButton).toHaveClass(/p-button-loading/);
         expect(page.url()).toBe(filteredUrl);
         await expect(page.getByPlaceholder("Search")).toHaveValue(
             pageDefinition.search,
@@ -246,6 +266,7 @@ for (const pageDefinition of pages) {
         ).toBeVisible();
         await expect(refreshButton).toBeEnabled();
         expect(page.url()).toBe(filteredUrl);
+        expect(documentRequests).toBe(0);
         await expect(page.getByPlaceholder("Search")).toHaveValue(
             pageDefinition.search,
         );

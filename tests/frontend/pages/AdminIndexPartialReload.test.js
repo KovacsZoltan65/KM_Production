@@ -5,6 +5,7 @@ import CustomerIndex from "@/Pages/Admin/Customers/Index.vue";
 import CustomerOrderIndex from "@/Pages/Admin/CustomerOrders/Index.vue";
 import FactoryUnitIndex from "@/Pages/Admin/FactoryUnits/Index.vue";
 import StockBalanceIndex from "@/Pages/Admin/Inventory/StockBalances/Index.vue";
+import ShortageIndex from "@/Pages/Admin/Inventory/Shortages/Index.vue";
 import ItemIndex from "@/Pages/Admin/Items/Index.vue";
 import LocationIndex from "@/Pages/Admin/Locations/Index.vue";
 import OperationTypeIndex from "@/Pages/Admin/OperationTypes/Index.vue";
@@ -93,6 +94,11 @@ const pages = [
     {
         name: "Stock Balances",
         component: StockBalanceIndex,
+        props: { records, filters },
+    },
+    {
+        name: "Shortages",
+        component: ShortageIndex,
         props: { records, filters },
     },
     {
@@ -217,6 +223,7 @@ describe.each(pages)("$name Index refresh", (pageDefinition) => {
             loading: false,
             disabled: false,
         });
+        expect(services.toast.add).not.toHaveBeenCalled();
     });
 
     it("hibánál lokalizált toastot ad és megtartja a rekordokat", async () => {
@@ -236,5 +243,8 @@ describe.each(pages)("$name Index refresh", (pageDefinition) => {
         });
         expect(wrapper.props("records").data).toEqual(records.data);
         expect(wrapper.vm.refreshing).toBe(false);
+
+        wrapper.vm.refreshRecords();
+        expect(inertiaRouter.reload).toHaveBeenCalledTimes(2);
     });
 });

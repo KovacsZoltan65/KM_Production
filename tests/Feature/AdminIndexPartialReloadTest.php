@@ -8,6 +8,7 @@ use App\Models\CustomerOrder;
 use App\Models\FactoryUnit;
 use App\Models\Item;
 use App\Models\Location;
+use App\Models\MaterialRequirement;
 use App\Models\OperationType;
 use App\Models\ProfessionalRole;
 use App\Models\StockBalance;
@@ -101,6 +102,42 @@ class AdminIndexPartialReloadTest extends TestCase
                 ->reloadOnly('records', fn (AssertableInertia $reload) => $reload
                     ->has('records.data', 1)
                     ->where('records.data.0.item.item_number', 'REFRESH-STOCK')
+                    ->missing('filters')));
+    }
+
+    public function test_shortages_index_supports_records_only_partial_reload(): void
+    {
+        $requiredItem = Item::factory()->purchasedMaterial()->create([
+            'item_number' => 'REFRESH-SHORTAGE',
+        ]);
+        MaterialRequirement::factory()->create([
+            'required_item_id' => $requiredItem->id,
+            'missing_quantity' => 9,
+            'status' => 'missing',
+        ]);
+        MaterialRequirement::factory()->create([
+            'missing_quantity' => 0,
+            'status' => 'missing',
+        ]);
+
+        $url = "/admin/inventory/shortages?required_item_id={$requiredItem->id}&status=missing&per_page=25&page=1";
+
+        $this->actingAs($this->superAdmin())
+            ->get($url)
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->component('Admin/Inventory/Shortages/Index')
+                ->has('records.data', 1)
+                ->where('records.data.0.required_item.item_number', 'REFRESH-SHORTAGE')
+                ->where('records.per_page', 25)
+                ->where('records.current_page', 1)
+                ->where('filters.required_item_id', (string) $requiredItem->id)
+                ->where('filters.status', 'missing')
+                ->reloadOnly('records', fn (AssertableInertia $reload) => $reload
+                    ->has('records.data', 1)
+                    ->where('records.data.0.required_item.item_number', 'REFRESH-SHORTAGE')
+                    ->where('records.per_page', 25)
+                    ->where('records.current_page', 1)
                     ->missing('filters')));
     }
 

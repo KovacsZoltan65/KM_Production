@@ -19,9 +19,15 @@ router.reload({
 Az `Admin/Employees/Index` oldal ennek a mintának a referencia-megvalósítása: a fejléc
 frissítés gombja kizárólag a `records` prop-ot tölti újra.
 
-A mintát jelenleg az Employees, Items, Customers, Suppliers, Stock Balances, Customer Orders,
-Factory Units, Locations, Professional Roles, Operation Types, Users, Roles és Permissions
-admin listaoldalak használják.
+A mintát jelenleg az Employees, Items, Customers, Suppliers, Stock Balances, Inventory / Shortages,
+Customer Orders, Factory Units, Locations, Professional Roles, Operation Types, Users, Roles és
+Permissions admin listaoldalak használják.
+
+Az Inventory / Shortages oldal lista propja a `records`. A `ShortageController` ezt lazy closure-ként
+adja át, míg a változatlan `filters` prop kimarad a csak `records`-ot kérő partial payloadból; külön
+option propja nincs. A lista közvetlenül a lapozott material requirement lekérdezésből készül, cache-t
+nem olvas. A Playwright fixture egy `E2E-SHORTAGE-PARTIAL-REFRESH` jelölésű material requirement
+`missing_quantity` értékét módosítja közvetlenül az izolált E2E SQLite adatbázisban.
 
 Az `only` paraméterben megnevezett prop-oknak a vezérlőben lezárásoknak kell lenniük. A drága opció
 a prop-oknak is lezárásoknak kell lenniük, hogy az Inertia kihagyhassa a lekérdezéseit egy

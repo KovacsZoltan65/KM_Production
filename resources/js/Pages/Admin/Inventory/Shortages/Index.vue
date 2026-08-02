@@ -1,5 +1,11 @@
 <script setup>
+import { ref } from "vue";
+import { router } from "@inertiajs/vue3";
+import { trans } from "laravel-vue-i18n";
+import Button from "primevue/button";
+import { useToast } from "primevue/usetoast";
 import AdminCrudPage from "@/Components/Admin/AdminCrudPage.vue";
+import { notifyRequestError } from "@/Composables/useRequestError";
 
 /** @typedef {{id: number, missing_quantity: string|number, unit: string, status: string, required_item: {item_number: string, name: string}|null, customer_order_item: {customer_order: {order_number: string}|null, production_orders: {order_number: string}[]}|null}} ShortageRecord */
 /**
@@ -31,6 +37,32 @@ defineProps({
     records: Object,
     filters: Object,
 });
+
+const toast = useToast();
+const refreshing = ref(false);
+
+const refreshRecords = () => {
+    if (refreshing.value) {
+        return;
+    }
+
+    router.reload({
+        only: ["records"],
+        preserveState: true,
+        preserveScroll: true,
+        onStart: () => {
+            refreshing.value = true;
+        },
+        onError: (error) => {
+            notifyRequestError(toast, error, {
+                fallbackKey: "notifications.error.refresh_failed",
+            });
+        },
+        onFinish: () => {
+            refreshing.value = false;
+        },
+    });
+};
 
 const number = (value) => Number(value || 0).toFixed(3);
 
@@ -78,5 +110,19 @@ const columns = [
         :filters="filters"
         :columns="columns"
         read-only
-    />
+    >
+        <template #header-actions>
+            <Button
+                type="button"
+                :label="trans('actions.refresh')"
+                icon="pi pi-refresh"
+                severity="secondary"
+                outlined
+                :loading="refreshing"
+                :disabled="refreshing"
+                data-test="refresh-records"
+                @click="refreshRecords"
+            />
+        </template>
+    </AdminCrudPage>
 </template>

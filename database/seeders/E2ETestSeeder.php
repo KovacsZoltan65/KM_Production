@@ -7,6 +7,7 @@ use App\Enums\CustomerOrderStatus;
 use App\Enums\ItemInstanceStatus;
 use App\Enums\ItemType;
 use App\Enums\LocationType;
+use App\Enums\MaterialRequirementStatus;
 use App\Enums\OperationTypeCode;
 use App\Enums\ProductionTaskStatus;
 use App\Enums\StockReservationStatus;
@@ -19,6 +20,7 @@ use App\Models\FactoryUnit;
 use App\Models\GoodsReceipt;
 use App\Models\Item;
 use App\Models\Location;
+use App\Models\MaterialRequirement;
 use App\Models\OperationType;
 use App\Models\ProductionOrder;
 use App\Models\ProductionPlan;
@@ -201,7 +203,7 @@ class E2ETestSeeder extends Seeder
                 'notes' => 'E2E seed customer order for production plan tests.',
             ],
         );
-        CustomerOrderItem::query()->updateOrCreate(
+        $customerOrderItem = CustomerOrderItem::query()->updateOrCreate(
             [
                 'customer_order_id' => $customerOrder->id,
                 'item_id' => $product->id,
@@ -211,6 +213,19 @@ class E2ETestSeeder extends Seeder
                 'unit' => $product->unit,
                 'status' => CustomerOrderItemStatus::Planned->value,
                 'notes' => 'E2E seed order item.',
+            ],
+        );
+        $shortage = MaterialRequirement::query()->updateOrCreate(
+            ['notes' => 'E2E-SHORTAGE-PARTIAL-REFRESH'],
+            [
+                'customer_order_item_id' => $customerOrderItem->id,
+                'required_item_id' => $item->id,
+                'required_quantity' => 1000,
+                'available_quantity' => 12.877,
+                'reserved_quantity' => 0,
+                'missing_quantity' => 987.123,
+                'unit' => 'db',
+                'status' => MaterialRequirementStatus::Missing,
             ],
         );
         $productionOrder = ProductionOrder::query()->where('order_number', 'PO-2026-000001')->firstOrFail();
@@ -245,6 +260,7 @@ class E2ETestSeeder extends Seeder
                 'permissionId' => $refreshPermission->id,
                 'reservationId' => $reservation->id,
                 'stockBalanceId' => $stockBalance->id,
+                'shortageId' => $shortage->id,
                 'customerId' => $customer->id,
                 'supplierId' => $supplier->id,
                 'productId' => $product->id,
