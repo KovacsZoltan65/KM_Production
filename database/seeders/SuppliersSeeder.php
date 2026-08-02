@@ -22,10 +22,10 @@ class SuppliersSeeder extends Seeder
                 'address' => '8000 Székesfehérvár, Acél út 5.',
                 'notes' => 'Alapanyagokat gyártó és beszállító.',
                 'is_active' => true,
-            ]
+            ],
         ];
-    
-        foreach($suppliers as $supplier) {
+
+        foreach ($suppliers as $supplier) {
             // Create supplier logic here
             Supplier::create($supplier);
         }

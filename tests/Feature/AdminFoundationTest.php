@@ -9,7 +9,9 @@ use App\Models\Location;
 use App\Models\ProfessionalRole;
 use App\Models\User;
 use Database\Seeders\RolesAndPermissionsSeeder;
+use Illuminate\Database\Eloquent\Factories\Sequence;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia;
 use Spatie\Activitylog\Models\Activity;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
@@ -40,6 +42,51 @@ class AdminFoundationTest extends TestCase
         $this->actingAs($user)
             ->get('/admin/users')
             ->assertForbidden();
+    }
+
+    public function test_employee_index_full_load_contains_records_filters_and_options(): void
+    {
+        $admin = $this->superAdmin();
+        ProfessionalRole::factory()->create();
+        Employee::factory()->create();
+
+        $this->actingAs($admin)
+            ->get('/admin/employees?search=EMP&per_page=25&sort=name&direction=desc')
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->component('Admin/Employees/Index')
+                ->has('records.data')
+                ->where('filters.search', 'EMP')
+                ->where('filters.per_page', '25')
+                ->where('filters.sort', 'name')
+                ->where('filters.direction', 'desc')
+                ->has('options.professionalRoles')
+                ->has('options.users'));
+    }
+
+    public function test_employee_index_partial_reload_returns_only_filtered_records(): void
+    {
+        $admin = $this->superAdmin();
+        Employee::factory()
+            ->count(11)
+            ->sequence(fn (Sequence $sequence): array => [
+                'name' => sprintf('Needle Employee %02d', $sequence->index + 1),
+            ])
+            ->create();
+        Employee::factory()->create(['name' => 'Unrelated Worker']);
+
+        $this->actingAs($admin)
+            ->get('/admin/employees?search=Needle&per_page=10&sort=name&direction=desc&page=2')
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->component('Admin/Employees/Index')
+                ->reloadOnly('records', fn (AssertableInertia $reload) => $reload
+                    ->has('records.data', 1)
+                    ->where('records.data.0.name', 'Needle Employee 01')
+                    ->where('records.current_page', 2)
+                    ->where('records.per_page', 10)
+                    ->missing('filters')
+                    ->missing('options')));
     }
 
     public function test_user_can_be_created_with_role(): void

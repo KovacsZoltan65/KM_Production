@@ -1,0 +1,292 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Enums\OperationTypeCode;
+use App\Models\Customer;
+use App\Models\CustomerOrder;
+use App\Models\FactoryUnit;
+use App\Models\Item;
+use App\Models\Location;
+use App\Models\OperationType;
+use App\Models\ProfessionalRole;
+use App\Models\StockBalance;
+use App\Models\Supplier;
+use App\Models\User;
+use Database\Seeders\RolesAndPermissionsSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
+use Tests\TestCase;
+
+class AdminIndexPartialReloadTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_items_index_supports_records_only_partial_reload(): void
+    {
+        $admin = $this->superAdmin();
+        Item::factory()->purchasedMaterial()->create(['item_number' => 'REFRESH-ITEM', 'name' => 'Refresh Item']);
+
+        $this->actingAs($admin)
+            ->get('/admin/items?search=REFRESH-ITEM&per_page=25&sort=name&direction=desc')
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->component('Admin/Items/Index')
+                ->has('records.data', 1)
+                ->has('filters')
+                ->has('itemTypes')
+                ->reloadOnly('records', fn (AssertableInertia $reload) => $reload
+                    ->has('records.data', 1)
+                    ->where('records.data.0.item_number', 'REFRESH-ITEM')
+                    ->missing('filters')
+                    ->missing('itemTypes')));
+    }
+
+    public function test_customers_index_supports_records_only_partial_reload(): void
+    {
+        $admin = $this->superAdmin();
+        Customer::factory()->create(['code' => 'REFRESH-CUSTOMER', 'name' => 'Refresh Customer']);
+
+        $this->actingAs($admin)
+            ->get('/admin/customers?search=REFRESH-CUSTOMER&per_page=25&sort=name&direction=desc')
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->component('Admin/Customers/Index')
+                ->has('records.data', 1)
+                ->has('filters')
+                ->reloadOnly('records', fn (AssertableInertia $reload) => $reload
+                    ->has('records.data', 1)
+                    ->where('records.data.0.code', 'REFRESH-CUSTOMER')
+                    ->missing('filters')));
+    }
+
+    public function test_suppliers_index_supports_records_only_partial_reload(): void
+    {
+        $admin = $this->superAdmin();
+        Supplier::factory()->create(['code' => 'REFRESH-SUPPLIER', 'name' => 'Refresh Supplier']);
+
+        $this->actingAs($admin)
+            ->get('/admin/suppliers?search=REFRESH-SUPPLIER&per_page=25&sort=name&direction=desc')
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->component('Admin/Suppliers/Index')
+                ->has('records.data', 1)
+                ->has('filters')
+                ->reloadOnly('records', fn (AssertableInertia $reload) => $reload
+                    ->has('records.data', 1)
+                    ->where('records.data.0.code', 'REFRESH-SUPPLIER')
+                    ->missing('filters')));
+    }
+
+    public function test_stock_balances_index_supports_records_only_partial_reload(): void
+    {
+        $admin = $this->superAdmin();
+        $item = Item::factory()->purchasedMaterial()->create(['item_number' => 'REFRESH-STOCK']);
+        $location = Location::factory()->create();
+        StockBalance::factory()->create([
+            'item_id' => $item->id,
+            'location_id' => $location->id,
+            'quantity' => 12,
+        ]);
+
+        $this->actingAs($admin)
+            ->get('/admin/inventory/stock-balances?search=REFRESH-STOCK&per_page=25&sort=quantity&direction=desc')
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->component('Admin/Inventory/StockBalances/Index')
+                ->has('records.data', 1)
+                ->has('filters')
+                ->reloadOnly('records', fn (AssertableInertia $reload) => $reload
+                    ->has('records.data', 1)
+                    ->where('records.data.0.item.item_number', 'REFRESH-STOCK')
+                    ->missing('filters')));
+    }
+
+    public function test_customer_orders_index_supports_records_only_partial_reload(): void
+    {
+        $admin = $this->superAdmin();
+        $customer = Customer::factory()->create(['code' => 'REFRESH-ORDER-CUSTOMER']);
+        CustomerOrder::factory()->create([
+            'order_number' => 'REFRESH-ORDER',
+            'customer_id' => $customer->id,
+        ]);
+        Item::factory()->finishedProduct()->create();
+
+        $this->actingAs($admin)
+            ->get('/admin/customer-orders?search=REFRESH-ORDER&per_page=25&sort=order_number&direction=desc')
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->component('Admin/CustomerOrders/Index')
+                ->has('records.data', 1)
+                ->has('filters')
+                ->has('customerOptions')
+                ->has('itemOptions')
+                ->has('statusOptions')
+                ->reloadOnly('records', fn (AssertableInertia $reload) => $reload
+                    ->has('records.data', 1)
+                    ->where('records.data.0.order_number', 'REFRESH-ORDER')
+                    ->missing('filters')
+                    ->missing('customerOptions')
+                    ->missing('itemOptions')
+                    ->missing('statusOptions')));
+    }
+
+    public function test_factory_units_index_supports_records_only_partial_reload(): void
+    {
+        FactoryUnit::factory()->create(['code' => 'REFRESH-FACTORY', 'name' => 'Refresh Factory']);
+
+        $this->assertRecordsOnlyReload(
+            '/admin/factory-units?search=REFRESH-FACTORY&per_page=25&sort=name&direction=desc',
+            'Admin/FactoryUnits/Index',
+            'records.data.0.code',
+            'REFRESH-FACTORY',
+        );
+    }
+
+    public function test_locations_index_supports_records_only_partial_reload(): void
+    {
+        $factoryUnit = FactoryUnit::factory()->create();
+        Location::factory()->create([
+            'factory_unit_id' => $factoryUnit->id,
+            'code' => 'REFRESH-LOCATION',
+            'name' => 'Refresh Location',
+        ]);
+
+        $this->assertRecordsOnlyReload(
+            '/admin/locations?search=REFRESH-LOCATION&per_page=25&sort=name&direction=desc',
+            'Admin/Locations/Index',
+            'records.data.0.code',
+            'REFRESH-LOCATION',
+            ['options'],
+        );
+    }
+
+    public function test_professional_roles_index_supports_records_only_partial_reload(): void
+    {
+        ProfessionalRole::factory()->create(['code' => 'REFRESH-PROFESSIONAL', 'name' => 'Refresh Professional Role']);
+
+        $this->assertRecordsOnlyReload(
+            '/admin/professional-roles?search=REFRESH-PROFESSIONAL&per_page=25&sort=name&direction=desc',
+            'Admin/ProfessionalRoles/Index',
+            'records.data.0.code',
+            'REFRESH-PROFESSIONAL',
+        );
+    }
+
+    public function test_operation_types_index_supports_records_only_partial_reload(): void
+    {
+        OperationType::factory()->create([
+            'code' => OperationTypeCode::CUTTING,
+            'name' => 'Refresh Operation Type',
+        ]);
+
+        $this->assertRecordsOnlyReload(
+            '/admin/operation-types?search=Refresh%20Operation&per_page=25&sort=name&direction=desc',
+            'Admin/OperationTypes/Index',
+            'records.data.0.name',
+            'Refresh Operation Type',
+            ['operationTypeCodes'],
+        );
+    }
+
+    public function test_users_index_supports_records_only_partial_reload(): void
+    {
+        User::factory()->create([
+            'name' => 'Refresh User',
+            'email' => 'refresh-user@example.test',
+            'email_verified_at' => now(),
+        ]);
+
+        $this->assertRecordsOnlyReload(
+            '/admin/users?search=refresh-user%40example.test&per_page=25&sort=name&direction=desc',
+            'Admin/Users/Index',
+            'records.data.0.email',
+            'refresh-user@example.test',
+            ['options'],
+        );
+    }
+
+    public function test_roles_index_supports_records_only_partial_reload(): void
+    {
+        Role::query()->create(['name' => 'REFRESH-ROLE', 'guard_name' => 'web']);
+
+        $this->assertRecordsOnlyReload(
+            '/admin/roles?search=REFRESH-ROLE&per_page=25&sort=name&direction=desc',
+            'Admin/Roles/Index',
+            'records.data.0.name',
+            'REFRESH-ROLE',
+            ['options'],
+        );
+    }
+
+    public function test_permissions_index_supports_records_only_partial_reload(): void
+    {
+        Permission::query()->create(['name' => 'REFRESH-PERMISSION', 'guard_name' => 'web']);
+
+        $this->assertRecordsOnlyReload(
+            '/admin/permissions?search=REFRESH-PERMISSION&per_page=25&sort=name&direction=desc',
+            'Admin/Permissions/Index',
+            'records.data.0.name',
+            'REFRESH-PERMISSION',
+        );
+    }
+
+    /**
+     * @param  list<string>  $optionProps
+     */
+    private function assertRecordsOnlyReload(
+        string $url,
+        string $component,
+        string $recordPath,
+        mixed $expectedRecordValue,
+        array $optionProps = [],
+    ): void {
+        $pageAssertion = fn (AssertableInertia $page) => $page
+            ->component($component)
+            ->has('records.data', 1)
+            ->has('filters');
+
+        $this->actingAs($this->superAdmin())
+            ->get($url)
+            ->assertOk()
+            ->assertInertia(function (AssertableInertia $page) use (
+                $pageAssertion,
+                $optionProps,
+                $recordPath,
+                $expectedRecordValue,
+            ): void {
+                $pageAssertion($page);
+
+                foreach ($optionProps as $optionProp) {
+                    $page->has($optionProp);
+                }
+
+                $page->reloadOnly('records', function (AssertableInertia $reload) use (
+                    $optionProps,
+                    $recordPath,
+                    $expectedRecordValue,
+                ): void {
+                    $reload
+                        ->has('records.data', 1)
+                        ->where($recordPath, $expectedRecordValue)
+                        ->missing('filters');
+
+                    foreach ($optionProps as $optionProp) {
+                        $reload->missing($optionProp);
+                    }
+                });
+            });
+    }
+
+    private function superAdmin(): User
+    {
+        $this->seed(RolesAndPermissionsSeeder::class);
+
+        $user = User::factory()->create(['email_verified_at' => now()]);
+        $user->assignRole('super-admin');
+
+        return $user;
+    }
+}

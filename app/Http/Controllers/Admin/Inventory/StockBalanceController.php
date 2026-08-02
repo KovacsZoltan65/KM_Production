@@ -18,7 +18,7 @@ class StockBalanceController extends Controller
         $this->authorize('viewAny', StockBalance::class);
 
         return Inertia::render('Admin/Inventory/StockBalances/Index', [
-            'records' => $this->service->paginateStockBalances($request->filters(), $request->perPage()),
+            'records' => fn () => $this->service->paginateStockBalances($request->filters(), $request->perPage()),
             'filters' => $request->filters(),
         ]);
     }

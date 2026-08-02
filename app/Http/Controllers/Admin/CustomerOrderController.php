@@ -39,11 +39,11 @@ class CustomerOrderController extends Controller
         $this->authorize('viewAny', CustomerOrder::class);
 
         return Inertia::render('Admin/CustomerOrders/Index', [
-            'records' => $this->service->paginateForAdminIndex($request->filters(), $request->perPage()),
+            'records' => fn () => $this->service->paginateForAdminIndex($request->filters(), $request->perPage()),
             'filters' => $request->filters(),
-            'customerOptions' => $this->customerOptions(),
-            'itemOptions' => $this->itemOptions(),
-            'statusOptions' => $this->statusOptions(),
+            'customerOptions' => fn () => $this->customerOptions(),
+            'itemOptions' => fn () => $this->itemOptions(),
+            'statusOptions' => fn () => $this->statusOptions(),
         ]);
     }
 

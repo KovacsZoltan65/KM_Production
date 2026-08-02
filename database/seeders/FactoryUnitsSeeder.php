@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\FactoryUnit;
 use Illuminate\Database\Seeder;
-use Spatie\Permission\PermissionRegistrar;
 
 class FactoryUnitsSeeder extends Seeder
 {
@@ -21,7 +20,7 @@ class FactoryUnitsSeeder extends Seeder
             ],
         ];
 
-        foreach($factory_units as $unit) {
+        foreach ($factory_units as $unit) {
             // Create factory unit logic here
             FactoryUnit::create($unit);
         }

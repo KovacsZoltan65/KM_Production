@@ -35,10 +35,10 @@ class EmployeeSeeder extends Seeder
                 'professional_role_id' => $professional_roles['QUALITY_INSPECTOR'],
                 'is_active' => true,
                 'hired_at' => '2026-07-06',
-            ]
+            ],
         ];
 
-        foreach($employees as $employee) {
+        foreach ($employees as $employee) {
             // Create employee logic here
             Employee::create($employee);
         }

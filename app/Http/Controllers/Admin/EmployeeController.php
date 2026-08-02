@@ -45,13 +45,13 @@ class EmployeeController extends Controller
         // Megjeleníti az alkalmazottak adminisztrációs listaoldalát.
         return Inertia::render('Admin/Employees/Index', [
             // Az alkalmazottak szerveroldalon szűrt és lapozott listája.
-            'records' => $this->service->paginateForAdminIndex($request->filters(), $request->perPage()),
+            'records' => fn () => $this->service->paginateForAdminIndex($request->filters(), $request->perPage()),
             // Az aktuális szűrők visszaadása a frontend állapotának
             // és a szűrőmezők értékeinek megőrzéséhez.
             'filters' => $request->filters(),
             // A létrehozási, szerkesztési és szűrési mezők
             // választható értékei.
-            'options' => [
+            'options' => fn (): array => [
                 // Az alkalmazotthoz rendelhető szakmai szerepkörök.
                 'professionalRoles' => ProfessionalRole::query()->orderBy('name')->get(['id', 'name', 'code']),
                 // Az alkalmazotthoz kapcsolható rendszerfelhasználók.

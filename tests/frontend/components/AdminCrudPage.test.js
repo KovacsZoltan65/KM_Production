@@ -32,7 +32,7 @@ const AdminPageHeaderStub = defineComponent({
     props: ["title", "subtitle", "createLabel", "canCreate"],
     emits: ["create"],
     template:
-        "<header><h1>{{ title }}</h1><button v-if='canCreate' data-test='create' @click='$emit(\"create\")'>{{ createLabel }}</button></header>",
+        "<header><h1>{{ title }}</h1><slot name='actions' /><button v-if='canCreate' data-test='create' @click='$emit(\"create\")'>{{ createLabel }}</button></header>",
 });
 const DialogStub = defineComponent({
     name: "Dialog",
@@ -75,9 +75,10 @@ const baseProps = () => ({
     ],
 });
 
-const mountPage = (overrides = {}) =>
+const mountPage = (overrides = {}, slots = {}) =>
     shallowMount(AdminCrudPage, {
         props: { ...baseProps(), ...overrides },
+        slots,
         global: {
             stubs: {
                 AdminLayout: AdminLayoutStub,
@@ -113,6 +114,20 @@ describe("AdminCrudPage", () => {
             canCreate: true,
             createLabel: "actions.create",
         });
+    });
+
+    it("az opcionális fejlécműveletet továbbítja az oldalfejlécnek", () => {
+        const wrapper = mountPage(
+            {},
+            {
+                "header-actions":
+                    "<button data-test='custom-header-action'>refresh</button>",
+            },
+        );
+
+        expect(wrapper.get("[data-test='custom-header-action']").text()).toBe(
+            "refresh",
+        );
     });
 
     it("a kapott rekordokat és pagination metát átadja a táblázatnak", () => {

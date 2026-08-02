@@ -2,6 +2,7 @@ import { defineComponent } from "vue";
 import { shallowMount } from "@vue/test-utils";
 import { describe, expect, it } from "vitest";
 import AdminActionButtons from "@/Components/Admin/AdminActionButtons.vue";
+import AdminPageHeader from "@/Components/Admin/AdminPageHeader.vue";
 import AdminSearchBar from "@/Components/Admin/AdminSearchBar.vue";
 
 const ButtonStub = defineComponent({
@@ -57,6 +58,27 @@ describe("AdminActionButtons", () => {
         });
 
         expect(wrapper.findAllComponents(ButtonStub)).toHaveLength(0);
+    });
+});
+
+describe("AdminPageHeader", () => {
+    it("csak kifejezetten átadott opcionális fejlécműveletet jelenít meg", () => {
+        const withoutAction = shallowMount(AdminPageHeader, {
+            props: { title: "Dolgozók", canCreate: false },
+            global: { stubs: { Button: ButtonStub } },
+        });
+        const withAction = shallowMount(AdminPageHeader, {
+            props: { title: "Dolgozók", canCreate: false },
+            slots: {
+                actions: "<button data-test='refresh-action'>refresh</button>",
+            },
+            global: { stubs: { Button: ButtonStub } },
+        });
+
+        expect(withoutAction.find("button").exists()).toBe(false);
+        expect(withAction.get("[data-test='refresh-action']").text()).toBe(
+            "refresh",
+        );
     });
 });
 

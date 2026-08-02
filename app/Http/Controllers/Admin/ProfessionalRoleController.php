@@ -21,7 +21,7 @@ class ProfessionalRoleController extends Controller
         $this->authorize('viewAny', ProfessionalRole::class);
 
         return Inertia::render('Admin/ProfessionalRoles/Index', [
-            'records' => $this->service->paginateForAdminIndex($request->filters(), $request->perPage()),
+            'records' => fn () => $this->service->paginateForAdminIndex($request->filters(), $request->perPage()),
             'filters' => $request->filters(),
         ]);
     }

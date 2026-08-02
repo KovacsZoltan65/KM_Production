@@ -22,9 +22,9 @@ class OperationTypeController extends Controller
         $this->authorize('viewAny', OperationType::class);
 
         return Inertia::render('Admin/OperationTypes/Index', [
-            'records' => $this->service->paginateForAdminIndex($request->filters(), $request->perPage()),
+            'records' => fn () => $this->service->paginateForAdminIndex($request->filters(), $request->perPage()),
             'filters' => $request->filters(),
-            'operationTypeCodes' => collect(OperationTypeCode::cases())
+            'operationTypeCodes' => fn () => collect(OperationTypeCode::cases())
                 ->map(fn (OperationTypeCode $code): array => [
                     'label' => str($code->value)->replace('_', ' ')->title()->toString(),
                     'value' => $code->value,

@@ -1,5 +1,11 @@
 <script setup>
 import AdminCrudPage from "@/Components/Admin/AdminCrudPage.vue";
+import { notifyRequestError } from "@/Composables/useRequestError";
+import { router } from "@inertiajs/vue3";
+import { trans } from "laravel-vue-i18n";
+import Button from "primevue/button";
+import { useToast } from "primevue/usetoast";
+import { ref } from "vue";
 
 /** @typedef {{id: number, code: string, name: string, description: string|null, is_active: boolean}} OperationTypeRecord */
 /** @typedef {{label: string, value: string}} OperationTypeCodeOption */
@@ -34,6 +40,32 @@ defineProps({
     filters: Object,
     operationTypeCodes: Array,
 });
+
+const toast = useToast();
+const refreshing = ref(false);
+
+const refreshRecords = () => {
+    if (refreshing.value) {
+        return;
+    }
+
+    router.reload({
+        only: ["records"],
+        preserveState: true,
+        preserveScroll: true,
+        onStart: () => {
+            refreshing.value = true;
+        },
+        onError: (error) => {
+            notifyRequestError(toast, error, {
+                fallbackKey: "notifications.error.refresh_failed",
+            });
+        },
+        onFinish: () => {
+            refreshing.value = false;
+        },
+    });
+};
 
 const columns = [
     { field: "code", headerKey: "fields.code" },
@@ -73,5 +105,19 @@ const fields = [
         :columns="columns"
         :fields="fields"
         :options="{ operationTypeCodes }"
-    />
+    >
+        <template #header-actions>
+            <Button
+                type="button"
+                :label="trans('actions.refresh')"
+                icon="pi pi-refresh"
+                severity="secondary"
+                outlined
+                :loading="refreshing"
+                :disabled="refreshing"
+                data-test="refresh-records"
+                @click="refreshRecords"
+            />
+        </template>
+    </AdminCrudPage>
 </template>

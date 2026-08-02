@@ -23,9 +23,9 @@ class LocationController extends Controller
         $this->authorize('viewAny', Location::class);
 
         return Inertia::render('Admin/Locations/Index', [
-            'records' => $this->service->paginateForAdminIndex($request->filters(), $request->perPage()),
+            'records' => fn () => $this->service->paginateForAdminIndex($request->filters(), $request->perPage()),
             'filters' => $request->filters(),
-            'options' => [
+            'options' => fn (): array => [
                 'factoryUnits' => FactoryUnit::query()->orderBy('name')->get(['id', 'name', 'code']),
                 'locationTypes' => collect(LocationType::cases())->map(fn (LocationType $type): array => [
                     'label' => str($type->value)->replace('_', ' ')->title()->toString(),

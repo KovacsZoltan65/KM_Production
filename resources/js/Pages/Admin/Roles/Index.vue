@@ -1,5 +1,11 @@
 <script setup>
 import AdminCrudPage from "@/Components/Admin/AdminCrudPage.vue";
+import { notifyRequestError } from "@/Composables/useRequestError";
+import { router } from "@inertiajs/vue3";
+import { trans } from "laravel-vue-i18n";
+import Button from "primevue/button";
+import { useToast } from "primevue/usetoast";
+import { ref } from "vue";
 
 /** @typedef {{id: number, name: string, permissions: string[], created_at: string|null}} RoleRecord */
 /**
@@ -33,6 +39,32 @@ defineProps({
     filters: Object,
     options: Object,
 });
+
+const toast = useToast();
+const refreshing = ref(false);
+
+const refreshRecords = () => {
+    if (refreshing.value) {
+        return;
+    }
+
+    router.reload({
+        only: ["records"],
+        preserveState: true,
+        preserveScroll: true,
+        onStart: () => {
+            refreshing.value = true;
+        },
+        onError: (error) => {
+            notifyRequestError(toast, error, {
+                fallbackKey: "notifications.error.refresh_failed",
+            });
+        },
+        onFinish: () => {
+            refreshing.value = false;
+        },
+    });
+};
 
 const columns = [
     { field: "name", headerKey: "fields.name" },
@@ -73,5 +105,19 @@ const fields = [
         :options="options"
         :columns="columns"
         :fields="fields"
-    />
+    >
+        <template #header-actions>
+            <Button
+                type="button"
+                :label="trans('actions.refresh')"
+                icon="pi pi-refresh"
+                severity="secondary"
+                outlined
+                :loading="refreshing"
+                :disabled="refreshing"
+                data-test="refresh-records"
+                @click="refreshRecords"
+            />
+        </template>
+    </AdminCrudPage>
 </template>

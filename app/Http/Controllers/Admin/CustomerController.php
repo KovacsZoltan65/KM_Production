@@ -41,7 +41,7 @@ class CustomerController extends Controller
         // Megjeleníti a vevők adminisztrációs listaoldalát.
         return Inertia::render('Admin/Customers/Index', [
             // A vevők szerveroldalon szűrt és lapozott listája.
-            'records' => $this->service->paginateForAdminIndex(
+            'records' => fn () => $this->service->paginateForAdminIndex(
                 $filters,
                 $request->perPage()
             ),

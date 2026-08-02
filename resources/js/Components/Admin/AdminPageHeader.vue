@@ -57,12 +57,19 @@ const resolvedCreateLabel = computed(() =>
             </p>
         </div>
 
-        <Button
-            v-if="canCreate"
-            type="button"
-            :label="resolvedCreateLabel"
-            icon="pi pi-plus"
-            @click="$emit('create')"
-        />
+        <div
+            v-if="$slots.actions || canCreate"
+            class="flex flex-wrap items-center gap-2"
+        >
+            <slot name="actions" />
+
+            <Button
+                v-if="canCreate"
+                type="button"
+                :label="resolvedCreateLabel"
+                icon="pi pi-plus"
+                @click="$emit('create')"
+            />
+        </div>
     </div>
 </template>

@@ -18,7 +18,7 @@ class PermissionController extends Controller
         $this->authorize('viewAny', Permission::class);
 
         return Inertia::render('Admin/Permissions/Index', [
-            'records' => $this->repository->paginateForAdminIndex($request->filters(), $request->perPage()),
+            'records' => fn () => $this->repository->paginateForAdminIndex($request->filters(), $request->perPage()),
             'filters' => $request->filters(),
         ]);
     }

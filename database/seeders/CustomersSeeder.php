@@ -23,15 +23,14 @@ class CustomersSeeder extends Seeder
                 'shipping_address' => '1051 Budapest, Teszt utca 1.',
                 'notes' => 'Központi laboratórium, aki az első kliens.',
                 'is_active' => true,
-            ]
+            ],
         ];
 
-        foreach($customers as $customer) {
+        foreach ($customers as $customer) {
             // Create customer logic here
             Customer::create($customer);
         }
 
         app(PermissionRegistrar::class)->forgetCachedPermissions();
     }
-
 }
