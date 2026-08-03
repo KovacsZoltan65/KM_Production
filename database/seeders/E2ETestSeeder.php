@@ -133,6 +133,16 @@ class E2ETestSeeder extends Seeder
                 'is_active' => true,
             ],
         );
+        $materialRequirementItem = Item::query()->updateOrCreate(
+            ['item_number' => 'E2E-MR-001'],
+            [
+                'name' => 'E2E Material Requirement Item',
+                'item_type' => ItemType::PurchasedMaterial,
+                'unit' => 'db',
+                'requires_serial_number' => false,
+                'is_active' => true,
+            ],
+        );
 
         $reservation = StockReservation::withTrashed()
             ->firstOrNew(['notes' => 'E2E-STOCK-RESERVATION']);
@@ -228,6 +238,41 @@ class E2ETestSeeder extends Seeder
                 'status' => MaterialRequirementStatus::Missing,
             ],
         );
+        $materialRequirementOrder = CustomerOrder::query()->updateOrCreate(
+            ['order_number' => 'E2E-MR-SO-0001'],
+            [
+                'customer_id' => $customer->id,
+                'status' => CustomerOrderStatus::Confirmed->value,
+                'requested_delivery_date' => '2027-04-01',
+                'confirmed_at' => now(),
+                'notes' => 'E2E material requirement partial refresh order.',
+            ],
+        );
+        $materialRequirementOrderItem = CustomerOrderItem::query()->updateOrCreate(
+            [
+                'customer_order_id' => $materialRequirementOrder->id,
+                'item_id' => $product->id,
+            ],
+            [
+                'quantity' => 1,
+                'unit' => $product->unit,
+                'status' => CustomerOrderItemStatus::Planned->value,
+                'notes' => 'E2E material requirement partial refresh order item.',
+            ],
+        );
+        $materialRequirement = MaterialRequirement::query()->updateOrCreate(
+            ['notes' => 'E2E-MATERIAL-REQUIREMENT-PARTIAL-REFRESH'],
+            [
+                'customer_order_item_id' => $materialRequirementOrderItem->id,
+                'required_item_id' => $materialRequirementItem->id,
+                'required_quantity' => 321.123,
+                'available_quantity' => 100,
+                'reserved_quantity' => 20,
+                'missing_quantity' => 221.123,
+                'unit' => 'db',
+                'status' => MaterialRequirementStatus::PartiallyAvailable,
+            ],
+        );
         $productionOrder = ProductionOrder::query()->where('order_number', 'PO-2026-000001')->firstOrFail();
         $employee = Employee::query()->where('employee_number', 'EMP-WELDER-001')->firstOrFail();
         $productionTask = ProductionTask::query()
@@ -252,6 +297,7 @@ class E2ETestSeeder extends Seeder
             storage_path('framework/testing/e2e-fixtures.json'),
             json_encode([
                 'itemId' => $item->id,
+                'materialRequirementId' => $materialRequirement->id,
                 'adminId' => $admin->id,
                 'factoryUnitId' => $factoryUnit->id,
                 'professionalRoleId' => $professionalRole->id,

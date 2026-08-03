@@ -20,14 +20,21 @@ Az `Admin/Employees/Index` oldal ennek a mintának a referencia-megvalósítása
 frissítés gombja kizárólag a `records` prop-ot tölti újra.
 
 A mintát jelenleg az Employees, Items, Customers, Suppliers, Stock Balances, Inventory / Shortages,
-Customer Orders, Factory Units, Locations, Professional Roles, Operation Types, Users, Roles és
-Permissions admin listaoldalak használják.
+Inventory / Material Requirements, Customer Orders, Factory Units, Locations, Professional Roles,
+Operation Types, Users, Roles és Permissions admin listaoldalak használják.
 
 Az Inventory / Shortages oldal lista propja a `records`. A `ShortageController` ezt lazy closure-ként
 adja át, míg a változatlan `filters` prop kimarad a csak `records`-ot kérő partial payloadból; külön
 option propja nincs. A lista közvetlenül a lapozott material requirement lekérdezésből készül, cache-t
 nem olvas. A Playwright fixture egy `E2E-SHORTAGE-PARTIAL-REFRESH` jelölésű material requirement
 `missing_quantity` értékét módosítja közvetlenül az izolált E2E SQLite adatbázisban.
+
+Az Inventory / Material Requirements oldal szintén a `records` lista propot adja át lazy controller
+closure-ként. A `filters`, `statusOptions`, `itemOptions` és `customerOrderOptions` kimarad a partial
+payloadból; a tényleges repository-szűrők a `status`, `required_item_id` és `customer_order_id`. A
+lapozott lista közvetlen, eager loadingot használó adatbázis-lekérdezésből készül, nem cache-ből. A
+Playwright egy `E2E-MATERIAL-REQUIREMENT-PARTIAL-REFRESH` fixture-t required item szerint szűr, majd
+a megjelenített `required_quantity` módosításával igazolja a friss adat betöltését.
 
 Az `only` paraméterben megnevezett prop-oknak a vezérlőben lezárásoknak kell lenniük. A drága opció
 a prop-oknak is lezárásoknak kell lenniük, hogy az Inertia kihagyhassa a lekérdezéseit egy

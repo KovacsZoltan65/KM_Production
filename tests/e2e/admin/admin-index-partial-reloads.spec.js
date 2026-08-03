@@ -99,6 +99,37 @@ const pages = [
             ),
     },
     {
+        name: "material requirements",
+        path: "/admin/inventory/material-requirements",
+        configureFilter: async (page) => {
+            await page
+                .getByRole("combobox", { name: "Required item", exact: true })
+                .click();
+            await page
+                .getByRole("option", {
+                    name: "E2E-MR-001 - E2E Material Requirement Item",
+                    exact: true,
+                })
+                .click();
+            await expect(page).toHaveURL(/required_item_id=\d+/);
+        },
+        assertFilter: async (page) => {
+            await expect(
+                page.getByRole("combobox", {
+                    name: "E2E-MR-001 - E2E Material Requirement Item",
+                    exact: true,
+                }),
+            ).toBeVisible();
+        },
+        initialText: "321.123",
+        updatedText: "654.321",
+        update: (fixtures) =>
+            executeSql(
+                "UPDATE material_requirements SET required_quantity = ? WHERE id = ?",
+                [654.321, fixtures.materialRequirementId],
+            ),
+    },
+    {
         name: "customer orders",
         path: "/admin/customer-orders",
         search: "E2E-CUST",
@@ -205,11 +236,19 @@ for (const pageDefinition of pages) {
         await loginThroughUi(page, e2eUsers.admin);
         await page.goto(pageDefinition.path);
 
-        await page.getByPlaceholder("Search").fill(pageDefinition.search);
-        await page.getByRole("button", { name: "Search", exact: true }).click();
-        await expect(page).toHaveURL(
-            new RegExp(`search=${encodeURIComponent(pageDefinition.search)}`),
-        );
+        if (pageDefinition.configureFilter) {
+            await pageDefinition.configureFilter(page);
+        } else {
+            await page.getByPlaceholder("Search").fill(pageDefinition.search);
+            await page
+                .getByRole("button", { name: "Search", exact: true })
+                .click();
+            await expect(page).toHaveURL(
+                new RegExp(
+                    `search=${encodeURIComponent(pageDefinition.search)}`,
+                ),
+            );
+        }
 
         const filteredUrl = page.url();
         const refreshButton = page.locator('[data-test="refresh-records"]');
@@ -256,9 +295,13 @@ for (const pageDefinition of pages) {
         await expect(refreshButton).toBeDisabled();
         await expect(refreshButton).toHaveClass(/p-button-loading/);
         expect(page.url()).toBe(filteredUrl);
-        await expect(page.getByPlaceholder("Search")).toHaveValue(
-            pageDefinition.search,
-        );
+        if (pageDefinition.assertFilter) {
+            await pageDefinition.assertFilter(page);
+        } else {
+            await expect(page.getByPlaceholder("Search")).toHaveValue(
+                pageDefinition.search,
+            );
+        }
 
         releaseRequest();
         await expect(
@@ -267,9 +310,13 @@ for (const pageDefinition of pages) {
         await expect(refreshButton).toBeEnabled();
         expect(page.url()).toBe(filteredUrl);
         expect(documentRequests).toBe(0);
-        await expect(page.getByPlaceholder("Search")).toHaveValue(
-            pageDefinition.search,
-        );
+        if (pageDefinition.assertFilter) {
+            await pageDefinition.assertFilter(page);
+        } else {
+            await expect(page.getByPlaceholder("Search")).toHaveValue(
+                pageDefinition.search,
+            );
+        }
         expect(browserErrors).toBeDefined();
     });
 }

@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Enums\OperationTypeCode;
 use App\Models\Customer;
 use App\Models\CustomerOrder;
+use App\Models\CustomerOrderItem;
 use App\Models\FactoryUnit;
 use App\Models\Item;
 use App\Models\Location;
@@ -139,6 +140,66 @@ class AdminIndexPartialReloadTest extends TestCase
                     ->where('records.per_page', 25)
                     ->where('records.current_page', 1)
                     ->missing('filters')));
+    }
+
+    public function test_material_requirements_index_supports_records_only_partial_reload(): void
+    {
+        $customerOrder = CustomerOrder::factory()->create([
+            'order_number' => 'REFRESH-MR-ORDER',
+        ]);
+        $customerOrderItem = CustomerOrderItem::factory()->create([
+            'customer_order_id' => $customerOrder->id,
+        ]);
+        $requiredItem = Item::factory()->purchasedMaterial()->create([
+            'item_number' => 'REFRESH-MR-ITEM',
+        ]);
+        $otherItem = Item::factory()->purchasedMaterial()->create();
+
+        MaterialRequirement::factory()->create([
+            'customer_order_item_id' => $customerOrderItem->id,
+            'required_item_id' => $requiredItem->id,
+            'required_quantity' => 17,
+            'status' => 'received',
+        ]);
+        MaterialRequirement::factory()->create([
+            'customer_order_item_id' => $customerOrderItem->id,
+            'required_item_id' => $requiredItem->id,
+            'status' => 'missing',
+        ]);
+        MaterialRequirement::factory()->create([
+            'customer_order_item_id' => $customerOrderItem->id,
+            'required_item_id' => $otherItem->id,
+            'status' => 'received',
+        ]);
+
+        $url = "/admin/inventory/material-requirements?status=received&required_item_id={$requiredItem->id}&customer_order_id={$customerOrder->id}&per_page=25&sort=required_quantity&direction=desc&page=1";
+
+        $this->actingAs($this->superAdmin())
+            ->get($url)
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->component('Admin/Inventory/MaterialRequirements/Index')
+                ->has('records.data', 1)
+                ->where('records.data.0.required_item.item_number', 'REFRESH-MR-ITEM')
+                ->where('records.data.0.customer_order_item.customer_order.order_number', 'REFRESH-MR-ORDER')
+                ->where('records.per_page', 25)
+                ->where('records.current_page', 1)
+                ->where('filters.status', 'received')
+                ->where('filters.required_item_id', (string) $requiredItem->id)
+                ->where('filters.customer_order_id', (string) $customerOrder->id)
+                ->has('statusOptions')
+                ->has('itemOptions')
+                ->has('customerOrderOptions')
+                ->reloadOnly('records', fn (AssertableInertia $reload) => $reload
+                    ->has('records.data', 1)
+                    ->where('records.data.0.required_item.item_number', 'REFRESH-MR-ITEM')
+                    ->where('records.data.0.customer_order_item.customer_order.order_number', 'REFRESH-MR-ORDER')
+                    ->where('records.per_page', 25)
+                    ->where('records.current_page', 1)
+                    ->missing('filters')
+                    ->missing('statusOptions')
+                    ->missing('itemOptions')
+                    ->missing('customerOrderOptions')));
     }
 
     public function test_customer_orders_index_supports_records_only_partial_reload(): void
