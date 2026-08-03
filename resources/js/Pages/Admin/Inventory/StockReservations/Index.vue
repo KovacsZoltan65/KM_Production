@@ -1,6 +1,7 @@
 <script setup>
 import AdminPageHeader from "@/Components/Admin/AdminPageHeader.vue";
 import AdminSearchBar from "@/Components/Admin/AdminSearchBar.vue";
+import { notifyRequestError } from "@/Composables/useRequestError";
 import AdminLayout from "@/Layouts/AdminLayout.vue";
 import { route } from "@/Utils/routes";
 import { Head, router, usePage } from "@inertiajs/vue3";
@@ -11,6 +12,7 @@ import DataTable from "primevue/datatable";
 import Select from "primevue/select";
 import Tag from "primevue/tag";
 import { useConfirm } from "primevue/useconfirm";
+import { useToast } from "primevue/usetoast";
 import { trans } from "laravel-vue-i18n";
 import { computed, ref } from "vue";
 
@@ -49,6 +51,7 @@ const props = defineProps({
 });
 const page = usePage();
 const confirm = useConfirm();
+const toast = useToast();
 const search = ref(props.filters.search || "");
 const perPage = ref(
     Number(props.filters.per_page || props.records.per_page || 10),
@@ -56,7 +59,8 @@ const perPage = ref(
 const status = ref(props.filters.status || null);
 const sortField = ref(props.filters.sort || "reserved_at");
 const sortOrder = ref((props.filters.direction || "desc") === "asc" ? 1 : -1);
-const processingReservationId = ref(null);
+const refreshing = ref(false);
+const releasingIds = ref(new Set());
 const canRelease = computed(
     () =>
         page.props.auth?.roles?.includes("super-admin") ||
@@ -79,6 +83,28 @@ const reload = (pageNumber = 1) =>
         query(pageNumber),
         { preserveState: true, replace: true },
     );
+const refreshRecords = () => {
+    if (refreshing.value) {
+        return;
+    }
+
+    router.reload({
+        only: ["records"],
+        preserveState: true,
+        preserveScroll: true,
+        onStart: () => {
+            refreshing.value = true;
+        },
+        onError: (error) => {
+            notifyRequestError(toast, error, {
+                fallbackKey: "notifications.error.refresh_failed",
+            });
+        },
+        onFinish: () => {
+            refreshing.value = false;
+        },
+    });
+};
 const onPage = (event) => {
     perPage.value = event.rows;
     reload(event.page + 1);
@@ -89,7 +115,7 @@ const onSort = (event) => {
     reload(1);
 };
 const release = (record) => {
-    if (!canRelease.value || processingReservationId.value !== null) {
+    if (!canRelease.value || releasingIds.value.has(record.id)) {
         return;
     }
 
@@ -98,14 +124,23 @@ const release = (record) => {
         header: trans("inventory.stock_reservations.confirm_release_header"),
         icon: "pi pi-exclamation-triangle",
         accept: () => {
-            processingReservationId.value = record.id;
+            if (releasingIds.value.has(record.id)) {
+                return;
+            }
+
+            releasingIds.value = new Set(releasingIds.value).add(record.id);
             router.patch(
                 route("admin.inventory.stock-reservations.release", record.id),
                 {},
                 {
                     preserveScroll: true,
+                    onError: (error) => {
+                        notifyRequestError(toast, error);
+                    },
                     onFinish: () => {
-                        processingReservationId.value = null;
+                        const nextReleasingIds = new Set(releasingIds.value);
+                        nextReleasingIds.delete(record.id);
+                        releasingIds.value = nextReleasingIds;
                     },
                 },
             );
@@ -125,7 +160,21 @@ const release = (record) => {
                 title-key="inventory.stock_reservations.title"
                 subtitle-key="inventory.stock_reservations.subtitle"
                 :can-create="false"
-            />
+            >
+                <template #actions>
+                    <Button
+                        type="button"
+                        :label="trans('actions.refresh')"
+                        icon="pi pi-refresh"
+                        severity="secondary"
+                        outlined
+                        :loading="refreshing"
+                        :disabled="refreshing"
+                        data-test="refresh-records"
+                        @click="refreshRecords"
+                    />
+                </template>
+            </AdminPageHeader>
             <AdminSearchBar
                 v-model="search"
                 v-model:per-page="perPage"
@@ -231,8 +280,8 @@ const release = (record) => {
                             severity="secondary"
                             outlined
                             size="small"
-                            :loading="processingReservationId === data.id"
-                            :disabled="processingReservationId !== null"
+                            :loading="releasingIds.has(data.id)"
+                            :disabled="releasingIds.has(data.id)"
                             @click="release(data)" /></template
                 ></Column>
             </DataTable>

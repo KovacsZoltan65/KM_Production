@@ -18,7 +18,7 @@ class ShortageController extends Controller
         $this->authorize('viewAny', MaterialRequirement::class);
 
         return Inertia::render('Admin/Inventory/Shortages/Index', [
-            'records' => $this->service->paginateShortages($request->filters(), $request->perPage()),
+            'records' => fn () => $this->service->paginateShortages($request->filters(), $request->perPage()),
             'filters' => $request->filters(),
         ]);
     }

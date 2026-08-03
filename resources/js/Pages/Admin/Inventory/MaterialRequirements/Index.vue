@@ -1,13 +1,16 @@
 <script setup>
 import AdminPageHeader from "@/Components/Admin/AdminPageHeader.vue";
 import AdminSearchBar from "@/Components/Admin/AdminSearchBar.vue";
+import { notifyRequestError } from "@/Composables/useRequestError";
 import AdminLayout from "@/Layouts/AdminLayout.vue";
 import { route } from "@/Utils/routes";
 import { Head, router } from "@inertiajs/vue3";
+import Button from "primevue/button";
 import Column from "primevue/column";
 import DataTable from "primevue/datatable";
 import Select from "primevue/select";
 import Tag from "primevue/tag";
+import { useToast } from "primevue/usetoast";
 import { trans } from "laravel-vue-i18n";
 import { ref } from "vue";
 
@@ -49,6 +52,8 @@ const props = defineProps({
     itemOptions: Array,
     customerOrderOptions: Array,
 });
+const toast = useToast();
+const refreshing = ref(false);
 const search = ref(props.filters.search || "");
 const perPage = ref(
     Number(props.filters.per_page || props.records.per_page || 10),
@@ -66,6 +71,29 @@ const customerOrderId = ref(
 );
 const sortField = ref(props.filters.sort || "id");
 const sortOrder = ref((props.filters.direction || "asc") === "desc" ? -1 : 1);
+
+const refreshRecords = () => {
+    if (refreshing.value) {
+        return;
+    }
+
+    router.reload({
+        only: ["records"],
+        preserveState: true,
+        preserveScroll: true,
+        onStart: () => {
+            refreshing.value = true;
+        },
+        onError: (error) => {
+            notifyRequestError(toast, error, {
+                fallbackKey: "notifications.error.refresh_failed",
+            });
+        },
+        onFinish: () => {
+            refreshing.value = false;
+        },
+    });
+};
 
 const number = (value) => Number(value || 0).toFixed(3);
 const query = (page = 1) => ({
@@ -112,7 +140,21 @@ const severity = (value) =>
                 title-key="inventory.material_requirements.title"
                 subtitle-key="inventory.material_requirements.subtitle"
                 :can-create="false"
-            />
+            >
+                <template #actions>
+                    <Button
+                        type="button"
+                        :label="trans('actions.refresh')"
+                        icon="pi pi-refresh"
+                        severity="secondary"
+                        outlined
+                        :loading="refreshing"
+                        :disabled="refreshing"
+                        data-test="refresh-records"
+                        @click="refreshRecords"
+                    />
+                </template>
+            </AdminPageHeader>
             <AdminSearchBar
                 v-model="search"
                 v-model:per-page="perPage"

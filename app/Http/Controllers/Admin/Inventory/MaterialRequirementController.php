@@ -22,11 +22,11 @@ class MaterialRequirementController extends Controller
         $this->authorize('viewAny', MaterialRequirement::class);
 
         return Inertia::render('Admin/Inventory/MaterialRequirements/Index', [
-            'records' => $this->service->paginateMaterialRequirements($request->filters(), $request->perPage()),
+            'records' => fn () => $this->service->paginateMaterialRequirements($request->filters(), $request->perPage()),
             'filters' => $request->filters(),
-            'statusOptions' => $this->statusOptions(),
-            'itemOptions' => $this->itemOptions(),
-            'customerOrderOptions' => $this->customerOrderOptions(),
+            'statusOptions' => fn () => $this->statusOptions(),
+            'itemOptions' => fn () => $this->itemOptions(),
+            'customerOrderOptions' => fn () => $this->customerOrderOptions(),
         ]);
     }
 

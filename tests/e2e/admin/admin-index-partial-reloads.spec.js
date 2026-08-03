@@ -87,6 +87,153 @@ const pages = [
             ]),
     },
     {
+        name: "shortages",
+        path: "/admin/inventory/shortages",
+        search: "E2E-SO-0001",
+        initialText: "987.123",
+        updatedText: "876.543",
+        update: (fixtures) =>
+            executeSql(
+                "UPDATE material_requirements SET missing_quantity = ? WHERE id = ?",
+                [876.543, fixtures.shortageId],
+            ),
+    },
+    {
+        name: "material requirements",
+        path: "/admin/inventory/material-requirements",
+        configureFilter: async (page) => {
+            await page
+                .getByRole("combobox", { name: "Required item", exact: true })
+                .click();
+            await page
+                .getByRole("option", {
+                    name: "E2E-MR-001 - E2E Material Requirement Item",
+                    exact: true,
+                })
+                .click();
+            await expect(page).toHaveURL(/required_item_id=\d+/);
+        },
+        assertFilter: async (page) => {
+            await expect(
+                page.getByRole("combobox", {
+                    name: "E2E-MR-001 - E2E Material Requirement Item",
+                    exact: true,
+                }),
+            ).toBeVisible();
+        },
+        initialText: "321.123",
+        updatedText: "654.321",
+        update: (fixtures) =>
+            executeSql(
+                "UPDATE material_requirements SET required_quantity = ? WHERE id = ?",
+                [654.321, fixtures.materialRequirementId],
+            ),
+    },
+    {
+        name: "stock reservations",
+        path: "/admin/inventory/stock-reservations",
+        configureFilter: async (page) => {
+            await page
+                .getByRole("combobox", { name: "Status", exact: true })
+                .click();
+            await page
+                .getByRole("option", { name: "Active", exact: true })
+                .click();
+            await expect(page).toHaveURL(/status=active/);
+        },
+        assertFilter: async (page) => {
+            await expect(
+                page.getByRole("combobox", { name: "Active", exact: true }),
+            ).toBeVisible();
+        },
+        initialText: "E2E-STOCK-RESERVATION-PARTIAL-REFRESH",
+        initialExact: false,
+        updatedText: "45.678",
+        update: (fixtures) =>
+            executeSql(
+                "UPDATE stock_reservations SET reserved_quantity = ? WHERE id = ?",
+                [45.678, fixtures.reservationId],
+            ),
+    },
+    {
+        name: "stock movements",
+        path: "/admin/inventory/stock-movements",
+        configureFilter: async (page) => {
+            await page
+                .getByRole("combobox", { name: "Item", exact: true })
+                .click();
+            await page
+                .getByRole("option", {
+                    name: "E2E-STOCK-MOVEMENT-PARTIAL-REFRESH - E2E Stock Movement Partial Refresh Item",
+                    exact: true,
+                })
+                .click();
+            await expect(page).toHaveURL(/item_id=\d+/);
+            await page
+                .getByRole("combobox", {
+                    name: "Movement type",
+                    exact: true,
+                })
+                .click();
+            await page
+                .getByRole("option", { name: "Correction", exact: true })
+                .click();
+            await expect(page).toHaveURL(/movement_type=correction/);
+        },
+        assertFilter: async (page) => {
+            await expect(
+                page.getByRole("combobox", {
+                    name: "E2E-STOCK-MOVEMENT-PARTIAL-REFRESH - E2E Stock Movement Partial Refresh Item",
+                    exact: true,
+                }),
+            ).toBeVisible();
+            await expect(
+                page.getByRole("combobox", {
+                    name: "Correction",
+                    exact: true,
+                }),
+            ).toBeVisible();
+        },
+        initialText: "111.111",
+        updatedText: "222.222",
+        update: (fixtures) =>
+            executeSql(
+                "INSERT INTO stock_movements (item_id, to_location_id, quantity, movement_type, performed_by, performed_at, notes, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                [
+                    fixtures.stockMovementItemId,
+                    fixtures.stockMovementLocationId,
+                    222.222,
+                    "correction",
+                    fixtures.adminId,
+                    "2035-02-15 12:00:00",
+                    "E2E-STOCK-MOVEMENT-PARTIAL-REFRESH-NEW",
+                    "2035-02-15 12:00:00",
+                    "2035-02-15 12:00:00",
+                ],
+            ),
+        assertUpdated: async (page) => {
+            const updatedRow = page
+                .getByRole("row")
+                .filter({ hasText: "222.222" });
+            await expect(updatedRow).toHaveCount(1);
+            await expect(updatedRow).toContainText(
+                "E2E-STOCK-MOVEMENT-PARTIAL-REFRESH",
+            );
+            await expect(updatedRow).toContainText("E2E-SM-LOC");
+            await expect(updatedRow).toContainText("Correction");
+
+            const rowTexts = await page.getByRole("row").allTextContents();
+            const updatedIndex = rowTexts.findIndex((text) =>
+                text.includes("222.222"),
+            );
+            const initialIndex = rowTexts.findIndex((text) =>
+                text.includes("111.111"),
+            );
+            expect(updatedIndex).toBeGreaterThan(0);
+            expect(initialIndex).toBeGreaterThan(updatedIndex);
+        },
+    },
+    {
         name: "customer orders",
         path: "/admin/customer-orders",
         search: "E2E-CUST",
@@ -193,18 +340,37 @@ for (const pageDefinition of pages) {
         await loginThroughUi(page, e2eUsers.admin);
         await page.goto(pageDefinition.path);
 
-        await page.getByPlaceholder("Search").fill(pageDefinition.search);
-        await page.getByRole("button", { name: "Search", exact: true }).click();
-        await expect(page).toHaveURL(
-            new RegExp(`search=${encodeURIComponent(pageDefinition.search)}`),
-        );
+        if (pageDefinition.configureFilter) {
+            await pageDefinition.configureFilter(page);
+        } else {
+            await page.getByPlaceholder("Search").fill(pageDefinition.search);
+            await page
+                .getByRole("button", { name: "Search", exact: true })
+                .click();
+            await expect(page).toHaveURL(
+                new RegExp(
+                    `search=${encodeURIComponent(pageDefinition.search)}`,
+                ),
+            );
+        }
 
         const filteredUrl = page.url();
         const refreshButton = page.locator('[data-test="refresh-records"]');
+        let documentRequests = 0;
+
+        page.on("request", (request) => {
+            if (request.resourceType() === "document") {
+                documentRequests += 1;
+            }
+        });
 
         await expect(refreshButton).toBeVisible();
         await expect(
-            page.getByText(pageDefinition.initialText, { exact: true }).first(),
+            page
+                .getByText(pageDefinition.initialText, {
+                    exact: pageDefinition.initialExact ?? true,
+                })
+                .first(),
         ).toBeVisible();
         pageDefinition.update(e2eData);
 
@@ -235,20 +401,33 @@ for (const pageDefinition of pages) {
         const request = await partialRequest;
         expect(["xhr", "fetch"]).toContain(request.resourceType());
         await expect(refreshButton).toBeDisabled();
+        await expect(refreshButton).toHaveClass(/p-button-loading/);
         expect(page.url()).toBe(filteredUrl);
-        await expect(page.getByPlaceholder("Search")).toHaveValue(
-            pageDefinition.search,
-        );
+        if (pageDefinition.assertFilter) {
+            await pageDefinition.assertFilter(page);
+        } else {
+            await expect(page.getByPlaceholder("Search")).toHaveValue(
+                pageDefinition.search,
+            );
+        }
 
         releaseRequest();
         await expect(
             page.getByText(pageDefinition.updatedText, { exact: true }).first(),
         ).toBeVisible();
+        if (pageDefinition.assertUpdated) {
+            await pageDefinition.assertUpdated(page);
+        }
         await expect(refreshButton).toBeEnabled();
         expect(page.url()).toBe(filteredUrl);
-        await expect(page.getByPlaceholder("Search")).toHaveValue(
-            pageDefinition.search,
-        );
+        expect(documentRequests).toBe(0);
+        if (pageDefinition.assertFilter) {
+            await pageDefinition.assertFilter(page);
+        } else {
+            await expect(page.getByPlaceholder("Search")).toHaveValue(
+                pageDefinition.search,
+            );
+        }
         expect(browserErrors).toBeDefined();
     });
 }

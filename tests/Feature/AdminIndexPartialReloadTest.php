@@ -3,19 +3,26 @@
 namespace Tests\Feature;
 
 use App\Enums\OperationTypeCode;
+use App\Enums\StockMovementType;
+use App\Enums\StockReservationStatus;
 use App\Models\Customer;
 use App\Models\CustomerOrder;
+use App\Models\CustomerOrderItem;
 use App\Models\FactoryUnit;
 use App\Models\Item;
 use App\Models\Location;
+use App\Models\MaterialRequirement;
 use App\Models\OperationType;
 use App\Models\ProfessionalRole;
 use App\Models\StockBalance;
+use App\Models\StockMovement;
+use App\Models\StockReservation;
 use App\Models\Supplier;
 use App\Models\User;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia;
+use Spatie\Activitylog\Models\Activity;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
@@ -102,6 +109,244 @@ class AdminIndexPartialReloadTest extends TestCase
                     ->has('records.data', 1)
                     ->where('records.data.0.item.item_number', 'REFRESH-STOCK')
                     ->missing('filters')));
+    }
+
+    public function test_shortages_index_supports_records_only_partial_reload(): void
+    {
+        $requiredItem = Item::factory()->purchasedMaterial()->create([
+            'item_number' => 'REFRESH-SHORTAGE',
+        ]);
+        MaterialRequirement::factory()->create([
+            'required_item_id' => $requiredItem->id,
+            'missing_quantity' => 9,
+            'status' => 'missing',
+        ]);
+        MaterialRequirement::factory()->create([
+            'missing_quantity' => 0,
+            'status' => 'missing',
+        ]);
+
+        $url = "/admin/inventory/shortages?required_item_id={$requiredItem->id}&status=missing&per_page=25&page=1";
+
+        $this->actingAs($this->superAdmin())
+            ->get($url)
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->component('Admin/Inventory/Shortages/Index')
+                ->has('records.data', 1)
+                ->where('records.data.0.required_item.item_number', 'REFRESH-SHORTAGE')
+                ->where('records.per_page', 25)
+                ->where('records.current_page', 1)
+                ->where('filters.required_item_id', (string) $requiredItem->id)
+                ->where('filters.status', 'missing')
+                ->reloadOnly('records', fn (AssertableInertia $reload) => $reload
+                    ->has('records.data', 1)
+                    ->where('records.data.0.required_item.item_number', 'REFRESH-SHORTAGE')
+                    ->where('records.per_page', 25)
+                    ->where('records.current_page', 1)
+                    ->missing('filters')));
+    }
+
+    public function test_material_requirements_index_supports_records_only_partial_reload(): void
+    {
+        $customerOrder = CustomerOrder::factory()->create([
+            'order_number' => 'REFRESH-MR-ORDER',
+        ]);
+        $customerOrderItem = CustomerOrderItem::factory()->create([
+            'customer_order_id' => $customerOrder->id,
+        ]);
+        $requiredItem = Item::factory()->purchasedMaterial()->create([
+            'item_number' => 'REFRESH-MR-ITEM',
+        ]);
+        $otherItem = Item::factory()->purchasedMaterial()->create();
+
+        MaterialRequirement::factory()->create([
+            'customer_order_item_id' => $customerOrderItem->id,
+            'required_item_id' => $requiredItem->id,
+            'required_quantity' => 17,
+            'status' => 'received',
+        ]);
+        MaterialRequirement::factory()->create([
+            'customer_order_item_id' => $customerOrderItem->id,
+            'required_item_id' => $requiredItem->id,
+            'status' => 'missing',
+        ]);
+        MaterialRequirement::factory()->create([
+            'customer_order_item_id' => $customerOrderItem->id,
+            'required_item_id' => $otherItem->id,
+            'status' => 'received',
+        ]);
+
+        $url = "/admin/inventory/material-requirements?status=received&required_item_id={$requiredItem->id}&customer_order_id={$customerOrder->id}&per_page=25&sort=required_quantity&direction=desc&page=1";
+
+        $this->actingAs($this->superAdmin())
+            ->get($url)
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->component('Admin/Inventory/MaterialRequirements/Index')
+                ->has('records.data', 1)
+                ->where('records.data.0.required_item.item_number', 'REFRESH-MR-ITEM')
+                ->where('records.data.0.customer_order_item.customer_order.order_number', 'REFRESH-MR-ORDER')
+                ->where('records.per_page', 25)
+                ->where('records.current_page', 1)
+                ->where('filters.status', 'received')
+                ->where('filters.required_item_id', (string) $requiredItem->id)
+                ->where('filters.customer_order_id', (string) $customerOrder->id)
+                ->has('statusOptions')
+                ->has('itemOptions')
+                ->has('customerOrderOptions')
+                ->reloadOnly('records', fn (AssertableInertia $reload) => $reload
+                    ->has('records.data', 1)
+                    ->where('records.data.0.required_item.item_number', 'REFRESH-MR-ITEM')
+                    ->where('records.data.0.customer_order_item.customer_order.order_number', 'REFRESH-MR-ORDER')
+                    ->where('records.per_page', 25)
+                    ->where('records.current_page', 1)
+                    ->missing('filters')
+                    ->missing('statusOptions')
+                    ->missing('itemOptions')
+                    ->missing('customerOrderOptions')));
+    }
+
+    public function test_stock_reservations_index_supports_records_only_partial_reload(): void
+    {
+        $matchingItem = Item::factory()->purchasedMaterial()->create([
+            'item_number' => 'REFRESH-RESERVATION',
+        ]);
+        $matchingReservation = StockReservation::factory()->create([
+            'item_id' => $matchingItem->id,
+            'reserved_quantity' => 17,
+            'status' => StockReservationStatus::Active,
+        ]);
+        StockReservation::factory()->create([
+            'reserved_quantity' => 99,
+            'status' => StockReservationStatus::Released,
+        ]);
+
+        $url = '/admin/inventory/stock-reservations?status=active&per_page=25&sort=reserved_quantity&direction=desc&page=1';
+
+        $this->actingAs($this->superAdmin())
+            ->get($url)
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->component('Admin/Inventory/StockReservations/Index')
+                ->has('records.data', 1)
+                ->where('records.data.0.id', $matchingReservation->id)
+                ->where('records.data.0.item.item_number', 'REFRESH-RESERVATION')
+                ->where('records.per_page', 25)
+                ->where('records.current_page', 1)
+                ->where('filters.status', 'active')
+                ->where('filters.sort', 'reserved_quantity')
+                ->where('filters.direction', 'desc')
+                ->has('statusOptions')
+                ->reloadOnly('records', fn (AssertableInertia $reload) => $reload
+                    ->has('records.data', 1)
+                    ->where('records.data.0.id', $matchingReservation->id)
+                    ->where('records.data.0.item.item_number', 'REFRESH-RESERVATION')
+                    ->where('records.per_page', 25)
+                    ->where('records.current_page', 1)
+                    ->missing('filters')
+                    ->missing('statusOptions')));
+    }
+
+    public function test_stock_movements_index_supports_read_only_records_partial_reload(): void
+    {
+        $matchingItem = Item::factory()->purchasedMaterial()->create([
+            'item_number' => 'REFRESH-MOVEMENT',
+        ]);
+        $otherItem = Item::factory()->purchasedMaterial()->create();
+        $location = Location::factory()->create();
+        $otherLocation = Location::factory()->create();
+        $stockBalance = StockBalance::factory()->create([
+            'item_id' => $matchingItem->id,
+            'location_id' => $location->id,
+            'quantity' => 50,
+        ]);
+        $matchingMovement = StockMovement::factory()->create([
+            'item_id' => $matchingItem->id,
+            'to_location_id' => $location->id,
+            'quantity' => 17,
+            'movement_type' => StockMovementType::Correction,
+            'performed_at' => '2026-01-15 23:59:59',
+            'notes' => 'REFRESH-MOVEMENT-MATCH',
+        ]);
+        StockMovement::factory()->create([
+            'item_id' => $matchingItem->id,
+            'to_location_id' => $location->id,
+            'movement_type' => StockMovementType::Transfer,
+            'performed_at' => '2026-01-15 12:00:00',
+            'notes' => 'REFRESH-MOVEMENT-WRONG-TYPE',
+        ]);
+        StockMovement::factory()->create([
+            'item_id' => $otherItem->id,
+            'to_location_id' => $otherLocation->id,
+            'movement_type' => StockMovementType::Correction,
+            'performed_at' => '2026-01-15 12:00:00',
+            'notes' => 'REFRESH-MOVEMENT-WRONG-RELATIONS',
+        ]);
+        $activityCount = Activity::query()
+            ->where('subject_type', StockMovement::class)
+            ->where('subject_id', $matchingMovement->id)
+            ->count();
+
+        $url = "/admin/inventory/stock-movements?movement_type=correction&item_id={$matchingItem->id}&location_id={$location->id}&date_from=2026-01-15&date_to=2026-01-15&per_page=25&sort=quantity&direction=desc&page=1";
+
+        $this->actingAs($this->superAdmin())
+            ->get($url)
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->component('Admin/Inventory/StockMovements/Index')
+                ->has('records.data', 1)
+                ->where('records.data.0.id', $matchingMovement->id)
+                ->where('records.data.0.item.item_number', 'REFRESH-MOVEMENT')
+                ->where('records.data.0.to_location.id', $location->id)
+                ->where('records.data.0.quantity', '17.000')
+                ->where('records.data.0.movement_type', StockMovementType::Correction->value)
+                ->where('records.per_page', 25)
+                ->where('records.current_page', 1)
+                ->where('filters.movement_type', StockMovementType::Correction->value)
+                ->where('filters.item_id', (string) $matchingItem->id)
+                ->where('filters.location_id', (string) $location->id)
+                ->where('filters.date_from', '2026-01-15')
+                ->where('filters.date_to', '2026-01-15')
+                ->where('filters.sort', 'quantity')
+                ->where('filters.direction', 'desc')
+                ->has('movementTypeOptions')
+                ->has('itemOptions')
+                ->has('locationOptions')
+                ->reloadOnly('records', fn (AssertableInertia $reload) => $reload
+                    ->has('records.data', 1)
+                    ->where('records.data.0.id', $matchingMovement->id)
+                    ->where('records.data.0.quantity', '17.000')
+                    ->where('records.per_page', 25)
+                    ->where('records.current_page', 1)
+                    ->missing('filters')
+                    ->missing('movementTypeOptions')
+                    ->missing('itemOptions')
+                    ->missing('locationOptions')));
+
+        $this->actingAs($this->superAdmin())
+            ->get(route('admin.inventory.stock-movements.index', [
+                'movement_type' => 'not-a-real-movement-type',
+                'item_id' => $matchingItem->id,
+            ]))
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page->has('records.data', 0));
+
+        $this->assertSame(1, StockMovement::query()->where('notes', 'REFRESH-MOVEMENT-MATCH')->count());
+        $this->assertDatabaseHas('stock_movements', [
+            'id' => $matchingMovement->id,
+            'quantity' => 17,
+            'movement_type' => StockMovementType::Correction->value,
+            'performed_at' => '2026-01-15 23:59:59',
+        ]);
+        $this->assertSame('50.000', $stockBalance->fresh()->quantity);
+        $this->assertSame(
+            $activityCount,
+            Activity::query()
+                ->where('subject_type', StockMovement::class)
+                ->where('subject_id', $matchingMovement->id)
+                ->count(),
+        );
     }
 
     public function test_customer_orders_index_supports_records_only_partial_reload(): void

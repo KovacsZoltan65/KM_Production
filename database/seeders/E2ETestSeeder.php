@@ -7,8 +7,10 @@ use App\Enums\CustomerOrderStatus;
 use App\Enums\ItemInstanceStatus;
 use App\Enums\ItemType;
 use App\Enums\LocationType;
+use App\Enums\MaterialRequirementStatus;
 use App\Enums\OperationTypeCode;
 use App\Enums\ProductionTaskStatus;
+use App\Enums\StockMovementType;
 use App\Enums\StockReservationStatus;
 use App\Models\Customer;
 use App\Models\CustomerOrder;
@@ -19,6 +21,7 @@ use App\Models\FactoryUnit;
 use App\Models\GoodsReceipt;
 use App\Models\Item;
 use App\Models\Location;
+use App\Models\MaterialRequirement;
 use App\Models\OperationType;
 use App\Models\ProductionOrder;
 use App\Models\ProductionPlan;
@@ -131,11 +134,75 @@ class E2ETestSeeder extends Seeder
                 'is_active' => true,
             ],
         );
+        $materialRequirementItem = Item::query()->updateOrCreate(
+            ['item_number' => 'E2E-MR-001'],
+            [
+                'name' => 'E2E Material Requirement Item',
+                'item_type' => ItemType::PurchasedMaterial,
+                'unit' => 'db',
+                'requires_serial_number' => false,
+                'is_active' => true,
+            ],
+        );
+        $reservationItem = Item::query()->updateOrCreate(
+            ['item_number' => 'E2E-STOCK-RESERVATION-PARTIAL-REFRESH'],
+            [
+                'name' => 'E2E Stock Reservation Partial Refresh Item',
+                'item_type' => ItemType::PurchasedMaterial,
+                'unit' => 'db',
+                'requires_serial_number' => false,
+                'is_active' => true,
+            ],
+        );
+        $stockMovementItem = Item::query()->updateOrCreate(
+            ['item_number' => 'E2E-STOCK-MOVEMENT-PARTIAL-REFRESH'],
+            [
+                'name' => 'E2E Stock Movement Partial Refresh Item',
+                'item_type' => ItemType::PurchasedMaterial,
+                'unit' => 'db',
+                'requires_serial_number' => false,
+                'is_active' => true,
+            ],
+        );
+        $stockMovementLocation = Location::query()->updateOrCreate(
+            ['code' => 'E2E-SM-LOC'],
+            [
+                'factory_unit_id' => $factoryUnit->id,
+                'name' => 'E2E Stock Movement Location',
+                'location_type' => LocationType::Warehouse,
+                'is_active' => true,
+            ],
+        );
+
+        $stockMovement = StockMovement::query()->updateOrCreate(
+            ['notes' => 'E2E-STOCK-MOVEMENT-PARTIAL-REFRESH-INITIAL'],
+            [
+                'item_id' => $stockMovementItem->id,
+                'item_batch_id' => null,
+                'item_instance_id' => null,
+                'from_location_id' => null,
+                'to_location_id' => $stockMovementLocation->id,
+                'quantity' => 111.111,
+                'movement_type' => StockMovementType::Correction,
+                'source_type' => null,
+                'source_id' => null,
+                'performed_by' => $admin->id,
+                'performed_at' => '2035-01-15 12:00:00',
+            ],
+        );
+        $stockMovementBalance = StockBalance::query()->updateOrCreate(
+            [
+                'item_id' => $stockMovementItem->id,
+                'location_id' => $stockMovementLocation->id,
+                'item_batch_id' => null,
+            ],
+            ['quantity' => 500],
+        );
 
         $reservation = StockReservation::withTrashed()
             ->firstOrNew(['notes' => 'E2E-STOCK-RESERVATION']);
         $reservation->fill([
-            'item_id' => $item->id,
+            'item_id' => $reservationItem->id,
             'location_id' => $location->id,
             'item_batch_id' => null,
             'customer_order_item_id' => null,
@@ -150,6 +217,15 @@ class E2ETestSeeder extends Seeder
         if ($reservation->trashed()) {
             $reservation->restore();
         }
+
+        StockBalance::query()->updateOrCreate(
+            [
+                'item_id' => $reservationItem->id,
+                'location_id' => $location->id,
+                'item_batch_id' => null,
+            ],
+            ['quantity' => 50],
+        );
 
         $stockBalance = StockBalance::query()->updateOrCreate(
             [
@@ -201,7 +277,7 @@ class E2ETestSeeder extends Seeder
                 'notes' => 'E2E seed customer order for production plan tests.',
             ],
         );
-        CustomerOrderItem::query()->updateOrCreate(
+        $customerOrderItem = CustomerOrderItem::query()->updateOrCreate(
             [
                 'customer_order_id' => $customerOrder->id,
                 'item_id' => $product->id,
@@ -211,6 +287,54 @@ class E2ETestSeeder extends Seeder
                 'unit' => $product->unit,
                 'status' => CustomerOrderItemStatus::Planned->value,
                 'notes' => 'E2E seed order item.',
+            ],
+        );
+        $shortage = MaterialRequirement::query()->updateOrCreate(
+            ['notes' => 'E2E-SHORTAGE-PARTIAL-REFRESH'],
+            [
+                'customer_order_item_id' => $customerOrderItem->id,
+                'required_item_id' => $item->id,
+                'required_quantity' => 1000,
+                'available_quantity' => 12.877,
+                'reserved_quantity' => 0,
+                'missing_quantity' => 987.123,
+                'unit' => 'db',
+                'status' => MaterialRequirementStatus::Missing,
+            ],
+        );
+        $materialRequirementOrder = CustomerOrder::query()->updateOrCreate(
+            ['order_number' => 'E2E-MR-SO-0001'],
+            [
+                'customer_id' => $customer->id,
+                'status' => CustomerOrderStatus::Confirmed->value,
+                'requested_delivery_date' => '2027-04-01',
+                'confirmed_at' => now(),
+                'notes' => 'E2E material requirement partial refresh order.',
+            ],
+        );
+        $materialRequirementOrderItem = CustomerOrderItem::query()->updateOrCreate(
+            [
+                'customer_order_id' => $materialRequirementOrder->id,
+                'item_id' => $product->id,
+            ],
+            [
+                'quantity' => 1,
+                'unit' => $product->unit,
+                'status' => CustomerOrderItemStatus::Planned->value,
+                'notes' => 'E2E material requirement partial refresh order item.',
+            ],
+        );
+        $materialRequirement = MaterialRequirement::query()->updateOrCreate(
+            ['notes' => 'E2E-MATERIAL-REQUIREMENT-PARTIAL-REFRESH'],
+            [
+                'customer_order_item_id' => $materialRequirementOrderItem->id,
+                'required_item_id' => $materialRequirementItem->id,
+                'required_quantity' => 321.123,
+                'available_quantity' => 100,
+                'reserved_quantity' => 20,
+                'missing_quantity' => 221.123,
+                'unit' => 'db',
+                'status' => MaterialRequirementStatus::PartiallyAvailable,
             ],
         );
         $productionOrder = ProductionOrder::query()->where('order_number', 'PO-2026-000001')->firstOrFail();
@@ -237,6 +361,7 @@ class E2ETestSeeder extends Seeder
             storage_path('framework/testing/e2e-fixtures.json'),
             json_encode([
                 'itemId' => $item->id,
+                'materialRequirementId' => $materialRequirement->id,
                 'adminId' => $admin->id,
                 'factoryUnitId' => $factoryUnit->id,
                 'professionalRoleId' => $professionalRole->id,
@@ -244,7 +369,12 @@ class E2ETestSeeder extends Seeder
                 'roleId' => $refreshRole->id,
                 'permissionId' => $refreshPermission->id,
                 'reservationId' => $reservation->id,
+                'stockMovementId' => $stockMovement->id,
+                'stockMovementItemId' => $stockMovementItem->id,
+                'stockMovementLocationId' => $stockMovementLocation->id,
+                'stockMovementBalanceId' => $stockMovementBalance->id,
                 'stockBalanceId' => $stockBalance->id,
+                'shortageId' => $shortage->id,
                 'customerId' => $customer->id,
                 'supplierId' => $supplier->id,
                 'productId' => $product->id,
@@ -268,6 +398,10 @@ class E2ETestSeeder extends Seeder
 
         Role::query()->where('name', 'like', 'e2e-refresh-role-%')->delete();
         Permission::query()->where('name', 'like', 'e2e-refresh-permission-%')->delete();
+
+        StockMovement::query()
+            ->where('notes', 'like', 'E2E-STOCK-MOVEMENT-PARTIAL-REFRESH-%')
+            ->delete();
 
         Item::withTrashed()
             ->where('item_number', 'like', 'E2E-NOTIFY-%')

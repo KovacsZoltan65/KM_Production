@@ -19,9 +19,55 @@ router.reload({
 Az `Admin/Employees/Index` oldal ennek a mintának a referencia-megvalósítása: a fejléc
 frissítés gombja kizárólag a `records` prop-ot tölti újra.
 
-A mintát jelenleg az Employees, Items, Customers, Suppliers, Stock Balances, Customer Orders,
-Factory Units, Locations, Professional Roles, Operation Types, Users, Roles és Permissions
-admin listaoldalak használják.
+A mintát jelenleg az Employees, Items, Customers, Suppliers, Stock Balances, Inventory / Shortages,
+Inventory / Material Requirements, Inventory / Stock Reservations, Inventory / Stock Movements,
+Customer Orders, Factory Units, Locations, Professional Roles, Operation Types, Users, Roles és
+Permissions admin listaoldalak használják.
+
+Az Inventory / Shortages oldal lista propja a `records`. A `ShortageController` ezt lazy closure-ként
+adja át, míg a változatlan `filters` prop kimarad a csak `records`-ot kérő partial payloadból; külön
+option propja nincs. A lista közvetlenül a lapozott material requirement lekérdezésből készül, cache-t
+nem olvas. A Playwright fixture egy `E2E-SHORTAGE-PARTIAL-REFRESH` jelölésű material requirement
+`missing_quantity` értékét módosítja közvetlenül az izolált E2E SQLite adatbázisban.
+
+Az Inventory / Material Requirements oldal szintén a `records` lista propot adja át lazy controller
+closure-ként. A `filters`, `statusOptions`, `itemOptions` és `customerOrderOptions` kimarad a partial
+payloadból; a tényleges repository-szűrők a `status`, `required_item_id` és `customer_order_id`. A
+lapozott lista közvetlen, eager loadingot használó adatbázis-lekérdezésből készül, nem cache-ből. A
+Playwright egy `E2E-MATERIAL-REQUIREMENT-PARTIAL-REFRESH` fixture-t required item szerint szűr, majd
+a megjelenített `required_quantity` módosításával igazolja a friss adat betöltését.
+
+Az Inventory / Stock Reservations oldal lista propja a `records`; a controller ezt és a
+`statusOptions` selectoradatot lazy closure-ként adja át. A csak `records`-ot kérő partial payloadból
+kimarad a `filters` és a `statusOptions`. A repository egyetlen tényleges listafiltere a `status`, a
+rendezhető mezők az `id`, `item_id`, `reserved_quantity`, `status`, `reserved_at` és `released_at`, az
+alapértelmezett rendezés `reserved_at desc`. A lapozott, kapcsolatait eager loadinggal betöltő lista
+közvetlen adatbázis-lekérdezésből készül, nem cache-ből.
+
+A release továbbra is az Inertia PATCH kérés szerveroldali redirectjével tölti újra egyszer az indexet,
+ezért nincs külön siker utáni kézi reload. Csak aktív foglalás oldható fel; a művelet a státuszt és a
+`released_at` mezőt módosítja, szükség esetén újraszámolja a kapcsolódó material requirementet,
+auditbejegyzést készít, majd az inventory cache-doméneket invalidálja. A success flash változatlanul a
+szerverről érkezik. A Playwright az `E2E-STOCK-RESERVATION-PARTIAL-REFRESH` itemhez tartozó izolált
+foglalás `reserved_quantity` értékének módosításával igazolja a kézi partial refresht, a külön release
+flow pedig az egyetlen PATCH kérést, a pending állapotot, az aktív státuszfilter megőrzését, a success
+toastot és a felszabadított rekord helyes eltűnését ellenőrzi.
+
+Az Inventory / Stock Movements read-only auditlista `records` propja, valamint a
+`movementTypeOptions`, `itemOptions` és `locationOptions` selectorpropok lazy controller closure-k. A
+csak `records`-ot kérő partial payloadból ezek az optionök és a `filters` kimaradnak. A tényleges
+repository-filterek a `movement_type`, `item_id`, a forrás- vagy célraktárhelyre alkalmazott
+`location_id`, továbbá az inkluzív `date_from` és `date_to`; a frontend által küldött `search` jelenleg
+nem repository-filter. A rendezhető mezők az `id`, `item_id`, `quantity`, `movement_type` és
+`performed_at`, az alapértelmezett sorrend `performed_at desc`. A lista az item, batch, instance,
+forrás- és célraktárhely, valamint performer kapcsolatokat eager loadinggal, közvetlenül a
+`stock_movements` táblából tölti, cache nélkül.
+
+A Playwright az `E2E-STOCK-MOVEMENT-PARTIAL-REFRESH` item és az `E2E-SM-LOC` location alatt egy új,
+`222.222` mennyiségű correction mozgást szúr be kizárólag az izolált E2E SQLite adatbázisba. A kézi
+partial refresh után ellenőrzi az új sor egyszeri, időrendhelyes megjelenését és a filterek megőrzését.
+A kézi refresh productionkódja nem hoz létre vagy módosít mozgást, Stock Balance rekordot vagy
+üzleti auditbejegyzést.
 
 Az `only` paraméterben megnevezett prop-oknak a vezérlőben lezárásoknak kell lenniük. A drága opció
 a prop-oknak is lezárásoknak kell lenniük, hogy az Inertia kihagyhassa a lekérdezéseit egy

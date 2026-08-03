@@ -25,9 +25,9 @@ class StockReservationController extends Controller
         $this->authorize('viewAny', StockReservation::class);
 
         return Inertia::render('Admin/Inventory/StockReservations/Index', [
-            'records' => $this->queryService->paginateStockReservations($request->filters(), $request->perPage()),
+            'records' => fn () => $this->queryService->paginateStockReservations($request->filters(), $request->perPage()),
             'filters' => $request->filters(),
-            'statusOptions' => $this->statusOptions(),
+            'statusOptions' => fn () => $this->statusOptions(),
         ]);
     }
 

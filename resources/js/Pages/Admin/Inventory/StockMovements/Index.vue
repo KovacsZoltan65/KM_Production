@@ -1,13 +1,16 @@
 <script setup>
 import AdminPageHeader from "@/Components/Admin/AdminPageHeader.vue";
 import AdminSearchBar from "@/Components/Admin/AdminSearchBar.vue";
+import { notifyRequestError } from "@/Composables/useRequestError";
 import AdminLayout from "@/Layouts/AdminLayout.vue";
 import { route } from "@/Utils/routes";
 import { Head, router } from "@inertiajs/vue3";
+import Button from "primevue/button";
 import Column from "primevue/column";
 import DataTable from "primevue/datatable";
 import DatePicker from "primevue/datepicker";
 import Select from "primevue/select";
+import { useToast } from "primevue/usetoast";
 import { trans } from "laravel-vue-i18n";
 import { computed, ref } from "vue";
 
@@ -30,7 +33,11 @@ import { computed, ref } from "vue";
  * @property {number|string} [per_page] Az oldalankénti elemszám.
  * @property {string} [sort] A rendezett mező.
  * @property {'asc'|'desc'} [direction] A rendezés iránya.
- * @property {string|number|null} [status] Az állapotszűrő.
+ * @property {string|null} [movement_type] A mozgástípus-szűrő.
+ * @property {number|string|null} [item_id] A cikkszűrő.
+ * @property {number|string|null} [location_id] A forrás- vagy célraktárhely szűrője.
+ * @property {string|null} [date_from] Az inkluzív kezdődátum YYYY-MM-DD formátumban.
+ * @property {string|null} [date_to] Az inkluzív záródátum YYYY-MM-DD formátumban.
  */
 /**
  * A komponens bemeneti tulajdonságai.
@@ -50,6 +57,8 @@ const props = defineProps({
     locationOptions: Array,
 });
 
+const toast = useToast();
+const refreshing = ref(false);
 const search = ref(props.filters.search || "");
 const perPage = ref(
     Number(props.filters.per_page || props.records.per_page || 10),
@@ -67,7 +76,11 @@ const dateFrom = ref(
 const dateTo = ref(
     props.filters.date_to ? new Date(props.filters.date_to) : null,
 );
-const sortField = ref(props.filters.sort || "performed_at");
+const sortField = ref(
+    typeof props.filters.sort === "string"
+        ? props.filters.sort
+        : "performed_at",
+);
 const sortOrder = ref((props.filters.direction || "desc") === "asc" ? 1 : -1);
 
 const formatDate = (value) => (value ? new Date(value).toLocaleString() : "-");
@@ -99,6 +112,28 @@ const reload = (page = 1) =>
         preserveState: true,
         replace: true,
     });
+const refreshRecords = () => {
+    if (refreshing.value) {
+        return;
+    }
+
+    router.reload({
+        only: ["records"],
+        preserveState: true,
+        preserveScroll: true,
+        onStart: () => {
+            refreshing.value = true;
+        },
+        onError: (error) => {
+            notifyRequestError(toast, error, {
+                fallbackKey: "notifications.error.refresh_failed",
+            });
+        },
+        onFinish: () => {
+            refreshing.value = false;
+        },
+    });
+};
 const onPage = (event) => {
     perPage.value = event.rows;
     reload(event.page + 1);
@@ -120,7 +155,21 @@ const onSort = (event) => {
                 title-key="inventory.stock_movements.title"
                 subtitle-key="inventory.stock_movements.subtitle"
                 :can-create="false"
-            />
+            >
+                <template #actions>
+                    <Button
+                        type="button"
+                        :label="trans('actions.refresh')"
+                        icon="pi pi-refresh"
+                        severity="secondary"
+                        outlined
+                        :loading="refreshing"
+                        :disabled="refreshing"
+                        data-test="refresh-records"
+                        @click="refreshRecords"
+                    />
+                </template>
+            </AdminPageHeader>
             <AdminSearchBar
                 v-model="search"
                 v-model:per-page="perPage"
