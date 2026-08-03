@@ -67,7 +67,9 @@ describe("StockReservations", () => {
 
     it("aktív foglalásnál permission birtokában elérhető a feloldás", () => {
         const wrapper = mountPage();
-        expect(wrapper.findComponent(ButtonStub).text()).toBe("actions.release");
+        expect(wrapper.findComponent(ButtonStub).text()).toBe(
+            "actions.release",
+        );
     });
 
     it.each(["released", "cancelled", null])(
@@ -128,15 +130,43 @@ describe("StockReservations", () => {
         expect(wrapper.findComponent(ButtonStub).props("disabled")).toBe(false);
     });
 
-    it("feldolgozás közben nem enged második megerősítést", async () => {
+    it("feldolgozás közben ugyanazt a rekordot blokkolja, de a többit nem", async () => {
+        const secondReservation = makeStockReservation({ id: 2 });
         const wrapper = mountPage();
         await wrapper.findComponent(ButtonStub).trigger("click");
         services.confirm.require.mock.calls[0][0].accept();
+        await nextTick();
 
-        wrapper.vm.release(makeStockReservation({ id: 2 }));
+        wrapper.vm.release(makeStockReservation());
+        wrapper.vm.release(secondReservation);
 
-        expect(services.confirm.require).toHaveBeenCalledOnce();
+        expect(services.confirm.require).toHaveBeenCalledTimes(2);
         expect(inertiaRouter.patch).toHaveBeenCalledOnce();
+    });
+
+    it("hiba után megszünteti a pending állapotot és biztonságos toastot ad", async () => {
+        const record = makeStockReservation();
+        const wrapper = mountPage({ records: [record] });
+        await wrapper.findComponent(ButtonStub).trigger("click");
+        services.confirm.require.mock.calls[0][0].accept();
+        await nextTick();
+
+        inertiaRouter.patch.mock.calls[0][2].onError({
+            message: "SQLSTATE must remain hidden",
+        });
+        inertiaRouter.patch.mock.calls[0][2].onFinish();
+        await nextTick();
+
+        expect(services.toast.add).toHaveBeenCalledWith({
+            severity: "error",
+            summary: "notifications.error.default",
+            life: 5000,
+        });
+        expect(wrapper.findComponent(ButtonStub).props("disabled")).toBe(false);
+        expect(wrapper.props("records").data[0].status).toBe("active");
+
+        wrapper.vm.release(record);
+        expect(services.confirm.require).toHaveBeenCalledTimes(2);
     });
 
     it("üres listánál explicit üres állapotot jelenít meg", () => {

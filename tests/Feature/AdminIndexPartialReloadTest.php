@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\OperationTypeCode;
+use App\Enums\StockReservationStatus;
 use App\Models\Customer;
 use App\Models\CustomerOrder;
 use App\Models\CustomerOrderItem;
@@ -13,6 +14,7 @@ use App\Models\MaterialRequirement;
 use App\Models\OperationType;
 use App\Models\ProfessionalRole;
 use App\Models\StockBalance;
+use App\Models\StockReservation;
 use App\Models\Supplier;
 use App\Models\User;
 use Database\Seeders\RolesAndPermissionsSeeder;
@@ -200,6 +202,47 @@ class AdminIndexPartialReloadTest extends TestCase
                     ->missing('statusOptions')
                     ->missing('itemOptions')
                     ->missing('customerOrderOptions')));
+    }
+
+    public function test_stock_reservations_index_supports_records_only_partial_reload(): void
+    {
+        $matchingItem = Item::factory()->purchasedMaterial()->create([
+            'item_number' => 'REFRESH-RESERVATION',
+        ]);
+        $matchingReservation = StockReservation::factory()->create([
+            'item_id' => $matchingItem->id,
+            'reserved_quantity' => 17,
+            'status' => StockReservationStatus::Active,
+        ]);
+        StockReservation::factory()->create([
+            'reserved_quantity' => 99,
+            'status' => StockReservationStatus::Released,
+        ]);
+
+        $url = '/admin/inventory/stock-reservations?status=active&per_page=25&sort=reserved_quantity&direction=desc&page=1';
+
+        $this->actingAs($this->superAdmin())
+            ->get($url)
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->component('Admin/Inventory/StockReservations/Index')
+                ->has('records.data', 1)
+                ->where('records.data.0.id', $matchingReservation->id)
+                ->where('records.data.0.item.item_number', 'REFRESH-RESERVATION')
+                ->where('records.per_page', 25)
+                ->where('records.current_page', 1)
+                ->where('filters.status', 'active')
+                ->where('filters.sort', 'reserved_quantity')
+                ->where('filters.direction', 'desc')
+                ->has('statusOptions')
+                ->reloadOnly('records', fn (AssertableInertia $reload) => $reload
+                    ->has('records.data', 1)
+                    ->where('records.data.0.id', $matchingReservation->id)
+                    ->where('records.data.0.item.item_number', 'REFRESH-RESERVATION')
+                    ->where('records.per_page', 25)
+                    ->where('records.current_page', 1)
+                    ->missing('filters')
+                    ->missing('statusOptions')));
     }
 
     public function test_customer_orders_index_supports_records_only_partial_reload(): void

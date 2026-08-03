@@ -16,6 +16,8 @@ enum OperationTypeCode: string
     case QUALITY_CHECK = 'MINŐSÉGELLENŐRZÉS';
     case PACKAGING = 'CSOMAGOLÁS';
     case PRODUCTION = 'GYÁRTÁS';
+    case STORE = 'TÁROLÁS';
+    case DELIVERY = 'KISZÁLLÍTÁS';
     /*
     case CUTTING = 'CUTTING';
     case WELDING = 'WELDING';

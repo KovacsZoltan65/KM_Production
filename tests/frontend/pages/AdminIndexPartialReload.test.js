@@ -5,6 +5,7 @@ import CustomerIndex from "@/Pages/Admin/Customers/Index.vue";
 import CustomerOrderIndex from "@/Pages/Admin/CustomerOrders/Index.vue";
 import FactoryUnitIndex from "@/Pages/Admin/FactoryUnits/Index.vue";
 import MaterialRequirementIndex from "@/Pages/Admin/Inventory/MaterialRequirements/Index.vue";
+import StockReservationIndex from "@/Pages/Admin/Inventory/StockReservations/Index.vue";
 import StockBalanceIndex from "@/Pages/Admin/Inventory/StockBalances/Index.vue";
 import ShortageIndex from "@/Pages/Admin/Inventory/Shortages/Index.vue";
 import ItemIndex from "@/Pages/Admin/Items/Index.vue";
@@ -111,6 +112,15 @@ const pages = [
             statusOptions: [],
             itemOptions: [],
             customerOrderOptions: [],
+        },
+    },
+    {
+        name: "Stock Reservations",
+        component: StockReservationIndex,
+        props: {
+            records,
+            filters,
+            statusOptions: [],
         },
     },
     {

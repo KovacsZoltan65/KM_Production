@@ -22,9 +22,16 @@ use App\Models\StockReservation;
 use App\Models\User;
 use App\Services\Admin\MaterialRequirementService;
 use App\Services\Admin\StockReservationService;
+use App\Services\AuditLogService;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Validation\ValidationException;
 use Inertia\Testing\AssertableInertia;
+use LogicException;
+use Mockery;
+use Mockery\CompositeExpectation;
+use Mockery\MockInterface;
+use RuntimeException;
 use Spatie\Activitylog\Models\Activity;
 use Tests\TestCase;
 
@@ -201,12 +208,69 @@ class InventoryManagementUiTest extends TestCase
 
         $this->actingAs($user)
             ->patch(route('admin.inventory.stock-reservations.release', $reservation))
-            ->assertRedirect();
+            ->assertRedirect()
+            ->assertSessionHas('success', __('inventory.stock_reservations.released'));
 
         $this->assertDatabaseHas('stock_reservations', [
             'id' => $reservation->id,
             'status' => StockReservationStatus::Released->value,
         ]);
+        $this->assertNotNull($reservation->fresh()->released_at);
+    }
+
+    public function test_user_without_permission_cannot_release_reservation(): void
+    {
+        $reservation = StockReservation::factory()->create(['status' => StockReservationStatus::Active]);
+
+        $this->actingAs($this->verifiedUser())
+            ->patch(route('admin.inventory.stock-reservations.release', $reservation))
+            ->assertForbidden();
+
+        $this->assertSame(StockReservationStatus::Active, $reservation->fresh()->status);
+        $this->assertNull($reservation->fresh()->released_at);
+    }
+
+    public function test_released_reservation_cannot_be_released_twice(): void
+    {
+        $user = $this->verifiedUser('warehouse-manager');
+        $reservation = StockReservation::factory()->create(['status' => StockReservationStatus::Active]);
+        $service = app(StockReservationService::class);
+
+        $service->release($reservation, $user);
+
+        try {
+            $service->release($reservation, $user);
+            $this->fail('A released reservation was released twice.');
+        } catch (ValidationException) {
+            $this->assertSame(StockReservationStatus::Released, $reservation->fresh()->status);
+            $this->assertDatabaseCount('activity_log', 1);
+        }
+    }
+
+    public function test_release_rolls_back_when_audit_logging_fails(): void
+    {
+        $reservation = StockReservation::factory()->create(['status' => StockReservationStatus::Active]);
+        $auditLog = Mockery::mock(AuditLogService::class, static function (MockInterface $mock): void {
+            $expectation = $mock->shouldReceive('log');
+
+            if (! $expectation instanceof CompositeExpectation) {
+                throw new LogicException('Mockery did not create a concrete method expectation.');
+            }
+
+            $expectation->__call('once', []);
+            $expectation->__call('andThrow', [new RuntimeException('Forced audit failure')]);
+        });
+        $this->app->instance(AuditLogService::class, $auditLog);
+
+        try {
+            app(StockReservationService::class)->release($reservation);
+            $this->fail('The release transaction did not fail.');
+        } catch (RuntimeException $exception) {
+            $this->assertSame('Forced audit failure', $exception->getMessage());
+            $this->assertSame(StockReservationStatus::Active, $reservation->fresh()->status);
+            $this->assertNull($reservation->fresh()->released_at);
+            $this->assertDatabaseCount('activity_log', 0);
+        }
     }
 
     public function test_released_reservation_is_not_counted_active(): void

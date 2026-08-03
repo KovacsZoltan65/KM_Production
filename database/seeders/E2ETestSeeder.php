@@ -143,11 +143,21 @@ class E2ETestSeeder extends Seeder
                 'is_active' => true,
             ],
         );
+        $reservationItem = Item::query()->updateOrCreate(
+            ['item_number' => 'E2E-STOCK-RESERVATION-PARTIAL-REFRESH'],
+            [
+                'name' => 'E2E Stock Reservation Partial Refresh Item',
+                'item_type' => ItemType::PurchasedMaterial,
+                'unit' => 'db',
+                'requires_serial_number' => false,
+                'is_active' => true,
+            ],
+        );
 
         $reservation = StockReservation::withTrashed()
             ->firstOrNew(['notes' => 'E2E-STOCK-RESERVATION']);
         $reservation->fill([
-            'item_id' => $item->id,
+            'item_id' => $reservationItem->id,
             'location_id' => $location->id,
             'item_batch_id' => null,
             'customer_order_item_id' => null,
@@ -162,6 +172,15 @@ class E2ETestSeeder extends Seeder
         if ($reservation->trashed()) {
             $reservation->restore();
         }
+
+        StockBalance::query()->updateOrCreate(
+            [
+                'item_id' => $reservationItem->id,
+                'location_id' => $location->id,
+                'item_batch_id' => null,
+            ],
+            ['quantity' => 50],
+        );
 
         $stockBalance = StockBalance::query()->updateOrCreate(
             [

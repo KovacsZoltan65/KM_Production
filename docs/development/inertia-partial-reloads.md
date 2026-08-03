@@ -20,8 +20,8 @@ Az `Admin/Employees/Index` oldal ennek a mintának a referencia-megvalósítása
 frissítés gombja kizárólag a `records` prop-ot tölti újra.
 
 A mintát jelenleg az Employees, Items, Customers, Suppliers, Stock Balances, Inventory / Shortages,
-Inventory / Material Requirements, Customer Orders, Factory Units, Locations, Professional Roles,
-Operation Types, Users, Roles és Permissions admin listaoldalak használják.
+Inventory / Material Requirements, Inventory / Stock Reservations, Customer Orders, Factory Units,
+Locations, Professional Roles, Operation Types, Users, Roles és Permissions admin listaoldalak használják.
 
 Az Inventory / Shortages oldal lista propja a `records`. A `ShortageController` ezt lazy closure-ként
 adja át, míg a változatlan `filters` prop kimarad a csak `records`-ot kérő partial payloadból; külön
@@ -35,6 +35,22 @@ payloadból; a tényleges repository-szűrők a `status`, `required_item_id` és
 lapozott lista közvetlen, eager loadingot használó adatbázis-lekérdezésből készül, nem cache-ből. A
 Playwright egy `E2E-MATERIAL-REQUIREMENT-PARTIAL-REFRESH` fixture-t required item szerint szűr, majd
 a megjelenített `required_quantity` módosításával igazolja a friss adat betöltését.
+
+Az Inventory / Stock Reservations oldal lista propja a `records`; a controller ezt és a
+`statusOptions` selectoradatot lazy closure-ként adja át. A csak `records`-ot kérő partial payloadból
+kimarad a `filters` és a `statusOptions`. A repository egyetlen tényleges listafiltere a `status`, a
+rendezhető mezők az `id`, `item_id`, `reserved_quantity`, `status`, `reserved_at` és `released_at`, az
+alapértelmezett rendezés `reserved_at desc`. A lapozott, kapcsolatait eager loadinggal betöltő lista
+közvetlen adatbázis-lekérdezésből készül, nem cache-ből.
+
+A release továbbra is az Inertia PATCH kérés szerveroldali redirectjével tölti újra egyszer az indexet,
+ezért nincs külön siker utáni kézi reload. Csak aktív foglalás oldható fel; a művelet a státuszt és a
+`released_at` mezőt módosítja, szükség esetén újraszámolja a kapcsolódó material requirementet,
+auditbejegyzést készít, majd az inventory cache-doméneket invalidálja. A success flash változatlanul a
+szerverről érkezik. A Playwright az `E2E-STOCK-RESERVATION-PARTIAL-REFRESH` itemhez tartozó izolált
+foglalás `reserved_quantity` értékének módosításával igazolja a kézi partial refresht, a külön release
+flow pedig az egyetlen PATCH kérést, a pending állapotot, az aktív státuszfilter megőrzését, a success
+toastot és a felszabadított rekord helyes eltűnését ellenőrzi.
 
 Az `only` paraméterben megnevezett prop-oknak a vezérlőben lezárásoknak kell lenniük. A drága opció
 a prop-oknak is lezárásoknak kell lenniük, hogy az Inertia kihagyhassa a lekérdezéseit egy

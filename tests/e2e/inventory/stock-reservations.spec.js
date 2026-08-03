@@ -10,8 +10,14 @@ test("an authorized user can release a stock reservation and the state survives 
     const { reservationId } = e2eData;
     await loginThroughUi(page, e2eUsers.admin);
     await page.goto("/admin/inventory/stock-reservations");
+    await page.getByRole("combobox", { name: "Status", exact: true }).click();
+    await page.getByRole("option", { name: "Active", exact: true }).click();
+    await expect(page).toHaveURL(/status=active/);
+    const filteredUrl = page.url();
 
-    const row = page.getByRole("row").filter({ hasText: "E2E-MAT-001" });
+    const row = page
+        .getByRole("row")
+        .filter({ hasText: "E2E-STOCK-RESERVATION-PARTIAL-REFRESH" });
     const releaseButton = row.getByRole("button", { name: "Release" });
     await expect(row).toContainText("Active");
     await expect(releaseButton).toBeVisible();
@@ -23,6 +29,24 @@ test("an authorized user can release a stock reservation and the state survives 
     });
     const continueGate = new Promise((resolve) => {
         continueRequest = resolve;
+    });
+    let documentRequests = 0;
+    let releaseRequests = 0;
+
+    page.on("request", (request) => {
+        if (request.resourceType() === "document") {
+            documentRequests += 1;
+        }
+        if (
+            request
+                .url()
+                .endsWith(
+                    `/admin/inventory/stock-reservations/${reservationId}/release`,
+                ) &&
+            request.method() === "PATCH"
+        ) {
+            releaseRequests += 1;
+        }
     });
 
     await page.route(
@@ -57,12 +81,19 @@ test("an authorized user can release a stock reservation and the state survives 
             hasText: "Stock reservation released.",
         }),
     ).toBeVisible();
-    await expect(row).toContainText("Released");
-    await expect(row.getByRole("button", { name: "Release" })).toHaveCount(0);
+    await expect(row).toHaveCount(0);
+    expect(page.url()).toBe(filteredUrl);
+    await expect(
+        page.getByRole("combobox", { name: "Active", exact: true }),
+    ).toBeVisible();
+    expect(releaseRequests).toBe(1);
+    expect(documentRequests).toBe(0);
     await page.reload();
     await expect(
-        page.getByRole("row").filter({ hasText: "E2E-MAT-001" }),
-    ).toContainText("Released");
+        page
+            .getByRole("row")
+            .filter({ hasText: "E2E-STOCK-RESERVATION-PARTIAL-REFRESH" }),
+    ).toHaveCount(0);
     expect(browserErrors).toBeDefined();
 });
 
@@ -75,7 +106,9 @@ test("a viewer cannot see or invoke the release action", async ({
     await loginThroughUi(page, e2eUsers.inventoryViewer);
     await page.goto("/admin/inventory/stock-reservations");
 
-    const row = page.getByRole("row").filter({ hasText: "E2E-MAT-001" });
+    const row = page
+        .getByRole("row")
+        .filter({ hasText: "E2E-STOCK-RESERVATION-PARTIAL-REFRESH" });
     await expect(row).toContainText("Active");
     await expect(row.getByRole("button", { name: "Release" })).toHaveCount(0);
 
@@ -94,7 +127,9 @@ test("a viewer cannot see or invoke the release action", async ({
     expect(status).toBe(403);
     await page.reload();
     await expect(
-        page.getByRole("row").filter({ hasText: "E2E-MAT-001" }),
+        page
+            .getByRole("row")
+            .filter({ hasText: "E2E-STOCK-RESERVATION-PARTIAL-REFRESH" }),
     ).toContainText("Active");
     expect(browserErrors).toBeDefined();
 });

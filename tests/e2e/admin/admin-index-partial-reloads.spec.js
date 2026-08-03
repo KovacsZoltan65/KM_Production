@@ -130,6 +130,32 @@ const pages = [
             ),
     },
     {
+        name: "stock reservations",
+        path: "/admin/inventory/stock-reservations",
+        configureFilter: async (page) => {
+            await page
+                .getByRole("combobox", { name: "Status", exact: true })
+                .click();
+            await page
+                .getByRole("option", { name: "Active", exact: true })
+                .click();
+            await expect(page).toHaveURL(/status=active/);
+        },
+        assertFilter: async (page) => {
+            await expect(
+                page.getByRole("combobox", { name: "Active", exact: true }),
+            ).toBeVisible();
+        },
+        initialText: "E2E-STOCK-RESERVATION-PARTIAL-REFRESH",
+        initialExact: false,
+        updatedText: "45.678",
+        update: (fixtures) =>
+            executeSql(
+                "UPDATE stock_reservations SET reserved_quantity = ? WHERE id = ?",
+                [45.678, fixtures.reservationId],
+            ),
+    },
+    {
         name: "customer orders",
         path: "/admin/customer-orders",
         search: "E2E-CUST",
@@ -262,7 +288,11 @@ for (const pageDefinition of pages) {
 
         await expect(refreshButton).toBeVisible();
         await expect(
-            page.getByText(pageDefinition.initialText, { exact: true }).first(),
+            page
+                .getByText(pageDefinition.initialText, {
+                    exact: pageDefinition.initialExact ?? true,
+                })
+                .first(),
         ).toBeVisible();
         pageDefinition.update(e2eData);
 
