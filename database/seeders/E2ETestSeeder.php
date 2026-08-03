@@ -10,6 +10,7 @@ use App\Enums\LocationType;
 use App\Enums\MaterialRequirementStatus;
 use App\Enums\OperationTypeCode;
 use App\Enums\ProductionTaskStatus;
+use App\Enums\StockMovementType;
 use App\Enums\StockReservationStatus;
 use App\Models\Customer;
 use App\Models\CustomerOrder;
@@ -152,6 +153,50 @@ class E2ETestSeeder extends Seeder
                 'requires_serial_number' => false,
                 'is_active' => true,
             ],
+        );
+        $stockMovementItem = Item::query()->updateOrCreate(
+            ['item_number' => 'E2E-STOCK-MOVEMENT-PARTIAL-REFRESH'],
+            [
+                'name' => 'E2E Stock Movement Partial Refresh Item',
+                'item_type' => ItemType::PurchasedMaterial,
+                'unit' => 'db',
+                'requires_serial_number' => false,
+                'is_active' => true,
+            ],
+        );
+        $stockMovementLocation = Location::query()->updateOrCreate(
+            ['code' => 'E2E-SM-LOC'],
+            [
+                'factory_unit_id' => $factoryUnit->id,
+                'name' => 'E2E Stock Movement Location',
+                'location_type' => LocationType::Warehouse,
+                'is_active' => true,
+            ],
+        );
+
+        $stockMovement = StockMovement::query()->updateOrCreate(
+            ['notes' => 'E2E-STOCK-MOVEMENT-PARTIAL-REFRESH-INITIAL'],
+            [
+                'item_id' => $stockMovementItem->id,
+                'item_batch_id' => null,
+                'item_instance_id' => null,
+                'from_location_id' => null,
+                'to_location_id' => $stockMovementLocation->id,
+                'quantity' => 111.111,
+                'movement_type' => StockMovementType::Correction,
+                'source_type' => null,
+                'source_id' => null,
+                'performed_by' => $admin->id,
+                'performed_at' => '2035-01-15 12:00:00',
+            ],
+        );
+        $stockMovementBalance = StockBalance::query()->updateOrCreate(
+            [
+                'item_id' => $stockMovementItem->id,
+                'location_id' => $stockMovementLocation->id,
+                'item_batch_id' => null,
+            ],
+            ['quantity' => 500],
         );
 
         $reservation = StockReservation::withTrashed()
@@ -324,6 +369,10 @@ class E2ETestSeeder extends Seeder
                 'roleId' => $refreshRole->id,
                 'permissionId' => $refreshPermission->id,
                 'reservationId' => $reservation->id,
+                'stockMovementId' => $stockMovement->id,
+                'stockMovementItemId' => $stockMovementItem->id,
+                'stockMovementLocationId' => $stockMovementLocation->id,
+                'stockMovementBalanceId' => $stockMovementBalance->id,
                 'stockBalanceId' => $stockBalance->id,
                 'shortageId' => $shortage->id,
                 'customerId' => $customer->id,
@@ -349,6 +398,10 @@ class E2ETestSeeder extends Seeder
 
         Role::query()->where('name', 'like', 'e2e-refresh-role-%')->delete();
         Permission::query()->where('name', 'like', 'e2e-refresh-permission-%')->delete();
+
+        StockMovement::query()
+            ->where('notes', 'like', 'E2E-STOCK-MOVEMENT-PARTIAL-REFRESH-%')
+            ->delete();
 
         Item::withTrashed()
             ->where('item_number', 'like', 'E2E-NOTIFY-%')

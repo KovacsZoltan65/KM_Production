@@ -156,6 +156,84 @@ const pages = [
             ),
     },
     {
+        name: "stock movements",
+        path: "/admin/inventory/stock-movements",
+        configureFilter: async (page) => {
+            await page
+                .getByRole("combobox", { name: "Item", exact: true })
+                .click();
+            await page
+                .getByRole("option", {
+                    name: "E2E-STOCK-MOVEMENT-PARTIAL-REFRESH - E2E Stock Movement Partial Refresh Item",
+                    exact: true,
+                })
+                .click();
+            await expect(page).toHaveURL(/item_id=\d+/);
+            await page
+                .getByRole("combobox", {
+                    name: "Movement type",
+                    exact: true,
+                })
+                .click();
+            await page
+                .getByRole("option", { name: "Correction", exact: true })
+                .click();
+            await expect(page).toHaveURL(/movement_type=correction/);
+        },
+        assertFilter: async (page) => {
+            await expect(
+                page.getByRole("combobox", {
+                    name: "E2E-STOCK-MOVEMENT-PARTIAL-REFRESH - E2E Stock Movement Partial Refresh Item",
+                    exact: true,
+                }),
+            ).toBeVisible();
+            await expect(
+                page.getByRole("combobox", {
+                    name: "Correction",
+                    exact: true,
+                }),
+            ).toBeVisible();
+        },
+        initialText: "111.111",
+        updatedText: "222.222",
+        update: (fixtures) =>
+            executeSql(
+                "INSERT INTO stock_movements (item_id, to_location_id, quantity, movement_type, performed_by, performed_at, notes, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                [
+                    fixtures.stockMovementItemId,
+                    fixtures.stockMovementLocationId,
+                    222.222,
+                    "correction",
+                    fixtures.adminId,
+                    "2035-02-15 12:00:00",
+                    "E2E-STOCK-MOVEMENT-PARTIAL-REFRESH-NEW",
+                    "2035-02-15 12:00:00",
+                    "2035-02-15 12:00:00",
+                ],
+            ),
+        assertUpdated: async (page) => {
+            const updatedRow = page
+                .getByRole("row")
+                .filter({ hasText: "222.222" });
+            await expect(updatedRow).toHaveCount(1);
+            await expect(updatedRow).toContainText(
+                "E2E-STOCK-MOVEMENT-PARTIAL-REFRESH",
+            );
+            await expect(updatedRow).toContainText("E2E-SM-LOC");
+            await expect(updatedRow).toContainText("Correction");
+
+            const rowTexts = await page.getByRole("row").allTextContents();
+            const updatedIndex = rowTexts.findIndex((text) =>
+                text.includes("222.222"),
+            );
+            const initialIndex = rowTexts.findIndex((text) =>
+                text.includes("111.111"),
+            );
+            expect(updatedIndex).toBeGreaterThan(0);
+            expect(initialIndex).toBeGreaterThan(updatedIndex);
+        },
+    },
+    {
         name: "customer orders",
         path: "/admin/customer-orders",
         search: "E2E-CUST",
@@ -337,6 +415,9 @@ for (const pageDefinition of pages) {
         await expect(
             page.getByText(pageDefinition.updatedText, { exact: true }).first(),
         ).toBeVisible();
+        if (pageDefinition.assertUpdated) {
+            await pageDefinition.assertUpdated(page);
+        }
         await expect(refreshButton).toBeEnabled();
         expect(page.url()).toBe(filteredUrl);
         expect(documentRequests).toBe(0);

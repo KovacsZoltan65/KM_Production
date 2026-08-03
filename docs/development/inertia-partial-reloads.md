@@ -20,8 +20,9 @@ Az `Admin/Employees/Index` oldal ennek a mintának a referencia-megvalósítása
 frissítés gombja kizárólag a `records` prop-ot tölti újra.
 
 A mintát jelenleg az Employees, Items, Customers, Suppliers, Stock Balances, Inventory / Shortages,
-Inventory / Material Requirements, Inventory / Stock Reservations, Customer Orders, Factory Units,
-Locations, Professional Roles, Operation Types, Users, Roles és Permissions admin listaoldalak használják.
+Inventory / Material Requirements, Inventory / Stock Reservations, Inventory / Stock Movements,
+Customer Orders, Factory Units, Locations, Professional Roles, Operation Types, Users, Roles és
+Permissions admin listaoldalak használják.
 
 Az Inventory / Shortages oldal lista propja a `records`. A `ShortageController` ezt lazy closure-ként
 adja át, míg a változatlan `filters` prop kimarad a csak `records`-ot kérő partial payloadból; külön
@@ -51,6 +52,22 @@ szerverről érkezik. A Playwright az `E2E-STOCK-RESERVATION-PARTIAL-REFRESH` it
 foglalás `reserved_quantity` értékének módosításával igazolja a kézi partial refresht, a külön release
 flow pedig az egyetlen PATCH kérést, a pending állapotot, az aktív státuszfilter megőrzését, a success
 toastot és a felszabadított rekord helyes eltűnését ellenőrzi.
+
+Az Inventory / Stock Movements read-only auditlista `records` propja, valamint a
+`movementTypeOptions`, `itemOptions` és `locationOptions` selectorpropok lazy controller closure-k. A
+csak `records`-ot kérő partial payloadból ezek az optionök és a `filters` kimaradnak. A tényleges
+repository-filterek a `movement_type`, `item_id`, a forrás- vagy célraktárhelyre alkalmazott
+`location_id`, továbbá az inkluzív `date_from` és `date_to`; a frontend által küldött `search` jelenleg
+nem repository-filter. A rendezhető mezők az `id`, `item_id`, `quantity`, `movement_type` és
+`performed_at`, az alapértelmezett sorrend `performed_at desc`. A lista az item, batch, instance,
+forrás- és célraktárhely, valamint performer kapcsolatokat eager loadinggal, közvetlenül a
+`stock_movements` táblából tölti, cache nélkül.
+
+A Playwright az `E2E-STOCK-MOVEMENT-PARTIAL-REFRESH` item és az `E2E-SM-LOC` location alatt egy új,
+`222.222` mennyiségű correction mozgást szúr be kizárólag az izolált E2E SQLite adatbázisba. A kézi
+partial refresh után ellenőrzi az új sor egyszeri, időrendhelyes megjelenését és a filterek megőrzését.
+A kézi refresh productionkódja nem hoz létre vagy módosít mozgást, Stock Balance rekordot vagy
+üzleti auditbejegyzést.
 
 Az `only` paraméterben megnevezett prop-oknak a vezérlőben lezárásoknak kell lenniük. A drága opció
 a prop-oknak is lezárásoknak kell lenniük, hogy az Inertia kihagyhassa a lekérdezéseit egy

@@ -19,6 +19,7 @@ class EmployeeSeeder extends Seeder
             'QUALITY_MANAGER' => 4,
             'SUPERVISOR' => 5,
             'MAINTENANCE_TECHNICIAN' => 6,
+            'WAREHOUSEMAN' => 7
         ];
 
         $employees = [
@@ -30,8 +31,7 @@ class EmployeeSeeder extends Seeder
                 'professional_role_id' => $professional_roles['OPERATOR'],
                 'is_active' => true,
                 'hired_at' => '2026-07-06',
-            ],
-            [
+            ], [
                 'employee_number' => 'EMP-0002',
                 'name' => 'Nagy Anna',
                 'email' => 'nagy.anna@kmgepgyarto.test',
@@ -39,8 +39,7 @@ class EmployeeSeeder extends Seeder
                 'professional_role_id' => $professional_roles['QUALITY_INSPECTOR'],
                 'is_active' => true,
                 'hired_at' => '2026-07-06',
-            ],
-            [
+            ], [
                 'employee_number' => 'EMP-0003',
                 'name' => 'Szabó Péter',
                 'email' => 'szabo.peter@kmgepgyarto.test',
@@ -48,8 +47,7 @@ class EmployeeSeeder extends Seeder
                 'professional_role_id' => $professional_roles['PACKER'],
                 'is_active' => true,
                 'hired_at' => '2026-07-06',
-            ],
-            [
+            ], [
                 'employee_number' => 'EMP-0004',
                 'name' => 'Tóth Eszter',
                 'email' => 'toth.eszter@kmgepgyarto.test',
@@ -57,8 +55,7 @@ class EmployeeSeeder extends Seeder
                 'professional_role_id' => $professional_roles['QUALITY_MANAGER'],
                 'is_active' => true,
                 'hired_at' => '2026-07-06',
-            ],
-            [
+            ], [
                 'employee_number' => 'EMP-0005',
                 'name' => 'Farkas László',
                 'email' => 'farkas.laszlo@kmgepgyarto.test',
@@ -66,7 +63,7 @@ class EmployeeSeeder extends Seeder
                 'professional_role_id' => $professional_roles['SUPERVISOR'],
                 'is_active' => true,
                 'hired_at' => '2026-07-06',
-            ],[
+            ], [
                 'employee_number' => 'EMP-0006',
                 'name' => 'Kovács Mária',
                 'email' => 'kovacs.maria@kmgepgyarto.test',
@@ -74,7 +71,15 @@ class EmployeeSeeder extends Seeder
                 'professional_role_id' => $professional_roles['MAINTENANCE_TECHNICIAN'],
                 'is_active' => true,
                 'hired_at' => '2026-07-06',
-            ],
+            ], [
+                'employee_number' => 'EMP-0007',
+                'name' => 'Horváth Gábor',
+                'email' => 'horvath.gabor@kmgepgyarto.test',
+                'phone' => '+36 30 333 4444',
+                'professional_role_id' => $professional_roles['WAREHOUSEMAN'],
+                'is_active' => true,
+                'hired_at' => '2026-07-06',
+            ]
         ];
 
         foreach ($employees as $employee) {

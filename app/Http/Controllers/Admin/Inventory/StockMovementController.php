@@ -22,11 +22,11 @@ class StockMovementController extends Controller
         $this->authorize('viewAny', StockMovement::class);
 
         return Inertia::render('Admin/Inventory/StockMovements/Index', [
-            'records' => $this->service->paginateStockMovements($request->filters(), $request->perPage()),
+            'records' => fn () => $this->service->paginateStockMovements($request->filters(), $request->perPage()),
             'filters' => $request->filters(),
-            'movementTypeOptions' => $this->movementTypeOptions(),
-            'itemOptions' => $this->itemOptions(),
-            'locationOptions' => $this->locationOptions(),
+            'movementTypeOptions' => fn () => $this->movementTypeOptions(),
+            'itemOptions' => fn () => $this->itemOptions(),
+            'locationOptions' => fn () => $this->locationOptions(),
         ]);
     }
 
