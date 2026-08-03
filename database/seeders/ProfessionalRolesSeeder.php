@@ -20,6 +20,30 @@ class ProfessionalRolesSeeder extends Seeder
                 'is_active' => true,
             ],
             [
+                'code' => 'PACKER',
+                'name' => 'Csomagoló',
+                'description' => 'Készárut csomagoló dolgozó.',
+                'is_active' => true,
+            ],
+            [
+                'code' => 'MAINTENANCE_TECHNICIAN',
+                'name' => 'Karbantartó technikus',
+                'description' => 'Gépek karbantartását végző dolgozó.',
+                'is_active' => true,
+            ],
+            [
+                'code' => 'SUPERVISOR',
+                'name' => 'Műszakvezető',
+                'description' => 'Műszakot irányító dolgozó.',
+                'is_active' => true,
+            ],
+            [
+                'code' => 'QUALITY_MANAGER',
+                'name' => 'Minőségügyi vezető',
+                'description' => 'Minőségügyi feladatokat irányító dolgozó.',
+                'is_active' => true,
+            ],
+            [
                 'code' => 'QUALITY_INSPECTOR',
                 'name' => 'Minőségellenőr',
                 'description' => 'Minőségellenőrzési feladatokat végző dolgozó.',

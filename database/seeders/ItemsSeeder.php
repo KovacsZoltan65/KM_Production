@@ -14,6 +14,30 @@ class ItemsSeeder extends Seeder
 
         $items = [
             [
+                'item_number' => 'MAT-0001',
+                'name' => 'Kémcső alapanyag',
+                'item_type' => 'purchased_material',
+                'unit' => 'kg',
+                'width' => null,
+                'length' => null,
+                'thickness' => null,
+                'diameter' => null,
+                'requires_serial_number' => false,
+                'is_active' => true,
+            ],
+            [
+                'item_number' => 'MAT-0002',
+                'name' => 'Dugó alapanyag',
+                'item_type' => 'purchased_material',
+                'unit' => 'kg',
+                'width' => null,
+                'length' => null,
+                'thickness' => null,
+                'diameter' => null,
+                'requires_serial_number' => false,
+                'is_active' => true,
+            ],
+            [
                 'item_number' => 'PRD-0001',
                 'name' => 'Kémcső 11x70',
                 'item_type' => 'manufactured_part',
@@ -35,7 +59,7 @@ class ItemsSeeder extends Seeder
                 'diameter' => '11.000',
                 'requires_serial_number' => false,
                 'is_active' => true,
-            ], [
+            ], /*[
                 'item_number' => 'PRD-0003',
                 'name' => 'Kémcső dugóval 11x70',
                 'item_type' => 'finished_product',
@@ -46,29 +70,8 @@ class ItemsSeeder extends Seeder
                 'diameter' => '11.000',
                 'requires_serial_number' => false,
                 'is_active' => true,
-            ], [
-                'item_number' => 'MAT-0001',
-                'name' => 'Kémcső anyag',
-                'item_type' => 'purchased_material',
-                'unit' => 'kg',
-                'width' => null,
-                'length' => null,
-                'thickness' => null,
-                'diameter' => null,
-                'requires_serial_number' => false,
-                'is_active' => true,
-            ], [
-                'item_number' => 'MAT-0002',
-                'name' => 'Dugó anyag',
-                'item_type' => 'purchased_material',
-                'unit' => 'kg',
-                'width' => null,
-                'length' => null,
-                'thickness' => null,
-                'diameter' => null,
-                'requires_serial_number' => false,
-                'is_active' => true,
             ],
+            */
         ];
 
         foreach ($items as $item) {

@@ -18,6 +18,9 @@ class InitialInstallationSeeder extends Seeder
             EmployeeSeeder::class,
             SuppliersSeeder::class,
             CustomersSeeder::class,
+
+            ItemsSeeder::class,
+            OperationTypesSeeder::class,
         ]);
     }
 }
