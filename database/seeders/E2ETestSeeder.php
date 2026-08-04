@@ -10,6 +10,8 @@ use App\Enums\LocationType;
 use App\Enums\MaterialRequirementStatus;
 use App\Enums\OperationTypeCode;
 use App\Enums\ProductionTaskStatus;
+use App\Enums\PurchaseRequisitionItemStatus;
+use App\Enums\PurchaseRequisitionStatus;
 use App\Enums\StockMovementType;
 use App\Enums\StockReservationStatus;
 use App\Models\Customer;
@@ -28,6 +30,7 @@ use App\Models\ProductionPlan;
 use App\Models\ProductionTask;
 use App\Models\ProfessionalRole;
 use App\Models\PurchaseOrder;
+use App\Models\PurchaseRequisition;
 use App\Models\QualityCheck;
 use App\Models\StockBalance;
 use App\Models\StockMovement;
@@ -260,6 +263,48 @@ class E2ETestSeeder extends Seeder
         );
         $product = Item::query()->where('item_number', 'PRODUCT-AAA')->firstOrFail();
 
+        $refreshPurchaseRequisition = PurchaseRequisition::query()->create([
+            'requisition_number' => 'E2E-PR-REFRESH-001',
+            'status' => PurchaseRequisitionStatus::Requested,
+            'requested_by' => $admin->id,
+            'requested_at' => '2035-01-15 12:00:00',
+            'notes' => 'E2E purchase requisition partial refresh fixture.',
+        ]);
+        $refreshPurchaseRequisition->items()->create([
+            'item_id' => $item->id,
+            'quantity' => 11.111,
+            'unit' => $item->unit,
+            'status' => PurchaseRequisitionItemStatus::Requested,
+        ]);
+
+        $approvePurchaseRequisition = PurchaseRequisition::query()->create([
+            'requisition_number' => 'E2E-PR-APPROVE-001',
+            'status' => PurchaseRequisitionStatus::Requested,
+            'requested_by' => $admin->id,
+            'requested_at' => '2035-01-16 12:00:00',
+            'notes' => 'E2E purchase requisition approve fixture.',
+        ]);
+        $approvePurchaseRequisition->items()->create([
+            'item_id' => $item->id,
+            'quantity' => 22.222,
+            'unit' => $item->unit,
+            'status' => PurchaseRequisitionItemStatus::Requested,
+        ]);
+
+        $generatePurchaseRequisition = PurchaseRequisition::query()->create([
+            'requisition_number' => 'E2E-PR-GENERATE-001',
+            'status' => PurchaseRequisitionStatus::Approved,
+            'requested_by' => $admin->id,
+            'requested_at' => '2035-01-17 12:00:00',
+            'notes' => 'E2E purchase requisition PO generation fixture.',
+        ]);
+        $generatePurchaseRequisition->items()->create([
+            'item_id' => $item->id,
+            'quantity' => 33.333,
+            'unit' => $item->unit,
+            'status' => PurchaseRequisitionItemStatus::Requested,
+        ]);
+
         CustomerOrder::withTrashed()
             ->where('notes', 'E2E customer order UI workflow')
             ->forceDelete();
@@ -383,6 +428,9 @@ class E2ETestSeeder extends Seeder
                 'productionTaskId' => $productionTask->id,
                 'employeeId' => $employee->id,
                 'purchaseOrderId' => $purchaseOrder->id,
+                'refreshPurchaseRequisitionId' => $refreshPurchaseRequisition->id,
+                'approvePurchaseRequisitionId' => $approvePurchaseRequisition->id,
+                'generatePurchaseRequisitionId' => $generatePurchaseRequisition->id,
                 'locationId' => $location->id,
             ], JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT),
         );
@@ -402,6 +450,19 @@ class E2ETestSeeder extends Seeder
         StockMovement::query()
             ->where('notes', 'like', 'E2E-STOCK-MOVEMENT-PARTIAL-REFRESH-%')
             ->delete();
+
+        $purchaseRequisitionIds = PurchaseRequisition::withTrashed()
+            ->where('requisition_number', 'like', 'E2E-PR-%')
+            ->pluck('id');
+
+        if ($purchaseRequisitionIds->isNotEmpty()) {
+            PurchaseOrder::withTrashed()
+                ->whereIn('purchase_requisition_id', $purchaseRequisitionIds)
+                ->forceDelete();
+            PurchaseRequisition::withTrashed()
+                ->whereIn('id', $purchaseRequisitionIds)
+                ->forceDelete();
+        }
 
         Item::withTrashed()
             ->where('item_number', 'like', 'E2E-NOTIFY-%')

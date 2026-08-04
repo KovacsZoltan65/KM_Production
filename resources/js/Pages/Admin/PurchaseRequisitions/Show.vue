@@ -1,4 +1,5 @@
 <script setup>
+import { notifyRequestError } from "@/Composables/useRequestError";
 import AdminLayout from "@/Layouts/AdminLayout.vue";
 import { route } from "@/Utils/routes";
 import { Head, Link, router, useForm } from "@inertiajs/vue3";
@@ -11,6 +12,7 @@ import Dialog from "primevue/dialog";
 import Select from "primevue/select";
 import Tag from "primevue/tag";
 import { useConfirm } from "primevue/useconfirm";
+import { useToast } from "primevue/usetoast";
 import { trans } from "laravel-vue-i18n";
 import { computed, ref } from "vue";
 
@@ -53,9 +55,12 @@ const props = defineProps({
     supplierOptions: Array,
 });
 const confirm = useConfirm();
+const toast = useToast();
 const dialogVisible = ref(false);
 const approving = ref(false);
+const generating = ref(false);
 const form = useForm({ supplier_id: null, expected_delivery_date: null });
+const actionPending = computed(() => approving.value || generating.value);
 const canApprove = computed(() =>
     ["draft", "requested"].includes(props.purchaseRequisition.status),
 );
@@ -81,7 +86,7 @@ const approve = () =>
         ),
         icon: "pi pi-check",
         accept: () => {
-            if (approving.value) {
+            if (actionPending.value) {
                 return;
             }
 
@@ -93,6 +98,9 @@ const approve = () =>
                 ),
                 {},
                 {
+                    onError: (error) => {
+                        notifyRequestError(toast, error);
+                    },
                     onFinish: () => {
                         approving.value = false;
                     },
@@ -100,14 +108,28 @@ const approve = () =>
             );
         },
     });
-const generatePo = () =>
+const generatePo = () => {
+    if (actionPending.value) {
+        return;
+    }
+
+    generating.value = true;
     form.post(
         route(
             "admin.purchase-requisitions.generate-purchase-order",
             props.purchaseRequisition.id,
         ),
-        { preserveScroll: true },
+        {
+            preserveScroll: true,
+            onError: (error) => {
+                notifyRequestError(toast, error);
+            },
+            onFinish: () => {
+                generating.value = false;
+            },
+        },
     );
+};
 </script>
 
 <template>
@@ -148,7 +170,7 @@ const generatePo = () =>
                         icon="pi pi-check"
                         severity="success"
                         :loading="approving"
-                        :disabled="approving"
+                        :disabled="actionPending"
                         @click="approve"
                     />
                     <Button
@@ -161,6 +183,8 @@ const generatePo = () =>
                         "
                         icon="pi pi-shopping-cart"
                         outlined
+                        :loading="generating"
+                        :disabled="actionPending"
                         @click="dialogVisible = true"
                     />
                 </div>
@@ -244,12 +268,14 @@ const generatePo = () =>
                     option-value="id"
                     :placeholder="trans('fields.supplier')"
                     filter
+                    :disabled="generating"
                     class="w-full"
                 />
                 <DatePicker
                     v-model="form.expected_delivery_date"
                     date-format="yy-mm-dd"
                     :placeholder="trans('fields.expected_delivery')"
+                    :disabled="generating"
                     class="w-full"
                 />
                 <div class="flex justify-end gap-2">
@@ -258,11 +284,14 @@ const generatePo = () =>
                         :label="trans('actions.cancel')"
                         severity="secondary"
                         outlined
+                        :disabled="generating"
                         @click="dialogVisible = false"
                     /><Button
                         type="submit"
                         :label="trans('actions.generate')"
                         icon="pi pi-check"
+                        :loading="generating"
+                        :disabled="actionPending"
                     />
                 </div>
             </form>

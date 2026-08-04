@@ -21,8 +21,8 @@ frissítés gombja kizárólag a `records` prop-ot tölti újra.
 
 A mintát jelenleg az Employees, Items, Customers, Suppliers, Stock Balances, Inventory / Shortages,
 Inventory / Material Requirements, Inventory / Stock Reservations, Inventory / Stock Movements,
-Customer Orders, Factory Units, Locations, Professional Roles, Operation Types, Users, Roles és
-Permissions admin listaoldalak használják.
+Customer Orders, Procurement / Purchase Requisitions, Factory Units, Locations, Professional Roles,
+Operation Types, Users, Roles és Permissions admin listaoldalak használják.
 
 Az Inventory dashboard jelenleg kizárólag frontendben definiált navigációs kártyákat jelenít meg,
 page-local Inertia propot, adatbázis-lekérdezést és dashboard-cache-t nem használ. Emiatt nincs rajta
@@ -74,6 +74,24 @@ A Playwright az `E2E-STOCK-MOVEMENT-PARTIAL-REFRESH` item és az `E2E-SM-LOC` lo
 partial refresh után ellenőrzi az új sor egyszeri, időrendhelyes megjelenését és a filterek megőrzését.
 A kézi refresh productionkódja nem hoz létre vagy módosít mozgást, Stock Balance rekordot vagy
 üzleti auditbejegyzést.
+
+A Procurement / Purchase Requisitions oldal lista propja a `records`; a controller ezt, a
+`statusOptions` és az adatbázisból olvasott `itemOptions` propot lazy closure-ként adja át. A csak
+`records`-ot kérő partial payloadból a `filters` és mindkét option prop kimarad. A repository tényleges
+filterei a requisition numberre vagy notes mezőre alkalmazott `search` és a `status`; a rendezhető mezők
+az `id`, `requisition_number`, `status`, `requested_at` és `created_at`, az alapértelmezett rendezés
+`id asc`. A lapozott index a requestert eager loadinggal és az items kapcsolatot `withCount()`
+aggregátummal tölti közvetlenül az adatbázisból, cache nélkül.
+
+A rekord jóváhagyása és a Purchase Order generálása nem indexsorbeli action, hanem a Purchase
+Requisition részletező oldal workflow-ja. Az approve Draft vagy Requested állapotból Approved állapotba
+vált, `back()` redirectje egyetlen Inertia frissítést és a meglévő domain success flasht adja. A
+generation kizárólag Approved igényből, kiválasztott supplierrel, tranzakciós row lock mellett hoz létre
+egy Draft Purchase Ordert és annak tételeit, Ordered állapotba teszi az igényt és a generált rendelés
+adatlapjára irányít. A frontend külön approve és generation pending guardot használ, nem végez optimista
+státuszváltást vagy második reloadot. Mindkét workflow auditált, a `procurementChanged()` invalidációt
+használja; maga az index nem cache-elt. Az elkülönített E2E fixture-ek a kézi partial frissítést, az
+egyszeri approve kérést, valamint az egyszeri PO- és PO-item-generálást igazolják.
 
 Az `only` paraméterben megnevezett prop-oknak a vezérlőben lezárásoknak kell lenniük. A drága opció
 a prop-oknak is lezárásoknak kell lenniük, hogy az Inertia kihagyhassa a lekérdezéseit egy

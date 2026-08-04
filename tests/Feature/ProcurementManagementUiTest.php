@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\GoodsReceiptStatus;
 use App\Enums\PurchaseOrderStatus;
+use App\Enums\PurchaseRequisitionItemStatus;
 use App\Enums\PurchaseRequisitionStatus;
 use App\Enums\StockMovementType;
 use App\Models\GoodsReceipt;
@@ -18,10 +19,15 @@ use App\Models\Supplier;
 use App\Models\User;
 use App\Services\Admin\GoodsReceiptService;
 use App\Services\Admin\PurchaseRequisitionService;
+use App\Services\AuditLogService;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
 use Inertia\Testing\AssertableInertia;
+use LogicException;
+use Mockery;
+use Mockery\CompositeExpectation;
+use RuntimeException;
 use Spatie\Activitylog\Models\Activity;
 use Tests\TestCase;
 
@@ -113,15 +119,81 @@ class ProcurementManagementUiTest extends TestCase
     {
         $user = $this->verifiedUser('procurement-manager');
         $requisition = PurchaseRequisition::factory()->create(['status' => PurchaseRequisitionStatus::Requested]);
+        $item = $requisition->items()->create([
+            'item_id' => Item::factory()->purchasedMaterial()->create()->id,
+            'quantity' => 4,
+            'unit' => 'db',
+            'status' => PurchaseRequisitionItemStatus::Draft,
+        ]);
 
         $this->actingAs($user)
             ->patch(route('admin.purchase-requisitions.approve', $requisition))
-            ->assertRedirect();
+            ->assertRedirect()
+            ->assertSessionHas('success', __('procurement.purchase_requisitions.messages.approved'));
 
         $this->assertDatabaseHas('purchase_requisitions', [
             'id' => $requisition->id,
             'status' => PurchaseRequisitionStatus::Approved->value,
         ]);
+        $this->assertSame(PurchaseRequisitionItemStatus::Requested, $item->fresh()->status);
+        $activity = Activity::query()->where('event', 'purchase_requisition_approved')->firstOrFail();
+        $this->assertTrue($activity->subject->is($requisition));
+        $this->assertTrue($activity->causer->is($user));
+    }
+
+    public function test_requisition_cannot_be_approved_twice(): void
+    {
+        $user = $this->verifiedUser('procurement-manager');
+        $requisition = PurchaseRequisition::factory()->create(['status' => PurchaseRequisitionStatus::Requested]);
+
+        $this->actingAs($user)->patch(route('admin.purchase-requisitions.approve', $requisition));
+        $this->actingAs($user)
+            ->patch(route('admin.purchase-requisitions.approve', $requisition))
+            ->assertSessionHasErrors('status');
+
+        $this->assertSame(PurchaseRequisitionStatus::Approved, $requisition->fresh()->status);
+        $this->assertSame(1, Activity::query()->where('event', 'purchase_requisition_approved')->count());
+    }
+
+    public function test_user_without_permission_cannot_approve_requisition(): void
+    {
+        $requisition = PurchaseRequisition::factory()->create(['status' => PurchaseRequisitionStatus::Requested]);
+
+        $this->actingAs($this->verifiedUser())
+            ->patch(route('admin.purchase-requisitions.approve', $requisition))
+            ->assertForbidden();
+
+        $this->assertSame(PurchaseRequisitionStatus::Requested, $requisition->fresh()->status);
+        $this->assertFalse(Activity::query()->where('event', 'purchase_requisition_approved')->exists());
+    }
+
+    public function test_requisition_approve_rolls_back_when_audit_fails(): void
+    {
+        $requisition = PurchaseRequisition::factory()->create(['status' => PurchaseRequisitionStatus::Requested]);
+        $item = $requisition->items()->create([
+            'item_id' => Item::factory()->purchasedMaterial()->create()->id,
+            'quantity' => 4,
+            'unit' => 'db',
+            'status' => PurchaseRequisitionItemStatus::Draft,
+        ]);
+        $auditLog = Mockery::mock(AuditLogService::class);
+        $expectation = $auditLog->shouldReceive('logUpdated');
+        if (! $expectation instanceof CompositeExpectation) {
+            throw new LogicException('Mockery did not create a concrete method expectation.');
+        }
+        $expectation->__call('once', []);
+        $expectation->__call('andThrow', [new RuntimeException('Forced approve audit failure')]);
+        $this->app->instance(AuditLogService::class, $auditLog);
+
+        try {
+            app(PurchaseRequisitionService::class)->approve($requisition);
+            $this->fail('The approve transaction did not fail.');
+        } catch (RuntimeException $exception) {
+            $this->assertSame('Forced approve audit failure', $exception->getMessage());
+            $this->assertSame(PurchaseRequisitionStatus::Requested, $requisition->fresh()->status);
+            $this->assertSame(PurchaseRequisitionItemStatus::Draft, $item->fresh()->status);
+            $this->assertFalse(Activity::query()->where('event', 'purchase_requisition_approved')->exists());
+        }
     }
 
     public function test_purchase_order_can_be_generated_from_approved_requisition(): void
@@ -136,20 +208,103 @@ class ProcurementManagementUiTest extends TestCase
             'unit' => $material->unit,
         ]);
 
+        $response = $this->actingAs($user)
+            ->post(route('admin.purchase-requisitions.generate-purchase-order', $requisition), [
+                'supplier_id' => $supplier->id,
+                'expected_delivery_date' => '2027-04-15',
+            ]);
+
+        $purchaseOrder = PurchaseOrder::query()->where('purchase_requisition_id', $requisition->id)->firstOrFail();
+        $response
+            ->assertRedirect(route('admin.purchase-orders.show', $purchaseOrder))
+            ->assertSessionHas('success', __('procurement.purchase_requisitions.messages.purchase_order_generated'));
+        $this->assertDatabaseHas('purchase_orders', [
+            'id' => $purchaseOrder->id,
+            'supplier_id' => $supplier->id,
+            'purchase_requisition_id' => $requisition->id,
+            'status' => PurchaseOrderStatus::Draft->value,
+            'expected_delivery_date' => '2027-04-15 00:00:00',
+        ]);
+        $this->assertDatabaseHas('purchase_order_items', [
+            'purchase_order_id' => $purchaseOrder->id,
+            'purchase_requisition_item_id' => $requisition->items()->firstOrFail()->id,
+            'item_id' => $material->id,
+            'ordered_quantity' => 4,
+            'received_quantity' => 0,
+            'unit' => $material->unit,
+        ]);
+        $this->assertSame(PurchaseRequisitionStatus::Ordered, $requisition->fresh()->status);
+        $this->assertSame(PurchaseRequisitionItemStatus::Ordered, $requisition->items()->firstOrFail()->status);
+        $activity = Activity::query()->where('event', 'purchase_order_generated')->firstOrFail();
+        $this->assertTrue($activity->subject->is($purchaseOrder));
+        $this->assertTrue($activity->causer->is($user));
+    }
+
+    public function test_purchase_order_generation_cannot_be_repeated(): void
+    {
+        $user = $this->verifiedUser('procurement-manager');
+        $supplier = Supplier::factory()->create();
+        $requisition = PurchaseRequisition::factory()->create(['status' => PurchaseRequisitionStatus::Approved]);
+        $requisition->items()->create([
+            'item_id' => Item::factory()->purchasedMaterial()->create()->id,
+            'quantity' => 4,
+            'unit' => 'db',
+        ]);
+
+        $payload = ['supplier_id' => $supplier->id];
+        $this->actingAs($user)->post(route('admin.purchase-requisitions.generate-purchase-order', $requisition), $payload);
         $this->actingAs($user)
+            ->post(route('admin.purchase-requisitions.generate-purchase-order', $requisition), $payload)
+            ->assertSessionHasErrors('status');
+
+        $this->assertSame(1, PurchaseOrder::query()->where('purchase_requisition_id', $requisition->id)->count());
+        $this->assertSame(1, Activity::query()->where('event', 'purchase_order_generated')->count());
+    }
+
+    public function test_user_without_permission_cannot_generate_purchase_order(): void
+    {
+        $supplier = Supplier::factory()->create();
+        $requisition = PurchaseRequisition::factory()->create(['status' => PurchaseRequisitionStatus::Approved]);
+
+        $this->actingAs($this->verifiedUser())
             ->post(route('admin.purchase-requisitions.generate-purchase-order', $requisition), [
                 'supplier_id' => $supplier->id,
             ])
-            ->assertRedirect();
+            ->assertForbidden();
 
-        $this->assertDatabaseHas('purchase_orders', [
-            'supplier_id' => $supplier->id,
-            'purchase_requisition_id' => $requisition->id,
+        $this->assertSame(PurchaseRequisitionStatus::Approved, $requisition->fresh()->status);
+        $this->assertFalse(PurchaseOrder::query()->where('purchase_requisition_id', $requisition->id)->exists());
+    }
+
+    public function test_purchase_order_generation_rolls_back_when_audit_fails(): void
+    {
+        $supplier = Supplier::factory()->create();
+        $requisition = PurchaseRequisition::factory()->create(['status' => PurchaseRequisitionStatus::Approved]);
+        $item = $requisition->items()->create([
+            'item_id' => Item::factory()->purchasedMaterial()->create()->id,
+            'quantity' => 4,
+            'unit' => 'db',
+            'status' => PurchaseRequisitionItemStatus::Requested,
         ]);
-        $this->assertDatabaseHas('purchase_order_items', [
-            'item_id' => $material->id,
-            'ordered_quantity' => 4,
-        ]);
+        $auditLog = Mockery::mock(AuditLogService::class);
+        $expectation = $auditLog->shouldReceive('log');
+        if (! $expectation instanceof CompositeExpectation) {
+            throw new LogicException('Mockery did not create a concrete method expectation.');
+        }
+        $expectation->__call('once', []);
+        $expectation->__call('andThrow', [new RuntimeException('Forced generation audit failure')]);
+        $this->app->instance(AuditLogService::class, $auditLog);
+
+        try {
+            app(PurchaseRequisitionService::class)->generatePurchaseOrder($requisition, $supplier->id);
+            $this->fail('The generation transaction did not fail.');
+        } catch (RuntimeException $exception) {
+            $this->assertSame('Forced generation audit failure', $exception->getMessage());
+            $this->assertSame(PurchaseRequisitionStatus::Approved, $requisition->fresh()->status);
+            $this->assertSame(PurchaseRequisitionItemStatus::Requested, $item->fresh()->status);
+            $this->assertFalse(PurchaseOrder::query()->where('purchase_requisition_id', $requisition->id)->exists());
+            $this->assertFalse(Activity::query()->where('event', 'purchase_order_generated')->exists());
+        }
     }
 
     public function test_purchase_order_approve_works(): void

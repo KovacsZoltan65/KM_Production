@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\OperationTypeCode;
+use App\Enums\PurchaseRequisitionStatus;
 use App\Enums\StockMovementType;
 use App\Enums\StockReservationStatus;
 use App\Models\Customer;
@@ -14,6 +15,7 @@ use App\Models\Location;
 use App\Models\MaterialRequirement;
 use App\Models\OperationType;
 use App\Models\ProfessionalRole;
+use App\Models\PurchaseRequisition;
 use App\Models\StockBalance;
 use App\Models\StockMovement;
 use App\Models\StockReservation;
@@ -376,6 +378,65 @@ class AdminIndexPartialReloadTest extends TestCase
                     ->missing('customerOptions')
                     ->missing('itemOptions')
                     ->missing('statusOptions')));
+    }
+
+    public function test_purchase_requisitions_index_supports_records_only_partial_reload(): void
+    {
+        $admin = $this->superAdmin();
+        Item::factory()->purchasedMaterial()->create([
+            'item_number' => 'REFRESH-REQUISITION-ITEM',
+        ]);
+        $matchingRequisition = PurchaseRequisition::factory()->create([
+            'requisition_number' => 'REFRESH-REQUISITION-001',
+            'status' => PurchaseRequisitionStatus::Requested,
+            'requested_by' => $admin->id,
+            'requested_at' => '2026-01-15 12:00:00',
+            'notes' => 'Matching partial refresh requisition',
+        ]);
+        $matchingRequisition->items()->create([
+            'item_id' => Item::factory()->purchasedMaterial()->create()->id,
+            'quantity' => 4,
+            'unit' => 'db',
+        ]);
+        PurchaseRequisition::factory()->create([
+            'requisition_number' => 'REFRESH-REQUISITION-APPROVED',
+            'status' => PurchaseRequisitionStatus::Approved,
+        ]);
+        PurchaseRequisition::factory()->create([
+            'requisition_number' => 'UNRELATED-REQUISITION',
+            'status' => PurchaseRequisitionStatus::Requested,
+        ]);
+
+        $url = '/admin/purchase-requisitions?search=REFRESH-REQUISITION-001&status=requested&per_page=25&sort=requisition_number&direction=desc&page=1';
+
+        $this->actingAs($admin)
+            ->get($url)
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->component('Admin/PurchaseRequisitions/Index')
+                ->has('records.data', 1)
+                ->where('records.data.0.id', $matchingRequisition->id)
+                ->where('records.data.0.requisition_number', 'REFRESH-REQUISITION-001')
+                ->where('records.data.0.status', PurchaseRequisitionStatus::Requested->value)
+                ->where('records.data.0.items_count', 1)
+                ->where('records.data.0.requester.id', $admin->id)
+                ->where('records.per_page', 25)
+                ->where('records.current_page', 1)
+                ->where('filters.search', 'REFRESH-REQUISITION-001')
+                ->where('filters.status', PurchaseRequisitionStatus::Requested->value)
+                ->where('filters.sort', 'requisition_number')
+                ->where('filters.direction', 'desc')
+                ->has('statusOptions')
+                ->has('itemOptions')
+                ->reloadOnly('records', fn (AssertableInertia $reload) => $reload
+                    ->has('records.data', 1)
+                    ->where('records.data.0.id', $matchingRequisition->id)
+                    ->where('records.data.0.items_count', 1)
+                    ->where('records.per_page', 25)
+                    ->where('records.current_page', 1)
+                    ->missing('filters')
+                    ->missing('statusOptions')
+                    ->missing('itemOptions')));
     }
 
     public function test_factory_units_index_supports_records_only_partial_reload(): void

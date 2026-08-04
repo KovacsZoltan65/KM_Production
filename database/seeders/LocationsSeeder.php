@@ -28,7 +28,7 @@ class LocationsSeeder extends Seeder
                 'factory_unit_id' => $factory_units['BP-GYARTAS'],
                 'code' => 'MUHELY-1',
                 'name' => 'Megmunkáló műhely',
-                'location_type' => 'quality_area',
+                'location_type' => 'workshop',
                 'description' => 'Gyártásközi és végellenőrzési terület.',
                 'is_active' => true,
             ], [

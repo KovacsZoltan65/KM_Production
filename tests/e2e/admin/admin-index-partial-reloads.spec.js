@@ -246,6 +246,18 @@ const pages = [
             ),
     },
     {
+        name: "purchase requisitions",
+        path: "/admin/purchase-requisitions",
+        search: "E2E-PR-REFRESH-001",
+        initialText: "2035-01-15",
+        updatedText: "2035-02-15",
+        update: (fixtures) =>
+            executeSql(
+                "UPDATE purchase_requisitions SET requested_at = ? WHERE id = ?",
+                ["2035-02-15 12:00:00", fixtures.refreshPurchaseRequisitionId],
+            ),
+    },
+    {
         name: "factory units",
         path: "/admin/factory-units",
         search: "E2E-FU",

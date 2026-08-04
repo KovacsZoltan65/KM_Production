@@ -36,10 +36,10 @@ class PurchaseRequisitionController extends Controller
         $this->authorize('viewAny', PurchaseRequisition::class);
 
         return Inertia::render('Admin/PurchaseRequisitions/Index', [
-            'records' => $this->service->paginateForAdminIndex($request->filters(), $request->perPage()),
+            'records' => fn () => $this->service->paginateForAdminIndex($request->filters(), $request->perPage()),
             'filters' => $request->filters(),
-            'statusOptions' => $this->statusOptions(),
-            'itemOptions' => $this->itemOptions(),
+            'statusOptions' => fn () => $this->statusOptions(),
+            'itemOptions' => fn () => $this->itemOptions(),
         ]);
     }
 

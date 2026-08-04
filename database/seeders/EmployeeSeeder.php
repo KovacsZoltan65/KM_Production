@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Employee;
+use App\Models\ProfessionalRole;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\PermissionRegistrar;
 
@@ -11,16 +12,17 @@ class EmployeeSeeder extends Seeder
     public function run(): void
     {
         app(PermissionRegistrar::class)->forgetCachedPermissions();
-
-        $professional_roles = [
-            'OPERATOR' => 1,
-            'QUALITY_INSPECTOR' => 2,
-            'PACKER' => 3,
-            'QUALITY_MANAGER' => 4,
-            'SUPERVISOR' => 5,
-            'MAINTENANCE_TECHNICIAN' => 6,
-            'WAREHOUSEMAN' => 7
-        ];
+        $professionalRoleIds = ProfessionalRole::query()
+            ->whereIn('code', [
+                'OPERATOR',
+                'QUALITY_INSPECTOR',
+                'PACKER',
+                'QUALITY_MANAGER',
+                'SUPERVISOR',
+                'MAINTENANCE_TECHNICIAN',
+                'WAREHOUSEMAN',
+            ])
+            ->pluck('id', 'code');
 
         $employees = [
             [
@@ -28,7 +30,7 @@ class EmployeeSeeder extends Seeder
                 'name' => 'Kiss János',
                 'email' => 'kiss.janos@kmgepgyarto.test',
                 'phone' => '+36 30 111 2222',
-                'professional_role_id' => $professional_roles['OPERATOR'],
+                'professional_role_id' => $professionalRoleIds['OPERATOR'],
                 'is_active' => true,
                 'hired_at' => '2026-07-06',
             ], [
@@ -36,7 +38,7 @@ class EmployeeSeeder extends Seeder
                 'name' => 'Nagy Anna',
                 'email' => 'nagy.anna@kmgepgyarto.test',
                 'phone' => '+36 30 333 4444',
-                'professional_role_id' => $professional_roles['QUALITY_INSPECTOR'],
+                'professional_role_id' => $professionalRoleIds['QUALITY_INSPECTOR'],
                 'is_active' => true,
                 'hired_at' => '2026-07-06',
             ], [
@@ -44,7 +46,7 @@ class EmployeeSeeder extends Seeder
                 'name' => 'Szabó Péter',
                 'email' => 'szabo.peter@kmgepgyarto.test',
                 'phone' => '+36 30 555 6666',
-                'professional_role_id' => $professional_roles['PACKER'],
+                'professional_role_id' => $professionalRoleIds['PACKER'],
                 'is_active' => true,
                 'hired_at' => '2026-07-06',
             ], [
@@ -52,7 +54,7 @@ class EmployeeSeeder extends Seeder
                 'name' => 'Tóth Eszter',
                 'email' => 'toth.eszter@kmgepgyarto.test',
                 'phone' => '+36 30 777 8888',
-                'professional_role_id' => $professional_roles['QUALITY_MANAGER'],
+                'professional_role_id' => $professionalRoleIds['QUALITY_MANAGER'],
                 'is_active' => true,
                 'hired_at' => '2026-07-06',
             ], [
@@ -60,7 +62,7 @@ class EmployeeSeeder extends Seeder
                 'name' => 'Farkas László',
                 'email' => 'farkas.laszlo@kmgepgyarto.test',
                 'phone' => '+36 30 999 0000',
-                'professional_role_id' => $professional_roles['SUPERVISOR'],
+                'professional_role_id' => $professionalRoleIds['SUPERVISOR'],
                 'is_active' => true,
                 'hired_at' => '2026-07-06',
             ], [
@@ -68,7 +70,7 @@ class EmployeeSeeder extends Seeder
                 'name' => 'Kovács Mária',
                 'email' => 'kovacs.maria@kmgepgyarto.test',
                 'phone' => '+36 30 111 2222',
-                'professional_role_id' => $professional_roles['MAINTENANCE_TECHNICIAN'],
+                'professional_role_id' => $professionalRoleIds['MAINTENANCE_TECHNICIAN'],
                 'is_active' => true,
                 'hired_at' => '2026-07-06',
             ], [
@@ -76,7 +78,7 @@ class EmployeeSeeder extends Seeder
                 'name' => 'Horváth Gábor',
                 'email' => 'horvath.gabor@kmgepgyarto.test',
                 'phone' => '+36 30 333 4444',
-                'professional_role_id' => $professional_roles['WAREHOUSEMAN'],
+                'professional_role_id' => $professionalRoleIds['WAREHOUSEMAN'],
                 'is_active' => true,
                 'hired_at' => '2026-07-06',
             ]

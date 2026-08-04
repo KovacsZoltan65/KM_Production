@@ -17,4 +17,11 @@ interface BomRepositoryInterface extends AdminRepositoryInterface
      * @param  array<int, array<string, mixed>>  $items
      */
     public function updateWithItems(Bom $bom, array $attributes, array $items): Bom;
+
+    /**
+     * Visszaadja a rendelhető késztermékek listáját.
+     *
+     * @return \Illuminate\Support\Collection<int, \App\Models\Item>
+     */
+    public function orderableOptions(): \Illuminate\Support\Collection;
 }

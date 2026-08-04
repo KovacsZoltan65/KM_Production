@@ -3,7 +3,7 @@ import { router, usePage } from "@inertiajs/vue3";
 import { trans } from "laravel-vue-i18n";
 import Toast from "primevue/toast";
 import { useToast } from "primevue/usetoast";
-import { onBeforeUnmount, watch } from "vue";
+import { onBeforeUnmount, onMounted, watch } from "vue";
 
 const page = usePage();
 const toast = useToast();
@@ -45,7 +45,8 @@ const showFlash = (flash) => {
     });
 };
 
-watch(() => page.props.flash, showFlash, { deep: true, immediate: true });
+watch(() => page.props.flash, showFlash, { deep: true });
+onMounted(() => showFlash(page.props.flash));
 
 const removeValidationListener = router.on("error", () => {
     toast.add({

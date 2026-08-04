@@ -1,6 +1,7 @@
 <script setup>
 import AdminPageHeader from "@/Components/Admin/AdminPageHeader.vue";
 import AdminSearchBar from "@/Components/Admin/AdminSearchBar.vue";
+import { notifyRequestError } from "@/Composables/useRequestError";
 import AdminLayout from "@/Layouts/AdminLayout.vue";
 import { route } from "@/Utils/routes";
 import { Head, Link, router } from "@inertiajs/vue3";
@@ -11,6 +12,7 @@ import DataTable from "primevue/datatable";
 import Select from "primevue/select";
 import Tag from "primevue/tag";
 import { useConfirm } from "primevue/useconfirm";
+import { useToast } from "primevue/usetoast";
 import { trans } from "laravel-vue-i18n";
 import { ref } from "vue";
 
@@ -40,20 +42,26 @@ import { ref } from "vue";
  * @property {PaginatedResult} records A lapozott beszerzési igények.
  * @property {PageFilters} filters Az aktív listaszűrők.
  * @property {StatusOption[]} statusOptions A választható igényállapotok.
+ * @property {Array} itemOptions A választható cikkek.
  */
 /** @type {Props} */
 const props = defineProps({
     records: Object,
     filters: Object,
     statusOptions: Array,
+    itemOptions: Array,
 });
 const confirm = useConfirm();
+const toast = useToast();
+const refreshing = ref(false);
 const search = ref(props.filters.search || "");
 const status = ref(props.filters.status || null);
 const perPage = ref(
     Number(props.filters.per_page || props.records.per_page || 10),
 );
-const sortField = ref(props.filters.sort || "id");
+const sortField = ref(
+    typeof props.filters.sort === "string" ? props.filters.sort : "id",
+);
 const sortOrder = ref((props.filters.direction || "asc") === "desc" ? -1 : 1);
 
 const query = (pageNumber = 1) => ({
@@ -69,6 +77,28 @@ const reload = (pageNumber = 1) =>
         preserveState: true,
         replace: true,
     });
+const refreshRecords = () => {
+    if (refreshing.value) {
+        return;
+    }
+
+    router.reload({
+        only: ["records"],
+        preserveState: true,
+        preserveScroll: true,
+        onStart: () => {
+            refreshing.value = true;
+        },
+        onError: (error) => {
+            notifyRequestError(toast, error, {
+                fallbackKey: "notifications.error.refresh_failed",
+            });
+        },
+        onFinish: () => {
+            refreshing.value = false;
+        },
+    });
+};
 const generate = () =>
     confirm.require({
         message: trans(
@@ -122,7 +152,21 @@ const dateValue = (value) => (value ? String(value).slice(0, 10) : "-");
                 subtitle-key="procurement.purchase_requisitions.subtitle"
                 create-label-key="procurement.purchase_requisitions.generate_from_shortages"
                 @create="generate"
-            />
+            >
+                <template #actions>
+                    <Button
+                        type="button"
+                        :label="trans('actions.refresh')"
+                        icon="pi pi-refresh"
+                        severity="secondary"
+                        outlined
+                        :loading="refreshing"
+                        :disabled="refreshing"
+                        data-test="refresh-records"
+                        @click="refreshRecords"
+                    />
+                </template>
+            </AdminPageHeader>
             <AdminSearchBar
                 v-model="search"
                 v-model:per-page="perPage"

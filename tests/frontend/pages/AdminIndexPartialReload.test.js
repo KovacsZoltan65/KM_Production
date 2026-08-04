@@ -14,6 +14,7 @@ import LocationIndex from "@/Pages/Admin/Locations/Index.vue";
 import OperationTypeIndex from "@/Pages/Admin/OperationTypes/Index.vue";
 import PermissionIndex from "@/Pages/Admin/Permissions/Index.vue";
 import ProfessionalRoleIndex from "@/Pages/Admin/ProfessionalRoles/Index.vue";
+import PurchaseRequisitionIndex from "@/Pages/Admin/PurchaseRequisitions/Index.vue";
 import RoleIndex from "@/Pages/Admin/Roles/Index.vue";
 import SupplierIndex from "@/Pages/Admin/Suppliers/Index.vue";
 import UserIndex from "@/Pages/Admin/Users/Index.vue";
@@ -144,6 +145,16 @@ const pages = [
             customerOptions: [],
             itemOptions: [],
             statusOptions: [],
+        },
+    },
+    {
+        name: "Purchase Requisitions",
+        component: PurchaseRequisitionIndex,
+        props: {
+            records,
+            filters,
+            statusOptions: [],
+            itemOptions: [],
         },
     },
     {

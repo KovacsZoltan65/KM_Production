@@ -1,4 +1,4 @@
-import { nextTick } from "vue";
+import { defineComponent, h, nextTick, onMounted } from "vue";
 import { shallowMount } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import FlashToast from "@/Components/Common/FlashToast.vue";
@@ -6,6 +6,7 @@ import { inertiaPage, inertiaRouter } from "../mocks/inertia.js";
 
 const services = vi.hoisted(() => ({
     toast: { add: vi.fn() },
+    toastMounted: false,
 }));
 
 vi.mock("primevue/usetoast", () => ({
@@ -13,9 +14,19 @@ vi.mock("primevue/usetoast", () => ({
 }));
 
 let wrapper;
+const ToastStub = defineComponent({
+    name: "Toast",
+    setup() {
+        onMounted(() => {
+            services.toastMounted = true;
+        });
+
+        return () => h("div");
+    },
+});
 const mountHandler = () => {
     wrapper = shallowMount(FlashToast, {
-        global: { stubs: { Toast: true } },
+        global: { stubs: { Toast: ToastStub } },
     });
 
     return wrapper;
@@ -24,6 +35,7 @@ const mountHandler = () => {
 describe("FlashToast", () => {
     beforeEach(() => {
         services.toast.add.mockReset();
+        services.toastMounted = false;
         inertiaRouter.on.mockImplementation(() => vi.fn());
     });
 
@@ -48,6 +60,17 @@ describe("FlashToast", () => {
             });
         },
     );
+
+    it("az első flasht csak a Toast komponens mountja után küldi ki", () => {
+        inertiaPage.props.flash = { success: "Átirányítás után" };
+        services.toast.add.mockImplementationOnce(() => {
+            expect(services.toastMounted).toBe(true);
+        });
+
+        mountHandler();
+
+        expect(services.toast.add).toHaveBeenCalledOnce();
+    });
 
     it("a későbbi Inertia prop frissítést megjeleníti", async () => {
         inertiaPage.props.flash = {};
