@@ -24,6 +24,12 @@ Inventory / Material Requirements, Inventory / Stock Reservations, Inventory / S
 Customer Orders, Factory Units, Locations, Professional Roles, Operation Types, Users, Roles és
 Permissions admin listaoldalak használják.
 
+Az Inventory dashboard jelenleg kizárólag frontendben definiált navigációs kártyákat jelenít meg,
+page-local Inertia propot, adatbázis-lekérdezést és dashboard-cache-t nem használ. Emiatt nincs rajta
+globális vagy szekciónkénti Frissítés gomb: a listaoldali `only: ["records"]` szerződés nem alkalmazható
+nem létező dinamikus propra. A döntés és az újraauditálás feltételei az
+[Inventory dashboard partial refresh szerződésben](inventory-dashboard-partial-refresh.md) találhatók.
+
 Az Inventory / Shortages oldal lista propja a `records`. A `ShortageController` ezt lazy closure-ként
 adja át, míg a változatlan `filters` prop kimarad a csak `records`-ot kérő partial payloadból; külön
 option propja nincs. A lista közvetlenül a lapozott material requirement lekérdezésből készül, cache-t
