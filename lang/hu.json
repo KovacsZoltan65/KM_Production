@@ -533,6 +533,7 @@
     "orders.validation.completed_cancelled_cannot_cancel": "Befejezett vagy már megszakított vevőrendelés nem szakítható meg.",
     "orders.validation.only_draft_cancelled_delete": "Csak piszkozat vagy megszakított vevőrendelések törölhetők.",
     "orders.validation.only_draft_confirm": "Csak piszkozat vevőrendelések erősíthetők meg.",
+    "orders.validation.only_active_finished_products": "Vevőrendelés csak aktív készterméket tartalmazhat.",
     "procurement.dashboard.kpi.open_requisitions": "Nyitott beszerzési igények",
     "procurement.dashboard.kpi.shortages_count": "Hiányok száma",
     "procurement.dashboard.sections.top_missing_materials": "Legnagyobb hiányzó anyagok",

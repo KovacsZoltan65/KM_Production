@@ -8,8 +8,11 @@ use App\Models\CustomerOrder;
 use App\Models\CustomerOrderItem;
 use App\Models\Item;
 use App\Models\User;
+use App\Services\Admin\CustomerOrderService;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Validation\ValidationException;
+use Inertia\Testing\AssertableInertia as Assert;
 use Spatie\Activitylog\Models\Activity;
 use Tests\TestCase;
 
@@ -39,6 +42,36 @@ class CustomerOrdersUiTest extends TestCase
             ->assertOk();
     }
 
+    public function test_item_options_contain_only_active_finished_products(): void
+    {
+        $activeFinishedProduct = Item::factory()->finishedProduct()->create([
+            'item_number' => 'PRD-ORDERABLE',
+            'name' => 'Orderable product',
+            'unit' => 'db',
+        ]);
+        Item::factory()->finishedProduct()->create([
+            'item_number' => 'PRD-INACTIVE',
+            'is_active' => false,
+        ]);
+        Item::factory()->purchasedMaterial()->create(['item_number' => 'MAT-ACTIVE']);
+        Item::factory()->manufacturedPart()->create(['item_number' => 'PART-ACTIVE']);
+        Item::factory()->semiFinishedProduct()->create(['item_number' => 'SEMI-ACTIVE']);
+
+        $this->actingAs($this->superAdmin())
+            ->get('/admin/customer-orders')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page): Assert => $page
+                ->component('Admin/CustomerOrders/Index')
+                ->has('itemOptions', 1)
+                ->where('itemOptions.0', [
+                    'id' => $activeFinishedProduct->id,
+                    'item_number' => 'PRD-ORDERABLE',
+                    'name' => 'Orderable product',
+                    'unit' => 'db',
+                    'label' => 'PRD-ORDERABLE - Orderable product',
+                ]));
+    }
+
     public function test_customer_order_can_be_created(): void
     {
         $admin = $this->superAdmin();
@@ -58,6 +91,32 @@ class CustomerOrdersUiTest extends TestCase
             'quantity' => 2,
             'unit' => 'db',
         ]);
+    }
+
+    public function test_customer_order_cannot_be_created_with_purchased_material(): void
+    {
+        $this->assertStoreRejectsItem(Item::factory()->purchasedMaterial()->create());
+    }
+
+    public function test_customer_order_cannot_be_created_with_inactive_finished_product(): void
+    {
+        $this->assertStoreRejectsItem(Item::factory()->finishedProduct()->create(['is_active' => false]));
+    }
+
+    public function test_customer_order_cannot_be_created_with_nonexistent_item(): void
+    {
+        $admin = $this->superAdmin();
+        $customer = Customer::factory()->create();
+        $item = Item::factory()->finishedProduct()->create();
+        $payload = $this->payload($customer, $item);
+        $payload['items'][0]['item_id'] = $item->id + 10000;
+
+        $this->actingAs($admin)
+            ->post('/admin/customer-orders', $payload)
+            ->assertSessionHasErrors('items.0.item_id');
+
+        $this->assertDatabaseCount('customer_orders', 0);
+        $this->assertDatabaseCount('customer_order_items', 0);
     }
 
     public function test_customer_order_can_be_updated(): void
@@ -81,6 +140,32 @@ class CustomerOrdersUiTest extends TestCase
             'item_id' => $item->id,
             'unit' => 'pcs',
         ]);
+    }
+
+    public function test_customer_order_cannot_be_updated_with_purchased_material(): void
+    {
+        $this->assertUpdateRejectsItem(Item::factory()->purchasedMaterial()->create());
+    }
+
+    public function test_customer_order_cannot_be_updated_with_inactive_finished_product(): void
+    {
+        $this->assertUpdateRejectsItem(Item::factory()->finishedProduct()->create(['is_active' => false]));
+    }
+
+    public function test_service_rejects_non_orderable_item_without_http_validation(): void
+    {
+        $customer = Customer::factory()->create();
+        $material = Item::factory()->purchasedMaterial()->create();
+
+        try {
+            app(CustomerOrderService::class)->create($this->payload($customer, $material));
+            $this->fail('A közvetlen service-hívás nem utasította el az alapanyagot.');
+        } catch (ValidationException $exception) {
+            $this->assertArrayHasKey('items.0.item_id', $exception->errors());
+        }
+
+        $this->assertDatabaseCount('customer_orders', 0);
+        $this->assertDatabaseCount('customer_order_items', 0);
     }
 
     public function test_draft_customer_order_can_be_deleted(): void
@@ -246,6 +331,45 @@ class CustomerOrdersUiTest extends TestCase
                 ],
             ],
         ], $overrides);
+    }
+
+    private function assertStoreRejectsItem(Item $item): void
+    {
+        $admin = $this->superAdmin();
+        $customer = Customer::factory()->create();
+
+        $this->actingAs($admin)
+            ->post('/admin/customer-orders', $this->payload($customer, $item))
+            ->assertSessionHasErrors('items.0.item_id');
+
+        $this->assertDatabaseCount('customer_orders', 0);
+        $this->assertDatabaseCount('customer_order_items', 0);
+    }
+
+    private function assertUpdateRejectsItem(Item $item): void
+    {
+        $admin = $this->superAdmin();
+        $customerOrder = CustomerOrder::factory()->create();
+        $originalItem = CustomerOrderItem::factory()->create([
+            'customer_order_id' => $customerOrder->id,
+        ]);
+
+        $this->actingAs($admin)
+            ->put(
+                "/admin/customer-orders/{$customerOrder->id}",
+                $this->payload($customerOrder->customer, $item),
+            )
+            ->assertSessionHasErrors('items.0.item_id');
+
+        $this->assertDatabaseHas('customer_order_items', [
+            'id' => $originalItem->id,
+            'customer_order_id' => $customerOrder->id,
+            'item_id' => $originalItem->item_id,
+        ]);
+        $this->assertDatabaseMissing('customer_order_items', [
+            'customer_order_id' => $customerOrder->id,
+            'item_id' => $item->id,
+        ]);
     }
 
     private function superAdmin(string $email = 'customer-orders-admin@example.com'): User

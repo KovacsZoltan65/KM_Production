@@ -113,7 +113,7 @@ class BusinessCacheInvalidationTest extends TestCase
     public function test_customer_order_creation_invalidates_an_empty_filtered_report(): void
     {
         $customer = Customer::factory()->create();
-        $item = Item::factory()->create();
+        $item = Item::factory()->finishedProduct()->create();
         $reporting = app(ReportingService::class);
 
         $before = $reporting->customerOrdersSummary(['customer_id' => $customer->id]);
@@ -415,7 +415,7 @@ class BusinessCacheInvalidationTest extends TestCase
     public function test_nested_transaction_rollback_keeps_data_and_cache_generation_unchanged(): void
     {
         $customer = Customer::factory()->create();
-        $item = Item::factory()->create();
+        $item = Item::factory()->finishedProduct()->create();
         $generation = BusinessCacheKey::generation(BusinessCacheDomain::ReportsCustomerOrders);
 
         DB::beginTransaction();
@@ -439,7 +439,7 @@ class BusinessCacheInvalidationTest extends TestCase
     public function test_cache_failure_after_commit_does_not_rollback_business_data(): void
     {
         $customer = Customer::factory()->create();
-        $item = Item::factory()->create();
+        $item = Item::factory()->finishedProduct()->create();
         Cache::shouldReceive('add')
             ->once()
             ->andThrow(new \RuntimeException('Cache store unavailable.'));

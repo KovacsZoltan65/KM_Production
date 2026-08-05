@@ -11,8 +11,8 @@ use App\Http\Requests\Admin\StoreCustomerOrderRequest;
 use App\Http\Requests\Admin\UpdateCustomerOrderRequest;
 use App\Models\Customer;
 use App\Models\CustomerOrder;
-use App\Models\Item;
 use App\Services\Admin\CustomerOrderService;
+use App\Services\Admin\ItemAdminService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Collection;
 use Inertia\Inertia;
@@ -20,7 +20,10 @@ use Inertia\Response;
 
 class CustomerOrderController extends Controller
 {
-    public function __construct(private readonly CustomerOrderService $service) {}
+    public function __construct(
+        private readonly CustomerOrderService $service,
+        private readonly ItemAdminService $itemService,
+    ) {}
 
     /**
      * Megjeleníti a vevői rendelések adminisztrációs listaoldalát.
@@ -42,7 +45,7 @@ class CustomerOrderController extends Controller
             'records' => fn () => $this->service->paginateForAdminIndex($request->filters(), $request->perPage()),
             'filters' => $request->filters(),
             'customerOptions' => fn () => $this->customerOptions(),
-            'itemOptions' => fn () => $this->itemOptions(),
+            'itemOptions' => fn () => $this->itemService->orderableOptions(),
             'statusOptions' => fn () => $this->statusOptions(),
         ]);
     }
@@ -178,24 +181,6 @@ class CustomerOrderController extends Controller
                 'code' => $customer->code,
                 'name' => $customer->name,
                 'label' => "{$customer->code} - {$customer->name}",
-            ]);
-    }
-
-    /**
-     * @return Collection<int, array{id: int, item_number: string, name: string, unit: string, label: non-falsy-string}>
-     */
-    private function itemOptions(): Collection
-    {
-        return Item::query()
-            ->where('is_active', true)
-            ->orderBy('item_number')
-            ->get(['id', 'item_number', 'name', 'unit'])
-            ->map(fn (Item $item): array => [
-                'id' => $item->id,
-                'item_number' => $item->item_number,
-                'name' => $item->name,
-                'unit' => $item->unit,
-                'label' => "{$item->item_number} - {$item->name}",
             ]);
     }
 

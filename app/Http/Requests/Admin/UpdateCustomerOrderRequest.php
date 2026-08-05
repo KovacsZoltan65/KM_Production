@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Rules\OrderableCustomerOrderItem;
 use Illuminate\Contracts\Validation\Rule;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -33,7 +34,11 @@ class UpdateCustomerOrderRequest extends FormRequest
             'requested_delivery_date' => ['nullable', 'date'],
             'notes' => ['nullable', 'string'],
             'items' => ['required', 'array', 'min:1'],
-            'items.*.item_id' => ['required', 'integer', 'exists:items,id'],
+            'items.*.item_id' => [
+                'required',
+                'integer',
+                new OrderableCustomerOrderItem,
+            ],
             'items.*.quantity' => ['required', 'numeric', 'gt:0'],
             'items.*.unit' => ['required', 'string', 'max:50'],
             'items.*.notes' => ['nullable', 'string'],

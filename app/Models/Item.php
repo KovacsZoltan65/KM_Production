@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\ItemType;
 use Database\Factories\ItemFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -40,6 +41,7 @@ use Illuminate\Support\Carbon;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Item newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Item newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Item onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Item orderable()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Item query()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Item whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Item whereDeletedAt($value)
@@ -76,6 +78,19 @@ class Item extends Model
 {
     /** @use HasFactory<ItemFactory> */
     use HasFactory, SoftDeletes;
+
+    /**
+     * A vevői rendeléshez választható aktív késztermékekre szűkít.
+     *
+     * @param  Builder<Item>  $query
+     * @return Builder<Item>
+     */
+    public function scopeOrderable(Builder $query): Builder
+    {
+        return $query
+            ->where('is_active', true)
+            ->where('item_type', ItemType::FinishedProduct->value);
+    }
 
     /**
      * @return HasMany<ItemBatch, $this>

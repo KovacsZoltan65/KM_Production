@@ -533,6 +533,7 @@
     "orders.validation.completed_cancelled_cannot_cancel": "Completed or already cancelled customer orders cannot be cancelled.",
     "orders.validation.only_draft_cancelled_delete": "Only draft or cancelled customer orders can be deleted.",
     "orders.validation.only_draft_confirm": "Only draft customer orders can be confirmed.",
+    "orders.validation.only_active_finished_products": "Customer orders may contain active finished products only.",
     "procurement.dashboard.kpi.open_requisitions": "Open Requisitions",
     "procurement.dashboard.kpi.shortages_count": "Shortages Count",
     "procurement.dashboard.sections.top_missing_materials": "Top Missing Materials",

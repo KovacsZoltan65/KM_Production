@@ -6,6 +6,7 @@ use App\Enums\CustomerOrderStatus;
 use App\Models\CustomerOrder;
 use App\Models\User;
 use App\Repositories\Contracts\CustomerOrderRepositoryInterface;
+use App\Repositories\Contracts\ItemRepositoryInterface;
 use App\Services\AuditLogService;
 use App\Services\BusinessCacheInvalidator;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -23,6 +24,7 @@ class CustomerOrderService
 {
     public function __construct(
         private readonly CustomerOrderRepositoryInterface $repository,
+        private readonly ItemRepositoryInterface $items,
         private readonly AuditLogService $auditLogService,
         private readonly BusinessCacheInvalidator $cacheInvalidator,
     ) {}
@@ -61,6 +63,7 @@ class CustomerOrderService
      */
     public function create(array $payload, ?User $causer = null): CustomerOrder
     {
+        $this->ensureItemsAreOrderable($payload['items']);
         $items = $this->itemsFromPayload($payload);
         unset($payload['items']);
         $payload['created_by'] = $causer?->id;
@@ -89,6 +92,7 @@ class CustomerOrderService
      */
     public function update(CustomerOrder $customerOrder, array $payload, ?User $causer = null): CustomerOrder
     {
+        $this->ensureItemsAreOrderable($payload['items']);
         $items = $this->itemsFromPayload($payload);
         unset($payload['items']);
 
@@ -194,6 +198,37 @@ class CustomerOrderService
             ])
             ->values()
             ->all();
+    }
+
+    /**
+     * Biztosítja, hogy minden tétel aktív késztermékre hivatkozzon.
+     *
+     * @param  list<array{item_id: int, quantity: int|float|string,
+     *     unit: string, notes?: string|null}>  $items
+     *
+     * @throws ValidationException Ha valamelyik cikk nem rendelhető.
+     */
+    private function ensureItemsAreOrderable(array $items): void
+    {
+        $itemIds = collect($items)
+            ->pluck('item_id')
+            ->map(fn (mixed $itemId): int => (int) $itemId)
+            ->unique()
+            ->values()
+            ->all();
+        $orderableIds = $this->items->orderableItemIds($itemIds)
+            ->mapWithKeys(fn (int $itemId): array => [$itemId => true]);
+        $errors = [];
+
+        foreach ($items as $index => $item) {
+            if (! $orderableIds->has((int) $item['item_id'])) {
+                $errors["items.{$index}.item_id"] = __('orders.validation.only_active_finished_products');
+            }
+        }
+
+        if ($errors !== []) {
+            throw ValidationException::withMessages($errors);
+        }
     }
 
     /**
