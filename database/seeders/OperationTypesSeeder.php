@@ -20,7 +20,10 @@ class OperationTypesSeeder extends Seeder
         ];
 
         foreach ($operationTypes as $type) {
-            OperationType::create($type);
+            OperationType::query()->updateOrCreate(
+                ['code' => $type['code']],
+                $type,
+            );
         }
     }
 }

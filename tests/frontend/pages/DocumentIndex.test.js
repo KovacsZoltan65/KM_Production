@@ -2,7 +2,11 @@ import { defineComponent, nextTick } from "vue";
 import { shallowMount } from "@vue/test-utils";
 import { describe, expect, it, vi } from "vitest";
 import DocumentIndex from "@/Pages/Admin/Documents/Index.vue";
-import { makeAuthPageProps, makeDocument, makePagination } from "../fixtures/domain.js";
+import {
+    makeAuthPageProps,
+    makeDocument,
+    makePagination,
+} from "../fixtures/domain.js";
 import { inertiaPage, inertiaRouter } from "../mocks/inertia.js";
 
 vi.mock("primevue/usetoast", () => ({
@@ -14,7 +18,8 @@ const HeaderStub = defineComponent({
     name: "AdminPageHeader",
     props: ["canCreate"],
     emits: ["create"],
-    template: "<button v-if='canCreate' @click='$emit(\"create\")'>create</button>",
+    template:
+        "<button v-if='canCreate' @click='$emit(\"create\")'>create</button>",
 });
 const DialogStub = defineComponent({
     name: "Dialog",
@@ -55,7 +60,9 @@ const mountPage = (permissions = [], roles = []) => {
 describe("Documents Index", () => {
     it("documents.create nélkül elrejti a feltöltési műveletet", () => {
         const wrapper = mountPage(["documents.view"]);
-        expect(wrapper.findComponent(HeaderStub).props("canCreate")).toBe(false);
+        expect(wrapper.findComponent(HeaderStub).props("canCreate")).toBe(
+            false,
+        );
         expect(wrapper.find("button").exists()).toBe(false);
     });
 

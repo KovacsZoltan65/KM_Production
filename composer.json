@@ -63,6 +63,11 @@
             "Composer\\Config::disableProcessTimeout",
             "phpstan analyse --memory-limit=1G --no-progress"
         ],
+        "qa:fast": "@php tools/quality-gate.php affected",
+        "qa:affected": "@php tools/quality-gate.php affected",
+        "qa:module": "@php tools/quality-gate.php module",
+        "qa:integration": "@php tools/quality-gate.php integration",
+        "qa:full": "@php tools/quality-gate.php full",
         "test:backend:sqlite": [
             "Composer\\Config::disableProcessTimeout",
             "@php scripts/backend-test-environment.php sqlite test @no_additional_args"

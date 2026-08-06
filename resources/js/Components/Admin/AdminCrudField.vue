@@ -41,19 +41,22 @@ const props = defineProps({
 const model = defineModel({ default: null });
 
 const label = computed(() =>
-    props.field.labelKey ? trans(props.field.labelKey) : props.field.label
+    props.field.labelKey ? trans(props.field.labelKey) : props.field.label,
 );
 
 const checkboxLabel = computed(() =>
     props.field.checkboxLabelKey
         ? trans(props.field.checkboxLabelKey)
-        : props.field.checkboxLabel || label.value
+        : props.field.checkboxLabel || label.value,
 );
 
-const iconClass = computed(() => (props.field.icon ? `pi pi-${props.field.icon}` : null));
+const iconClass = computed(() =>
+    props.field.icon ? `pi pi-${props.field.icon}` : null,
+);
 
 const optionItems = computed(() => {
-    const source = props.options[props.field.options] || props.field.options || [];
+    const source =
+        props.options[props.field.options] || props.field.options || [];
 
     return source.map((option) => {
         if (typeof option === "string" || typeof option === "number") {
@@ -63,13 +66,15 @@ const optionItems = computed(() => {
         return {
             label:
                 props.field.enumKey && (option.value ?? option.id)
-                    ? trans(`${props.field.enumKey}.${option.value ?? option.id}`)
+                    ? trans(
+                          `${props.field.enumKey}.${option.value ?? option.id}`,
+                      )
                     : props.field.optionLabel
-                    ? option[props.field.optionLabel]
-                    : option.label || option.name || option.code,
+                      ? option[props.field.optionLabel]
+                      : option.label || option.name || option.code,
             value: props.field.optionValue
                 ? option[props.field.optionValue]
-                : option.value ?? option.id,
+                : (option.value ?? option.id),
         };
     });
 });
@@ -79,7 +84,11 @@ const optionItems = computed(() => {
     <div class="min-w-0 space-y-2">
         <IftaLabel :for="field.name" class="text-sm font-medium">
             {{ label }}
-            <span v-if="field.required" class="ml-0.5 text-red-500" aria-hidden="true">
+            <span
+                v-if="field.required"
+                class="ml-0.5 text-red-500"
+                aria-hidden="true"
+            >
                 *
             </span>
         </IftaLabel>

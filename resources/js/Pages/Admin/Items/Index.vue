@@ -74,7 +74,9 @@ const columns = [
         field: "requires_serial_number",
         headerKey: "fields.serial",
         format: (record) =>
-            record.requires_serial_number ? trans("common.yes") : trans("common.no"),
+            record.requires_serial_number
+                ? trans("common.yes")
+                : trans("common.no"),
     },
     { field: "is_active", headerKey: "fields.status", type: "status" },
 ];

@@ -14,9 +14,7 @@ import { dirname, resolve } from "node:path";
 const projectRoot = resolve(import.meta.dirname, "..");
 const baseURL = process.env.E2E_BASE_URL || "http://127.0.0.1:8001";
 const serverURL = new URL(baseURL);
-const readinessTimeout = Number(
-    process.env.E2E_READINESS_TIMEOUT_MS || 60_000,
-);
+const readinessTimeout = Number(process.env.E2E_READINESS_TIMEOUT_MS || 60_000);
 const pidPath = resolve(
     projectRoot,
     "storage/framework/testing/e2e-server.pid",

@@ -122,7 +122,10 @@ defineEmits(["submit", "cancel"]);
                     type="date"
                     class="w-full"
                 />-->
-                <p v-if="errors.planned_finish_date" class="text-sm text-red-600">
+                <p
+                    v-if="errors.planned_finish_date"
+                    class="text-sm text-red-600"
+                >
                     {{ errors.planned_finish_date }}
                 </p>
             </div>
@@ -151,7 +154,11 @@ defineEmits(["submit", "cancel"]);
                 outlined
                 @click="$emit('cancel')"
             />
-            <Button type="submit" :label="$t('actions.save')" icon="pi pi-save" />
+            <Button
+                type="submit"
+                :label="$t('actions.save')"
+                icon="pi pi-save"
+            />
         </div>
     </form>
 </template>

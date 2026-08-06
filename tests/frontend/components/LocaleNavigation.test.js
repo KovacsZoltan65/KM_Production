@@ -55,7 +55,9 @@ describe("TopbarLocaleSwitch", () => {
             global: { stubs: { LocaleSelector: LocaleSelectorStub } },
         });
 
-        await wrapper.findComponent(LocaleSelectorStub).vm.$emit("change", "en");
+        await wrapper
+            .findComponent(LocaleSelectorStub)
+            .vm.$emit("change", "en");
 
         expect(preferenceMock.setLocale).toHaveBeenCalledWith("en");
     });
@@ -92,10 +94,9 @@ describe("LocaleSelector", () => {
             global: { stubs: { Select: SelectStub } },
         });
 
-        await wrapper.findComponent(SelectStub).vm.$emit(
-            "update:modelValue",
-            "en",
-        );
+        await wrapper
+            .findComponent(SelectStub)
+            .vm.$emit("update:modelValue", "en");
 
         expect(wrapper.emitted("update:modelValue")).toEqual([["en"]]);
         expect(wrapper.emitted("change")).toEqual([["en"]]);

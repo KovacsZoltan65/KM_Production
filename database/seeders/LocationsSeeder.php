@@ -50,8 +50,10 @@ class LocationsSeeder extends Seeder
         ];
 
         foreach ($locations as $location) {
-            // Create location logic here
-            Location::create($location);
+            Location::query()->updateOrCreate(
+                ['code' => $location['code']],
+                $location,
+            );
         }
 
         app(PermissionRegistrar::class)->forgetCachedPermissions();

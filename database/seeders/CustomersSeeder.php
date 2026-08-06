@@ -27,8 +27,10 @@ class CustomersSeeder extends Seeder
         ];
 
         foreach ($customers as $customer) {
-            // Create customer logic here
-            Customer::create($customer);
+            Customer::query()->updateOrCreate(
+                ['code' => $customer['code']],
+                $customer,
+            );
         }
 
         app(PermissionRegistrar::class)->forgetCachedPermissions();

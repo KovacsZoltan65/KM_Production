@@ -26,8 +26,10 @@ class SuppliersSeeder extends Seeder
         ];
 
         foreach ($suppliers as $supplier) {
-            // Create supplier logic here
-            Supplier::create($supplier);
+            Supplier::query()->updateOrCreate(
+                ['code' => $supplier['code']],
+                $supplier,
+            );
         }
 
         app(PermissionRegistrar::class)->forgetCachedPermissions();

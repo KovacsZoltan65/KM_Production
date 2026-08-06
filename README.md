@@ -26,6 +26,7 @@ KM_Production is a Laravel, Vue, and Inertia Manufacturing Execution System for 
 - [Üzleti cache-stratégia](docs/architecture/cache-strategy.md)
 - [Cache-invalidation mátrix](docs/architecture/cache-invalidation-matrix.md)
 - [Fejlesztői cache-útmutató](docs/development/caching.md)
+- [Rétegezett quality gate-ek](docs/development/quality-gates.md)
 - [API](docs/api.md)
 - [Learning Center v1.0 specifikáció](docs/specifications/learning-center/README.md)
 - [Product vision](docs/vision/manufacturing-intelligence-platform.md)

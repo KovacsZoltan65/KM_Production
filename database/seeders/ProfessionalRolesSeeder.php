@@ -52,8 +52,10 @@ class ProfessionalRolesSeeder extends Seeder
         ];
 
         foreach ($professionalRoles as $role) {
-            // Create professional role logic here
-            ProfessionalRole::create($role);
+            ProfessionalRole::query()->updateOrCreate(
+                ['code' => $role['code']],
+                $role,
+            );
         }
 
         app(PermissionRegistrar::class)->forgetCachedPermissions();

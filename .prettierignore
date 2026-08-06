@@ -1,0 +1,9 @@
+bootstrap/cache/
+coverage/
+node_modules/
+playwright-report/
+public/build/
+storage/
+test-results/
+vendor/
+

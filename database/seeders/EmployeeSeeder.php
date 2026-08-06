@@ -85,8 +85,10 @@ class EmployeeSeeder extends Seeder
         ];
 
         foreach ($employees as $employee) {
-            // Create employee logic here
-            Employee::create($employee);
+            Employee::query()->updateOrCreate(
+                ['employee_number' => $employee['employee_number']],
+                $employee,
+            );
         }
 
         app(PermissionRegistrar::class)->forgetCachedPermissions();

@@ -63,7 +63,10 @@ defineEmits(["submit", "cancel"]);
 
             <!-- SZÁLLÍTÁS DÁTUMA -->
             <div class="space-y-2">
-                <label for="requested_delivery_date" class="text-sm font-medium">
+                <label
+                    for="requested_delivery_date"
+                    class="text-sm font-medium"
+                >
                     {{ trans("orders.fields.requested_delivery_date") }}
                 </label>
 

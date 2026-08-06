@@ -25,18 +25,23 @@ describe("status chart transzformáció", () => {
         expect(chart.segments[1].dashoffset).toBe(-40);
     });
 
-    it.each([[], null, undefined])("%s inputból üres diagramot készít", (rows) => {
-        expect(buildStatusChart(rows)).toEqual({ total: 0, segments: [] });
-    });
+    it.each([[], null, undefined])(
+        "%s inputból üres diagramot készít",
+        (rows) => {
+            expect(buildStatusChart(rows)).toEqual({ total: 0, segments: [] });
+        },
+    );
 
     it("egyetlen adatpont teljes körszegmenst kap", () => {
-        expect(buildStatusChart([makeChartPoint({ value: 4 })]).segments[0])
-            .toMatchObject({ dasharray: "100 0", dashoffset: -0 });
+        expect(
+            buildStatusChart([makeChartPoint({ value: 4 })]).segments[0],
+        ).toMatchObject({ dasharray: "100 0", dashoffset: -0 });
     });
 
     it("null, hiányzó, negatív és hibás számértéket nullára normalizál", () => {
-        expect([null, undefined, -2, "hibás"].map(normalizeStatusChartValue))
-            .toEqual([0, 0, 0, 0]);
+        expect(
+            [null, undefined, -2, "hibás"].map(normalizeStatusChartValue),
+        ).toEqual([0, 0, 0, 0]);
     });
 
     it("stringként érkező számot számmá alakít", () => {

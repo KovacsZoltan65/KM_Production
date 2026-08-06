@@ -58,11 +58,7 @@ export const normalizeNavigationPath = (url) => {
     return path.length > 1 ? path.replace(/\/+$/, "") : path;
 };
 
-export const canAccessNavigationItem = (
-    item,
-    permissions = [],
-    roles = [],
-) => {
+export const canAccessNavigationItem = (item, permissions = [], roles = []) => {
     const permission = NAVIGATION_PERMISSIONS[item.labelKey];
 
     return (

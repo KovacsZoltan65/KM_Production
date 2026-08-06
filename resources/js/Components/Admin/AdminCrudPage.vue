@@ -93,9 +93,11 @@ const confirm = useConfirm();
 const dialogVisible = ref(false);
 const editingRecord = ref(null);
 const search = ref(props.filters.search || "");
-const perPage = ref(Number(props.filters.per_page || props.records.per_page || 10));
+const perPage = ref(
+    Number(props.filters.per_page || props.records.per_page || 10),
+);
 const sortField = ref(
-    typeof props.filters?.sort === "string" ? props.filters.sort : "id"
+    typeof props.filters?.sort === "string" ? props.filters.sort : "id",
 );
 const sortOrder = ref((props.filters.direction || "asc") === "desc" ? -1 : 1);
 const form = reactive({});
@@ -106,20 +108,20 @@ const submitting = ref(false);
 const deletingRecordId = ref(null);
 
 const resolvedTitle = computed(() =>
-    props.titleKey ? trans(props.titleKey) : props.title
+    props.titleKey ? trans(props.titleKey) : props.title,
 );
 const resolvedSubtitle = computed(() =>
-    props.subtitleKey ? trans(props.subtitleKey) : props.subtitle
+    props.subtitleKey ? trans(props.subtitleKey) : props.subtitle,
 );
 const resolvedCreateLabel = computed(() =>
     props.createLabelKey
         ? trans(props.createLabelKey)
-        : props.createLabel || trans("actions.create")
+        : props.createLabel || trans("actions.create"),
 );
 const pageTitle = computed(() =>
     editingRecord.value
         ? trans("admin.crud.edit_title", { title: resolvedTitle.value })
-        : resolvedCreateLabel.value
+        : resolvedCreateLabel.value,
 );
 const indexRoute = computed(() => `${props.routeName}.index`);
 const storeRoute = computed(() => `${props.routeName}.store`);
@@ -159,11 +161,13 @@ const resetForm = () => {
             (field.type === "multiselect"
                 ? []
                 : field.type === "checkbox"
-                ? false
-                : null);
+                  ? false
+                  : null);
     });
     Object.keys(generatedValues).forEach((key) => delete generatedValues[key]);
-    Object.keys(generatingFields).forEach((key) => delete generatingFields[key]);
+    Object.keys(generatingFields).forEach(
+        (key) => delete generatingFields[key],
+    );
     errors.value = {};
 };
 
@@ -199,7 +203,9 @@ const openEdit = (record) => {
         }
 
         if (field.type === "date") {
-            form[field.name] = normalizeDateValue(value ?? field.default ?? null);
+            form[field.name] = normalizeDateValue(
+                value ?? field.default ?? null,
+            );
             return;
         }
 
@@ -212,14 +218,16 @@ const openEdit = (record) => {
 
 const fieldForMode = (field) => ({
     ...field,
-    disabled: Boolean(field.disabled || (editingRecord.value && field.immutableOnEdit)),
+    disabled: Boolean(
+        field.disabled || (editingRecord.value && field.immutableOnEdit),
+    ),
 });
 
 const generationParameters = (field) =>
     Object.fromEntries(
-        Object.entries(
-            field.generateCode?.parameters || {}
-        ).map(([parameter, formField]) => [parameter, form[formField]])
+        Object.entries(field.generateCode?.parameters || {}).map(
+            ([parameter, formField]) => [parameter, form[formField]],
+        ),
     );
 
 const generateCode = async (field) => {
@@ -233,7 +241,7 @@ const generateCode = async (field) => {
     try {
         const response = await axios.get(
             route("admin.code-generation.show", field.generateCode.type),
-            { params: generationParameters(field) }
+            { params: generationParameters(field) },
         );
         form[field.name] = response.data.code;
         generatedValues[field.name] = response.data.code;
@@ -298,7 +306,7 @@ const submit = () => {
         payload._code_was_generated = codeFields.some(
             (field) =>
                 generatedValues[field.name] !== undefined &&
-                form[field.name] === generatedValues[field.name]
+                form[field.name] === generatedValues[field.name],
         );
     }
 
@@ -316,7 +324,8 @@ const submit = () => {
             if (suggestion && generatedField) {
                 form[generatedField.name] = suggestion;
                 generatedValues[generatedField.name] = suggestion;
-                const { code_suggestion: ignored, ...visibleErrors } = responseErrors;
+                const { code_suggestion: ignored, ...visibleErrors } =
+                    responseErrors;
                 errors.value = visibleErrors;
                 focusFirstInvalidField(visibleErrors);
                 return;
@@ -331,7 +340,11 @@ const submit = () => {
     };
 
     if (editingRecord.value) {
-        router.put(route(updateRoute.value, editingRecord.value.id), payload, callbacks);
+        router.put(
+            route(updateRoute.value, editingRecord.value.id),
+            payload,
+            callbacks,
+        );
         return;
     }
 
@@ -368,7 +381,7 @@ const destroyRecord = (record) => {
  */
 const focusFirstInvalidField = (responseErrors) => {
     const firstField = Object.keys(responseErrors).find(
-        (field) => field !== "code_suggestion"
+        (field) => field !== "code_suggestion",
     );
 
     if (!firstField || typeof document === "undefined") {
@@ -472,8 +485,14 @@ const resolveColumnHeader = (column) =>
                     v-if="fields.some((field) => field.required)"
                     class="text-sm text-slate-500"
                 >
-                    <span class="font-medium text-red-500" aria-hidden="true">*</span>
-                    {{ trans("admin.crud.required_fields_hint").replace("*", "").trim() }}
+                    <span class="font-medium text-red-500" aria-hidden="true"
+                        >*</span
+                    >
+                    {{
+                        trans("admin.crud.required_fields_hint")
+                            .replace("*", "")
+                            .trim()
+                    }}
                 </p>
 
                 <div
@@ -491,23 +510,38 @@ const resolveColumnHeader = (column) =>
                     }"
                     :data-layout-group="row.layoutGroup || undefined"
                 >
-                    <div v-for="field in row.fields" :key="field.name" class="min-w-0">
+                    <div
+                        v-for="field in row.fields"
+                        :key="field.name"
+                        class="min-w-0"
+                    >
                         <AdminCrudField
                             v-model="form[field.name]"
                             :field="fieldForMode(field)"
                             :error="errors[field.name]"
                             :options="options"
                         >
-                            <template v-if="field.generateCode && !editingRecord" #action>
+                            <template
+                                v-if="field.generateCode && !editingRecord"
+                                #action
+                            >
                                 <Button
                                     type="button"
                                     class="shrink-0"
-                                    :label="trans('code_generation.actions.generate')"
+                                    :label="
+                                        trans(
+                                            'code_generation.actions.generate',
+                                        )
+                                    "
                                     icon="pi pi-sparkles"
                                     severity="secondary"
                                     outlined
-                                    :loading="Boolean(generatingFields[field.name])"
-                                    :disabled="Boolean(generatingFields[field.name])"
+                                    :loading="
+                                        Boolean(generatingFields[field.name])
+                                    "
+                                    :disabled="
+                                        Boolean(generatingFields[field.name])
+                                    "
                                     :data-test="`generate-${field.name}`"
                                     @click="generateCode(field)"
                                 />

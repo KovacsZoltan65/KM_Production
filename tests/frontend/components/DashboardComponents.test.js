@@ -75,13 +75,16 @@ describe("dashboard kártyák", () => {
         [65, "border-emerald-200"],
         [75, "border-amber-200"],
         [95, "border-red-200"],
-    ])("CapacityGauge %s értéknél a megfelelő állapotot jelzi", (value, tone) => {
-        const wrapper = shallowMount(CapacityGauge, {
-            props: { label: "Terhelés", value },
-        });
-        expect(wrapper.classes()).toContain(tone);
-        expect(wrapper.text()).toContain(`${value}%`);
-    });
+    ])(
+        "CapacityGauge %s értéknél a megfelelő állapotot jelzi",
+        (value, tone) => {
+            const wrapper = shallowMount(CapacityGauge, {
+                props: { label: "Terhelés", value },
+            });
+            expect(wrapper.classes()).toContain(tone);
+            expect(wrapper.text()).toContain(`${value}%`);
+        },
+    );
 
     it("chart card a címet és a saját slot tartalmát adja vissza", () => {
         const wrapper = shallowMount(DashboardChartCard, {
@@ -100,7 +103,9 @@ describe("dashboard táblák", () => {
             props: { loads },
             global: { stubs: { DataTable: DataTableStub } },
         });
-        expect(wrapper.findComponent(DataTableStub).props("value")).toEqual(loads);
+        expect(wrapper.findComponent(DataTableStub).props("value")).toEqual(
+            loads,
+        );
     });
 
     it("üres munkatársi terhelési listát stabilan átad", () => {
@@ -117,7 +122,9 @@ describe("dashboard táblák", () => {
             props: { rows },
             global: { stubs: { DataTable: DataTableStub } },
         });
-        expect(wrapper.findComponent(DataTableStub).props("value")).toEqual(rows);
+        expect(wrapper.findComponent(DataTableStub).props("value")).toEqual(
+            rows,
+        );
         expect(wrapper.exists()).toBe(true);
     });
 });

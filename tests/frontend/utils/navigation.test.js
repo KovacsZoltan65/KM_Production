@@ -32,9 +32,9 @@ describe("navigation helper", () => {
     });
 
     it("csak a szükséges permission birtokában engedi a menüpontot", () => {
-        expect(
-            canAccessNavigationItem(items[0], ["inventory.view"]),
-        ).toBe(true);
+        expect(canAccessNavigationItem(items[0], ["inventory.view"])).toBe(
+            true,
+        );
         expect(canAccessNavigationItem(items[0], [])).toBe(false);
     });
 
@@ -75,10 +75,7 @@ describe("navigation helper", () => {
 
     it("alroute és query esetén a megfelelő szülőt aktiválja", () => {
         expect(
-            findActiveNavigationHref(
-                items,
-                "/admin/documents/12?version=2",
-            ),
+            findActiveNavigationHref(items, "/admin/documents/12?version=2"),
         ).toBe("/admin/documents");
     });
 

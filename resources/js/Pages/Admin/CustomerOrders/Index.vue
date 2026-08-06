@@ -83,7 +83,9 @@ const editingRecord = ref(null);
 const submitting = ref(false);
 const search = ref(props.filters.search || "");
 const status = ref(props.filters.status || null);
-const perPage = ref(Number(props.filters.per_page || props.records.per_page || 10));
+const perPage = ref(
+    Number(props.filters.per_page || props.records.per_page || 10),
+);
 const sortField = ref(props.filters.sort || "id");
 const sortOrder = ref((props.filters.direction || "asc") === "desc" ? -1 : 1);
 const errors = ref({});
@@ -112,7 +114,9 @@ const normalizeDateValue = (value) => {
 };
 
 const dialogTitle = computed(() =>
-    editingRecord.value ? trans("orders.dialogs.edit") : trans("orders.dialogs.create")
+    editingRecord.value
+        ? trans("orders.dialogs.edit")
+        : trans("orders.dialogs.create"),
 );
 
 const resetForm = () => {
@@ -144,7 +148,9 @@ const openEdit = (record) => {
 
     Object.assign(form, {
         customer_id: record.customer_id,
-        requested_delivery_date: normalizeDateValue(record.requested_delivery_date),
+        requested_delivery_date: normalizeDateValue(
+            record.requested_delivery_date,
+        ),
         notes: record.notes ?? "",
         items: normalizeItems(record),
     });
@@ -214,7 +220,7 @@ const submit = () => {
         router.put(
             route("admin.customer-orders.update", editingRecord.value.id),
             payload,
-            callbacks
+            callbacks,
         );
         return;
     }
@@ -233,7 +239,7 @@ const confirmOrder = (record) => {
             router.patch(
                 route("admin.customer-orders.confirm", record.id),
                 {},
-                { preserveScroll: true }
+                { preserveScroll: true },
             ),
     });
 };
@@ -250,7 +256,7 @@ const cancelOrder = (record) => {
             router.patch(
                 route("admin.customer-orders.cancel", record.id),
                 {},
-                { preserveScroll: true }
+                { preserveScroll: true },
             ),
     });
 };
@@ -271,7 +277,8 @@ const destroyRecord = (record) => {
 };
 
 const canConfirm = (record) => record.status === "draft";
-const canCancel = (record) => !["completed", "cancelled"].includes(record.status);
+const canCancel = (record) =>
+    !["completed", "cancelled"].includes(record.status);
 const canDelete = (record) => ["draft", "cancelled"].includes(record.status);
 
 //const formatDate = (value) => dateValue(value) || "-";
@@ -316,9 +323,11 @@ const formatDate = (value) => normalizeDateValue(value) || "-";
             <div
                 class="flex flex-col gap-2 rounded border border-slate-200 bg-white p-3 sm:flex-row sm:items-center"
             >
-                <label for="status" class="text-sm font-medium text-slate-700">{{
-                    trans("fields.status")
-                }}</label>
+                <label
+                    for="status"
+                    class="text-sm font-medium text-slate-700"
+                    >{{ trans("fields.status") }}</label
+                >
                 <Select
                     id="status"
                     v-model="status"
@@ -373,10 +382,15 @@ const formatDate = (value) => normalizeDateValue(value) || "-";
                 </Column>
                 <Column field="customer_id" :header="trans('fields.customer')">
                     <template #body="{ data }"
-                        >{{ data.customer?.code }} - {{ data.customer?.name }}</template
+                        >{{ data.customer?.code }} -
+                        {{ data.customer?.name }}</template
                     >
                 </Column>
-                <Column field="status" :header="trans('fields.status')" sortable>
+                <Column
+                    field="status"
+                    :header="trans('fields.status')"
+                    sortable
+                >
                     <template #body="{ data }"
                         ><CustomerOrderStatusBadge :status="data.status"
                     /></template>
@@ -393,12 +407,19 @@ const formatDate = (value) => normalizeDateValue(value) || "-";
                 <Column field="items_count" :header="trans('fields.items')">
                     <template #body="{ data }">{{ data.items_count }}</template>
                 </Column>
-                <Column field="created_at" :header="trans('fields.created')" sortable>
+                <Column
+                    field="created_at"
+                    :header="trans('fields.created')"
+                    sortable
+                >
                     <template #body="{ data }">{{
                         formatDate(data.created_at)
                     }}</template>
                 </Column>
-                <Column header="" body-style="text-align: right; min-width: 14rem">
+                <Column
+                    header=""
+                    body-style="text-align: right; min-width: 14rem"
+                >
                     <template #body="{ data }">
                         <div class="flex justify-end gap-1">
                             <!-- Confirm button is only shown if the order can be confirmed -->

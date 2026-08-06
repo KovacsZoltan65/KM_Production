@@ -13,9 +13,7 @@ describe("route", () => {
     });
 
     it("pozicionális primitív paramétert is kezel", () => {
-        expect(route("admin.documents.show", 42)).toBe(
-            "/admin/documents/42",
-        );
+        expect(route("admin.documents.show", 42)).toBe("/admin/documents/42");
     });
 
     it("ismeretlen útvonalnál egyértelmű hibát ad", () => {

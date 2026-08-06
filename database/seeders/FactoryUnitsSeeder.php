@@ -21,8 +21,10 @@ class FactoryUnitsSeeder extends Seeder
         ];
 
         foreach ($factory_units as $unit) {
-            // Create factory unit logic here
-            FactoryUnit::create($unit);
+            FactoryUnit::query()->updateOrCreate(
+                ['code' => $unit['code']],
+                $unit,
+            );
         }
     }
 }

@@ -5,6 +5,7 @@
     "scripts": {
         "build": "vite build",
         "dev": "vite",
+        "format:check": "prettier --check \"resources/js/**/*.{js,vue}\" \"tests/frontend/**/*.js\" \"tests/e2e/**/*.js\" \"scripts/**/*.js\" \"*.config.js\" package.json",
         "i18n:check": "node scripts/check-translations.js",
         "test": "npm run test:frontend",
         "test:frontend": "vitest run",
@@ -31,6 +32,7 @@
         "concurrently": "^9.0.1",
         "jsdom": "^29.1.1",
         "laravel-vite-plugin": "^3.1",
+        "prettier": "^3.6.2",
         "tailwindcss": "^4.0.0",
         "vite": "^8.0.0",
         "vitest": "^4.1.10"

@@ -105,13 +105,16 @@ describe("DocumentUploadForm", () => {
         ["document_type", "A dokumentumtípus kötelező."],
         ["title", "A cím kötelező."],
         ["notes", "A megjegyzés hibás."],
-    ])("a %s backend hibát a megfelelő mezőnél jeleníti meg", async (key, message) => {
-        const wrapper = mountForm();
-        wrapper.vm.form.errors[key] = message;
-        await nextTick();
+    ])(
+        "a %s backend hibát a megfelelő mezőnél jeleníti meg",
+        async (key, message) => {
+            const wrapper = mountForm();
+            wrapper.vm.form.errors[key] = message;
+            await nextTick();
 
-        expect(wrapper.text()).toContain(message);
-    });
+            expect(wrapper.text()).toContain(message);
+        },
+    );
 
     it("processing állapotot átadja a feltöltés gombnak", async () => {
         const wrapper = mountForm();

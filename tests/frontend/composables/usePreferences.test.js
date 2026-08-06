@@ -2,10 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { nextTick } from "vue";
 import { loadLanguageAsync } from "laravel-vue-i18n";
 import { usePreferences } from "@/Composables/usePreferences";
-import {
-    inertiaPage,
-    inertiaRouter,
-} from "../mocks/inertia.js";
+import { inertiaPage, inertiaRouter } from "../mocks/inertia.js";
 
 describe("usePreferences", () => {
     beforeEach(() => {

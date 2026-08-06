@@ -65,7 +65,9 @@ const dialogVisible = ref(false);
 const editingRecord = ref(null);
 const search = ref(props.filters.search || "");
 const status = ref(props.filters.status || null);
-const perPage = ref(Number(props.filters.per_page || props.records.per_page || 10));
+const perPage = ref(
+    Number(props.filters.per_page || props.records.per_page || 10),
+);
 const sortField = ref(props.filters.sort || "id");
 const sortOrder = ref((props.filters.direction || "asc") === "desc" ? -1 : 1);
 const errors = ref({});
@@ -97,8 +99,8 @@ const dialogTitle = computed(() =>
     trans(
         editingRecord.value
             ? "production.plans.edit_title"
-            : "production.plans.create_title"
-    )
+            : "production.plans.create_title",
+    ),
 );
 
 const dateValue = (value) => normalizeDateValue(value);
@@ -182,7 +184,7 @@ const submit = () => {
         router.put(
             route("admin.production-plans.update", editingRecord.value.id),
             payload,
-            callbacks
+            callbacks,
         );
         return;
     }
@@ -201,7 +203,7 @@ const approvePlan = (record) => {
             router.patch(
                 route("admin.production-plans.approve", record.id),
                 {},
-                { preserveScroll: true }
+                { preserveScroll: true },
             ),
     });
 };
@@ -247,9 +249,11 @@ const canApprove = (record) => ["draft", "calculated"].includes(record.status);
             <div
                 class="flex flex-col gap-2 rounded border border-slate-200 bg-white p-3 sm:flex-row sm:items-center"
             >
-                <label for="status" class="text-sm font-medium text-slate-700">{{
-                    $t("filters.status")
-                }}</label>
+                <label
+                    for="status"
+                    class="text-sm font-medium text-slate-700"
+                    >{{ $t("filters.status") }}</label
+                >
                 <Select
                     id="status"
                     v-model="status"
@@ -287,17 +291,26 @@ const canApprove = (record) => ["draft", "calculated"].includes(record.status);
                     }
                 "
             >
-                <Column field="plan_number" :header="$t('fields.plan_number')" sortable>
+                <Column
+                    field="plan_number"
+                    :header="$t('fields.plan_number')"
+                    sortable
+                >
                     <template #body="{ data }">
                         <Link
-                            :href="route('admin.production-plans.show', data.id)"
+                            :href="
+                                route('admin.production-plans.show', data.id)
+                            "
                             class="font-medium text-blue-700 hover:underline"
                         >
                             {{ data.plan_number }}
                         </Link>
                     </template>
                 </Column>
-                <Column field="customer_order_id" :header="$t('fields.customer_order')">
+                <Column
+                    field="customer_order_id"
+                    :header="$t('fields.customer_order')"
+                >
                     <template #body="{ data }"
                         >{{ data.customer_order?.order_number }} -
                         {{ data.customer_order?.customer?.name }}</template
@@ -308,7 +321,11 @@ const canApprove = (record) => ["draft", "calculated"].includes(record.status);
                         ><ProductionPlanStatusBadge :status="data.status"
                     /></template>
                 </Column>
-                <Column field="planned_start_date" :header="$t('fields.start')" sortable>
+                <Column
+                    field="planned_start_date"
+                    :header="$t('fields.start')"
+                    sortable
+                >
                     <template #body="{ data }">{{
                         formatDate(data.planned_start_date)
                     }}</template>
@@ -325,12 +342,19 @@ const canApprove = (record) => ["draft", "calculated"].includes(record.status);
                 <Column field="items_count" :header="$t('fields.items')">
                     <template #body="{ data }">{{ data.items_count }}</template>
                 </Column>
-                <Column field="created_at" :header="$t('fields.created')" sortable>
+                <Column
+                    field="created_at"
+                    :header="$t('fields.created')"
+                    sortable
+                >
                     <template #body="{ data }">{{
                         formatDate(data.created_at)
                     }}</template>
                 </Column>
-                <Column header="" body-style="text-align: right; min-width: 10rem">
+                <Column
+                    header=""
+                    body-style="text-align: right; min-width: 10rem"
+                >
                     <template #body="{ data }">
                         <div class="flex justify-end gap-1">
                             <Button

@@ -63,7 +63,10 @@ class ItemsSeeder extends Seeder
         ];
 
         foreach ($items as $item) {
-            Item::create($item);
+            Item::query()->updateOrCreate(
+                ['item_number' => $item['item_number']],
+                $item,
+            );
         }
 
         app(PermissionRegistrar::class)->forgetCachedPermissions();
