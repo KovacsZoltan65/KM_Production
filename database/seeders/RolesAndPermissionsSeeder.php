@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Collection;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
@@ -124,23 +125,97 @@ class RolesAndPermissionsSeeder extends Seeder
             'documents.version',
         ];
 
-        foreach ($permissions as $permission) {
-            Permission::query()->firstOrCreate([
-                'name' => $permission,
-                'guard_name' => 'web',
-            ]);
+        $rolePermissions = $this->rolePermissions();
+
+        if ($this->authorizationDataIsCurrent($permissions, $rolePermissions)) {
+            app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+            return;
         }
 
-        foreach ($this->rolePermissions() as $roleName => $rolePermissions) {
-            $role = Role::query()->firstOrCreate([
+        $timestamp = now();
+
+        Permission::query()->upsert(
+            array_map(fn (string $permission): array => [
+                'name' => $permission,
+                'guard_name' => 'web',
+                'created_at' => $timestamp,
+                'updated_at' => $timestamp,
+            ], $permissions),
+            ['name', 'guard_name'],
+            ['updated_at'],
+        );
+
+        Role::query()->upsert(
+            array_map(fn (string $roleName): array => [
                 'name' => $roleName,
                 'guard_name' => 'web',
-            ]);
+                'created_at' => $timestamp,
+                'updated_at' => $timestamp,
+            ], array_keys($rolePermissions)),
+            ['name', 'guard_name'],
+            ['updated_at'],
+        );
 
-            $role->syncPermissions($roleName === 'super-admin' ? $permissions : $rolePermissions);
+        /** @var Collection<string, Role> $roles */
+        $roles = Role::query()
+            ->where('guard_name', 'web')
+            ->whereIn('name', array_keys($rolePermissions))
+            ->get()
+            ->keyBy('name');
+
+        foreach ($rolePermissions as $roleName => $permissionsForRole) {
+            $role = $roles->get($roleName);
+
+            $role?->syncPermissions($roleName === 'super-admin' ? $permissions : $permissionsForRole);
         }
 
         app(PermissionRegistrar::class)->forgetCachedPermissions();
+    }
+
+    /**
+     * @param  array<int, string>  $permissions
+     * @param  array<string, array<int, string>>  $rolePermissions
+     */
+    private function authorizationDataIsCurrent(array $permissions, array $rolePermissions): bool
+    {
+        $storedPermissions = Permission::query()
+            ->where('guard_name', 'web')
+            ->whereIn('name', $permissions)
+            ->pluck('name')
+            ->all();
+
+        if (count($storedPermissions) !== count($permissions)) {
+            return false;
+        }
+
+        $roles = Role::query()
+            ->with('permissions:id,name,guard_name')
+            ->where('guard_name', 'web')
+            ->whereIn('name', array_keys($rolePermissions))
+            ->get()
+            ->keyBy('name');
+
+        if ($roles->count() !== count($rolePermissions)) {
+            return false;
+        }
+
+        foreach ($rolePermissions as $roleName => $permissionsForRole) {
+            $expected = $roleName === 'super-admin' ? $permissions : $permissionsForRole;
+            sort($expected);
+
+            $actual = $roles->get($roleName)?->permissions
+                ->pluck('name')
+                ->sort()
+                ->values()
+                ->all();
+
+            if ($actual !== $expected) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**

@@ -47,7 +47,7 @@ class RecordStateActivityLoggingTest extends TestCase
 
     public function test_created_activity_contains_allowlisted_attributes_and_business_properties(): void
     {
-        $role = Role::query()->create(['name' => 'viewer', 'guard_name' => 'web']);
+        $role = Role::query()->create(['name' => 'audit-viewer', 'guard_name' => 'web']);
 
         $user = app(UserAdminService::class)->create([
             'name' => 'Audit User',
@@ -61,7 +61,7 @@ class RecordStateActivityLoggingTest extends TestCase
 
         $this->assertSame($user->getKey(), $changes['attributes']['id']);
         $this->assertSame('Audit User', $changes['attributes']['name']);
-        $this->assertSame(['viewer'], $activity->properties->get('roles'));
+        $this->assertSame(['audit-viewer'], $activity->properties->get('roles'));
         $this->assertSensitiveValuesAreAbsent($activity);
     }
 
@@ -165,8 +165,8 @@ class RecordStateActivityLoggingTest extends TestCase
 
     public function test_user_role_sync_is_logged_as_relation_change_without_record_dump(): void
     {
-        $viewer = Role::query()->create(['name' => 'viewer', 'guard_name' => 'web']);
-        $operator = Role::query()->create(['name' => 'operator', 'guard_name' => 'web']);
+        $viewer = Role::query()->create(['name' => 'audit-viewer', 'guard_name' => 'web']);
+        $operator = Role::query()->create(['name' => 'audit-operator', 'guard_name' => 'web']);
         $user = User::factory()->create();
         $user->assignRole($viewer);
         Activity::query()->delete();
@@ -184,8 +184,8 @@ class RecordStateActivityLoggingTest extends TestCase
         $this->assertSame([], $activity->attribute_changes->get('attributes'));
         $this->assertSame([
             'roles' => [
-                'old' => ['viewer'],
-                'attributes' => ['operator'],
+                'old' => ['audit-viewer'],
+                'attributes' => ['audit-operator'],
             ],
         ], $activity->properties->get('relations'));
     }

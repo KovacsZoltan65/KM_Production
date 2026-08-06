@@ -97,10 +97,10 @@ class AuthenticationPermissionFoundationTest extends TestCase
     public function test_permission_middleware_works(): void
     {
         Route::get('/permission-check-test', fn (): string => 'ok')
-            ->middleware(['web', 'auth', 'permission:users.view']);
+            ->middleware(['web', 'auth', 'permission:permission-check-test.view']);
 
         Permission::query()->create([
-            'name' => 'users.view',
+            'name' => 'permission-check-test.view',
             'guard_name' => 'web',
         ]);
 
@@ -108,7 +108,7 @@ class AuthenticationPermissionFoundationTest extends TestCase
 
         $this->actingAs($user)->get('/permission-check-test')->assertForbidden();
 
-        $user->givePermissionTo('users.view');
+        $user->givePermissionTo('permission-check-test.view');
 
         $this->actingAs($user)->get('/permission-check-test')->assertOk();
     }

@@ -49,6 +49,8 @@ class BusinessCacheInvalidationTest extends TestCase
 {
     use DatabaseMigrations;
 
+    protected string|false $seeder = false;
+
     protected function setUp(): void
     {
         parent::setUp();
