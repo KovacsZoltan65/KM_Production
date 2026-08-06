@@ -17,8 +17,9 @@ Before significant work, read in this order:
 5. Relevant domain knowledge under [.kiro/knowledge/](.kiro/knowledge/)
 6. Relevant procedures under [.kiro/playbooks/](.kiro/playbooks/)
 7. Relevant quality gates under [.kiro/checklists/](.kiro/checklists/)
-8. Relevant workflows under [.kiro/workflows/](.kiro/workflows/)
-9. Relevant permanent memory under [.kiro/memory/](.kiro/memory/)
+8. [Layered Quality Gates](docs/development/quality-gates.md)
+9. Relevant workflows under [.kiro/workflows/](.kiro/workflows/)
+10. Relevant permanent memory under [.kiro/memory/](.kiro/memory/)
 
 ## Core Rules
 

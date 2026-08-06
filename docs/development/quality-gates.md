@@ -214,3 +214,32 @@ Javasolt aktiválási sorrend a branch-protection audit után:
   csak mért, indokolt esetben emeld.
 - Playwright előtt a runner maga készíti elő az izolált E2E adatbázist; kézzel
   indított fejlesztői szervert nem állít le.
+
+## Quality Gates
+
+Development work must use the project's layered quality gate system.
+
+Default policy:
+
+- During implementation, use the smallest safe quality gate.
+- Prefer `affected` or `module` quality gates for routine development.
+- Use the `integration` quality gate only when shared infrastructure or multiple business modules are affected.
+- Run the `full` quality gate only:
+    - before merge or release;
+    - after dependency updates;
+    - after database migration changes;
+    - after shared or core infrastructure changes;
+    - when explicitly requested by the user.
+
+When a quality gate fails:
+
+- rerun only the failed quality gate after applying the fix, unless the scope of the change has expanded;
+- do not rerun previously successful full test suites without evidence that the new changes affect them.
+
+Agents must avoid duplicate executions of the same successful quality gates during a single development iteration.
+
+Always use the project's quality gate runner instead of manually selecting test suites when it is available.
+
+See:
+
+- [Layered Quality Gates](docs/development/quality-gates.md)
