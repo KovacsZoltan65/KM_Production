@@ -258,6 +258,30 @@ const pages = [
             ),
     },
     {
+        name: "purchase orders",
+        path: "/admin/purchase-orders",
+        search: "E2E-PO-REFRESH-001",
+        initialText: "2036-01-15",
+        updatedText: "2036-02-15",
+        update: (fixtures) =>
+            executeSql(
+                "UPDATE purchase_orders SET expected_delivery_date = ? WHERE id = ?",
+                ["2036-02-15", fixtures.refreshPurchaseOrderId],
+            ),
+    },
+    {
+        name: "goods receipts",
+        path: "/admin/goods-receipts",
+        search: "E2E-GR-REFRESH-001",
+        initialText: "2037-01-15",
+        updatedText: "2037-02-15",
+        update: (fixtures) =>
+            executeSql(
+                "UPDATE goods_receipts SET received_at = ? WHERE id = ?",
+                ["2037-02-15 12:00:00", fixtures.refreshGoodsReceiptId],
+            ),
+    },
+    {
         name: "factory units",
         path: "/admin/factory-units",
         search: "E2E-FU",

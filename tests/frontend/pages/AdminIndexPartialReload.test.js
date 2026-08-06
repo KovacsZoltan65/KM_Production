@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import CustomerIndex from "@/Pages/Admin/Customers/Index.vue";
 import CustomerOrderIndex from "@/Pages/Admin/CustomerOrders/Index.vue";
 import FactoryUnitIndex from "@/Pages/Admin/FactoryUnits/Index.vue";
+import GoodsReceiptIndex from "@/Pages/Admin/GoodsReceipts/Index.vue";
 import MaterialRequirementIndex from "@/Pages/Admin/Inventory/MaterialRequirements/Index.vue";
 import StockMovementIndex from "@/Pages/Admin/Inventory/StockMovements/Index.vue";
 import StockReservationIndex from "@/Pages/Admin/Inventory/StockReservations/Index.vue";
@@ -15,6 +16,7 @@ import OperationTypeIndex from "@/Pages/Admin/OperationTypes/Index.vue";
 import PermissionIndex from "@/Pages/Admin/Permissions/Index.vue";
 import ProfessionalRoleIndex from "@/Pages/Admin/ProfessionalRoles/Index.vue";
 import PurchaseRequisitionIndex from "@/Pages/Admin/PurchaseRequisitions/Index.vue";
+import PurchaseOrderIndex from "@/Pages/Admin/PurchaseOrders/Index.vue";
 import RoleIndex from "@/Pages/Admin/Roles/Index.vue";
 import SupplierIndex from "@/Pages/Admin/Suppliers/Index.vue";
 import UserIndex from "@/Pages/Admin/Users/Index.vue";
@@ -155,6 +157,29 @@ const pages = [
             filters,
             statusOptions: [],
             itemOptions: [],
+        },
+    },
+    {
+        name: "Purchase Orders",
+        component: PurchaseOrderIndex,
+        props: {
+            records,
+            filters,
+            statusOptions: [],
+            supplierOptions: [],
+            itemOptions: [],
+        },
+    },
+    {
+        name: "Goods Receipts",
+        component: GoodsReceiptIndex,
+        props: {
+            records,
+            filters,
+            statusOptions: [],
+            purchaseOrderOptions: [],
+            itemOptions: [],
+            locationOptions: [],
         },
     },
     {

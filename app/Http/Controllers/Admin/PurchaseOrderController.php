@@ -36,11 +36,11 @@ class PurchaseOrderController extends Controller
         $this->authorize('viewAny', PurchaseOrder::class);
 
         return Inertia::render('Admin/PurchaseOrders/Index', [
-            'records' => $this->service->paginateForAdminIndex($request->filters(), $request->perPage()),
+            'records' => fn () => $this->service->paginateForAdminIndex($request->filters(), $request->perPage()),
             'filters' => $request->filters(),
-            'statusOptions' => $this->statusOptions(),
-            'supplierOptions' => $this->supplierOptions(),
-            'itemOptions' => $this->itemOptions(),
+            'statusOptions' => fn () => $this->statusOptions(),
+            'supplierOptions' => fn () => $this->supplierOptions(),
+            'itemOptions' => fn () => $this->itemOptions(),
         ]);
     }
 

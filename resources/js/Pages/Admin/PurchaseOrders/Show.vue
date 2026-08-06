@@ -1,4 +1,5 @@
 <script setup>
+import { notifyRequestError } from "@/Composables/useRequestError";
 import AdminLayout from "@/Layouts/AdminLayout.vue";
 import { route } from "@/Utils/routes";
 import { Head, Link, router } from "@inertiajs/vue3";
@@ -8,6 +9,7 @@ import ConfirmDialog from "primevue/confirmdialog";
 import DataTable from "primevue/datatable";
 import Tag from "primevue/tag";
 import { useConfirm } from "primevue/useconfirm";
+import { useToast } from "primevue/usetoast";
 import { trans } from "laravel-vue-i18n";
 import { computed, ref } from "vue";
 
@@ -38,6 +40,7 @@ import { computed, ref } from "vue";
 /** @type {Props} */
 const props = defineProps({ purchaseOrder: Object });
 const confirm = useConfirm();
+const toast = useToast();
 const pendingAction = ref(null);
 const runAction = (action, routeName) => {
     if (pendingAction.value) {
@@ -49,6 +52,9 @@ const runAction = (action, routeName) => {
         route(routeName, props.purchaseOrder.id),
         {},
         {
+            onError: (error) => {
+                notifyRequestError(toast, error);
+            },
             onFinish: () => {
                 pendingAction.value = null;
             },

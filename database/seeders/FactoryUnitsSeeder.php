@@ -9,11 +9,18 @@ class FactoryUnitsSeeder extends Seeder
 {
     public function run(): void
     {
-        $factoryUnitId = FactoryUnit::query()
-            ->where('code', 'BP-GYARTAS')
-            ->valueOrFail('id');
+        $factory_units = [
+            [
+                'code' => 'BP-GYARTAS',
+                'name' => 'Budapesti gyártóüzem',
+                'description' => 'Műanyag termékek gyártására használt üzem.',
+                'daily_capacity_minutes' => 480,
+                'shift_count' => 1,
+                'is_active' => true,
+            ],
+        ];
 
-        foreach ($factoryUnitId as $unit) {
+        foreach ($factory_units as $unit) {
             // Create factory unit logic here
             FactoryUnit::create($unit);
         }

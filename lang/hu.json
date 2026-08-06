@@ -563,6 +563,7 @@
     "procurement.purchase_orders.subtitle": "Jóváhagyott igényekből létrejött beszállítói kötelezettségek.",
     "procurement.purchase_orders.title": "Beszerzési rendelések",
     "procurement.purchase_orders.validation.only_draft_approve": "Csak piszkozat beszerzési rendelés hagyható jóvá.",
+    "procurement.purchase_orders.validation.only_open_close": "Csak megrendelt vagy részben bevételezett beszerzési rendelés zárható le.",
     "procurement.purchase_requisitions.actions.back_to_requisitions": "Vissza a beszerzési igényekhez",
     "procurement.purchase_requisitions.actions.generate_purchase_order": "Beszerzési rendelés generálása",
     "procurement.purchase_requisitions.confirm_approve_header": "Beszerzési igény jóváhagyása",

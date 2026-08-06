@@ -123,6 +123,12 @@ class PurchaseOrderService
 
     public function close(PurchaseOrder $purchaseOrder, ?User $causer = null): PurchaseOrder
     {
+        if (! \in_array($purchaseOrder->status, [PurchaseOrderStatus::Ordered, PurchaseOrderStatus::PartiallyReceived], true)) {
+            throw ValidationException::withMessages([
+                'status' => __('procurement.purchase_orders.validation.only_open_close'),
+            ]);
+        }
+
         $purchaseOrder = DB::transaction(function () use ($purchaseOrder, $causer): PurchaseOrder {
             $original = $purchaseOrder->getRawOriginal();
             $purchaseOrder->update(['status' => PurchaseOrderStatus::Received->value]);

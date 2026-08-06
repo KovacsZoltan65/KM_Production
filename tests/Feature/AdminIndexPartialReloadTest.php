@@ -2,7 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Enums\GoodsReceiptStatus;
 use App\Enums\OperationTypeCode;
+use App\Enums\PurchaseOrderStatus;
 use App\Enums\PurchaseRequisitionStatus;
 use App\Enums\StockMovementType;
 use App\Enums\StockReservationStatus;
@@ -10,11 +12,13 @@ use App\Models\Customer;
 use App\Models\CustomerOrder;
 use App\Models\CustomerOrderItem;
 use App\Models\FactoryUnit;
+use App\Models\GoodsReceipt;
 use App\Models\Item;
 use App\Models\Location;
 use App\Models\MaterialRequirement;
 use App\Models\OperationType;
 use App\Models\ProfessionalRole;
+use App\Models\PurchaseOrder;
 use App\Models\PurchaseRequisition;
 use App\Models\StockBalance;
 use App\Models\StockMovement;
@@ -437,6 +441,141 @@ class AdminIndexPartialReloadTest extends TestCase
                     ->missing('filters')
                     ->missing('statusOptions')
                     ->missing('itemOptions')));
+    }
+
+    public function test_purchase_orders_index_supports_records_only_partial_reload(): void
+    {
+        $admin = $this->superAdmin();
+        $supplier = Supplier::factory()->create(['name' => 'Refresh Order Supplier']);
+        $otherSupplier = Supplier::factory()->create();
+        $item = Item::factory()->purchasedMaterial()->create();
+        $matchingOrder = PurchaseOrder::factory()->create([
+            'order_number' => 'REFRESH-PO-001',
+            'supplier_id' => $supplier->id,
+            'status' => PurchaseOrderStatus::Ordered,
+            'notes' => 'Matching purchase order',
+        ]);
+        $matchingOrder->items()->create([
+            'item_id' => $item->id,
+            'ordered_quantity' => 4,
+            'received_quantity' => 0,
+            'unit' => 'db',
+        ]);
+        PurchaseOrder::factory()->create([
+            'order_number' => 'REFRESH-PO-WRONG-SUPPLIER',
+            'supplier_id' => $otherSupplier->id,
+            'status' => PurchaseOrderStatus::Ordered,
+        ]);
+        PurchaseOrder::factory()->create([
+            'order_number' => 'UNRELATED-PO',
+            'supplier_id' => $supplier->id,
+            'status' => PurchaseOrderStatus::Draft,
+        ]);
+
+        $url = "/admin/purchase-orders?search=REFRESH-PO-001&status=ordered&supplier_id={$supplier->id}&per_page=25&sort=order_number&direction=desc&page=1";
+
+        $this->actingAs($admin)
+            ->get($url)
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->component('Admin/PurchaseOrders/Index')
+                ->has('records.data', 1)
+                ->where('records.data.0.id', $matchingOrder->id)
+                ->where('records.data.0.order_number', 'REFRESH-PO-001')
+                ->where('records.data.0.status', PurchaseOrderStatus::Ordered->value)
+                ->where('records.data.0.supplier.id', $supplier->id)
+                ->where('records.data.0.items_count', 1)
+                ->where('records.per_page', 25)
+                ->where('records.current_page', 1)
+                ->where('filters.search', 'REFRESH-PO-001')
+                ->where('filters.status', PurchaseOrderStatus::Ordered->value)
+                ->where('filters.supplier_id', (string) $supplier->id)
+                ->where('filters.sort', 'order_number')
+                ->where('filters.direction', 'desc')
+                ->has('statusOptions')
+                ->has('supplierOptions')
+                ->has('itemOptions')
+                ->reloadOnly('records', fn (AssertableInertia $reload) => $reload
+                    ->has('records.data', 1)
+                    ->where('records.data.0.id', $matchingOrder->id)
+                    ->where('records.data.0.items_count', 1)
+                    ->where('records.per_page', 25)
+                    ->where('records.current_page', 1)
+                    ->missing('filters')
+                    ->missing('statusOptions')
+                    ->missing('supplierOptions')
+                    ->missing('itemOptions')));
+    }
+
+    public function test_goods_receipts_index_supports_records_only_partial_reload(): void
+    {
+        $admin = $this->superAdmin();
+        $supplier = Supplier::factory()->create(['name' => 'Refresh Receipt Supplier']);
+        $purchaseOrder = PurchaseOrder::factory()->create([
+            'order_number' => 'REFRESH-GR-PO-001',
+            'supplier_id' => $supplier->id,
+            'status' => PurchaseOrderStatus::Ordered,
+        ]);
+        $item = Item::factory()->purchasedMaterial()->create();
+        $location = Location::factory()->create();
+        $matchingReceipt = GoodsReceipt::factory()->create([
+            'receipt_number' => 'REFRESH-GR-001',
+            'purchase_order_id' => $purchaseOrder->id,
+            'status' => GoodsReceiptStatus::Draft,
+            'received_at' => '2026-01-15 12:00:00',
+            'notes' => 'Matching partial refresh receipt',
+        ]);
+        $matchingReceipt->items()->create([
+            'item_id' => $item->id,
+            'location_id' => $location->id,
+            'quantity' => 4,
+        ]);
+        GoodsReceipt::factory()->create([
+            'receipt_number' => 'REFRESH-GR-POSTED',
+            'purchase_order_id' => $purchaseOrder->id,
+            'status' => GoodsReceiptStatus::Posted,
+        ]);
+        GoodsReceipt::factory()->create([
+            'receipt_number' => 'UNRELATED-GR',
+            'purchase_order_id' => $purchaseOrder->id,
+            'status' => GoodsReceiptStatus::Draft,
+        ]);
+
+        $url = '/admin/goods-receipts?search=REFRESH-GR-001&status=draft&per_page=25&sort=receipt_number&direction=desc&page=1';
+
+        $this->actingAs($admin)
+            ->get($url)
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->component('Admin/GoodsReceipts/Index')
+                ->has('records.data', 1)
+                ->where('records.data.0.id', $matchingReceipt->id)
+                ->where('records.data.0.receipt_number', 'REFRESH-GR-001')
+                ->where('records.data.0.status', GoodsReceiptStatus::Draft->value)
+                ->where('records.data.0.purchase_order.id', $purchaseOrder->id)
+                ->where('records.data.0.purchase_order.supplier.id', $supplier->id)
+                ->where('records.data.0.items_count', 1)
+                ->where('records.per_page', 25)
+                ->where('records.current_page', 1)
+                ->where('filters.search', 'REFRESH-GR-001')
+                ->where('filters.status', GoodsReceiptStatus::Draft->value)
+                ->where('filters.sort', 'receipt_number')
+                ->where('filters.direction', 'desc')
+                ->has('statusOptions')
+                ->has('purchaseOrderOptions')
+                ->has('itemOptions')
+                ->has('locationOptions')
+                ->reloadOnly('records', fn (AssertableInertia $reload) => $reload
+                    ->has('records.data', 1)
+                    ->where('records.data.0.id', $matchingReceipt->id)
+                    ->where('records.data.0.items_count', 1)
+                    ->where('records.per_page', 25)
+                    ->where('records.current_page', 1)
+                    ->missing('filters')
+                    ->missing('statusOptions')
+                    ->missing('purchaseOrderOptions')
+                    ->missing('itemOptions')
+                    ->missing('locationOptions')));
     }
 
     public function test_factory_units_index_supports_records_only_partial_reload(): void

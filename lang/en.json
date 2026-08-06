@@ -563,6 +563,7 @@
     "procurement.purchase_orders.subtitle": "Supplier commitments generated from approved requisitions.",
     "procurement.purchase_orders.title": "Purchase Orders",
     "procurement.purchase_orders.validation.only_draft_approve": "Only draft purchase orders can be approved.",
+    "procurement.purchase_orders.validation.only_open_close": "Only ordered or partially received purchase orders can be closed.",
     "procurement.purchase_requisitions.actions.back_to_requisitions": "Back to purchase requisitions",
     "procurement.purchase_requisitions.actions.generate_purchase_order": "Generate Purchase Order",
     "procurement.purchase_requisitions.confirm_approve_header": "Approve requisition",

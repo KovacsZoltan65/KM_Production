@@ -81,7 +81,7 @@ class EmployeeSeeder extends Seeder
                 'professional_role_id' => $professionalRoleIds['WAREHOUSEMAN'],
                 'is_active' => true,
                 'hired_at' => '2026-07-06',
-            ]
+            ],
         ];
 
         foreach ($employees as $employee) {

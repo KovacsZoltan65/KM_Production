@@ -93,6 +93,45 @@ státuszváltást vagy második reloadot. Mindkét workflow auditált, a `procur
 használja; maga az index nem cache-elt. Az elkülönített E2E fixture-ek a kézi partial frissítést, az
 egyszeri approve kérést, valamint az egyszeri PO- és PO-item-generálást igazolják.
 
+A Procurement / Purchase Orders index célzott frissítési propja a `records`; a controller ezt, a
+`statusOptions`, `supplierOptions` és `itemOptions` propokat lazy closure-ként adja át. A csak
+`records`-ot kérő partial válaszból a `filters` és mindhárom option prop kimarad. A repository a
+`status`, `supplier_id` és az order numberre, notes mezőre vagy supplier névre/kódra alkalmazott
+`search` filtert kezeli; az alapértelmezett rendezés `id asc`. A lista a suppliert és a kapcsolódó
+Purchase Requisitiont eager loadinggal, az items kapcsolatot `withCount()` aggregátummal tölti
+közvetlenül az adatbázisból, index-cache nélkül.
+
+Az approve csak Draft rendelést vált Ordered állapotba és kitölti az `ordered_at` mezőt; a close csak
+Ordered vagy Partially Received rendelést vált Received állapotba. A szerver mindkét átmenetnél
+elutasítja az ismételt vagy érvénytelen kérést, az állapotváltás és az auditbejegyzés közös
+tranzakcióban készül, majd siker esetén `procurementChanged()` invalidáció fut. A Show oldal közös
+pending guarddal akadályozza a dupla vagy párhuzamos approve/close kérést, nem módosít optimistán
+státuszt, nem indít második reloadot, a domain success flash pedig a redirectelt Inertia válaszból
+érkezik. Az elkülönített E2E fixture-ek a kézi `records` refresht, valamint az egyszeri approve és
+close PATCH kérést, auditot és dokumentumnavigáció nélküli redirectet ellenőrzik.
+
+A Procurement / Goods Receipts index célzott frissítési propja a `records`; a controller ezt, a
+`statusOptions`, `purchaseOrderOptions`, `itemOptions` és `locationOptions` propokat lazy closure-ként
+adja át. A records-only válaszból a `filters` és mind a négy option prop kimarad. A repository a
+receipt numberre, notes mezőre vagy Purchase Order számra alkalmazott `search`, valamint a `status`
+filtert kezeli; az alapértelmezett rendezés `id asc`. A lista a Purchase Order/supplier és receiver
+kapcsolatokat eager loadinggal, az items kapcsolatot `withCount()` aggregátummal tölti közvetlenül az
+adatbázisból, index-cache nélkül.
+
+A posting kizárólag Draft receiptből indítható, `goods-receipts.post` jogosultsággal. A receipt row
+lock, a Stock Balance növelése, a tételenkénti `purchase_receive` Stock Movement és audit, a PO-item
+received quantity, a PO Partially Received/Received státusza, valamint a receipt Posted státusza közös
+tranzakcióban változik. Az érintett PO-itemek egyetlen batch lekérdezésben, `lockForUpdate()` zárral
+érkeznek, ami elkerüli az itemenkénti N+1-et és a külön receiptből érkező párhuzamos
+mennyiségfrissítés elvesztését. Siker után a
+`back()` redirect egyetlen friss Show payloadot és a domain flash üzenetet ad; a frontend posting guard
+nem végez optimista módosítást vagy második reloadot. Commit után procurement és inventory
+cache-invalidáció fut. A posting meglévő batchazonosítót továbbad, de batch- vagy Item Instance
+rekordot nem hoz létre. A jelenlegi domain pozitív receipt mennyiséget validál, ugyanakkor nem tiltja
+a túlvételezést vagy a már Received PO-hoz kapcsolt új receiptet. Az elkülönített E2E fixture-ek a
+records-only kézi frissítést, továbbá a részleges és teljes posting készlet-, mozgás- és PO-hatását
+igazolják.
+
 Az `only` paraméterben megnevezett prop-oknak a vezérlőben lezárásoknak kell lenniük. A drága opció
 a prop-oknak is lezárásoknak kell lenniük, hogy az Inertia kihagyhassa a lekérdezéseit egy
 csak rekordokat tartalmazó újratöltés során. A kezdeti teljes kérés továbbra is kiértékeli az összes szükséges

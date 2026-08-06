@@ -1,4 +1,5 @@
 <script setup>
+import { notifyRequestError } from "@/Composables/useRequestError";
 import AdminLayout from "@/Layouts/AdminLayout.vue";
 import { route } from "@/Utils/routes";
 import { Head, Link, router } from "@inertiajs/vue3";
@@ -9,6 +10,7 @@ import ConfirmDialog from "primevue/confirmdialog";
 import DataTable from "primevue/datatable";
 import Tag from "primevue/tag";
 import { useConfirm } from "primevue/useconfirm";
+import { useToast } from "primevue/usetoast";
 import { computed, ref } from "vue";
 
 /**
@@ -38,6 +40,7 @@ import { computed, ref } from "vue";
 /** @type {Props} */
 const props = defineProps({ goodsReceipt: Object });
 const confirm = useConfirm();
+const toast = useToast();
 const posting = ref(false);
 const canPost = computed(() => props.goodsReceipt.status !== "posted");
 const number = (value) => Number(value || 0).toFixed(3);
@@ -60,6 +63,9 @@ const postReceipt = () =>
                 route("admin.goods-receipts.post", props.goodsReceipt.id),
                 {},
                 {
+                    onError: (error) => {
+                        notifyRequestError(toast, error);
+                    },
                     onFinish: () => {
                         posting.value = false;
                     },

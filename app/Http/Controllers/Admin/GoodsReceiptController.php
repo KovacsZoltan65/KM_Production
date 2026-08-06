@@ -35,12 +35,12 @@ class GoodsReceiptController extends Controller
         $this->authorize('viewAny', GoodsReceipt::class);
 
         return Inertia::render('Admin/GoodsReceipts/Index', [
-            'records' => $this->service->paginateForAdminIndex($request->filters(), $request->perPage()),
+            'records' => fn () => $this->service->paginateForAdminIndex($request->filters(), $request->perPage()),
             'filters' => $request->filters(),
-            'statusOptions' => $this->statusOptions(),
-            'purchaseOrderOptions' => $this->purchaseOrderOptions(),
-            'itemOptions' => $this->itemOptions(),
-            'locationOptions' => $this->locationOptions(),
+            'statusOptions' => fn () => $this->statusOptions(),
+            'purchaseOrderOptions' => fn () => $this->purchaseOrderOptions(),
+            'itemOptions' => fn () => $this->itemOptions(),
+            'locationOptions' => fn () => $this->locationOptions(),
         ]);
     }
 

@@ -1,6 +1,7 @@
 <script setup>
 import AdminPageHeader from "@/Components/Admin/AdminPageHeader.vue";
 import AdminSearchBar from "@/Components/Admin/AdminSearchBar.vue";
+import { notifyRequestError } from "@/Composables/useRequestError";
 import AdminLayout from "@/Layouts/AdminLayout.vue";
 import { route } from "@/Utils/routes";
 import { Head, Link, router, useForm } from "@inertiajs/vue3";
@@ -10,6 +11,7 @@ import DataTable from "primevue/datatable";
 import Dialog from "primevue/dialog";
 import Select from "primevue/select";
 import Tag from "primevue/tag";
+import { useToast } from "primevue/usetoast";
 import { ref } from "vue";
 
 /** @typedef {{label: string, value: string}} StatusOption */
@@ -53,13 +55,17 @@ const props = defineProps({
     itemOptions: Array,
     locationOptions: Array,
 });
+const toast = useToast();
+const refreshing = ref(false);
 const dialogVisible = ref(false);
 const search = ref(props.filters.search || "");
 const status = ref(props.filters.status || null);
 const perPage = ref(
     Number(props.filters.per_page || props.records.per_page || 10),
 );
-const sortField = ref(props.filters.sort || "id");
+const sortField = ref(
+    typeof props.filters.sort === "string" ? props.filters.sort : "id",
+);
 const sortOrder = ref((props.filters.direction || "asc") === "desc" ? -1 : 1);
 const form = useForm({
     purchase_order_id: null,
@@ -79,6 +85,28 @@ const reload = (pageNumber = 1) =>
         preserveState: true,
         replace: true,
     });
+const refreshRecords = () => {
+    if (refreshing.value) {
+        return;
+    }
+
+    router.reload({
+        only: ["records"],
+        preserveState: true,
+        preserveScroll: true,
+        onStart: () => {
+            refreshing.value = true;
+        },
+        onError: (error) => {
+            notifyRequestError(toast, error, {
+                fallbackKey: "notifications.error.refresh_failed",
+            });
+        },
+        onFinish: () => {
+            refreshing.value = false;
+        },
+    });
+};
 const severity = (value) =>
     ({ posted: "success", draft: "secondary" })[value] || "secondary";
 const dateValue = (value) => (value ? String(value).slice(0, 10) : "-");
@@ -104,7 +132,21 @@ const submit = () =>
                 :subtitle="$t('procurement.goods_receipts.subtitle')"
                 :create-label="$t('procurement.goods_receipts.create')"
                 @create="dialogVisible = true"
-            />
+            >
+                <template #actions>
+                    <Button
+                        type="button"
+                        :label="$t('actions.refresh')"
+                        icon="pi pi-refresh"
+                        severity="secondary"
+                        outlined
+                        :loading="refreshing"
+                        :disabled="refreshing"
+                        data-test="refresh-records"
+                        @click="refreshRecords"
+                    />
+                </template>
+            </AdminPageHeader>
             <AdminSearchBar
                 v-model="search"
                 v-model:per-page="perPage"

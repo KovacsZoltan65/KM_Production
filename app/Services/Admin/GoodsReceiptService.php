@@ -94,6 +94,11 @@ class GoodsReceiptService
             }
 
             $goodsReceipt->load(['items', 'purchaseOrder.items']);
+            $purchaseOrderItems = PurchaseOrderItem::query()
+                ->whereKey($goodsReceipt->items->pluck('purchase_order_item_id')->filter()->unique()->all())
+                ->lockForUpdate()
+                ->get()
+                ->keyBy('id');
             $original = $goodsReceipt->getRawOriginal();
 
             foreach ($goodsReceipt->items as $item) {
@@ -123,7 +128,10 @@ class GoodsReceiptService
                 ]);
 
                 if ($item->purchase_order_item_id !== null) {
-                    $this->updatePurchaseOrderItemReceivedQuantity($item->purchaseOrderItem, (float) $item->quantity);
+                    $this->updatePurchaseOrderItemReceivedQuantity(
+                        $purchaseOrderItems->get($item->purchase_order_item_id),
+                        (float) $item->quantity,
+                    );
                 }
             }
 

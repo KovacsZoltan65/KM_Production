@@ -4,12 +4,15 @@ namespace Database\Seeders;
 
 use App\Enums\CustomerOrderItemStatus;
 use App\Enums\CustomerOrderStatus;
+use App\Enums\GoodsReceiptStatus;
 use App\Enums\ItemInstanceStatus;
 use App\Enums\ItemType;
 use App\Enums\LocationType;
 use App\Enums\MaterialRequirementStatus;
 use App\Enums\OperationTypeCode;
 use App\Enums\ProductionTaskStatus;
+use App\Enums\PurchaseOrderItemStatus;
+use App\Enums\PurchaseOrderStatus;
 use App\Enums\PurchaseRequisitionItemStatus;
 use App\Enums\PurchaseRequisitionStatus;
 use App\Enums\StockMovementType;
@@ -30,6 +33,7 @@ use App\Models\ProductionPlan;
 use App\Models\ProductionTask;
 use App\Models\ProfessionalRole;
 use App\Models\PurchaseOrder;
+use App\Models\PurchaseOrderItem;
 use App\Models\PurchaseRequisition;
 use App\Models\QualityCheck;
 use App\Models\StockBalance;
@@ -305,6 +309,61 @@ class E2ETestSeeder extends Seeder
             'status' => PurchaseRequisitionItemStatus::Requested,
         ]);
 
+        $refreshPurchaseOrder = $this->createPurchaseOrderFixture(
+            'E2E-PO-REFRESH-001',
+            PurchaseOrderStatus::Ordered,
+            $supplier,
+            $item,
+            $admin,
+            '2036-01-15',
+        );
+        $approvePurchaseOrder = $this->createPurchaseOrderFixture(
+            'E2E-PO-APPROVE-001',
+            PurchaseOrderStatus::Draft,
+            $supplier,
+            $item,
+            $admin,
+        );
+        $closePurchaseOrder = $this->createPurchaseOrderFixture(
+            'E2E-PO-CLOSE-001',
+            PurchaseOrderStatus::Ordered,
+            $supplier,
+            $item,
+            $admin,
+        );
+
+        [$refreshGoodsReceipt] = $this->createGoodsReceiptFixture(
+            'E2E-GR-REFRESH-001',
+            'E2E-GR-PO-REFRESH-001',
+            10,
+            1,
+            'E2E-GR-REFRESH-LOC',
+            $supplier,
+            $item,
+            $admin,
+            '2037-01-15 12:00:00',
+        );
+        [$partialGoodsReceipt, $partialGoodsReceiptPurchaseOrder, $partialGoodsReceiptItem, $partialGoodsReceiptLocation] = $this->createGoodsReceiptFixture(
+            'E2E-GR-PARTIAL-POST-001',
+            'E2E-GR-PO-PARTIAL-001',
+            10,
+            4,
+            'E2E-GR-PARTIAL-LOC',
+            $supplier,
+            $item,
+            $admin,
+        );
+        [$fullGoodsReceipt, $fullGoodsReceiptPurchaseOrder, $fullGoodsReceiptItem, $fullGoodsReceiptLocation] = $this->createGoodsReceiptFixture(
+            'E2E-GR-FULL-POST-001',
+            'E2E-GR-PO-FULL-001',
+            6,
+            6,
+            'E2E-GR-FULL-LOC',
+            $supplier,
+            $item,
+            $admin,
+        );
+
         CustomerOrder::withTrashed()
             ->where('notes', 'E2E customer order UI workflow')
             ->forceDelete();
@@ -431,6 +490,20 @@ class E2ETestSeeder extends Seeder
                 'refreshPurchaseRequisitionId' => $refreshPurchaseRequisition->id,
                 'approvePurchaseRequisitionId' => $approvePurchaseRequisition->id,
                 'generatePurchaseRequisitionId' => $generatePurchaseRequisition->id,
+                'refreshPurchaseOrderId' => $refreshPurchaseOrder->id,
+                'approvePurchaseOrderId' => $approvePurchaseOrder->id,
+                'closePurchaseOrderId' => $closePurchaseOrder->id,
+                'refreshGoodsReceiptId' => $refreshGoodsReceipt->id,
+                'partialGoodsReceiptId' => $partialGoodsReceipt->id,
+                'partialGoodsReceiptPurchaseOrderId' => $partialGoodsReceiptPurchaseOrder->id,
+                'partialGoodsReceiptPurchaseOrderItemId' => $partialGoodsReceiptItem->id,
+                'partialGoodsReceiptInventoryItemId' => $item->id,
+                'partialGoodsReceiptLocationId' => $partialGoodsReceiptLocation->id,
+                'fullGoodsReceiptId' => $fullGoodsReceipt->id,
+                'fullGoodsReceiptPurchaseOrderId' => $fullGoodsReceiptPurchaseOrder->id,
+                'fullGoodsReceiptPurchaseOrderItemId' => $fullGoodsReceiptItem->id,
+                'fullGoodsReceiptInventoryItemId' => $item->id,
+                'fullGoodsReceiptLocationId' => $fullGoodsReceiptLocation->id,
                 'locationId' => $location->id,
             ], JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT),
         );
@@ -482,10 +555,102 @@ class E2ETestSeeder extends Seeder
                 ->forceDelete();
         }
 
+        StockBalance::query()
+            ->whereIn('location_id', Location::query()->where('code', 'like', 'E2E-GR-%')->select('id'))
+            ->delete();
+
+        PurchaseOrder::withTrashed()
+            ->where('order_number', 'like', 'E2E-PO-%')
+            ->forceDelete();
+        PurchaseOrder::withTrashed()
+            ->where('order_number', 'like', 'E2E-GR-PO-%')
+            ->forceDelete();
+
         $this->call([
             InventorySeeder::class,
             ProcurementSeeder::class,
         ]);
+    }
+
+    private function createPurchaseOrderFixture(
+        string $orderNumber,
+        PurchaseOrderStatus $status,
+        Supplier $supplier,
+        Item $item,
+        User $admin,
+        ?string $expectedDeliveryDate = null,
+    ): PurchaseOrder {
+        $purchaseOrder = PurchaseOrder::query()->create([
+            'order_number' => $orderNumber,
+            'supplier_id' => $supplier->id,
+            'status' => $status,
+            'ordered_at' => $status === PurchaseOrderStatus::Draft ? null : '2036-01-01 12:00:00',
+            'expected_delivery_date' => $expectedDeliveryDate,
+            'notes' => 'E2E purchase order workflow fixture.',
+            'created_by' => $admin->id,
+        ]);
+        $purchaseOrder->items()->create([
+            'item_id' => $item->id,
+            'ordered_quantity' => 44.444,
+            'received_quantity' => 0,
+            'unit' => $item->unit,
+        ]);
+
+        return $purchaseOrder;
+    }
+
+    /**
+     * @return array{0: GoodsReceipt, 1: PurchaseOrder, 2: PurchaseOrderItem, 3: Location}
+     */
+    private function createGoodsReceiptFixture(
+        string $receiptNumber,
+        string $orderNumber,
+        float $orderedQuantity,
+        float $receiptQuantity,
+        string $locationCode,
+        Supplier $supplier,
+        Item $item,
+        User $admin,
+        string $receivedAt = '2037-01-20 12:00:00',
+    ): array {
+        $location = Location::query()->updateOrCreate(
+            ['code' => $locationCode],
+            [
+                'name' => $locationCode,
+                'location_type' => LocationType::Warehouse,
+                'is_active' => true,
+            ],
+        );
+        $purchaseOrder = PurchaseOrder::query()->create([
+            'order_number' => $orderNumber,
+            'supplier_id' => $supplier->id,
+            'status' => PurchaseOrderStatus::Ordered,
+            'ordered_at' => '2037-01-01 12:00:00',
+            'created_by' => $admin->id,
+        ]);
+        $purchaseOrderItem = $purchaseOrder->items()->create([
+            'item_id' => $item->id,
+            'ordered_quantity' => $orderedQuantity,
+            'received_quantity' => 0,
+            'unit' => $item->unit,
+            'status' => PurchaseOrderItemStatus::Ordered,
+        ]);
+        $goodsReceipt = GoodsReceipt::query()->create([
+            'receipt_number' => $receiptNumber,
+            'purchase_order_id' => $purchaseOrder->id,
+            'status' => GoodsReceiptStatus::Draft,
+            'received_by' => $admin->id,
+            'received_at' => $receivedAt,
+            'notes' => 'E2E goods receipt workflow fixture.',
+        ]);
+        $goodsReceipt->items()->create([
+            'purchase_order_item_id' => $purchaseOrderItem->id,
+            'item_id' => $item->id,
+            'location_id' => $location->id,
+            'quantity' => $receiptQuantity,
+        ]);
+
+        return [$goodsReceipt, $purchaseOrder, $purchaseOrderItem, $location];
     }
 
     private function assertSafeEnvironment(): void
