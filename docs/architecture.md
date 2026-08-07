@@ -30,6 +30,13 @@ Controllers coordinate requests, authorization, validation, and responses. Servi
 - Inventory quantities are changed only through stock movements.
 - Manufacturing traceability must survive later master data changes.
 
+## Domain- és tervezési architektúra
+
+- [Domain Constitution](../.kiro/steering/domain-constitution.md): stabil domain modellezési alapelvek és kötelező komponens-felelősségi sablon.
+- [Planning Engine és MRP architektúra](../.kiro/knowledge/planning-engine.md): Current State, célarchitektúra, MRP v1 scope és roadmap.
+- [Domain terminológia](../.kiro/knowledge/domain-terminology.md): a planning, inventory és procurement kötelező szótára.
+- [Material Requirements Planning Architecture ADR](../.kiro/decisions/0006-material-requirements-planning-architecture.md): a requirement-driven MRP döntés.
+
 ## Documentation Graph
 
 - Architecture rules: [.kiro/steering/architecture.md](../.kiro/steering/architecture.md)

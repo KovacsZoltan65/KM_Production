@@ -7,29 +7,13 @@ use App\Support\QualityGate\GatePlanner;
 use App\Support\QualityGate\GateRunner;
 use App\Support\QualityGate\ModuleMatrix;
 use App\Support\QualityGate\PathMatcher;
-use App\Support\QualityGate\ProcessExecutor;
-use App\Support\QualityGate\ProcessResult;
 use App\Support\QualityGate\SelectionResult;
 use App\Support\QualityGate\SystemProcessExecutor;
+use Tests\Support\FakeQualityGateExecutor;
 
 function qualityGateConfiguration(): array
 {
     return require dirname(__DIR__, 3).'/config/quality-gates.php';
-}
-
-final class FakeQualityGateExecutor implements ProcessExecutor
-{
-    /** @var list<GateCommand> */
-    public array $executed = [];
-
-    public function __construct(private readonly int $exitCode = 0) {}
-
-    public function execute(GateCommand $command, int $timeout): ProcessResult
-    {
-        $this->executed[] = $command;
-
-        return new ProcessResult($this->exitCode, 0.01);
-    }
 }
 
 it('maps a goods receipt service to procurement and inventory with workflow E2E', function () {

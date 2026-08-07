@@ -13,6 +13,10 @@ const items = [
         labelKey: "navigation.procurement_dashboard",
         href: "/admin/procurement/dashboard",
     },
+    {
+        labelKey: "navigation.procurement_sources",
+        href: "/admin/item-suppliers",
+    },
     { labelKey: "navigation.documents", disabled: true },
     {
         labelKey: "navigation.document_library",
@@ -54,17 +58,26 @@ describe("navigation helper", () => {
         ]);
     });
 
+    it("a procurement source menüpontot külön permission védi", () => {
+        expect(canAccessNavigationItem(items[3], ["item-suppliers.view"])).toBe(
+            true,
+        );
+        expect(canAccessNavigationItem(items[3], ["procurement.view"])).toBe(
+            false,
+        );
+    });
+
     it("a szülő csoportot megtartja, ha van engedélyezett gyermeke", () => {
         expect(filterNavigationItems(items, ["documents.view"])).toEqual([
-            items[3],
             items[4],
+            items[5],
         ]);
     });
 
     it("a szülő csoportot elrejti, ha nincs engedélyezett gyermeke", () => {
         const visible = filterNavigationItems(items, ["inventory.view"]);
         expect(visible).not.toContain(items[1]);
-        expect(visible).not.toContain(items[3]);
+        expect(visible).not.toContain(items[4]);
     });
 
     it("pontos útvonal-egyezést aktívnak talál", () => {

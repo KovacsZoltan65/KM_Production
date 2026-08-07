@@ -237,6 +237,11 @@ const allSidebarItems = computed(() => [
         href: route("admin.procurement.dashboard"),
     },
     {
+        labelKey: "navigation.procurement_sources",
+        icon: "pi pi-link",
+        href: route("admin.item-suppliers.index"),
+    },
+    {
         labelKey: "navigation.purchase_requisitions",
         icon: "pi pi-list-check",
         href: route("admin.purchase-requisitions.index"),

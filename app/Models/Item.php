@@ -34,6 +34,10 @@ use Illuminate\Support\Carbon;
  * @property-read int|null $customer_order_items_count
  * @property-read Collection<int, ItemInstance> $instances
  * @property-read int|null $instances_count
+ * @property-read Collection<int, ItemSupplier> $itemSuppliers
+ * @property-read int|null $item_suppliers_count
+ * @property-read Collection<int, ItemSupplier> $activeItemSuppliers
+ * @property-read int|null $active_item_suppliers_count
  * @property-read Collection<int, ProductionOrder> $productionOrders
  * @property-read int|null $production_orders_count
  *
@@ -114,6 +118,27 @@ class Item extends Model
     public function customerOrderItems(): HasMany
     {
         return $this->hasMany(CustomerOrderItem::class);
+    }
+
+    /**
+     * @return HasMany<ItemSupplier, $this>
+     */
+    public function itemSuppliers(): HasMany
+    {
+        return $this->hasMany(ItemSupplier::class);
+    }
+
+    /**
+     * Az Item-listán biztonságosan megjeleníthető aktív supplier kapcsolatokat adja.
+     *
+     * @return HasMany<ItemSupplier, $this>
+     */
+    public function activeItemSuppliers(): HasMany
+    {
+        return $this->hasMany(ItemSupplier::class)
+            ->active()
+            ->select(['id', 'item_id', 'supplier_id'])
+            ->with('supplier:id,code,name');
     }
 
     /**

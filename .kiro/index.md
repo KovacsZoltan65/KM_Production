@@ -53,6 +53,14 @@ Memory
 - If a task changes an end-to-end process, update [Workflows](workflows/).
 - If a task reveals durable learning, update [Memory](memory/).
 
+## Domain- és tervezési alapok
+
+- [Domain Constitution](steering/domain-constitution.md): a reality-first modellezés, a planning/execution szétválasztás, az idő, a bizonytalanság és a traceability stabil szabályai.
+- [Planning Engine és MRP architektúra](knowledge/planning-engine.md): Current State audit, célkomponens-határok, MRP v1 scope, roadmap és end-to-end példa.
+- [Domain terminológia](knowledge/domain-terminology.md): a Demand, Requirement, Supply, Shortage, Proposal, Pegging és procurement fogalmak kötelező szótára.
+- [Material Requirements Planning Architecture](decisions/0006-material-requirements-planning-architecture.md): az elfogadott requirement-driven MRP döntés.
+- [Item Supplier / Procurement Source](decisions/0007-item-supplier-procurement-source.md): az Item–Supplier beszerzési kapcsolat, feltételek és lifecycle elfogadott döntése.
+
 ## Reader-Facing Documentation
 
 Product documentation lives in [docs/](../docs/). Use it for human-readable guides, deployment notes, API notes, architecture overview, manufacturing overview, and product vision.

@@ -6,20 +6,17 @@ use App\Enums\ItemType;
 use App\Models\Item;
 use App\Models\Supplier;
 use App\Models\User;
-use App\Repositories\Contracts\AdminRepositoryInterface;
 use App\Services\CodeCreationService;
 use App\Services\CodeGeneratorService;
 use App\Support\CodeGeneration\CodeDefinitionRegistry;
 use App\Support\CodeGeneration\CodeUniqueCollisionDetector;
 use Database\Seeders\RolesAndPermissionsSeeder;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
-use LogicException;
 use PDOException;
+use Tests\Support\FailingCodeRepository;
 
 use function Pest\Laravel\actingAs;
 use function Pest\Laravel\assertDatabaseHas;
@@ -240,36 +237,4 @@ function codeCollisionException(): QueryException
         [],
         new PDOException('UNIQUE constraint failed: suppliers.code', 23000),
     );
-}
-
-/**
- * Meghatározott adatbázishibát dobó teszt-repository.
- */
-final class FailingCodeRepository implements AdminRepositoryInterface
-{
-    public int $createCalls = 0;
-
-    public function __construct(private readonly QueryException $exception) {}
-
-    public function paginateForAdminIndex(array $filters, int $perPage = 10): LengthAwarePaginator
-    {
-        throw new LogicException('A tesztben nem támogatott művelet.');
-    }
-
-    public function create(array $attributes): Model
-    {
-        $this->createCalls++;
-
-        throw $this->exception;
-    }
-
-    public function update(Model $model, array $attributes): Model
-    {
-        throw new LogicException('A tesztben nem támogatott művelet.');
-    }
-
-    public function delete(Model $model): void
-    {
-        throw new LogicException('A tesztben nem támogatott művelet.');
-    }
 }

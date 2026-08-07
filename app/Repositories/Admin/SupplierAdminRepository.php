@@ -9,6 +9,8 @@ class SupplierAdminRepository extends AbstractAdminRepository implements Supplie
 {
     protected string $modelClass = Supplier::class;
 
+    protected array $with = ['activeItemSuppliers'];
+
     protected array $searchable = ['code', 'name', 'tax_number', 'email', 'phone'];
 
     protected array $sortable = ['id', 'code', 'name', 'tax_number', 'email', 'phone', 'is_active', 'created_at'];

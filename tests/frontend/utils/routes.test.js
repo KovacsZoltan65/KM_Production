@@ -16,6 +16,15 @@ describe("route", () => {
         expect(route("admin.documents.show", 42)).toBe("/admin/documents/42");
     });
 
+    it("feloldja a procurement source resource útvonalait", () => {
+        expect(route("admin.item-suppliers.index")).toBe(
+            "/admin/item-suppliers",
+        );
+        expect(route("admin.item-suppliers.update", 12)).toBe(
+            "/admin/item-suppliers/12",
+        );
+    });
+
     it("ismeretlen útvonalnál egyértelmű hibát ad", () => {
         expect(() => route("missing.route")).toThrow(
             "Unknown route name: missing.route",

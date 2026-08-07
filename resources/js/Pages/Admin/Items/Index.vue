@@ -7,7 +7,7 @@ import Button from "primevue/button";
 import { useToast } from "primevue/usetoast";
 import { ref } from "vue";
 
-/** @typedef {{id: number, item_number: string, name: string, item_type: string, unit: string, width: string|number|null, length: string|number|null, thickness: string|number|null, diameter: string|number|null, requires_serial_number: boolean, is_active: boolean}} ItemRecord */
+/** @typedef {{id: number, item_number: string, name: string, item_type: string, unit: string, width: string|number|null, length: string|number|null, thickness: string|number|null, diameter: string|number|null, requires_serial_number: boolean, is_active: boolean, active_item_suppliers: {supplier: {code: string, name: string}|null}[]}} ItemRecord */
 /** @typedef {{label: string, value: string}} ItemTypeOption */
 /**
  * Lapozott Inertia-adathalmaz.
@@ -70,6 +70,16 @@ const columns = [
         format: (record) => trans(`enum.item_type.${record.item_type}`),
     },
     { field: "unit", headerKey: "fields.unit" },
+    {
+        field: "active_item_suppliers",
+        headerKey: "procurement.sources.related_suppliers",
+        sortable: false,
+        format: (record) =>
+            record.active_item_suppliers
+                ?.map((source) => source.supplier?.name)
+                .filter(Boolean)
+                .join(", ") || "—",
+    },
     {
         field: "requires_serial_number",
         headerKey: "fields.serial",

@@ -17,6 +17,7 @@ use App\Http\Controllers\Admin\Inventory\StockBalanceController as AdminStockBal
 use App\Http\Controllers\Admin\Inventory\StockMovementController as AdminStockMovementController;
 use App\Http\Controllers\Admin\Inventory\StockReservationController as AdminStockReservationController;
 use App\Http\Controllers\Admin\ItemController as AdminItemController;
+use App\Http\Controllers\Admin\ItemSupplierController as AdminItemSupplierController;
 use App\Http\Controllers\Admin\LocationController as AdminLocationController;
 use App\Http\Controllers\Admin\ManufacturingIntelligenceController as AdminManufacturingIntelligenceController;
 use App\Http\Controllers\Admin\OperationSequenceController as AdminOperationSequenceController;
@@ -108,6 +109,9 @@ Route::middleware(['auth', 'verified'])
             ->parameters(['professional-roles' => 'professionalRole'])
             ->only(['index', 'store', 'update', 'destroy']);
         Route::resource('items', AdminItemController::class)->only(['index', 'store', 'update', 'destroy']);
+        Route::resource('item-suppliers', AdminItemSupplierController::class)
+            ->parameters(['item-suppliers' => 'itemSupplier'])
+            ->only(['index', 'store', 'update', 'destroy']);
         Route::resource('boms', AdminBomController::class)->only(['index', 'store', 'update', 'destroy']);
         Route::resource('operation-types', AdminOperationTypeController::class)
             ->parameters(['operation-types' => 'operationType'])

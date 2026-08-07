@@ -7,7 +7,7 @@ import Button from "primevue/button";
 import { useToast } from "primevue/usetoast";
 import { ref } from "vue";
 
-/** @typedef {{id: number, code: string, name: string, tax_number: string|null, email: string|null, phone: string|null, address: string|null, notes: string|null, is_active: boolean}} SupplierRecord */
+/** @typedef {{id: number, code: string, name: string, tax_number: string|null, email: string|null, phone: string|null, address: string|null, notes: string|null, is_active: boolean, active_item_suppliers: {item: {item_number: string, name: string}|null}[]}} SupplierRecord */
 /**
  * Lapozott Inertia-adathalmaz.
  * @typedef {Object} PaginatedResult
@@ -64,6 +64,16 @@ const columns = [
     { field: "tax_number", headerKey: "fields.tax_number" },
     { field: "email", headerKey: "fields.email" },
     { field: "phone", headerKey: "fields.phone" },
+    {
+        field: "active_item_suppliers",
+        headerKey: "procurement.sources.supplied_items",
+        sortable: false,
+        format: (record) =>
+            record.active_item_suppliers
+                ?.map((source) => source.item?.name)
+                .filter(Boolean)
+                .join(", ") || "—",
+    },
     { field: "is_active", headerKey: "fields.status", type: "status" },
 ];
 

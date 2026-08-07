@@ -34,6 +34,7 @@ export const NAVIGATION_PERMISSIONS = Object.freeze({
     "navigation.material_requirements": "inventory.view",
     "navigation.shortages": "inventory.view",
     "navigation.procurement_dashboard": "procurement.view",
+    "navigation.procurement_sources": "item-suppliers.view",
     "navigation.purchase_requisitions": "procurement.view",
     "navigation.purchase_orders": "procurement.view",
     "navigation.goods_receipts": "procurement.view",

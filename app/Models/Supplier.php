@@ -4,8 +4,10 @@ namespace App\Models;
 
 use Database\Factories\SupplierFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 
@@ -22,6 +24,10 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
+ * @property-read Collection<int, ItemSupplier> $itemSuppliers
+ * @property-read int|null $item_suppliers_count
+ * @property-read Collection<int, ItemSupplier> $activeItemSuppliers
+ * @property-read int|null $active_item_suppliers_count
  *
  * @method static \Database\Factories\SupplierFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Supplier newModelQuery()
@@ -59,6 +65,27 @@ class Supplier extends Model
 {
     /** @use HasFactory<SupplierFactory> */
     use HasFactory, SoftDeletes;
+
+    /**
+     * @return HasMany<ItemSupplier, $this>
+     */
+    public function itemSuppliers(): HasMany
+    {
+        return $this->hasMany(ItemSupplier::class);
+    }
+
+    /**
+     * A Supplier-listán biztonságosan megjeleníthető aktív Item kapcsolatokat adja.
+     *
+     * @return HasMany<ItemSupplier, $this>
+     */
+    public function activeItemSuppliers(): HasMany
+    {
+        return $this->hasMany(ItemSupplier::class)
+            ->active()
+            ->select(['id', 'item_id', 'supplier_id'])
+            ->with('item:id,item_number,name');
+    }
 
     /**
      * @return array<string, string>

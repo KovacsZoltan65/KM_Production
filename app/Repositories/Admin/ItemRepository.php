@@ -10,6 +10,8 @@ class ItemRepository extends AbstractAdminRepository implements ItemRepositoryIn
 {
     protected string $modelClass = Item::class;
 
+    protected array $with = ['activeItemSuppliers'];
+
     protected array $searchable = ['item_number', 'name', 'unit'];
 
     protected array $sortable = [
