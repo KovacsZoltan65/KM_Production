@@ -156,6 +156,11 @@ const allSidebarItems = computed(() => [
         href: route("admin.production-plans.index"),
     },
     {
+        labelKey: "navigation.supply_proposals",
+        icon: "pi pi-lightbulb",
+        href: route("admin.supply-proposals.index"),
+    },
+    {
         labelKey: "navigation.capacity_dashboard",
         icon: "pi pi-chart-pie",
         href: route("admin.capacity.dashboard"),

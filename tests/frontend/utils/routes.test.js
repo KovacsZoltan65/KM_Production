@@ -25,6 +25,15 @@ describe("route", () => {
         );
     });
 
+    it("feloldja a supply proposal resource és lifecycle útvonalait", () => {
+        expect(route("admin.supply-proposals.index")).toBe(
+            "/admin/supply-proposals",
+        );
+        expect(route("admin.supply-proposals.approve", 15)).toBe(
+            "/admin/supply-proposals/15/approve",
+        );
+    });
+
     it("ismeretlen útvonalnál egyértelmű hibát ad", () => {
         expect(() => route("missing.route")).toThrow(
             "Unknown route name: missing.route",

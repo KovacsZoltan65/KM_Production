@@ -141,6 +141,12 @@ class Item extends Model
             ->with('supplier:id,code,name');
     }
 
+    /** @return HasMany<SupplyProposal, $this> */
+    public function supplyProposals(): HasMany
+    {
+        return $this->hasMany(SupplyProposal::class);
+    }
+
     /**
      * @return HasMany<ProductionOrder, $this>
      */

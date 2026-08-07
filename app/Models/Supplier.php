@@ -87,6 +87,12 @@ class Supplier extends Model
             ->with('item:id,item_number,name');
     }
 
+    /** @return HasMany<SupplyProposal, $this> */
+    public function supplyProposals(): HasMany
+    {
+        return $this->hasMany(SupplyProposal::class);
+    }
+
     /**
      * @return array<string, string>
      */

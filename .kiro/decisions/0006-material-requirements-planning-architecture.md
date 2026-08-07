@@ -119,7 +119,7 @@ Költség és kockázat:
 Követő döntések:
 
 - [`0007` Item Supplier / Procurement Source](0007-item-supplier-procurement-source.md) — elfogadva és implementálva;
-- `0008` Supply Proposal;
+- [`0008` Supply Proposal](0008-supply-proposal.md) — elfogadva és implementálva;
 - `0009` Material Requirement Netting;
 - `0010` Requirement Pegging;
 - `0011` Purchase Requisition Consolidation;

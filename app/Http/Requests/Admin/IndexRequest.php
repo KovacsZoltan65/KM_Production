@@ -31,6 +31,7 @@ class IndexRequest extends FormRequest
         return [
             'search' => ['nullable', 'string', 'max:255'],
             'status' => ['nullable', 'string', 'max:100'],
+            'strategy' => ['nullable', 'string', 'max:100'],
             'movement_type' => ['nullable', 'string', 'max:100'],
             'document_type' => ['nullable', 'string', 'max:100'],
             'documentable_type' => ['nullable', 'string', 'max:255'],
@@ -59,6 +60,7 @@ class IndexRequest extends FormRequest
      * @return array{
      *     search?: string|null,
      *     status?: string|null,
+     *     strategy?: string|null,
      *     movement_type?: string|null,
      *     document_type?: string|null,
      *     documentable_type?: string|null,

@@ -208,6 +208,27 @@ approved és preferred állapotot, naptári napban tárolja a lead time-ot, és 
 [0007 Item Supplier / Procurement Source ADR](../decisions/0007-item-supplier-procurement-source.md)
 rögzíti.
 
+### Supply Proposal
+
+A `SupplyProposal` perzisztált planning artifact, amely egy konkrét Item
+tervezett fedezési módját, base-unit mennyiségét és időpontjait rögzíti. A 0008
+első verzió kizárólag Purchase stratégiát támogat, de a Supplier szándékosan
+nullable: a rendszer már tudhatja, hogy beszerzés szükséges, miközben a supplier
+selection még nyitott.
+
+```text
+Supply Proposal != Material Requirement
+Supply Proposal != Purchase Requisition
+Supply Proposal != Purchase Order
+Supply Proposal != execution vagy tényleges supply
+```
+
+A Draft manuálisan létrehozható és szerkeszthető. A Proposed emberi döntésre
+vár; Approved után sem jön létre automatikusan execution dokumentum. A
+Requirement kapcsolat és pegging a 0010 külön felelőssége.
+
+[0008 Supply Proposal ADR](../decisions/0008-supply-proposal.md)
+
 ### Net Material Requirements
 
 Az elvi egyenleg nem puszta `required - stock`:
@@ -365,7 +386,7 @@ Az első későbbi implementációk ajánlott sorrendje:
 1. ~~Item Supplier / Procurement Source ADR és adatmodell.~~ Elkészült a 0007 döntésben.
 2. Material Requirement identitás-, idő- és forrásmodell tisztázása.
 3. Stock availability és időfázisos netting specifikáció.
-4. Supply Proposal + proposal pegging modell.
+4. ~~Supply Proposal domainmodell és lifecycle.~~ Elkészült a 0008 döntésben; a proposal pegging külön 0010 csomag.
 5. Supplier selection policy.
 6. Proposalból requisition konszolidáció, meglévő
    `PurchaseRequisitionItemSource` traceability továbbvitelével.

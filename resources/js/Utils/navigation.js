@@ -19,6 +19,7 @@ export const NAVIGATION_PERMISSIONS = Object.freeze({
     "navigation.suppliers": "suppliers.view",
     "navigation.customer_orders": "customer-orders.view",
     "navigation.production_plans": "production-plans.view",
+    "navigation.supply_proposals": "supply-proposals.view",
     "navigation.capacity_dashboard": "capacity.view",
     "navigation.factory_capacity": "capacity.view",
     "navigation.employee_capacity": "capacity.view",

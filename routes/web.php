@@ -35,6 +35,7 @@ use App\Http\Controllers\Admin\ReportsController as AdminReportsController;
 use App\Http\Controllers\Admin\RoleController as AdminRoleController;
 use App\Http\Controllers\Admin\ShopFloorController as AdminShopFloorController;
 use App\Http\Controllers\Admin\SupplierController as AdminSupplierController;
+use App\Http\Controllers\Admin\SupplyProposalController as AdminSupplyProposalController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\PreferenceController;
 use App\Http\Controllers\ProfileController;
@@ -163,6 +164,17 @@ Route::middleware(['auth', 'verified'])
                 Route::get('shortages', [AdminShortageController::class, 'index'])->name('shortages.index');
             });
         Route::get('procurement/dashboard', AdminProcurementDashboardController::class)->name('procurement.dashboard');
+        Route::patch('supply-proposals/{supplyProposal}/propose', [AdminSupplyProposalController::class, 'propose'])
+            ->name('supply-proposals.propose');
+        Route::patch('supply-proposals/{supplyProposal}/approve', [AdminSupplyProposalController::class, 'approve'])
+            ->name('supply-proposals.approve');
+        Route::patch('supply-proposals/{supplyProposal}/reject', [AdminSupplyProposalController::class, 'reject'])
+            ->name('supply-proposals.reject');
+        Route::patch('supply-proposals/{supplyProposal}/cancel', [AdminSupplyProposalController::class, 'cancel'])
+            ->name('supply-proposals.cancel');
+        Route::resource('supply-proposals', AdminSupplyProposalController::class)
+            ->parameters(['supply-proposals' => 'supplyProposal'])
+            ->only(['index', 'store', 'update']);
         Route::post('purchase-requisitions/generate-from-material-requirements', [AdminPurchaseRequisitionController::class, 'generateFromMaterialRequirements'])
             ->name('purchase-requisitions.generate-from-material-requirements');
         Route::patch('purchase-requisitions/{purchaseRequisition}/approve', [AdminPurchaseRequisitionController::class, 'approve'])
