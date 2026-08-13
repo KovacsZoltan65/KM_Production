@@ -62,6 +62,7 @@ Memory
 - [Item Supplier / Procurement Source](decisions/0007-item-supplier-procurement-source.md): az Item–Supplier beszerzési kapcsolat, feltételek és lifecycle elfogadott döntése.
 - [Supply Proposal](decisions/0008-supply-proposal.md): a planning és execution közötti auditálható javaslat és döntési lifecycle.
 - [MRP Foundation Hardening](decisions/0008-5-mrp-foundation-hardening.md): a Material Requirement production lineage, időszemantika, snapshot-határ és approval-time invariánsai.
+- [Material Requirement Netting](decisions/0009-material-requirement-netting.md): requirement-level, time-phased on-hand és firm incoming supply netting.
 
 ## Reader-Facing Documentation
 

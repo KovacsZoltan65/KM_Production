@@ -40,6 +40,7 @@ it('routes MRP foundation files to the focused backend and frontend suites', fun
     'material requirement repository' => ['app/Repositories/Admin/MaterialRequirementRepository.php', 'tests/Feature/InventoryManagementUiTest.php'],
     'supply proposal frontend' => ['resources/js/Pages/Admin/SupplyProposals/Index.vue', 'tests/frontend/pages/SupplyProposalIndex.test.js'],
     'item supplier frontend' => ['resources/js/Pages/Admin/ItemSuppliers/Index.vue', 'tests/frontend/pages/ItemSupplierIndex.test.js'],
+    'netting service' => ['app/Services/Admin/MaterialRequirementNettingService.php', 'tests/Feature/MaterialRequirementNettingTest.php'],
 ]);
 
 it('maps a BOM Vue page to BOM and production modules', function () {

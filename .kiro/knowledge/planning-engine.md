@@ -43,17 +43,16 @@ Egy planning komponens:
 
 ### Planning Engine-jellegű meglévő komponensek
 
-| Komponens                          | Jelenlegi szerep                                                                                | Besorolás és határ                                                                                                                 |
-| ---------------------------------- | ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `CapacityPlanningService`          | Kapacitásterhelést, ütemezési sorokat és késési kockázatot állít össze                          | Planning/analytics komponens; cache invalidálása technikai mellékhatás, végrehajtást nem végez                                     |
-| `CapacitySlotFinder`               | Naptár és meglévő foglalások alapján szabad időablakot keres                                    | Tiszta Planning Engine-segéd; dokumentáltan nem hoz létre foglalást                                                                |
-| `LeadTimeEstimator`                | Feladatokból várható kezdést, befejezést és késést becsül                                       | Szimulációs/értékelési komponens; opcionális auditot ír, de kapacitást nem foglal                                                  |
-| `SchedulingService`                | Időablakot keres, majd `CapacityReservation` rekordokat hoz létre                               | Hibrid orchestrator: planning eredményt használ, de a foglalás már execution; a két felelősséget későbbi refaktor szétválaszthatja |
-| `ManufacturingIntelligenceService` | Több domainből dashboardot és kockázati összesítést komponál                                    | Értékelési/analytics fogyasztó; nem az MRP számítás elsődleges forrása                                                             |
-| `ProcurementRecommendationService` | Anyaghiányból és nyitott PO-mennyiségből cache-elt ajánlást ad                                  | Korai supply-planning jellegű read model; nem perzisztált `SupplyProposal`, nincs supplier source vagy teljes időfázisos netting   |
-| `MaterialRequirementService`       | Production Order BOM-ját felrobbantja, készletet és aktív foglalást számol, pillanatképet tárol | Részleges MRP előzmény; a target MRP-ben a BOM explosion és a netting külön felelősség                                             |
-
-Ezeket ebben a dokumentációs feladatban nem nevezzük át és nem módosítjuk.
+| Komponens                           | Jelenlegi szerep                                                                                | Besorolás és határ                                                                                                                 |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `CapacityPlanningService`           | Kapacitásterhelést, ütemezési sorokat és késési kockázatot állít össze                          | Planning/analytics komponens; cache invalidálása technikai mellékhatás, végrehajtást nem végez                                     |
+| `CapacitySlotFinder`                | Naptár és meglévő foglalások alapján szabad időablakot keres                                    | Tiszta Planning Engine-segéd; dokumentáltan nem hoz létre foglalást                                                                |
+| `LeadTimeEstimator`                 | Feladatokból várható kezdést, befejezést és késést becsül                                       | Szimulációs/értékelési komponens; opcionális auditot ír, de kapacitást nem foglal                                                  |
+| `SchedulingService`                 | Időablakot keres, majd `CapacityReservation` rekordokat hoz létre                               | Hibrid orchestrator: planning eredményt használ, de a foglalás már execution; a két felelősséget későbbi refaktor szétválaszthatja |
+| `ManufacturingIntelligenceService`  | Több domainből dashboardot és kockázati összesítést komponál                                    | Értékelési/analytics fogyasztó; nem az MRP számítás elsődleges forrása                                                             |
+| `ProcurementRecommendationService`  | Anyaghiányból és nyitott PO-mennyiségből cache-elt ajánlást ad                                  | Korai supply-planning jellegű read model; nem perzisztált `SupplyProposal`, nincs supplier source vagy teljes időfázisos netting   |
+| `MaterialRequirementService`        | Production Order BOM-ját felrobbantja, készletet és aktív foglalást számol, pillanatképet tárol | Részleges MRP előzmény; a target MRP-ben a BOM explosion és a netting külön felelősség                                             |
+| `MaterialRequirementNettingService` | Requirement-szintű, időfázisos nettó szükségletet számít batch supply poolokból                 | Authoritative 0009 kalkuláció; immutable eredményt ad, supply-allokációt és procurement artifactet nem perzisztál                  |
 
 ### Meglévő domain lánc
 
@@ -89,14 +88,14 @@ Az auditált elemek felelőssége és fő eltérései:
 | `boms`, `bom_items`                                                                        | Verziózott BOM és mennyiségi komponensek                                                                       | A BOM explosion megfelelő kiindulás, de a kiválasztott verzió és a requirement eredete végig megőrzendő                                                                     |
 | `customer_orders`, `production_plans`, `production_orders`                                 | A production flow Customer Orderhöz kötött; a Production Order konkrét BOM-ot és planning dátumokat őriz       | Az MRP v1 Demand-forrása lehet ez a lánc; a target később más Demand-típusokat is fogad anélkül, hogy azokat Customer Ordernek álcázná                                      |
 | `production_tasks` és task materialok                                                      | Végrehajtható gyártási lépések és anyagfelhasználás                                                            | Execution és actual adat; nem helyettesítik a Requirementet vagy a jövőbeli production supplyt                                                                              |
-| `material_requirements`                                                                    | Production Order/BOM Item lineage, `required_at`, requirement factek és legacy calculated snapshot mezők       | Stabil production-demand alap; calculation context és általános Demand kapcsolat későbbi bővítés                                                                           |
+| `material_requirements`                                                                    | Production Order/BOM Item lineage, `required_at`, requirement factek és legacy calculated snapshot mezők       | Stabil production-demand alap; calculation context és általános Demand kapcsolat későbbi bővítés                                                                            |
 | `stock_balances`, `stock_reservations`, `stock_movements`                                  | Balance összegzés, explicit aktív foglalás, auditálható készletváltozás                                        | Jó alap, de a usable stock policynek quality-, location-, batch-, idő- és allokációs szabályt is definiálnia kell; a Stock Movement marad a készletváltozás forrása         |
 | `purchase_requisitions`, `purchase_requisition_items`, `purchase_requisition_item_sources` | Kézi PR és hiányból generált, item/unit szerint konszolidált PR; mennyiségi source pegging létezik             | A generálás előtt külön Supply Proposal és approval indok szükséges; a singular `material_requirement_id` és a többes source kapcsolat párhuzamos jelentését tisztázni kell |
 | `purchase_orders`, `purchase_order_items`                                                  | Supplier, requisition kapcsolat, ordered/received quantity, header-szintű expected delivery és workflow status | Nincs külön supplier-promised mennyiség/idő és requirement-szintű supply allocation; a draft nem tekinthető automatikusan biztos incoming supplynak                         |
 | `goods_receipts`, `goods_receipt_items`                                                    | PO-hoz köthető receipt és mennyiség; postingkor stock movement alapja                                          | A received, accepted és rejected mennyiségek üzleti különbségét a target modellnek fenn kell tartania                                                                       |
 | Capacity Planning, Scheduling, Lead Time, Manufacturing Intelligence                       | Kapacitásértékelés, slotkeresés, foglalás, becslés és recommendation részben létezik                           | A tiszta planning eredményt el kell választani a reservation/execution mellékhatástól; az analytics nem válhat authoritative MRP state-té                                   |
 
-### Az aktuális netting korlátai
+### Material Requirement snapshot és authoritative netting
 
 A `MaterialRequirementService` jelenlegi számítása koncepcionálisan:
 
@@ -107,9 +106,19 @@ demand reservation = active reservation for this customer/production demand
 missing = gross - demand reservation - free stock
 ```
 
-Ez használható részleges alap, de még nem teljes MRP-netting:
+Ez a tárolt snapshot továbbra is használható legacy UI/reporting célra, de nem
+az authoritative MRP-netting. A 0009 kalkuláció:
 
-- a `required_at` production-start alapú demand dátum, de a netting még nem értékeli time-phased módon az ellátást;
+- a `required_quantity` demand factből indul, a snapshot mezőket figyelmen kívül hagyja;
+- Itemenként `required_at ASC, id ASC` sorrendben nettósít, a null dátumokat a
+  timed requirements után kezeli;
+- a pozitív StockBalance-ból egyszer levonja az összes aktív reservationt;
+- csak az `ordered` vagy `partially_received`, ismert és időben megfelelő PO
+  fennmaradó mennyiségét tekinti firm incomingnak;
+- egy futáson belül ugyanazt a stockot vagy PO-mennyiséget csak egyszer használja.
+
+A V1 tudatos korlátai:
+
 - nem értékeli a location, quality, quarantine, batch vagy más használhatósági
   korlátozást teljes szabályrendszerként;
 - az explicit Production Order/BOM Item lineage megakadályozza a split
@@ -118,12 +127,11 @@ Ez használható részleges alap, de még nem teljes MRP-netting:
   pillanatkép, de nincs explicit `calculated_at`, horizon vagy szabályverzió;
 - a requirement status egyszerre tartalmaz ellátottsági és procurement
   végrehajtási jelentéseket (`calculated`, `missing`, `ordered`, `received`);
-- a Material Requirement számítás nem nettósít open purchase ordert vagy
-  production-related incoming supplyt.
+- production-related incoming supplyt nem nettósít.
 
 A Manufacturing Intelligence ajánlás külön levonja az item-szinten összesített
 nyitott PO mennyiséget a hiányok összegéből. Ez részleges jelzés, nem az MRP
-authoritative nettingje: a jelenlegi lekérdezés `draft` PO-t is incoming
+authoritative nettingje: a legacy lekérdezés `draft` PO-t is incoming
 supplyként számít, nem time-phased, és nem allokálja mennyiségileg az incoming
 supplyt egyedi requirementekhez.
 
@@ -239,24 +247,24 @@ Gross Requirement
 = Net Requirement / Shortage
 ```
 
-A részletes specifikáció dönti el többek között:
+A 0009 V1 policy eldönti a PO státuszokat, részszállítást, unit egyezést,
+same-day cutoffot, null dátumot, aktív reservationt és az egyszeri
+supply-felhasználást. Későbbi specifikáció dönti el többek között:
 
 - mely location és quality állapot használható;
-- hogyan kezelendő active reservation, allocation és ugyanazon demand saját
-  reservationje;
-- mely PO státusz jelent fedezetet, és a supplier confirmation hogyan módosítja
-  a bizonyosságot;
+- hogyan kezelendő a perzisztált allocation és ugyanazon demand saját reservationje;
+- a supplier confirmation hogyan módosítja a bizonyosságot;
 - részszállítás, túlszállítás, rejected/accepted receipt kezelése;
 - mikor válik a receipt ténylegesen használható stockká;
 - planned vagy released production output mikor számíthat incoming supplynak;
-- unit conversion, rounding, minimum order quantity és order multiple;
-- azonos supply kettős felhasználásának megakadályozása;
+- unit conversion, minimum order quantity és order multiple;
 - időfázis, planning horizon, újraszámítás és concurrency.
 
-Az authoritative számítás a `StockMovement`-ből magyarázható készletet,
-`StockBalance` összegzést, `StockReservation`-t, open PO/PO itemet, receiptet és
-production-related incoming supplyt együtt auditálja. Pontos netting algoritmus
-csak külön specifikáció és ADR után implementálható.
+Az authoritative V1 számítás a `StockMovement`-ből magyarázható
+`StockBalance` összegzést, az aktív `StockReservation`-t és a firm open PO/PO
+item fennmaradó mennyiségét használja. A pontos algoritmust a
+[Material Requirement Netting ADR](../decisions/0009-material-requirement-netting.md)
+rögzíti; production-related incoming supply még nincs a scope-ban.
 
 ### Supply Proposal és konszolidáció
 
@@ -382,8 +390,8 @@ Goods Receipt / Stock Movement
 Az első későbbi implementációk ajánlott sorrendje:
 
 1. ~~Item Supplier / Procurement Source ADR és adatmodell.~~ Elkészült a 0007 döntésben.
-2. Material Requirement identitás-, idő- és forrásmodell tisztázása.
-3. Stock availability és időfázisos netting specifikáció.
+2. ~~Material Requirement identitás-, idő- és forrásmodell tisztázása.~~ Elkészült a 0008.5 hardeningben.
+3. ~~Stock availability és időfázisos netting specifikáció és V1 kalkuláció.~~ Elkészült a 0009 döntésben.
 4. ~~Supply Proposal domainmodell és lifecycle.~~ Elkészült a 0008 döntésben; a proposal pegging külön 0010 csomag.
 5. Supplier selection policy.
 6. Proposalból requisition konszolidáció, meglévő
@@ -398,6 +406,7 @@ kap helyet. Controller nem tartalmazhat nettinget vagy supplier-döntést.
 - [Domain Constitution](../steering/domain-constitution.md)
 - [Domain terminológia](domain-terminology.md)
 - [Material Requirements Planning Architecture ADR](../decisions/0006-material-requirements-planning-architecture.md)
+- [Material Requirement Netting ADR](../decisions/0009-material-requirement-netting.md)
 - [Inventory](inventory.md)
 - [Procurement](procurement.md)
 - [Production](production.md)

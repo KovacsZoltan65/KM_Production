@@ -68,6 +68,7 @@ rögzíteni.
 - [Domain Constitution](../steering/domain-constitution.md)
 - [Planning Engine és MRP domain architektúra](planning-engine.md)
 - [Material Requirements Planning Architecture ADR](../decisions/0006-material-requirements-planning-architecture.md)
+- [Material Requirement Netting ADR](../decisions/0009-material-requirement-netting.md)
 - [Inventory](inventory.md)
 - [Procurement](procurement.md)
 - [Production](production.md)

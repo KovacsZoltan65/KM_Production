@@ -159,6 +159,7 @@ return [
             'backend' => [
                 'tests/Feature/InventoryManagementUiTest.php',
                 'tests/Feature/ItemSupplierTest.php',
+                'tests/Feature/MaterialRequirementNettingTest.php',
                 'tests/Feature/SupplyProposalTest.php',
             ],
             'frontend' => [
