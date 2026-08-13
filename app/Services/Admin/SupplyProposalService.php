@@ -5,6 +5,7 @@ namespace App\Services\Admin;
 use App\Enums\SupplyProposalStatus;
 use App\Enums\SupplyStrategy;
 use App\Models\Item;
+use App\Models\Supplier;
 use App\Models\SupplyProposal;
 use App\Models\User;
 use App\Repositories\Contracts\SupplyProposalRepositoryInterface;
@@ -128,6 +129,15 @@ class SupplyProposalService
                 ]);
             }
 
+            if ($target === SupplyProposalStatus::Approved) {
+                $this->validatePlanningMasterData($locked->item_id, $locked->supplier_id);
+                $this->validateSupplier([
+                    'strategy' => $locked->strategy->value,
+                    'item_id' => $locked->item_id,
+                    'supplier_id' => $locked->supplier_id,
+                ]);
+            }
+
             $original = $locked->getRawOriginal();
             $attributes = ['status' => $target->value];
             $timestamp = now();
@@ -191,6 +201,7 @@ class SupplyProposalService
     private function normalizedAttributes(array $attributes): array
     {
         $item = Item::query()->findOrFail((int) $attributes['item_id']);
+        $this->validatePlanningMasterData($item->id, isset($attributes['supplier_id']) ? (int) $attributes['supplier_id'] : null);
 
         return [
             'strategy' => (string) $attributes['strategy'],
@@ -203,5 +214,20 @@ class SupplyProposalService
             'reason_code' => $attributes['reason_code'] ?? null,
             'notes' => $attributes['notes'] ?? null,
         ];
+    }
+
+    private function validatePlanningMasterData(int $itemId, ?int $supplierId): void
+    {
+        if (! Item::query()->whereKey($itemId)->where('is_active', true)->exists()) {
+            throw ValidationException::withMessages([
+                'item_id' => __('planning.validation.inactive_item'),
+            ]);
+        }
+
+        if ($supplierId !== null && ! Supplier::query()->whereKey($supplierId)->where('is_active', true)->exists()) {
+            throw ValidationException::withMessages([
+                'supplier_id' => __('planning.validation.inactive_supplier'),
+            ]);
+        }
     }
 }

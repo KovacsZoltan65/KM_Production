@@ -26,7 +26,12 @@ class MaterialRequirementFactory extends Factory
 
         return [
             'customer_order_item_id' => CustomerOrderItem::factory(),
+            'production_order_id' => null,
+            'bom_item_id' => null,
             'required_item_id' => Item::factory()->purchasedMaterial(),
+            'required_at' => fake()->boolean(75)
+                ? fake()->dateTimeBetween('now', '+1 month')->format('Y-m-d')
+                : null,
             'required_quantity' => $requiredQuantity,
             'available_quantity' => $availableQuantity,
             'reserved_quantity' => $reservedQuantity,

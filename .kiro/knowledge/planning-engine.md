@@ -89,7 +89,7 @@ Az auditált elemek felelőssége és fő eltérései:
 | `boms`, `bom_items`                                                                        | Verziózott BOM és mennyiségi komponensek                                                                       | A BOM explosion megfelelő kiindulás, de a kiválasztott verzió és a requirement eredete végig megőrzendő                                                                     |
 | `customer_orders`, `production_plans`, `production_orders`                                 | A production flow Customer Orderhöz kötött; a Production Order konkrét BOM-ot és planning dátumokat őriz       | Az MRP v1 Demand-forrása lehet ez a lánc; a target később más Demand-típusokat is fogad anélkül, hogy azokat Customer Ordernek álcázná                                      |
 | `production_tasks` és task materialok                                                      | Végrehajtható gyártási lépések és anyagfelhasználás                                                            | Execution és actual adat; nem helyettesítik a Requirementet vagy a jövőbeli production supplyt                                                                              |
-| `material_requirements`                                                                    | `customer_order_item_id`, item, required/available/reserved/missing quantity, unit és vegyes jelentésű status  | Részleges Material Requirement + aktuális netting snapshot; hiányzik a közvetlen planning source, `required_at`, calculation context és általános Demand kapcsolat          |
+| `material_requirements`                                                                    | Production Order/BOM Item lineage, `required_at`, requirement factek és legacy calculated snapshot mezők       | Stabil production-demand alap; calculation context és általános Demand kapcsolat későbbi bővítés                                                                           |
 | `stock_balances`, `stock_reservations`, `stock_movements`                                  | Balance összegzés, explicit aktív foglalás, auditálható készletváltozás                                        | Jó alap, de a usable stock policynek quality-, location-, batch-, idő- és allokációs szabályt is definiálnia kell; a Stock Movement marad a készletváltozás forrása         |
 | `purchase_requisitions`, `purchase_requisition_items`, `purchase_requisition_item_sources` | Kézi PR és hiányból generált, item/unit szerint konszolidált PR; mennyiségi source pegging létezik             | A generálás előtt külön Supply Proposal és approval indok szükséges; a singular `material_requirement_id` és a többes source kapcsolat párhuzamos jelentését tisztázni kell |
 | `purchase_orders`, `purchase_order_items`                                                  | Supplier, requisition kapcsolat, ordered/received quantity, header-szintű expected delivery és workflow status | Nincs külön supplier-promised mennyiség/idő és requirement-szintű supply allocation; a draft nem tekinthető automatikusan biztos incoming supplynak                         |
@@ -109,13 +109,11 @@ missing = gross - demand reservation - free stock
 
 Ez használható részleges alap, de még nem teljes MRP-netting:
 
-- nem kezeli a `required_at` időpontot és a time-phased elérhetőséget;
+- a `required_at` production-start alapú demand dátum, de a netting még nem értékeli time-phased módon az ellátást;
 - nem értékeli a location, quality, quarantine, batch vagy más használhatósági
   korlátozást teljes szabályrendszerként;
-- a `MaterialRequirement` nem kapcsolódik közvetlenül a számítást kiváltó
-  `ProductionOrder`-höz, csak a `CustomerOrderItem`-hez;
-- az `updateOrCreate(customer_order_item_id, required_item_id)` több lehetséges
-  production order/BOM eredetét egy aktuális sorba olvaszthatja;
+- az explicit Production Order/BOM Item lineage megakadályozza a split
+  production demandek összemosását; ambiguous legacy sorok nullable lineage-dzsel maradnak;
 - az `available_quantity`, `reserved_quantity` és `missing_quantity` tárolt
   pillanatkép, de nincs explicit `calculated_at`, horizon vagy szabályverzió;
 - a requirement status egyszerre tartalmaz ellátottsági és procurement

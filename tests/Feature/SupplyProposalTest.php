@@ -119,6 +119,14 @@ it('allows purchase proposal without selected supplier', function (): void {
     assertDatabaseHas('supply_proposals', ['item_id' => $item->id, 'supplier_id' => null]);
 });
 
+it('rejects creating a proposal for an inactive item', function (): void {
+    $user = supplyProposalUser(['supply-proposals.create']);
+    $item = Item::factory()->create(['is_active' => false]);
+
+    actingAs($user)->post('/admin/supply-proposals', proposalPayload($item))
+        ->assertSessionHasErrors('item_id');
+});
+
 it('validates item quantity and supported strategy', function (array $changes, string $field): void {
     $user = supplyProposalUser(['supply-proposals.create']);
     $item = Item::factory()->create();
@@ -186,6 +194,72 @@ it('supports draft proposed approved lifecycle with attribution and no execution
         ->and(PurchaseOrder::query()->count())->toBe(0);
     assertDatabaseHas('activity_log', ['description' => 'supply_proposal_proposed']);
     assertDatabaseHas('activity_log', ['description' => 'supply_proposal_approved']);
+});
+
+it('approves when the selected procurement source is still usable', function (): void {
+    $user = supplyProposalUser(['supply-proposals.approve']);
+    $item = Item::factory()->create();
+    $supplier = Supplier::factory()->create();
+    usableSupplySource($item, $supplier);
+    $proposal = SupplyProposal::factory()->proposed()->create([
+        'item_id' => $item->id,
+        'supplier_id' => $supplier->id,
+        'unit' => $item->unit,
+    ]);
+
+    actingAs($user)->patch("/admin/supply-proposals/{$proposal->id}/approve")
+        ->assertSessionHasNoErrors();
+
+    expect($proposal->refresh()->status)->toBe(SupplyProposalStatus::Approved);
+});
+
+it('revalidates the procurement source when approving', function (array $sourceChanges, ?array $supplierChanges = null): void {
+    $user = supplyProposalUser(['supply-proposals.approve']);
+    $item = Item::factory()->create();
+    $supplier = Supplier::factory()->create();
+    $source = usableSupplySource($item, $supplier);
+    $proposal = SupplyProposal::factory()->proposed()->create([
+        'item_id' => $item->id,
+        'supplier_id' => $supplier->id,
+        'unit' => $item->unit,
+    ]);
+
+    $source->update($sourceChanges);
+    if ($supplierChanges !== null) {
+        $supplier->update($supplierChanges);
+    }
+
+    actingAs($user)->patch("/admin/supply-proposals/{$proposal->id}/approve")
+        ->assertSessionHasErrors('supplier_id');
+
+    expect($proposal->refresh()->status)->toBe(SupplyProposalStatus::Proposed)
+        ->and($proposal->approved_at)->toBeNull();
+})->with([
+    'inactive source' => [['is_active' => false]],
+    'unapproved source' => [['is_approved' => false]],
+    'expired source' => [['valid_until' => now()->subDay()->toDateString()]],
+    'inactive supplier' => [[], ['is_active' => false]],
+]);
+
+it('still approves a supplier-free proposal for an active item', function (): void {
+    $user = supplyProposalUser(['supply-proposals.approve']);
+    $proposal = SupplyProposal::factory()->proposed()->create(['supplier_id' => null]);
+
+    actingAs($user)->patch("/admin/supply-proposals/{$proposal->id}/approve")
+        ->assertSessionHasNoErrors();
+
+    expect($proposal->refresh()->status)->toBe(SupplyProposalStatus::Approved);
+});
+
+it('rejects approval when the proposal item became inactive', function (): void {
+    $user = supplyProposalUser(['supply-proposals.approve']);
+    $proposal = SupplyProposal::factory()->proposed()->create(['supplier_id' => null]);
+    $proposal->item->update(['is_active' => false]);
+
+    actingAs($user)->patch("/admin/supply-proposals/{$proposal->id}/approve")
+        ->assertSessionHasErrors('item_id');
+
+    expect($proposal->refresh()->status)->toBe(SupplyProposalStatus::Proposed);
 });
 
 it('supports proposed rejected lifecycle with attribution', function (): void {

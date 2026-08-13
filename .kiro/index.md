@@ -61,6 +61,7 @@ Memory
 - [Material Requirements Planning Architecture](decisions/0006-material-requirements-planning-architecture.md): az elfogadott requirement-driven MRP döntés.
 - [Item Supplier / Procurement Source](decisions/0007-item-supplier-procurement-source.md): az Item–Supplier beszerzési kapcsolat, feltételek és lifecycle elfogadott döntése.
 - [Supply Proposal](decisions/0008-supply-proposal.md): a planning és execution közötti auditálható javaslat és döntési lifecycle.
+- [MRP Foundation Hardening](decisions/0008-5-mrp-foundation-hardening.md): a Material Requirement production lineage, időszemantika, snapshot-határ és approval-time invariánsai.
 
 ## Reader-Facing Documentation
 

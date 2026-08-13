@@ -16,7 +16,10 @@ use Illuminate\Support\Carbon;
 /**
  * @property int $id
  * @property int $customer_order_item_id
+ * @property int|null $production_order_id
+ * @property int|null $bom_item_id
  * @property int $required_item_id
+ * @property Carbon|null $required_at
  * @property numeric $required_quantity
  * @property numeric $available_quantity
  * @property numeric $reserved_quantity
@@ -28,6 +31,8 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
  * @property-read CustomerOrderItem|null $customerOrderItem
+ * @property-read ProductionOrder|null $productionOrder
+ * @property-read BomItem|null $bomItem
  * @property-read Collection<int, PurchaseRequisitionItemSource> $purchaseRequisitionSources
  * @property-read int|null $purchase_requisition_sources_count
  * @property-read Item|null $requiredItem
@@ -57,7 +62,10 @@ use Illuminate\Support\Carbon;
  */
 #[Fillable([
     'customer_order_item_id',
+    'production_order_id',
+    'bom_item_id',
     'required_item_id',
+    'required_at',
     'required_quantity',
     'available_quantity',
     'reserved_quantity',
@@ -77,6 +85,18 @@ class MaterialRequirement extends Model
     public function customerOrderItem(): BelongsTo
     {
         return $this->belongsTo(CustomerOrderItem::class);
+    }
+
+    /** @return BelongsTo<ProductionOrder, $this> */
+    public function productionOrder(): BelongsTo
+    {
+        return $this->belongsTo(ProductionOrder::class);
+    }
+
+    /** @return BelongsTo<BomItem, $this> */
+    public function bomItem(): BelongsTo
+    {
+        return $this->belongsTo(BomItem::class);
     }
 
     /**
@@ -101,6 +121,7 @@ class MaterialRequirement extends Model
     protected function casts(): array
     {
         return [
+            'required_at' => 'date',
             'required_quantity' => 'decimal:3',
             'available_quantity' => 'decimal:3',
             'reserved_quantity' => 'decimal:3',

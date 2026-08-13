@@ -25,6 +25,7 @@ use App\Services\Admin\StockReservationService;
 use App\Services\AuditLogService;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
 use Inertia\Testing\AssertableInertia;
 use LogicException;
@@ -129,6 +130,77 @@ class InventoryManagementUiTest extends TestCase
             'required_item_id' => $material->id,
             'required_quantity' => 10,
         ]);
+    }
+
+    public function test_material_requirement_schema_has_demand_lineage_and_time(): void
+    {
+        $this->assertTrue(Schema::hasColumns('material_requirements', [
+            'production_order_id',
+            'bom_item_id',
+            'required_at',
+        ]));
+    }
+
+    public function test_split_production_orders_keep_distinct_requirements_for_the_same_material(): void
+    {
+        ['productionOrder' => $firstOrder, 'material' => $material] = $this->productionOrderFixture(bomQuantity: 2, orderQuantity: 10);
+        $firstOrder->update(['quantity' => 6, 'planned_start_date' => '2026-08-10']);
+        $secondOrder = ProductionOrder::factory()->create([
+            'production_plan_item_id' => $firstOrder->production_plan_item_id,
+            'customer_order_item_id' => $firstOrder->customer_order_item_id,
+            'item_id' => $firstOrder->item_id,
+            'bom_id' => $firstOrder->bom_id,
+            'operation_sequence_id' => $firstOrder->operation_sequence_id,
+            'quantity' => 4,
+            'planned_start_date' => '2026-08-20',
+        ]);
+
+        $service = app(MaterialRequirementService::class);
+        $service->calculateForProductionOrder($firstOrder->fresh());
+        $service->calculateForProductionOrder($secondOrder);
+
+        $requirements = MaterialRequirement::query()
+            ->where('customer_order_item_id', $firstOrder->customer_order_item_id)
+            ->where('required_item_id', $material->id)
+            ->orderBy('production_order_id')
+            ->get();
+
+        $this->assertCount(2, $requirements);
+        $this->assertEqualsCanonicalizing([$firstOrder->id, $secondOrder->id], $requirements->pluck('production_order_id')->all());
+        $this->assertEqualsCanonicalizing(['12.000', '8.000'], $requirements->pluck('required_quantity')->all());
+        $this->assertEqualsCanonicalizing(['2026-08-10', '2026-08-20'], $requirements->pluck('required_at')->map->toDateString()->all());
+    }
+
+    public function test_material_requirement_recalculation_is_idempotent_for_one_production_demand(): void
+    {
+        ['productionOrder' => $productionOrder] = $this->productionOrderFixture(bomQuantity: 2, orderQuantity: 5);
+        $productionOrder->update(['planned_start_date' => null]);
+        $productionOrder->productionPlanItem->update(['planned_start_date' => '2026-08-12']);
+
+        $service = app(MaterialRequirementService::class);
+        $first = $service->calculateForProductionOrder($productionOrder->fresh())->sole();
+        $productionOrder->update(['quantity' => 7]);
+        $second = $service->calculateForProductionOrder($productionOrder->fresh())->sole();
+
+        $this->assertSame($first->id, $second->id);
+        $this->assertDatabaseCount('material_requirements', 1);
+        $this->assertSame('14.000', $second->required_quantity);
+        $this->assertSame('2026-08-12', $second->required_at?->toDateString());
+    }
+
+    public function test_material_requirement_calculation_rejects_an_inactive_component(): void
+    {
+        ['productionOrder' => $productionOrder, 'material' => $material] = $this->productionOrderFixture();
+        $material->update(['is_active' => false]);
+
+        try {
+            app(MaterialRequirementService::class)->calculateForProductionOrder($productionOrder);
+            $this->fail('Inactive component unexpectedly produced a new requirement.');
+        } catch (ValidationException $exception) {
+            $this->assertArrayHasKey('required_item_id', $exception->errors());
+        }
+
+        $this->assertDatabaseCount('material_requirements', 0);
     }
 
     public function test_available_quantity_respects_active_reservations(): void

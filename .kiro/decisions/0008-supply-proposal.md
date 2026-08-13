@@ -34,7 +34,9 @@ Consignment dokumentált extension point, nem választható működő opció.
 A Supplier opcionális még Purchase esetén is. A `supplier_id = null` azt jelenti,
 hogy a beszerzési fedezési mód eldőlt, de a supplier selection még nem történt
 meg. Ha van Supplier, az Itemhez a 0007 szerint aktív, jóváhagyott, aktuálisan
-érvényes procurement source szükséges; automatikus kiválasztás nincs.
+érvényes procurement source szükséges; automatikus kiválasztás nincs. Ezt az
+eligibility szabályt az approval tranzakcióban, sorzár mellett is újra kell
+ellenőrizni.
 
 ## Mennyiség és idő
 

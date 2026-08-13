@@ -13,6 +13,7 @@ use App\Repositories\Contracts\StockReservationRepositoryInterface;
 use App\Services\AuditLogService;
 use App\Services\BusinessCacheInvalidator;
 use Illuminate\Support\Collection;
+use Illuminate\Validation\ValidationException;
 
 class MaterialRequirementService
 {
@@ -29,7 +30,11 @@ class MaterialRequirementService
      */
     public function calculateForProductionOrder(ProductionOrder $productionOrder, ?User $causer = null): Collection
     {
-        $productionOrder->loadMissing(['bom.bomItems', 'customerOrderItem']);
+        $productionOrder->loadMissing([
+            'bom.bomItems.item',
+            'customerOrderItem.customerOrder',
+            'productionPlanItem.productionPlan',
+        ]);
 
         $requirements = $productionOrder->bom?->bomItems
             ->map(fn (BomItem $bomItem): MaterialRequirement => $this->calculateBomItem($productionOrder, $bomItem))
@@ -45,6 +50,12 @@ class MaterialRequirementService
 
     private function calculateBomItem(ProductionOrder $productionOrder, BomItem $bomItem): MaterialRequirement
     {
+        if (! $bomItem->item?->is_active) {
+            throw ValidationException::withMessages([
+                'required_item_id' => __('planning.validation.inactive_item'),
+            ]);
+        }
+
         $requiredQuantity = (float) $productionOrder->quantity * (float) $bomItem->quantity;
         $stockQuantity = $this->stockBalances->totalQuantityForItem($bomItem->item_id);
         $activeReservedQuantity = $this->stockReservations->activeReservedQuantity($bomItem->item_id);
@@ -65,8 +76,19 @@ class MaterialRequirementService
             $availableQuantity,
             $reservedForDemand,
             $missingQuantity,
-            $this->statusFor($requiredQuantity, $availableQuantity, $reservedForDemand, $missingQuantity)->value
+            $this->statusFor($requiredQuantity, $availableQuantity, $reservedForDemand, $missingQuantity)->value,
+            $this->requiredAt($productionOrder),
         );
+    }
+
+    private function requiredAt(ProductionOrder $productionOrder): ?string
+    {
+        $date = $productionOrder->planned_start_date
+            ?? $productionOrder->productionPlanItem->planned_start_date
+            ?? $productionOrder->productionPlanItem->productionPlan->planned_start_date
+            ?? $productionOrder->customerOrderItem->customerOrder->requested_delivery_date;
+
+        return $date?->toDateString();
     }
 
     private function statusFor(

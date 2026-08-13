@@ -26,6 +26,22 @@ it('maps a goods receipt service to procurement and inventory with workflow E2E'
         ->and($selection->requiredLevel)->toBe('fast');
 });
 
+it('routes MRP foundation files to the focused backend and frontend suites', function (string $path, string $expectedTest): void {
+    $configuration = qualityGateConfiguration();
+    $selection = (new AffectedSelector($configuration))->select([$path]);
+    $plan = (new GatePlanner(new ModuleMatrix($configuration)))->fast($selection);
+    $arguments = collect($plan->commands)->flatMap(fn (GateCommand $command): array => $command->arguments);
+
+    expect($selection->modules)->toContain('mrp')
+        ->and($arguments)->toContain($expectedTest);
+})->with([
+    'supply proposal service' => ['app/Services/Admin/SupplyProposalService.php', 'tests/Feature/SupplyProposalTest.php'],
+    'item supplier service' => ['app/Services/Admin/ItemSupplierService.php', 'tests/Feature/ItemSupplierTest.php'],
+    'material requirement repository' => ['app/Repositories/Admin/MaterialRequirementRepository.php', 'tests/Feature/InventoryManagementUiTest.php'],
+    'supply proposal frontend' => ['resources/js/Pages/Admin/SupplyProposals/Index.vue', 'tests/frontend/pages/SupplyProposalIndex.test.js'],
+    'item supplier frontend' => ['resources/js/Pages/Admin/ItemSuppliers/Index.vue', 'tests/frontend/pages/ItemSupplierIndex.test.js'],
+]);
+
 it('maps a BOM Vue page to BOM and production modules', function () {
     $selection = (new AffectedSelector(qualityGateConfiguration()))
         ->select(['resources/js/Pages/Admin/Boms/Index.vue']);

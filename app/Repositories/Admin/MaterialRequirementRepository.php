@@ -12,9 +12,9 @@ class MaterialRequirementRepository extends AbstractAdminRepository implements M
 {
     protected string $modelClass = MaterialRequirement::class;
 
-    protected array $sortable = ['id', 'required_item_id', 'required_quantity', 'available_quantity', 'reserved_quantity', 'missing_quantity', 'status'];
+    protected array $sortable = ['id', 'required_item_id', 'required_at', 'required_quantity', 'available_quantity', 'reserved_quantity', 'missing_quantity', 'status'];
 
-    protected array $with = ['customerOrderItem.customerOrder.customer', 'customerOrderItem.productionOrders', 'requiredItem'];
+    protected array $with = ['customerOrderItem.customerOrder.customer', 'productionOrder', 'bomItem', 'requiredItem'];
 
     /**
      * @param  array<string, mixed>  $filters
@@ -66,14 +66,18 @@ class MaterialRequirementRepository extends AbstractAdminRepository implements M
         float $availableQuantity,
         float $reservedQuantity,
         float $missingQuantity,
-        string $status
+        string $status,
+        ?string $requiredAt,
     ): MaterialRequirement {
         return MaterialRequirement::query()->updateOrCreate(
             [
-                'customer_order_item_id' => $productionOrder->customer_order_item_id,
-                'required_item_id' => $bomItem->item_id,
+                'production_order_id' => $productionOrder->id,
+                'bom_item_id' => $bomItem->id,
             ],
             [
+                'customer_order_item_id' => $productionOrder->customer_order_item_id,
+                'required_item_id' => $bomItem->item_id,
+                'required_at' => $requiredAt,
                 'required_quantity' => $requiredQuantity,
                 'available_quantity' => $availableQuantity,
                 'reserved_quantity' => $reservedQuantity,

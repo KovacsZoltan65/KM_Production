@@ -131,6 +131,21 @@ it('rejects a nonexistent supplier', function (): void {
         ->assertSessionHasErrors('supplier_id');
 });
 
+it('rejects inactive item and supplier master data for new procurement sources', function (bool $inactiveItem): void {
+    $user = procurementUser(['item-suppliers.create']);
+    $item = Item::factory()->create(['is_active' => ! $inactiveItem]);
+    $supplier = Supplier::factory()->create(['is_active' => $inactiveItem]);
+
+    actingAs($user)
+        ->post(route('admin.item-suppliers.store'), itemSupplierPayload($item, $supplier))
+        ->assertSessionHasErrors($inactiveItem ? 'item_id' : 'supplier_id');
+
+    expect(ItemSupplier::query()->count())->toBe(0);
+})->with([
+    'inactive item' => true,
+    'inactive supplier' => false,
+]);
+
 it('rejects duplicate item and supplier pairs', function (): void {
     $user = procurementUser(['item-suppliers.create']);
     $source = ItemSupplier::factory()->create();

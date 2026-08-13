@@ -155,6 +155,20 @@ return [
             'related_modules' => ['admin'],
             'build' => true,
         ],
+        'mrp' => [
+            'backend' => [
+                'tests/Feature/InventoryManagementUiTest.php',
+                'tests/Feature/ItemSupplierTest.php',
+                'tests/Feature/SupplyProposalTest.php',
+            ],
+            'frontend' => [
+                'tests/frontend/pages/ItemSupplierIndex.test.js',
+                'tests/frontend/pages/SupplyProposalIndex.test.js',
+            ],
+            'playwright' => [],
+            'related_modules' => ['inventory', 'procurement', 'production-planning'],
+            'build' => true,
+        ],
         'procurement' => [
             'backend' => [
                 'tests/Feature/ProcurementManagementUiTest.php',
@@ -280,6 +294,20 @@ return [
     ],
 
     'rules' => [
+        [
+            'name' => 'material requirements planning',
+            'patterns' => [
+                '**/MaterialRequirement*.php',
+                '**/MaterialRequirements/**',
+                '**/ItemSupplier*.php',
+                '**/ItemSuppliers/**',
+                '**/SupplyProposal*.php',
+                '**/SupplyProposals/**',
+                '**/Netting*.php',
+                '**/Pegging*.php',
+            ],
+            'modules' => ['mrp'],
+        ],
         [
             'name' => 'goods receipt workflow',
             'patterns' => [

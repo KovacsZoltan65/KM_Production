@@ -21,6 +21,7 @@ interface MaterialRequirementRepositoryInterface extends AdminRepositoryInterfac
         float $availableQuantity,
         float $reservedQuantity,
         float $missingQuantity,
-        string $status
+        string $status,
+        ?string $requiredAt,
     ): MaterialRequirement;
 }

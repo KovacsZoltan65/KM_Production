@@ -2,7 +2,9 @@
 
 namespace App\Services\Admin;
 
+use App\Models\Item;
 use App\Models\ItemSupplier;
+use App\Models\Supplier;
 use App\Models\User;
 use App\Repositories\Contracts\ItemSupplierRepositoryInterface;
 use App\Services\AuditLogService;
@@ -10,6 +12,7 @@ use App\Services\BusinessCacheInvalidator;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 /** A beszerzési források életciklusát és preferred invariánsát kezeli. */
 class ItemSupplierService
@@ -147,6 +150,18 @@ class ItemSupplierService
      */
     private function normalizeAttributes(array $attributes): array
     {
+        if (! Item::query()->whereKey((int) $attributes['item_id'])->where('is_active', true)->exists()) {
+            throw ValidationException::withMessages([
+                'item_id' => __('planning.validation.inactive_item'),
+            ]);
+        }
+
+        if (! Supplier::query()->whereKey((int) $attributes['supplier_id'])->where('is_active', true)->exists()) {
+            throw ValidationException::withMessages([
+                'supplier_id' => __('planning.validation.inactive_supplier'),
+            ]);
+        }
+
         $attributes['currency'] = isset($attributes['currency'])
             ? strtoupper((string) $attributes['currency'])
             : null;
