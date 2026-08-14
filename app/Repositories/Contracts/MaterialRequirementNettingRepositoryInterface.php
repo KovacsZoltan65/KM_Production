@@ -19,10 +19,16 @@ interface MaterialRequirementNettingRepositoryInterface
     public function usableOnHandByItem(array $itemIds): array;
 
     /**
+     * @param  list<int>  $itemIds
+     * @return array<int, list<array{id: int, quantity: string}>>
+     */
+    public function usableStockByItem(array $itemIds): array;
+
+    /**
      * Returns dated, firm PO remainder pools in Item base unit.
      *
      * @param  list<int>  $itemIds
-     * @return array<int, list<array{id: int, available_at: string, ordered_quantity: string, received_quantity: string}>>
+     * @return array<int, list<array{id: int, purchase_order_id: int, available_at: string, ordered_quantity: string, received_quantity: string}>>
      */
     public function firmIncomingByItem(array $itemIds): array;
 }

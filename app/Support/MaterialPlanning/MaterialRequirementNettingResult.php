@@ -16,6 +16,8 @@ final readonly class MaterialRequirementNettingResult
         public string $onHandCoverage,
         public string $incomingCoverage,
         public string $netRequirement,
+        /** @var list<array{source_type: 'stock_balance'|'purchase_order_item', source_id: int, quantity: string, supply_at: string|null}> */
+        public array $allocations = [],
     ) {}
 
     /** @return array<string, int|string|null> */

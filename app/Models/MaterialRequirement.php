@@ -115,6 +115,12 @@ class MaterialRequirement extends Model
         return $this->hasMany(PurchaseRequisitionItemSource::class);
     }
 
+    /** @return HasMany<MaterialRequirementPeg, $this> */
+    public function pegs(): HasMany
+    {
+        return $this->hasMany(MaterialRequirementPeg::class);
+    }
+
     /**
      * @return array<string, string>
      */

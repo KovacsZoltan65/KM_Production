@@ -27,16 +27,26 @@ class MaterialRequirementNettingRepository implements MaterialRequirementNetting
 
     public function usableOnHandByItem(array $itemIds): array
     {
+        return collect($this->usableStockByItem($itemIds))->map(
+            fn (array $rows): string => $this->fromThousandths(array_sum(array_map(
+                fn (array $row): int => $this->toThousandths($row['quantity']),
+                $rows,
+            ))),
+        )->all();
+    }
+
+    public function usableStockByItem(array $itemIds): array
+    {
         if ($itemIds === []) {
             return [];
         }
 
-        $physical = StockBalance::query()
+        $balances = StockBalance::query()
             ->whereIn('item_id', $itemIds)
             ->where('quantity', '>', 0)
-            ->selectRaw('item_id, SUM(quantity) as quantity')
-            ->groupBy('item_id')
-            ->pluck('quantity', 'item_id');
+            ->orderBy('item_id')
+            ->orderBy('id')
+            ->get(['id', 'item_id', 'quantity']);
 
         $reserved = StockReservation::query()
             ->whereIn('item_id', $itemIds)
@@ -46,12 +56,24 @@ class MaterialRequirementNettingRepository implements MaterialRequirementNetting
             ->groupBy('item_id')
             ->pluck('quantity', 'item_id');
 
-        return collect($itemIds)->mapWithKeys(function (int $itemId) use ($physical, $reserved): array {
-            $free = max(0, $this->toThousandths((string) ($physical[$itemId] ?? '0'))
-                - $this->toThousandths((string) ($reserved[$itemId] ?? '0')));
+        $result = array_fill_keys($itemIds, []);
+        $remainingReservations = collect($itemIds)->mapWithKeys(fn (int $itemId): array => [
+            $itemId => $this->toThousandths((string) ($reserved[$itemId] ?? '0')),
+        ])->all();
 
-            return [$itemId => $this->fromThousandths($free)];
-        })->all();
+        foreach ($balances as $balance) {
+            $itemId = $balance->item_id;
+            $physical = $this->toThousandths((string) $balance->quantity);
+            $deduction = min($physical, $remainingReservations[$itemId] ?? 0);
+            $remainingReservations[$itemId] = ($remainingReservations[$itemId] ?? 0) - $deduction;
+            $usable = $physical - $deduction;
+
+            if ($usable > 0) {
+                $result[$itemId][] = ['id' => $balance->id, 'quantity' => $this->fromThousandths($usable)];
+            }
+        }
+
+        return $result;
     }
 
     public function firmIncomingByItem(array $itemIds): array
@@ -82,6 +104,7 @@ class MaterialRequirementNettingRepository implements MaterialRequirementNetting
             ->orderBy('purchase_order_items.id')
             ->get([
                 'purchase_order_items.id',
+                'purchase_order_items.purchase_order_id',
                 'purchase_order_items.item_id',
                 'purchase_order_items.ordered_quantity',
                 'purchase_order_items.received_quantity',
@@ -90,6 +113,7 @@ class MaterialRequirementNettingRepository implements MaterialRequirementNetting
             ->groupBy('item_id')
             ->map(fn (Collection $rows): array => $rows->map(fn (PurchaseOrderItem $row): array => [
                 'id' => $row->id,
+                'purchase_order_id' => $row->purchase_order_id,
                 'available_at' => CarbonImmutable::parse(
                     (string) $row->getRawOriginal('available_at'),
                 )->toDateString(),

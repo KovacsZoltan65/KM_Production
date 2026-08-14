@@ -42,8 +42,11 @@ class MaterialRequirementNettingService
             ->values();
 
         $itemIds = $requirements->pluck('required_item_id')->unique()->values()->all();
-        $onHandPools = collect($this->repository->usableOnHandByItem($itemIds))
-            ->map(fn (string $quantity): int => $this->toThousandths($quantity))
+        $stockPools = collect($this->repository->usableStockByItem($itemIds))
+            ->map(fn (array $rows): array => array_map(fn (array $row): array => [
+                'id' => $row['id'],
+                'remaining' => $this->toThousandths($row['quantity']),
+            ], $rows))
             ->all();
         $incomingPools = collect($this->repository->firmIncomingByItem($itemIds))
             ->map(fn (array $rows): array => array_map(fn (array $row): array => [
@@ -54,14 +57,32 @@ class MaterialRequirementNettingService
             ], $rows))
             ->all();
 
-        return $requirements->map(function (MaterialRequirement $requirement) use (&$onHandPools, &$incomingPools): MaterialRequirementNettingResult {
+        return $requirements->map(function (MaterialRequirement $requirement) use (&$stockPools, &$incomingPools): MaterialRequirementNettingResult {
             $itemId = $requirement->required_item_id;
             $gross = max(0, $this->toThousandths((string) $requirement->required_quantity));
-            $onHand = min($gross, $onHandPools[$itemId] ?? 0);
-            $onHandPools[$itemId] = ($onHandPools[$itemId] ?? 0) - $onHand;
-            $remaining = $gross - $onHand;
+            $onHand = 0;
+            $remaining = $gross;
             $incoming = 0;
+            $allocations = [];
             $requiredAt = $requirement->required_at?->toDateString();
+
+            if (isset($stockPools[$itemId])) {
+                foreach ($stockPools[$itemId] as &$pool) {
+                    $coverage = min($remaining, $pool['remaining']);
+                    $pool['remaining'] -= $coverage;
+                    $onHand += $coverage;
+                    $remaining -= $coverage;
+
+                    if ($coverage > 0) {
+                        $allocations[] = ['source_type' => 'stock_balance', 'source_id' => $pool['id'], 'quantity' => $this->fromThousandths($coverage), 'supply_at' => null];
+                    }
+
+                    if ($remaining === 0) {
+                        break;
+                    }
+                }
+                unset($pool);
+            }
 
             if ($requiredAt !== null && isset($incomingPools[$itemId])) {
                 foreach ($incomingPools[$itemId] as &$pool) {
@@ -73,6 +94,9 @@ class MaterialRequirementNettingService
                     $pool['remaining'] -= $coverage;
                     $incoming += $coverage;
                     $remaining -= $coverage;
+                    if ($coverage > 0) {
+                        $allocations[] = ['source_type' => 'purchase_order_item', 'source_id' => $pool['id'], 'quantity' => $this->fromThousandths($coverage), 'supply_at' => $pool['available_at']];
+                    }
                 }
                 unset($pool);
             }
@@ -88,6 +112,7 @@ class MaterialRequirementNettingService
                 onHandCoverage: $this->fromThousandths($onHand),
                 incomingCoverage: $this->fromThousandths($incoming),
                 netRequirement: $this->fromThousandths($remaining),
+                allocations: $allocations,
             );
         });
     }

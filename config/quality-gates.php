@@ -160,6 +160,7 @@ return [
                 'tests/Feature/InventoryManagementUiTest.php',
                 'tests/Feature/ItemSupplierTest.php',
                 'tests/Feature/MaterialRequirementNettingTest.php',
+                'tests/Feature/MaterialRequirementPeggingTest.php',
                 'tests/Feature/SupplyProposalTest.php',
             ],
             'frontend' => [

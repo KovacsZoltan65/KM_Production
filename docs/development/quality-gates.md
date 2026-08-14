@@ -219,8 +219,8 @@ Javasolt aktiválási sorrend a branch-protection audit után:
 
 Development work must use the project's layered quality gate system.
 
-Az `mrp` logikai modul a Material Requirement, Item Supplier, Supply Proposal és
-Material Requirement Netting, valamint a későbbi Pegging fájlokat a fókuszált backend/frontend
+Az `mrp` logikai modul a Material Requirement, Item Supplier, Supply Proposal,
+Material Requirement Netting és Requirement Pegging fájlokat a fókuszált backend/frontend
 suite-okhoz route-olja, és kapcsolódó modulként bevonja az inventory,
 procurement és production-planning ellenőrzéseket.
 

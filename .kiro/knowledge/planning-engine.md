@@ -53,6 +53,7 @@ Egy planning komponens:
 | `ProcurementRecommendationService`  | Anyaghiányból és nyitott PO-mennyiségből cache-elt ajánlást ad                                  | Korai supply-planning jellegű read model; nem perzisztált `SupplyProposal`, nincs supplier source vagy teljes időfázisos netting   |
 | `MaterialRequirementService`        | Production Order BOM-ját felrobbantja, készletet és aktív foglalást számol, pillanatképet tárol | Részleges MRP előzmény; a target MRP-ben a BOM explosion és a netting külön felelősség                                             |
 | `MaterialRequirementNettingService` | Requirement-szintű, időfázisos nettó szükségletet számít batch supply poolokból                 | Authoritative 0009 kalkuláció; immutable eredményt ad, supply-allokációt és procurement artifactet nem perzisztál                  |
+| `MaterialRequirementPeggingService` | A 0009 allocation trace-ből current StockBalance/PO Item pegeket épít és perzisztál             | 0010 planning traceability; tranzakciós rebuild, nem készletfoglalás vagy procurement execution                                    |
 
 ### Meglévő domain lánc
 
@@ -231,7 +232,9 @@ Supply Proposal != execution vagy tényleges supply
 
 A Draft manuálisan létrehozható és szerkeszthető. A Proposed emberi döntésre
 vár; Approved után sem jön létre automatikusan execution dokumentum. A
-Requirement kapcsolat és pegging a 0010 külön felelőssége.
+Az approved proposal továbbra sem firm supply peg. A 0010 pegging kizárólag a
+0009-ben ténylegesen felhasznált StockBalance és firm PO Item coverage-et
+perzisztálja; proposal-to-requirement kapcsolat későbbi supply-planning döntés.
 
 [0008 Supply Proposal ADR](../decisions/0008-supply-proposal.md)
 
@@ -392,9 +395,10 @@ Az első későbbi implementációk ajánlott sorrendje:
 1. ~~Item Supplier / Procurement Source ADR és adatmodell.~~ Elkészült a 0007 döntésben.
 2. ~~Material Requirement identitás-, idő- és forrásmodell tisztázása.~~ Elkészült a 0008.5 hardeningben.
 3. ~~Stock availability és időfázisos netting specifikáció és V1 kalkuláció.~~ Elkészült a 0009 döntésben.
-4. ~~Supply Proposal domainmodell és lifecycle.~~ Elkészült a 0008 döntésben; a proposal pegging külön 0010 csomag.
-5. Supplier selection policy.
-6. Proposalból requisition konszolidáció, meglévő
+4. ~~Supply Proposal domainmodell és lifecycle.~~ Elkészült a 0008 döntésben.
+5. ~~Requirement coverage konkrét supply pegging.~~ Elkészült a 0010 döntésben.
+6. Supplier selection policy.
+7. Proposalból requisition konszolidáció, meglévő
    `PurchaseRequisitionItemSource` traceability továbbvitelével.
 
 Az új kalkulációk a Planning Engine komponenseiben, az adatlekérdezések
@@ -407,6 +411,7 @@ kap helyet. Controller nem tartalmazhat nettinget vagy supplier-döntést.
 - [Domain terminológia](domain-terminology.md)
 - [Material Requirements Planning Architecture ADR](../decisions/0006-material-requirements-planning-architecture.md)
 - [Material Requirement Netting ADR](../decisions/0009-material-requirement-netting.md)
+- [Requirement Pegging ADR](../decisions/0010-requirement-pegging.md)
 - [Inventory](inventory.md)
 - [Procurement](procurement.md)
 - [Production](production.md)

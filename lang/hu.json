@@ -793,6 +793,8 @@
     "planning.supply_proposals.validation.only_draft_editable": "Csak piszkozat ellátási javaslat szerkeszthető.",
     "planning.supply_proposals.validation.supplier_strategy": "Beszállító csak támogatott beszerzési stratégiához rendelhető.",
     "planning.supply_proposals.validation.invalid_procurement_source": "A beszállító nem aktív, jóváhagyott és jelenleg érvényes beszerzési forrás a kiválasztott cikkhez.",
+    "planning.pegging.validation.coverage_mismatch": "A szükséglet-visszakapcsolás nem egyezik a nettósítás fedezetével.",
+    "planning.pegging.validation.invalid_allocation": "A szükséglet-visszakapcsolási hozzárendelés érvénytelen.",
     "planning.validation.inactive_item": "Inaktív cikk nem használható új tervezési vagy beszerzési művelethez.",
     "planning.validation.inactive_supplier": "Inaktív beszállító nem használható új beszerzési művelethez.",
     "validation.locale.supported": "A választott nyelv nem támogatott."

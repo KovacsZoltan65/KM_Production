@@ -75,8 +75,9 @@ nem authoritative lineage-helyettesítő.
 
 ## Határok
 
-- **0010 Pegging:** nincs perzisztált requirement–stock/PO kapcsolat. A belső
-  poolfogyasztás calculation detail, nem pegging.
+- **0010 Pegging:** a 0009 immutable result allocation trace-et is hordoz; a
+  külön 0010 service ezt current planning pegként perzisztálhatja. A 0009 maga
+  továbbra sem ír adatbázist.
 - **Supplier Selection:** nincs supplier-, preferred-, price-, lead-time-, MOQ-
   vagy order-multiple döntés.
 - **Supply Proposal:** a 0009 nem olvassa firm supplyként és nem generálja.

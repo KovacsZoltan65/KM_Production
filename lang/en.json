@@ -793,6 +793,8 @@
     "planning.supply_proposals.validation.only_draft_editable": "Only draft supply proposals can be edited.",
     "planning.supply_proposals.validation.supplier_strategy": "A supplier can only be assigned to a supported purchase strategy.",
     "planning.supply_proposals.validation.invalid_procurement_source": "The supplier is not an active, approved and currently valid procurement source for the selected item.",
+    "planning.pegging.validation.coverage_mismatch": "Pegging does not match netting coverage.",
+    "planning.pegging.validation.invalid_allocation": "The pegging allocation is invalid.",
     "planning.validation.inactive_item": "An inactive item cannot be used for a new planning or procurement operation.",
     "planning.validation.inactive_supplier": "An inactive supplier cannot be used for a new procurement operation.",
     "validation.locale.supported": "The selected language is not supported."

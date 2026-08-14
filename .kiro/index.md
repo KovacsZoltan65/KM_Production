@@ -63,6 +63,7 @@ Memory
 - [Supply Proposal](decisions/0008-supply-proposal.md): a planning és execution közötti auditálható javaslat és döntési lifecycle.
 - [MRP Foundation Hardening](decisions/0008-5-mrp-foundation-hardening.md): a Material Requirement production lineage, időszemantika, snapshot-határ és approval-time invariánsai.
 - [Material Requirement Netting](decisions/0009-material-requirement-netting.md): requirement-level, time-phased on-hand és firm incoming supply netting.
+- [Requirement Pegging](decisions/0010-requirement-pegging.md): a requirement coverage konkrét StockBalance és firm PO Item planning trace-e.
 
 ## Reader-Facing Documentation
 
