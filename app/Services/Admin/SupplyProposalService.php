@@ -129,6 +129,12 @@ class SupplyProposalService
                 ]);
             }
 
+            if ($target === SupplyProposalStatus::Cancelled && $locked->purchaseRequisitionSource()->exists()) {
+                throw ValidationException::withMessages([
+                    'status' => __('planning.supply_proposals.validation.consolidated_cannot_cancel'),
+                ]);
+            }
+
             if ($target === SupplyProposalStatus::Approved) {
                 $this->validatePlanningMasterData($locked->item_id, $locked->supplier_id);
                 $this->validateSupplier([

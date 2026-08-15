@@ -9,6 +9,7 @@ use App\Models\FactoryUnit;
 use App\Models\Item;
 use App\Models\Location;
 use App\Models\ProfessionalRole;
+use App\Models\PurchaseRequisition;
 use App\Models\Supplier;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\ValidationException;
@@ -33,6 +34,7 @@ final class CodeDefinitionRegistry
             'item' => $this->itemDefinition($context),
             'customer' => $this->definition($type, Customer::class, 'customers', 'code', 'customer'),
             'supplier' => $this->definition($type, Supplier::class, 'suppliers', 'code', 'supplier'),
+            'purchase_requisition' => $this->definition($type, PurchaseRequisition::class, 'purchase_requisitions', 'requisition_number', 'purchase_requisition'),
             default => throw ValidationException::withMessages([
                 'type' => __('code_generation.errors.unsupported_type'),
             ]),
@@ -44,7 +46,7 @@ final class CodeDefinitionRegistry
      */
     public function supportedTypes(): array
     {
-        return ['factory_unit', 'employee', 'location', 'professional_role', 'item', 'customer', 'supplier'];
+        return ['factory_unit', 'employee', 'location', 'professional_role', 'item', 'customer', 'supplier', 'purchase_requisition'];
     }
 
     /**

@@ -142,6 +142,8 @@ export const routes = {
     'admin.purchase-requisitions.approve': '/admin/purchase-requisitions/{purchaseRequisition}/approve',
     'admin.purchase-requisitions.generate-from-material-requirements':
         '/admin/purchase-requisitions/generate-from-material-requirements',
+    'admin.purchase-requisitions.consolidate':
+        '/admin/purchase-requisitions/consolidate',
     'admin.purchase-requisitions.generate-purchase-order':
         '/admin/purchase-requisitions/{purchaseRequisition}/generate-purchase-order',
     'admin.purchase-orders.index': '/admin/purchase-orders',

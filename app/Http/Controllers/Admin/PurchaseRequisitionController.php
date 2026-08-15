@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Enums\PurchaseRequisitionStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ApprovePurchaseRequisitionRequest;
+use App\Http\Requests\Admin\ConsolidatePurchaseRequisitionsRequest;
 use App\Http\Requests\Admin\GeneratePurchaseOrderRequest;
 use App\Http\Requests\Admin\IndexRequest;
 use App\Http\Requests\Admin\StorePurchaseRequisitionRequest;
@@ -12,6 +13,7 @@ use App\Http\Requests\Admin\UpdatePurchaseRequisitionRequest;
 use App\Models\Item;
 use App\Models\PurchaseRequisition;
 use App\Models\Supplier;
+use App\Services\Admin\PurchaseRequisitionConsolidationService;
 use App\Services\Admin\PurchaseRequisitionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Collection;
@@ -20,7 +22,10 @@ use Inertia\Response;
 
 class PurchaseRequisitionController extends Controller
 {
-    public function __construct(private readonly PurchaseRequisitionService $service) {}
+    public function __construct(
+        private readonly PurchaseRequisitionService $service,
+        private readonly PurchaseRequisitionConsolidationService $consolidation,
+    ) {}
 
     /**
      * Megjeleníti a beszerzési igények adminisztrációs listaoldalát.
@@ -166,6 +171,25 @@ class PurchaseRequisitionController extends Controller
         $requisition = $this->service->generateFromMaterialRequirements($request->user());
 
         return redirect()->route('admin.purchase-requisitions.show', $requisition)->with('success', __('procurement.purchase_requisitions.messages.generated'));
+    }
+
+    public function consolidate(ConsolidatePurchaseRequisitionsRequest $request): RedirectResponse
+    {
+        /** @var list<int> $proposalIds */
+        $proposalIds = $request->validated('proposal_ids');
+        $result = $this->consolidation->consolidate($proposalIds, $request->user());
+        $message = __('planning.supply_proposals.consolidation.messages.completed', [
+            'proposals' => $result->proposalCount,
+            'requisitions' => $result->requisitionCount(),
+        ]);
+
+        if ($result->requisitionCount() === 1) {
+            return redirect()
+                ->route('admin.purchase-requisitions.show', $result->createdRequisitionIds[0])
+                ->with('success', $message);
+        }
+
+        return redirect()->route('admin.supply-proposals.index')->with('success', $message);
     }
 
     /**

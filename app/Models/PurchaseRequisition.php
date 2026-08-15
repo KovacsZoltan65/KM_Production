@@ -17,8 +17,11 @@ use Illuminate\Support\Carbon;
  * @property int $id
  * @property string $requisition_number
  * @property PurchaseRequisitionStatus $status
+ * @property int|null $supplier_id
  * @property int|null $requested_by
  * @property Carbon|null $requested_at
+ * @property Carbon|null $required_at
+ * @property Carbon|null $proposed_supply_at
  * @property string|null $notes
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -26,6 +29,7 @@ use Illuminate\Support\Carbon;
  * @property-read Collection<int, PurchaseRequisitionItem> $items
  * @property-read int|null $items_count
  * @property-read User|null $requester
+ * @property-read Supplier|null $supplier
  *
  * @method static \Database\Factories\PurchaseRequisitionFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PurchaseRequisition newModelQuery()
@@ -49,8 +53,11 @@ use Illuminate\Support\Carbon;
 #[Fillable([
     'requisition_number',
     'status',
+    'supplier_id',
     'requested_by',
     'requested_at',
+    'required_at',
+    'proposed_supply_at',
     'notes',
 ])]
 class PurchaseRequisition extends Model
@@ -64,6 +71,12 @@ class PurchaseRequisition extends Model
     public function requester(): BelongsTo
     {
         return $this->belongsTo(User::class, 'requested_by');
+    }
+
+    /** @return BelongsTo<Supplier, $this> */
+    public function supplier(): BelongsTo
+    {
+        return $this->belongsTo(Supplier::class);
     }
 
     /**
@@ -82,6 +95,8 @@ class PurchaseRequisition extends Model
         return [
             'status' => PurchaseRequisitionStatus::class,
             'requested_at' => 'datetime',
+            'required_at' => 'date',
+            'proposed_supply_at' => 'date',
         ];
     }
 }

@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 
 /**
@@ -40,6 +41,7 @@ use Illuminate\Support\Carbon;
  * @property-read User|null $approver
  * @property-read User|null $rejector
  * @property-read User|null $canceller
+ * @property-read PurchaseRequisitionItemProposalSource|null $purchaseRequisitionSource
  */
 #[Fillable([
     'strategy',
@@ -105,6 +107,12 @@ class SupplyProposal extends Model
     public function canceller(): BelongsTo
     {
         return $this->belongsTo(User::class, 'cancelled_by');
+    }
+
+    /** @return HasOne<PurchaseRequisitionItemProposalSource, $this> */
+    public function purchaseRequisitionSource(): HasOne
+    {
+        return $this->hasOne(PurchaseRequisitionItemProposalSource::class);
     }
 
     protected function casts(): array

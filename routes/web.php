@@ -177,6 +177,8 @@ Route::middleware(['auth', 'verified'])
             ->only(['index', 'store', 'update']);
         Route::post('purchase-requisitions/generate-from-material-requirements', [AdminPurchaseRequisitionController::class, 'generateFromMaterialRequirements'])
             ->name('purchase-requisitions.generate-from-material-requirements');
+        Route::post('purchase-requisitions/consolidate', [AdminPurchaseRequisitionController::class, 'consolidate'])
+            ->name('purchase-requisitions.consolidate');
         Route::patch('purchase-requisitions/{purchaseRequisition}/approve', [AdminPurchaseRequisitionController::class, 'approve'])
             ->name('purchase-requisitions.approve');
         Route::post('purchase-requisitions/{purchaseRequisition}/generate-purchase-order', [AdminPurchaseRequisitionController::class, 'generatePurchaseOrder'])

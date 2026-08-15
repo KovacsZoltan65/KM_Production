@@ -74,7 +74,13 @@ const draft = {
 
 const mountPage = (
     record = draft,
-    abilities = { create: true, update: true, approve: true, cancel: true },
+    abilities = {
+        create: true,
+        update: true,
+        approve: true,
+        cancel: true,
+        consolidate: true,
+    },
 ) => {
     activeRecord = record;
 
@@ -115,6 +121,7 @@ const mountPage = (
                 SupplyProposalStatusBadge: passthrough(
                     "SupplyProposalStatusBadge",
                 ),
+                Link: passthrough("Link"),
             },
         },
     });
@@ -213,6 +220,39 @@ describe("Supply Proposals Index", () => {
         );
     });
 
+    it("consolidates only selected approved unconsumed proposals", () => {
+        const approved = {
+            ...draft,
+            status: "approved",
+            purchase_requisition_source: null,
+        };
+        const wrapper = mountPage(approved);
+        wrapper.vm.selectedProposals = [approved];
+
+        expect(wrapper.vm.canConsolidate).toBe(true);
+        wrapper.vm.consolidate();
+        expect(confirmService.require).toHaveBeenCalled();
+
+        confirmService.require.mock.calls[0][0].accept();
+        expect(inertiaRouter.post).toHaveBeenCalledWith(
+            "/admin/purchase-requisitions/consolidate",
+            { proposal_ids: [10] },
+            expect.objectContaining({ preserveScroll: true }),
+        );
+    });
+
+    it("does not allow already consolidated proposals to be selected for consolidation", () => {
+        const consolidated = {
+            ...draft,
+            status: "approved",
+            purchase_requisition_source: { id: 1 },
+        };
+        const wrapper = mountPage(consolidated);
+        wrapper.vm.selectedProposals = [consolidated];
+
+        expect(wrapper.vm.canConsolidate).toBe(false);
+    });
+
     it("renders status-specific and permission-aware action buttons", () => {
         expect(
             mountPage(draft).findAll("button[aria-label]").length,
@@ -228,6 +268,7 @@ describe("Supply Proposals Index", () => {
                 update: false,
                 approve: false,
                 cancel: false,
+                consolidate: false,
             }).findAll("button[aria-label]"),
         ).toHaveLength(0);
     });

@@ -4,6 +4,8 @@ namespace App\Repositories\Admin;
 
 use App\Models\MaterialRequirement;
 use App\Models\PurchaseRequisition;
+use App\Models\PurchaseRequisitionItem;
+use App\Models\PurchaseRequisitionItemProposalSource;
 use App\Repositories\Contracts\PurchaseRequisitionRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
@@ -48,7 +50,24 @@ class PurchaseRequisitionRepository extends AbstractAdminRepository implements P
             'items.item',
             'items.materialRequirement.customerOrderItem.customerOrder',
             'items.sources.materialRequirement.customerOrderItem.customerOrder',
+            'items.proposalSources.supplyProposal',
+            'supplier',
         ])->loadCount('items');
+    }
+
+    public function createDraft(array $attributes): PurchaseRequisition
+    {
+        return PurchaseRequisition::query()->create($attributes);
+    }
+
+    public function createItem(PurchaseRequisition $requisition, array $attributes): PurchaseRequisitionItem
+    {
+        return $requisition->items()->create($attributes);
+    }
+
+    public function createProposalSource(PurchaseRequisitionItem $item, array $attributes): PurchaseRequisitionItemProposalSource
+    {
+        return $item->proposalSources()->create($attributes);
     }
 
     public function missingMaterialRequirements(): Collection

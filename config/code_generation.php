@@ -14,5 +14,6 @@ return [
         'material' => env('CODE_PREFIX_MATERIAL', 'MAT'),
         'customer' => env('CODE_PREFIX_CUSTOMER', 'CUST'),
         'supplier' => env('CODE_PREFIX_SUPPLIER', 'SUP'),
+        'purchase_requisition' => env('CODE_PREFIX_PURCHASE_REQUISITION', 'PR'),
     ],
 ];

@@ -4,7 +4,7 @@ import AdminSearchBar from "@/Components/Admin/AdminSearchBar.vue";
 import AdminLayout from "@/Layouts/AdminLayout.vue";
 import SupplyProposalStatusBadge from "@/Pages/Admin/SupplyProposals/Partials/SupplyProposalStatusBadge.vue";
 import { route } from "@/Utils/routes";
-import { Head, router } from "@inertiajs/vue3";
+import { Head, Link, router } from "@inertiajs/vue3";
 import { trans } from "laravel-vue-i18n";
 import Button from "primevue/button";
 import Column from "primevue/column";
@@ -31,6 +31,7 @@ const props = defineProps({
 const confirm = useConfirm();
 const dialogVisible = ref(false);
 const editingRecord = ref(null);
+const selectedProposals = ref([]);
 const errors = ref({});
 const search = ref(props.filters.search || "");
 const status = ref(props.filters.status || null);
@@ -172,11 +173,49 @@ const transition = (record, action) =>
                 { preserveScroll: true },
             ),
     });
+const isConsolidationEligible = (record) =>
+    record.status === "approved" && !record.purchase_requisition_source;
+const canConsolidate = computed(
+    () =>
+        props.abilities.consolidate &&
+        selectedProposals.value.length > 0 &&
+        selectedProposals.value.every(isConsolidationEligible),
+);
+const consolidate = () => {
+    if (!canConsolidate.value) return;
+
+    confirm.require({
+        message: trans(
+            "planning.supply_proposals.consolidation.confirm.message",
+            { count: selectedProposals.value.length },
+        ),
+        header: trans("planning.supply_proposals.consolidation.confirm.header"),
+        icon: "pi pi-sitemap",
+        accept: () =>
+            router.post(
+                route("admin.purchase-requisitions.consolidate"),
+                {
+                    proposal_ids: selectedProposals.value.map(
+                        (proposal) => proposal.id,
+                    ),
+                },
+                {
+                    preserveScroll: true,
+                    onSuccess: () => {
+                        selectedProposals.value = [];
+                    },
+                },
+            ),
+    });
+};
 const formatDate = (value) => value?.slice(0, 10) || "—";
 const supplierLabel = (record) =>
     record.supplier
         ? `${record.supplier.code} - ${record.supplier.name}`
         : trans("planning.supply_proposals.supplier_not_selected");
+const consolidatedRequisition = (record) =>
+    record.purchase_requisition_source?.purchase_requisition_item
+        ?.purchase_requisition || null;
 </script>
 
 <template>
@@ -193,7 +232,21 @@ const supplierLabel = (record) =>
                         : null
                 "
                 @create="openCreate"
-            />
+            >
+                <template #actions>
+                    <Button
+                        v-if="abilities.consolidate"
+                        type="button"
+                        icon="pi pi-sitemap"
+                        :label="
+                            $t('planning.supply_proposals.consolidation.action')
+                        "
+                        :disabled="!canConsolidate"
+                        data-test="consolidate-proposals"
+                        @click="consolidate"
+                    />
+                </template>
+            </AdminPageHeader>
             <AdminSearchBar
                 v-model="search"
                 v-model:per-page="perPage"
@@ -227,6 +280,7 @@ const supplierLabel = (record) =>
             </div>
 
             <DataTable
+                v-model:selection="selectedProposals"
                 :value="records.data"
                 lazy
                 paginator
@@ -236,6 +290,7 @@ const supplierLabel = (record) =>
                 :sort-field="sortField"
                 :sort-order="sortOrder"
                 data-key="id"
+                :row-selectable="isConsolidationEligible"
                 class="rounded border border-slate-200 bg-white"
                 @page="
                     (event) => {
@@ -251,6 +306,11 @@ const supplierLabel = (record) =>
                     }
                 "
             >
+                <Column
+                    v-if="abilities.consolidate"
+                    selection-mode="multiple"
+                    header-style="width:3rem"
+                />
                 <Column field="item_id" :header="$t('fields.item')" sortable>
                     <template #body="{ data }"
                         >{{ data.item.item_number }} -
@@ -310,6 +370,31 @@ const supplierLabel = (record) =>
                     <template #body="{ data }"
                         ><SupplyProposalStatusBadge :status="data.status"
                     /></template>
+                </Column>
+                <Column
+                    :header="
+                        $t(
+                            'planning.supply_proposals.consolidation.purchase_requisition',
+                        )
+                    "
+                >
+                    <template #body="{ data }">
+                        <Link
+                            v-if="consolidatedRequisition(data)"
+                            class="text-primary-700 hover:underline"
+                            :href="
+                                route(
+                                    'admin.purchase-requisitions.show',
+                                    consolidatedRequisition(data).id,
+                                )
+                            "
+                        >
+                            {{
+                                consolidatedRequisition(data).requisition_number
+                            }}
+                        </Link>
+                        <span v-else>—</span>
+                    </template>
                 </Column>
                 <Column
                     field="created_by"
@@ -386,7 +471,9 @@ const supplierLabel = (record) =>
                                 v-if="
                                     ['draft', 'proposed', 'approved'].includes(
                                         data.status,
-                                    ) && abilities.cancel
+                                    ) &&
+                                    abilities.cancel &&
+                                    !data.purchase_requisition_source
                                 "
                                 icon="pi pi-ban"
                                 severity="secondary"

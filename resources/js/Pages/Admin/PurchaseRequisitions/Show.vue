@@ -34,6 +34,7 @@ import { computed, ref } from "vue";
  * @property {number|null} material_requirement_id A közvetlen anyagszükséglet azonosítója.
  * @property {{item_number: string, name: string}|null} item Az igényelt cikk.
  * @property {RequisitionSource[]} sources A tétel forrásai.
+ * @property {Array<{id: number, quantity: string, supply_proposal_id: number}>} proposal_sources Az approved Proposal execution source-ok.
  */
 /**
  * Megjelenített beszerzési igény.
@@ -59,13 +60,21 @@ const toast = useToast();
 const dialogVisible = ref(false);
 const approving = ref(false);
 const generating = ref(false);
-const form = useForm({ supplier_id: null, expected_delivery_date: null });
+const form = useForm({
+    supplier_id: props.purchaseRequisition.supplier_id ?? null,
+    expected_delivery_date: null,
+});
 const actionPending = computed(() => approving.value || generating.value);
 const canApprove = computed(() =>
     ["draft", "requested"].includes(props.purchaseRequisition.status),
 );
 const canGeneratePo = computed(
     () => props.purchaseRequisition.status === "approved",
+);
+const hasProposalSources = computed(() =>
+    props.purchaseRequisition.items.some(
+        (item) => item.proposal_sources?.length > 0,
+    ),
 );
 const severity = (value) =>
     ({
@@ -161,6 +170,22 @@ const generatePo = () => {
                             :severity="severity(purchaseRequisition.status)"
                         />
                     </div>
+                    <div
+                        class="flex flex-wrap gap-x-5 gap-y-1 text-sm text-slate-600"
+                    >
+                        <span>{{
+                            purchaseRequisition.supplier?.name ||
+                            trans(
+                                "planning.supply_proposals.supplier_not_selected",
+                            )
+                        }}</span>
+                        <span v-if="purchaseRequisition.required_at">{{
+                            purchaseRequisition.required_at.slice(0, 10)
+                        }}</span>
+                        <span v-if="purchaseRequisition.proposed_supply_at">{{
+                            purchaseRequisition.proposed_supply_at.slice(0, 10)
+                        }}</span>
+                    </div>
                 </div>
                 <div class="flex gap-2">
                     <Button
@@ -212,11 +237,52 @@ const generatePo = () => {
                     ></Column>
                     <Column :header="trans('fields.sources')"
                         ><template #body="{ data }">{{
-                            data.sources?.length ||
-                            (data.material_requirement_id ? 1 : 0)
+                            (data.sources?.length ||
+                                (data.material_requirement_id ? 1 : 0)) +
+                            (data.proposal_sources?.length || 0)
                         }}</template></Column
                     >
                 </DataTable>
+            </div>
+            <div
+                v-if="hasProposalSources"
+                class="rounded border border-slate-200 bg-white p-4"
+            >
+                <h2 class="mb-3 text-lg font-semibold">
+                    {{
+                        trans(
+                            "procurement.purchase_requisitions.source_proposals.title",
+                        )
+                    }}
+                </h2>
+                <div
+                    v-for="item in purchaseRequisition.items"
+                    :key="`proposal-${item.id}`"
+                    class="mb-4 last:mb-0"
+                >
+                    <div class="mb-2 text-sm font-medium">
+                        {{ item.item?.item_number }} - {{ item.item?.name }}
+                    </div>
+                    <DataTable
+                        :value="item.proposal_sources || []"
+                        data-key="id"
+                    >
+                        <Column
+                            field="supply_proposal_id"
+                            :header="
+                                trans(
+                                    'procurement.purchase_requisitions.source_proposals.proposal',
+                                )
+                            "
+                        />
+                        <Column :header="trans('fields.quantity')"
+                            ><template #body="{ data }"
+                                >{{ number(data.quantity) }}
+                                {{ item.unit }}</template
+                            ></Column
+                        >
+                    </DataTable>
+                </div>
             </div>
             <div class="rounded border border-slate-200 bg-white p-4">
                 <h2 class="mb-3 text-lg font-semibold">
@@ -268,7 +334,9 @@ const generatePo = () => {
                     option-value="id"
                     :placeholder="trans('fields.supplier')"
                     filter
-                    :disabled="generating"
+                    :disabled="
+                        generating || purchaseRequisition.supplier_id != null
+                    "
                     class="w-full"
                 />
                 <DatePicker

@@ -13,6 +13,9 @@ interface SupplyProposalRepositoryInterface extends AdminRepositoryInterface
 
     public function findLocked(int $id): SupplyProposal;
 
+    /** @param list<int> $ids @return Collection<int, SupplyProposal> */
+    public function lockForConsolidation(array $ids): Collection;
+
     /** @return Collection<int, array{id: int, item_number: string, name: string, unit: string}> */
     public function itemOptions(int $limit = 500): Collection;
 

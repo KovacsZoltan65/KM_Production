@@ -161,6 +161,7 @@ return [
                 'tests/Feature/ItemSupplierTest.php',
                 'tests/Feature/MaterialRequirementNettingTest.php',
                 'tests/Feature/MaterialRequirementPeggingTest.php',
+                'tests/Feature/PurchaseRequisitionConsolidationTest.php',
                 'tests/Feature/SupplyProposalTest.php',
             ],
             'frontend' => [
@@ -307,6 +308,9 @@ return [
                 '**/SupplyProposals/**',
                 '**/Netting*.php',
                 '**/Pegging*.php',
+                '**/PurchaseRequisitionConsolidation*.php',
+                '**/ConsolidatePurchaseRequisitions*.php',
+                '**/PurchaseRequisitionItemProposalSource*.php',
             ],
             'modules' => ['mrp'],
         ],

@@ -43,17 +43,18 @@ Egy planning komponens:
 
 ### Planning Engine-jellegű meglévő komponensek
 
-| Komponens                           | Jelenlegi szerep                                                                                | Besorolás és határ                                                                                                                 |
-| ----------------------------------- | ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `CapacityPlanningService`           | Kapacitásterhelést, ütemezési sorokat és késési kockázatot állít össze                          | Planning/analytics komponens; cache invalidálása technikai mellékhatás, végrehajtást nem végez                                     |
-| `CapacitySlotFinder`                | Naptár és meglévő foglalások alapján szabad időablakot keres                                    | Tiszta Planning Engine-segéd; dokumentáltan nem hoz létre foglalást                                                                |
-| `LeadTimeEstimator`                 | Feladatokból várható kezdést, befejezést és késést becsül                                       | Szimulációs/értékelési komponens; opcionális auditot ír, de kapacitást nem foglal                                                  |
-| `SchedulingService`                 | Időablakot keres, majd `CapacityReservation` rekordokat hoz létre                               | Hibrid orchestrator: planning eredményt használ, de a foglalás már execution; a két felelősséget későbbi refaktor szétválaszthatja |
-| `ManufacturingIntelligenceService`  | Több domainből dashboardot és kockázati összesítést komponál                                    | Értékelési/analytics fogyasztó; nem az MRP számítás elsődleges forrása                                                             |
-| `ProcurementRecommendationService`  | Anyaghiányból és nyitott PO-mennyiségből cache-elt ajánlást ad                                  | Korai supply-planning jellegű read model; nem perzisztált `SupplyProposal`, nincs supplier source vagy teljes időfázisos netting   |
-| `MaterialRequirementService`        | Production Order BOM-ját felrobbantja, készletet és aktív foglalást számol, pillanatképet tárol | Részleges MRP előzmény; a target MRP-ben a BOM explosion és a netting külön felelősség                                             |
-| `MaterialRequirementNettingService` | Requirement-szintű, időfázisos nettó szükségletet számít batch supply poolokból                 | Authoritative 0009 kalkuláció; immutable eredményt ad, supply-allokációt és procurement artifactet nem perzisztál                  |
-| `MaterialRequirementPeggingService` | A 0009 allocation trace-ből current StockBalance/PO Item pegeket épít és perzisztál             | 0010 planning traceability; tranzakciós rebuild, nem készletfoglalás vagy procurement execution                                    |
+| Komponens                                 | Jelenlegi szerep                                                                                | Besorolás és határ                                                                                                                        |
+| ----------------------------------------- | ----------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `CapacityPlanningService`                 | Kapacitásterhelést, ütemezési sorokat és késési kockázatot állít össze                          | Planning/analytics komponens; cache invalidálása technikai mellékhatás, végrehajtást nem végez                                            |
+| `CapacitySlotFinder`                      | Naptár és meglévő foglalások alapján szabad időablakot keres                                    | Tiszta Planning Engine-segéd; dokumentáltan nem hoz létre foglalást                                                                       |
+| `LeadTimeEstimator`                       | Feladatokból várható kezdést, befejezést és késést becsül                                       | Szimulációs/értékelési komponens; opcionális auditot ír, de kapacitást nem foglal                                                         |
+| `SchedulingService`                       | Időablakot keres, majd `CapacityReservation` rekordokat hoz létre                               | Hibrid orchestrator: planning eredményt használ, de a foglalás már execution; a két felelősséget későbbi refaktor szétválaszthatja        |
+| `ManufacturingIntelligenceService`        | Több domainből dashboardot és kockázati összesítést komponál                                    | Értékelési/analytics fogyasztó; nem az MRP számítás elsődleges forrása                                                                    |
+| `ProcurementRecommendationService`        | Anyaghiányból és nyitott PO-mennyiségből cache-elt ajánlást ad                                  | Korai supply-planning jellegű read model; nem perzisztált `SupplyProposal`, nincs supplier source vagy teljes időfázisos netting          |
+| `MaterialRequirementService`              | Production Order BOM-ját felrobbantja, készletet és aktív foglalást számol, pillanatképet tárol | Részleges MRP előzmény; a target MRP-ben a BOM explosion és a netting külön felelősség                                                    |
+| `MaterialRequirementNettingService`       | Requirement-szintű, időfázisos nettó szükségletet számít batch supply poolokból                 | Authoritative 0009 kalkuláció; immutable eredményt ad, supply-allokációt és procurement artifactet nem perzisztál                         |
+| `MaterialRequirementPeggingService`       | A 0009 allocation trace-ből current StockBalance/PO Item pegeket épít és perzisztál             | 0010 planning traceability; tranzakciós rebuild, nem készletfoglalás vagy procurement execution                                           |
+| `PurchaseRequisitionConsolidationService` | Explicit selected approved Purchase Proposalokat Draft PR dokumentumokká csoportosít            | 0011 execution orchestrator; supplier-, required- és proposed-supply-date szerint csoportosít, de nem választ Suppliert vagy generál PO-t |
 
 ### Meglévő domain lánc
 
@@ -281,9 +282,18 @@ SO-B requirement → 30 kg ├→ 1 × 100 kg Purchase Supply Proposal
 SO-C requirement → 30 kg ┘
 ```
 
-A proposal–requirement kapcsolatok külön-külön őrzik a 40/30/30 kg pegginget.
-Konszolidáció, MOQ vagy order multiple miatti többlet nem osztható el
-hallgatólagosan, és nem törölheti az eredeti Demand kapcsolatát.
+A 0011-ben az approved Purchase Supply Proposal explicit user selection után
+`strategy + supplier_id nullable + required_at + proposed_supply_at` kulccsal
+új Draft Purchase Requisition dokumentumokba konszolidálható. Azonos PR-csoport
+azonos Item és unit sorai exact base-unit mennyiséggel összeadódnak; minden
+Proposal teljes mennyisége külön `PurchaseRequisitionItemProposalSource` soron
+marad visszakövethető. Supplierless Proposal supplierless PR-ben marad.
+
+A konszolidáció nem automatikus Proposal→PR lifecycle-átmenet, nem számít újra
+net requirementet vagy pegginget, és nem alkalmaz MOQ-t, order multiple-t vagy
+supplier selectiont. Egy Proposal V1-ben csak teljesen és pontosan egyszer
+használható fel. A Material Requirement lineage és a Proposal execution source
+eltérő jelentésű, ezért külön kapcsolatban maradnak.
 
 ### Replenishment Strategy
 
@@ -365,14 +375,15 @@ Starting stock: 0 kg
 4. A `StockAvailabilityService` 0 kg használható stockot állapít meg, a netting
    pedig az elfogadható incoming supplyt és reservationöket is megvizsgálja.
 5. Fedezet hiányában 100 kg `Shortage` keletkezik.
-6. A supply evaluation a `Purchase` stratégiát választja. A supplier csak ezen
-   a ponton jelenik meg: a `SupplierSelectionService` az Itemhez tartozó,
-   approved és időben érvényes procurement source-okat értékeli.
+6. A supply evaluation a `Purchase` stratégiát választja. A Proposal Supplierje
+   lehet explicit vagy null; automatikus Supplier Selection még nincs.
 7. Item–Supplier kapcsolat nélkül automatikus supplier-, lead-time-, MOQ- és
    order-multiple-alapú procurement planning nem lehetséges.
 8. A Planning Engine `SupplyProposal`-t készít, amely még nem rendelés.
-9. A jóváhagyott proposalból `PurchaseRequisition`, emberi jóváhagyás után
-   `PurchaseOrder` jön létre. A PO tehát nem az első objektum.
+9. A user az approved Proposalokat explicit konszolidálja. A 0011 determinisztikus
+   csoportjai Draft `PurchaseRequisition` dokumentumokat hoznak létre, külön
+   approval workflow-val. Supplier Selection és a későbbi `PurchaseOrder`
+   létrehozása más use case; a PO tehát nem az első objektum.
 10. A `GoodsReceipt` rögzíti a beérkezést; az elfogadott készletváltozás
     `StockMovement` útján kerül a stockba.
 11. A production availability újraszámítható, miközben a teljes pegging lánc
@@ -397,9 +408,27 @@ Az első későbbi implementációk ajánlott sorrendje:
 3. ~~Stock availability és időfázisos netting specifikáció és V1 kalkuláció.~~ Elkészült a 0009 döntésben.
 4. ~~Supply Proposal domainmodell és lifecycle.~~ Elkészült a 0008 döntésben.
 5. ~~Requirement coverage konkrét supply pegging.~~ Elkészült a 0010 döntésben.
-6. Supplier selection policy.
-7. Proposalból requisition konszolidáció, meglévő
-   `PurchaseRequisitionItemSource` traceability továbbvitelével.
+6. ~~Approved Purchase Supply Proposalok Draft Purchase Requisition
+   konszolidációja explicit Proposal source trace-szel.~~ Elkészült a 0011
+   döntésben.
+7. Supplier selection policy (0012).
+
+### Legacy direct Requirement → PR deprecation
+
+A `PurchaseRequisitionService::generateFromMaterialRequirements()` és a hozzá
+tartozó route/controller/UI action kompatibilitási okból még aktív, de
+deprecated. Új kód nem használhatja. Az authoritative út:
+
+```text
+Approved Supply Proposal
+→ Purchase Requisition Consolidation
+→ Purchase Requisition
+```
+
+A legacy út csak az új workflow regressziós időszaka, a régi UI átvezetése és a
+feldolgozatlan legacy source-ok migrációja vagy üzleti lezárása után távolítható
+el. A removal egy későbbi célzott változásban együtt törli a route-ot,
+controller actiont és service metódust; a 0011 ezeket még nem törli.
 
 Az új kalkulációk a Planning Engine komponenseiben, az adatlekérdezések
 repository-kban, a jóváhagyott requisition/PO létrehozása execution service-ben
@@ -412,6 +441,7 @@ kap helyet. Controller nem tartalmazhat nettinget vagy supplier-döntést.
 - [Material Requirements Planning Architecture ADR](../decisions/0006-material-requirements-planning-architecture.md)
 - [Material Requirement Netting ADR](../decisions/0009-material-requirement-netting.md)
 - [Requirement Pegging ADR](../decisions/0010-requirement-pegging.md)
+- [Purchase Requisition Consolidation ADR](../decisions/0011-purchase-requisition-consolidation.md)
 - [Inventory](inventory.md)
 - [Procurement](procurement.md)
 - [Production](production.md)

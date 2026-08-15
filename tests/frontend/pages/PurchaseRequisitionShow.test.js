@@ -44,13 +44,15 @@ const requisition = (status) => ({
     id: 42,
     requisition_number: "PR-TEST-0042",
     status,
+    supplier_id: null,
+    supplier: null,
     items: [],
 });
 
-const mountPage = (status) =>
+const mountPage = (status, overrides = {}) =>
     shallowMount(PurchaseRequisitionShow, {
         props: {
-            purchaseRequisition: requisition(status),
+            purchaseRequisition: { ...requisition(status), ...overrides },
             supplierOptions: [{ id: 7, label: "SUP-7 - Supplier" }],
         },
         global: {
@@ -175,5 +177,27 @@ describe("Purchase Requisition workflow pending states", () => {
         wrapper.vm.generatePo();
 
         expect(wrapper.vm.form.post).not.toHaveBeenCalled();
+    });
+
+    it("shows proposal lineage state and keeps a requisition supplier fixed for PO generation", () => {
+        const wrapper = mountPage("approved", {
+            supplier_id: 7,
+            supplier: { id: 7, name: "Supplier" },
+            items: [
+                {
+                    id: 1,
+                    proposal_sources: [
+                        {
+                            id: 2,
+                            supply_proposal_id: 10,
+                            quantity: "6.000",
+                        },
+                    ],
+                },
+            ],
+        });
+
+        expect(wrapper.vm.hasProposalSources).toBe(true);
+        expect(wrapper.vm.form.supplier_id).toBe(7);
     });
 });

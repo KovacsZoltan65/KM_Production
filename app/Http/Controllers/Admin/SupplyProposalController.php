@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\IndexRequest;
 use App\Http\Requests\Admin\StoreSupplyProposalRequest;
 use App\Http\Requests\Admin\UpdateSupplyProposalRequest;
+use App\Models\PurchaseRequisition;
 use App\Models\SupplyProposal;
 use App\Services\Admin\SupplyProposalService;
 use Illuminate\Http\RedirectResponse;
@@ -41,6 +42,7 @@ class SupplyProposalController extends Controller
                 'update' => $request->user()->can('supply-proposals.update'),
                 'approve' => $request->user()->can('supply-proposals.approve'),
                 'cancel' => $request->user()->can('supply-proposals.delete'),
+                'consolidate' => $request->user()->can('create', PurchaseRequisition::class),
             ],
         ]);
     }

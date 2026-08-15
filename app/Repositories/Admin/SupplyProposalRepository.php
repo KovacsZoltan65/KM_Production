@@ -25,7 +25,12 @@ class SupplyProposalRepository extends AbstractAdminRepository implements Supply
      */
     public function paginateForAdminIndex(array $filters, int $perPage = 10): LengthAwarePaginator
     {
-        $query = SupplyProposal::query()->with(['item', 'supplier', 'creator']);
+        $query = SupplyProposal::query()->with([
+            'item',
+            'supplier',
+            'creator',
+            'purchaseRequisitionSource.purchaseRequisitionItem.purchaseRequisition',
+        ]);
         $search = trim((string) ($filters['search'] ?? ''));
 
         if ($search !== '') {
@@ -58,6 +63,16 @@ class SupplyProposalRepository extends AbstractAdminRepository implements Supply
     public function findLocked(int $id): SupplyProposal
     {
         return SupplyProposal::query()->whereKey($id)->lockForUpdate()->firstOrFail();
+    }
+
+    public function lockForConsolidation(array $ids): Collection
+    {
+        return SupplyProposal::query()
+            ->with(['item', 'supplier'])
+            ->whereIn('id', $ids)
+            ->orderBy('id')
+            ->lockForUpdate()
+            ->get();
     }
 
     public function itemOptions(int $limit = 500): Collection

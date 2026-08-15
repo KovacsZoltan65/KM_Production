@@ -30,6 +30,7 @@ use Illuminate\Support\Carbon;
  * @property-read MaterialRequirement|null $materialRequirement
  * @property-read PurchaseRequisition|null $purchaseRequisition
  * @property-read Collection<int, PurchaseRequisitionItemSource> $sources
+ * @property-read Collection<int, PurchaseRequisitionItemProposalSource> $proposalSources
  * @property-read int|null $sources_count
  * @property-read Collection<int, MaterialRequirement> $sourceMaterialRequirements
  * @property-read int|null $source_material_requirements_count
@@ -91,6 +92,12 @@ class PurchaseRequisitionItem extends Model
     public function sources(): HasMany
     {
         return $this->hasMany(PurchaseRequisitionItemSource::class);
+    }
+
+    /** @return HasMany<PurchaseRequisitionItemProposalSource, $this> */
+    public function proposalSources(): HasMany
+    {
+        return $this->hasMany(PurchaseRequisitionItemProposalSource::class);
     }
 
     /**

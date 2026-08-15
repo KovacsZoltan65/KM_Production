@@ -42,6 +42,9 @@ it('routes MRP foundation files to the focused backend and frontend suites', fun
     'item supplier frontend' => ['resources/js/Pages/Admin/ItemSuppliers/Index.vue', 'tests/frontend/pages/ItemSupplierIndex.test.js'],
     'netting service' => ['app/Services/Admin/MaterialRequirementNettingService.php', 'tests/Feature/MaterialRequirementNettingTest.php'],
     'pegging service' => ['app/Services/Admin/MaterialRequirementPeggingService.php', 'tests/Feature/MaterialRequirementPeggingTest.php'],
+    'requisition consolidation service' => ['app/Services/Admin/PurchaseRequisitionConsolidationService.php', 'tests/Feature/PurchaseRequisitionConsolidationTest.php'],
+    'requisition consolidation request' => ['app/Http/Requests/Admin/ConsolidatePurchaseRequisitionsRequest.php', 'tests/Feature/PurchaseRequisitionConsolidationTest.php'],
+    'proposal source model' => ['app/Models/PurchaseRequisitionItemProposalSource.php', 'tests/Feature/PurchaseRequisitionConsolidationTest.php'],
 ]);
 
 it('maps a BOM Vue page to BOM and production modules', function () {

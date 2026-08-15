@@ -121,6 +121,9 @@ class PurchaseRequisitionService
         return $purchaseRequisition;
     }
 
+    /**
+     * @deprecated Use PurchaseRequisitionConsolidationService with approved Supply Proposals.
+     */
     public function generateFromMaterialRequirements(?User $causer = null): PurchaseRequisition
     {
         $requisition = DB::transaction(function () use ($causer): PurchaseRequisition {
@@ -189,6 +192,12 @@ class PurchaseRequisitionService
 
             if ($purchaseRequisition->status !== PurchaseRequisitionStatus::Approved) {
                 throw ValidationException::withMessages(['status' => __('procurement.purchase_requisitions.validation.only_approved_generate_po')]);
+            }
+
+            if ($purchaseRequisition->supplier_id !== null && $purchaseRequisition->supplier_id !== $supplierId) {
+                throw ValidationException::withMessages([
+                    'supplier_id' => __('procurement.purchase_requisitions.validation.supplier_mismatch'),
+                ]);
             }
 
             $purchaseRequisition->load('items');
