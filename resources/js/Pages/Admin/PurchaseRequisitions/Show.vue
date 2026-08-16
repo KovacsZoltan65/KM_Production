@@ -18,6 +18,31 @@ import { computed, ref } from "vue";
 
 /** @typedef {{id: number, label: string}} SupplierOption */
 /**
+ * @typedef {Object} SupplierCandidateSource
+ * @property {number} item_supplier_id
+ * @property {number} item_id
+ * @property {string} item_number
+ * @property {string} item_name
+ * @property {boolean} preferred
+ * @property {number} priority
+ * @property {number|null} lead_time_days
+ * @property {string|null} unit_price
+ * @property {string|null} currency
+ * @property {string} purchase_unit
+ * @property {string} conversion_factor
+ * @property {string|null} minimum_order_quantity
+ * @property {string|null} order_multiple
+ * @property {string|null} valid_from
+ * @property {string|null} valid_until
+ */
+/**
+ * @typedef {Object} SupplierCandidate
+ * @property {number} supplier_id
+ * @property {string} supplier_code
+ * @property {string} supplier_name
+ * @property {SupplierCandidateSource[]} sources
+ */
+/**
  * Beszerzési igénytétel forrása.
  * @typedef {Object} RequisitionSource
  * @property {number} id A forrás azonosítója.
@@ -49,27 +74,42 @@ import { computed, ref } from "vue";
  * @typedef {Object} Props
  * @property {PurchaseRequisitionRecord} purchaseRequisition A megjelenített beszerzési igény.
  * @property {SupplierOption[]} supplierOptions A választható beszállítók.
+ * @property {SupplierCandidate[]} supplierCandidates A minden PR tételhez alkalmas beszállítók.
+ * @property {boolean} canSelectSupplier A felhasználó supplier-választási jogosultsága.
  */
 /** @type {Props} */
 const props = defineProps({
     purchaseRequisition: Object,
     supplierOptions: Array,
+    supplierCandidates: Array,
+    canSelectSupplier: Boolean,
 });
 const confirm = useConfirm();
 const toast = useToast();
-const dialogVisible = ref(false);
+const poDialogVisible = ref(false);
+const supplierDialogVisible = ref(false);
 const approving = ref(false);
 const generating = ref(false);
+const selectingSupplier = ref(false);
 const form = useForm({
     supplier_id: props.purchaseRequisition.supplier_id ?? null,
     expected_delivery_date: null,
 });
-const actionPending = computed(() => approving.value || generating.value);
+const supplierForm = useForm({ supplier_id: null });
+const actionPending = computed(
+    () => approving.value || generating.value || selectingSupplier.value,
+);
 const canApprove = computed(() =>
     ["draft", "requested"].includes(props.purchaseRequisition.status),
 );
 const canGeneratePo = computed(
     () => props.purchaseRequisition.status === "approved",
+);
+const canOpenSupplierSelection = computed(
+    () =>
+        props.canSelectSupplier &&
+        props.purchaseRequisition.status === "draft" &&
+        props.purchaseRequisition.supplier_id == null,
 );
 const hasProposalSources = computed(() =>
     props.purchaseRequisition.items.some(
@@ -84,6 +124,9 @@ const severity = (value) =>
         cancelled: "danger",
     })[value] || "secondary";
 const number = (value) => Number(value || 0).toFixed(3);
+const valueOrDash = (value) => value ?? "-";
+const validity = (source) =>
+    `${source.valid_from || "-"} – ${source.valid_until || "-"}`;
 const approve = () =>
     confirm.require({
         message: trans(
@@ -139,6 +182,33 @@ const generatePo = () => {
         },
     );
 };
+/** @param {SupplierCandidate} candidate */
+const selectSupplier = (candidate) => {
+    if (actionPending.value) {
+        return;
+    }
+
+    selectingSupplier.value = true;
+    supplierForm.supplier_id = candidate.supplier_id;
+    supplierForm.patch(
+        route(
+            "admin.purchase-requisitions.select-supplier",
+            props.purchaseRequisition.id,
+        ),
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                supplierDialogVisible.value = false;
+            },
+            onError: (error) => {
+                notifyRequestError(toast, error);
+            },
+            onFinish: () => {
+                selectingSupplier.value = false;
+            },
+        },
+    );
+};
 </script>
 
 <template>
@@ -189,6 +259,19 @@ const generatePo = () => {
                 </div>
                 <div class="flex gap-2">
                     <Button
+                        v-if="canOpenSupplierSelection"
+                        type="button"
+                        :label="
+                            trans(
+                                'procurement.supplier_selection.actions.select',
+                            )
+                        "
+                        icon="pi pi-users"
+                        outlined
+                        :disabled="actionPending"
+                        @click="supplierDialogVisible = true"
+                    />
+                    <Button
                         v-if="canApprove"
                         type="button"
                         :label="trans('actions.approve')"
@@ -210,7 +293,7 @@ const generatePo = () => {
                         outlined
                         :loading="generating"
                         :disabled="actionPending"
-                        @click="dialogVisible = true"
+                        @click="poDialogVisible = true"
                     />
                 </div>
             </div>
@@ -317,7 +400,155 @@ const generatePo = () => {
             </div>
         </div>
         <Dialog
-            v-model:visible="dialogVisible"
+            v-model:visible="supplierDialogVisible"
+            modal
+            :header="trans('procurement.supplier_selection.eligible_suppliers')"
+            class="w-[min(72rem,calc(100vw-2rem))]"
+        >
+            <p class="mb-4 text-sm text-slate-600">
+                {{ trans("procurement.supplier_selection.manual_notice") }}
+            </p>
+            <div
+                v-if="supplierCandidates.length === 0"
+                class="rounded border border-amber-200 bg-amber-50 p-4 text-amber-900"
+            >
+                {{ trans("procurement.supplier_selection.no_eligible") }}
+            </div>
+            <div v-else class="space-y-4">
+                <section
+                    v-for="candidate in supplierCandidates"
+                    :key="candidate.supplier_id"
+                    class="rounded border border-slate-200 p-4"
+                >
+                    <div
+                        class="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
+                    >
+                        <div>
+                            <div class="font-semibold">
+                                {{ candidate.supplier_code }} –
+                                {{ candidate.supplier_name }}
+                            </div>
+                            <div class="text-xs text-slate-500">
+                                {{
+                                    trans(
+                                        "procurement.supplier_selection.common_source_notice",
+                                    )
+                                }}
+                            </div>
+                        </div>
+                        <Button
+                            type="button"
+                            :label="
+                                trans(
+                                    'procurement.supplier_selection.actions.choose',
+                                )
+                            "
+                            icon="pi pi-check"
+                            :loading="
+                                selectingSupplier &&
+                                supplierForm.supplier_id ===
+                                    candidate.supplier_id
+                            "
+                            :disabled="actionPending"
+                            @click="selectSupplier(candidate)"
+                        />
+                    </div>
+                    <DataTable
+                        :value="candidate.sources"
+                        data-key="item_supplier_id"
+                        scrollable
+                    >
+                        <Column :header="trans('fields.item')"
+                            ><template #body="{ data }"
+                                >{{ data.item_number }} –
+                                {{ data.item_name }}</template
+                            ></Column
+                        >
+                        <Column
+                            :header="
+                                trans(
+                                    'procurement.supplier_selection.preferred',
+                                )
+                            "
+                            ><template #body="{ data }"
+                                ><Tag
+                                    :value="
+                                        data.preferred
+                                            ? trans('common.yes')
+                                            : trans('common.no')
+                                    "
+                                    :severity="
+                                        data.preferred ? 'success' : 'secondary'
+                                    " /></template
+                        ></Column>
+                        <Column
+                            field="priority"
+                            :header="
+                                trans('procurement.supplier_selection.priority')
+                            "
+                        />
+                        <Column
+                            :header="
+                                trans(
+                                    'procurement.supplier_selection.lead_time',
+                                )
+                            "
+                            ><template #body="{ data }">{{
+                                valueOrDash(data.lead_time_days)
+                            }}</template></Column
+                        >
+                        <Column
+                            :header="
+                                trans('procurement.supplier_selection.price')
+                            "
+                            ><template #body="{ data }"
+                                >{{ valueOrDash(data.unit_price) }}
+                                {{ data.currency || "" }}</template
+                            ></Column
+                        >
+                        <Column
+                            :header="
+                                trans(
+                                    'procurement.supplier_selection.purchase_unit',
+                                )
+                            "
+                            ><template #body="{ data }"
+                                >{{ data.purchase_unit }} ×
+                                {{ data.conversion_factor }}</template
+                            ></Column
+                        >
+                        <Column
+                            :header="
+                                trans('procurement.supplier_selection.moq')
+                            "
+                            ><template #body="{ data }">{{
+                                valueOrDash(data.minimum_order_quantity)
+                            }}</template></Column
+                        >
+                        <Column
+                            :header="
+                                trans(
+                                    'procurement.supplier_selection.order_multiple',
+                                )
+                            "
+                            ><template #body="{ data }">{{
+                                valueOrDash(data.order_multiple)
+                            }}</template></Column
+                        >
+                        <Column
+                            :header="
+                                trans('procurement.supplier_selection.validity')
+                            "
+                            ><template #body="{ data }">{{
+                                validity(data)
+                            }}</template></Column
+                        >
+                    </DataTable>
+                </section>
+            </div>
+        </Dialog>
+        <Dialog
+            v-model:visible="poDialogVisible"
             modal
             :header="
                 trans(
@@ -353,7 +584,7 @@ const generatePo = () => {
                         severity="secondary"
                         outlined
                         :disabled="generating"
-                        @click="dialogVisible = false"
+                        @click="poDialogVisible = false"
                     /><Button
                         type="submit"
                         :label="trans('actions.generate')"

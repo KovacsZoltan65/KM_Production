@@ -8,6 +8,7 @@ use App\Models\Supplier;
 use App\Repositories\Contracts\ItemSupplierRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
 class ItemSupplierRepository extends AbstractAdminRepository implements ItemSupplierRepositoryInterface
@@ -108,13 +109,33 @@ class ItemSupplierRepository extends AbstractAdminRepository implements ItemSupp
      */
     public function activeApprovedForItem(int $itemId): Collection
     {
+        return $this->eligibleForItemsAt([$itemId], today())
+            ->sortBy([
+                ['priority', 'asc'],
+                ['id', 'asc'],
+            ])
+            ->values();
+    }
+
+    public function eligibleForItemsAt(array $itemIds, Carbon $date): Collection
+    {
+        if ($itemIds === []) {
+            return collect();
+        }
+
         return ItemSupplier::query()
-            ->with('supplier')
-            ->where('item_id', $itemId)
+            ->with([
+                'item:id,item_number,name,unit,is_active',
+                'supplier:id,code,name,is_active',
+            ])
+            ->whereIn('item_id', $itemIds)
             ->active()
             ->approved()
-            ->validAt(now())
-            ->orderBy('priority')
+            ->validAt($date)
+            ->whereHas('item', fn (Builder $query): Builder => $query->where('is_active', true))
+            ->whereHas('supplier', fn (Builder $query): Builder => $query->where('is_active', true))
+            ->orderBy('supplier_id')
+            ->orderBy('item_id')
             ->orderBy('id')
             ->get();
     }

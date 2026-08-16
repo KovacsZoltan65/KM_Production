@@ -49,11 +49,39 @@ const requisition = (status) => ({
     items: [],
 });
 
-const mountPage = (status, overrides = {}) =>
+const candidate = {
+    supplier_id: 7,
+    supplier_code: "SUP-7",
+    supplier_name: "Supplier",
+    sources: [
+        {
+            item_supplier_id: 11,
+            item_id: 1,
+            item_number: "MAT-1",
+            item_name: "Material",
+            preferred: true,
+            priority: 1,
+            lead_time_days: 5,
+            unit_price: "1250.0000",
+            currency: "HUF",
+            purchase_unit: "bag",
+            conversion_factor: "25.000000",
+            minimum_order_quantity: "100.000",
+            order_multiple: "25.000",
+            valid_from: null,
+            valid_until: null,
+        },
+    ],
+};
+
+const mountPage = (status, overrides = {}, extraProps = {}) =>
     shallowMount(PurchaseRequisitionShow, {
         props: {
             purchaseRequisition: { ...requisition(status), ...overrides },
             supplierOptions: [{ id: 7, label: "SUP-7 - Supplier" }],
+            supplierCandidates: [],
+            canSelectSupplier: false,
+            ...extraProps,
         },
         global: {
             stubs: {
@@ -177,6 +205,61 @@ describe("Purchase Requisition workflow pending states", () => {
         wrapper.vm.generatePo();
 
         expect(wrapper.vm.form.post).not.toHaveBeenCalled();
+    });
+
+    it("shows deterministic supplier candidates only for an authorized supplierless draft", () => {
+        const wrapper = mountPage(
+            "draft",
+            {},
+            { supplierCandidates: [candidate], canSelectSupplier: true },
+        );
+
+        expect(wrapper.vm.canOpenSupplierSelection).toBe(true);
+        expect(wrapper.vm.supplierCandidates).toEqual([candidate]);
+        expect(wrapper.vm.supplierForm.patch).not.toHaveBeenCalled();
+        expect(wrapper.text()).toContain(
+            "procurement.supplier_selection.actions.select",
+        );
+    });
+
+    it("submits one explicit supplier choice and releases pending state after validation failure", () => {
+        const wrapper = mountPage(
+            "draft",
+            {},
+            { supplierCandidates: [candidate], canSelectSupplier: true },
+        );
+
+        wrapper.vm.selectSupplier(candidate);
+        wrapper.vm.selectSupplier(candidate);
+
+        expect(wrapper.vm.supplierForm.patch).toHaveBeenCalledOnce();
+        expect(wrapper.vm.supplierForm.patch).toHaveBeenCalledWith(
+            "/admin/purchase-requisitions/42/supplier",
+            expect.objectContaining({ preserveScroll: true }),
+        );
+        expect(wrapper.vm.supplierForm.supplier_id).toBe(7);
+        expect(wrapper.vm.selectingSupplier).toBe(true);
+
+        const callbacks = wrapper.vm.supplierForm.patch.mock.calls[0][1];
+        callbacks.onError({ supplier_id: "no longer eligible" });
+        callbacks.onFinish();
+
+        expect(wrapper.vm.selectingSupplier).toBe(false);
+        expect(services.toast.add).toHaveBeenCalled();
+    });
+
+    it("shows an explicit no-candidate state without mutating the requisition", () => {
+        const wrapper = mountPage(
+            "draft",
+            {},
+            { supplierCandidates: [], canSelectSupplier: true },
+        );
+
+        expect(wrapper.text()).toContain(
+            "procurement.supplier_selection.no_eligible",
+        );
+        expect(wrapper.vm.supplierForm.patch).not.toHaveBeenCalled();
+        expect(wrapper.props("purchaseRequisition").supplier_id).toBeNull();
     });
 
     it("shows proposal lineage state and keeps a requisition supplier fixed for PO generation", () => {

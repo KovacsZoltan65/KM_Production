@@ -45,6 +45,9 @@ it('routes MRP foundation files to the focused backend and frontend suites', fun
     'requisition consolidation service' => ['app/Services/Admin/PurchaseRequisitionConsolidationService.php', 'tests/Feature/PurchaseRequisitionConsolidationTest.php'],
     'requisition consolidation request' => ['app/Http/Requests/Admin/ConsolidatePurchaseRequisitionsRequest.php', 'tests/Feature/PurchaseRequisitionConsolidationTest.php'],
     'proposal source model' => ['app/Models/PurchaseRequisitionItemProposalSource.php', 'tests/Feature/PurchaseRequisitionConsolidationTest.php'],
+    'supplier selection service' => ['app/Services/Admin/SupplierSelectionService.php', 'tests/Feature/SupplierSelectionTest.php'],
+    'supplier selection request' => ['app/Http/Requests/Admin/SelectPurchaseRequisitionSupplierRequest.php', 'tests/Feature/SupplierSelectionTest.php'],
+    'supplier selection frontend' => ['resources/js/Pages/Admin/PurchaseRequisitions/Show.vue', 'tests/frontend/pages/PurchaseRequisitionShow.test.js'],
 ]);
 
 it('maps a BOM Vue page to BOM and production modules', function () {

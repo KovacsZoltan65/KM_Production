@@ -12,6 +12,12 @@ interface PurchaseRequisitionRepositoryInterface extends AdminRepositoryInterfac
 {
     public function findForShow(PurchaseRequisition $purchaseRequisition): PurchaseRequisition;
 
+    public function findForSupplierSelection(PurchaseRequisition $purchaseRequisition): PurchaseRequisition;
+
+    public function lockForSupplierSelection(int $requisitionId): PurchaseRequisition;
+
+    public function assignSupplier(PurchaseRequisition $requisition, int $supplierId): PurchaseRequisition;
+
     /** @param array<string, mixed> $attributes */
     public function createDraft(array $attributes): PurchaseRequisition;
 

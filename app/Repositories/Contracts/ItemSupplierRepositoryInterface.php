@@ -4,6 +4,7 @@ namespace App\Repositories\Contracts;
 
 use App\Models\ItemSupplier;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
 interface ItemSupplierRepositoryInterface extends AdminRepositoryInterface
@@ -24,6 +25,12 @@ interface ItemSupplierRepositoryInterface extends AdminRepositoryInterface
      * @return Collection<int, ItemSupplier>
      */
     public function activeApprovedForItem(int $itemId): Collection;
+
+    /**
+     * @param  list<int>  $itemIds
+     * @return Collection<int, ItemSupplier>
+     */
+    public function eligibleForItemsAt(array $itemIds, Carbon $date): Collection;
 
     /**
      * @return Collection<int, array{id: int, item_number: string, name: string, unit: string}>

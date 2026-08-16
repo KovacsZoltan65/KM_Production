@@ -8,6 +8,7 @@ use App\Http\Requests\Admin\ApprovePurchaseRequisitionRequest;
 use App\Http\Requests\Admin\ConsolidatePurchaseRequisitionsRequest;
 use App\Http\Requests\Admin\GeneratePurchaseOrderRequest;
 use App\Http\Requests\Admin\IndexRequest;
+use App\Http\Requests\Admin\SelectPurchaseRequisitionSupplierRequest;
 use App\Http\Requests\Admin\StorePurchaseRequisitionRequest;
 use App\Http\Requests\Admin\UpdatePurchaseRequisitionRequest;
 use App\Models\Item;
@@ -15,6 +16,7 @@ use App\Models\PurchaseRequisition;
 use App\Models\Supplier;
 use App\Services\Admin\PurchaseRequisitionConsolidationService;
 use App\Services\Admin\PurchaseRequisitionService;
+use App\Services\Admin\SupplierSelectionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Collection;
 use Inertia\Inertia;
@@ -25,6 +27,7 @@ class PurchaseRequisitionController extends Controller
     public function __construct(
         private readonly PurchaseRequisitionService $service,
         private readonly PurchaseRequisitionConsolidationService $consolidation,
+        private readonly SupplierSelectionService $supplierSelection,
     ) {}
 
     /**
@@ -60,11 +63,28 @@ class PurchaseRequisitionController extends Controller
     public function show(PurchaseRequisition $purchaseRequisition): Response
     {
         $this->authorize('view', $purchaseRequisition);
+        $purchaseRequisition = $this->service->findForShow($purchaseRequisition);
 
         return Inertia::render('Admin/PurchaseRequisitions/Show', [
-            'purchaseRequisition' => $this->service->findForShow($purchaseRequisition),
+            'purchaseRequisition' => $purchaseRequisition,
             'supplierOptions' => $this->supplierOptions(),
+            'supplierCandidates' => fn () => $this->supplierSelection
+                ->candidatesForPurchaseRequisition($purchaseRequisition),
+            'canSelectSupplier' => request()->user()?->can('update', $purchaseRequisition) ?? false,
         ]);
+    }
+
+    public function selectSupplier(
+        SelectPurchaseRequisitionSupplierRequest $request,
+        PurchaseRequisition $purchaseRequisition,
+    ): RedirectResponse {
+        $this->supplierSelection->selectSupplier(
+            $purchaseRequisition,
+            (int) $request->validated('supplier_id'),
+            $request->user(),
+        );
+
+        return back()->with('success', __('procurement.supplier_selection.messages.selected'));
     }
 
     /**

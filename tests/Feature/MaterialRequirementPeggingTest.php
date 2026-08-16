@@ -22,6 +22,8 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
 
+use function Pest\Laravel\assertDatabaseHas;
+
 uses(RefreshDatabase::class);
 
 it('creates the explicit persisted peg schema', function (): void {
@@ -88,7 +90,7 @@ it('persists exact stock and PO trace matching the 0009 kémcső coverage', func
         ->and($pegs[1]->quantity)->toBe('4.000')
         ->and($pegs->every(fn (MaterialRequirementPeg $peg): bool => ($peg->stock_balance_id === null) xor ($peg->purchase_order_item_id === null)))->toBeTrue();
 
-    $this->assertDatabaseHas('activity_log', [
+    assertDatabaseHas('activity_log', [
         'event' => 'material_requirement_pegging_recalculated',
         'subject_type' => MaterialRequirement::class,
         'subject_id' => $requirement->id,

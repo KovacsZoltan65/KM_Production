@@ -181,6 +181,8 @@ Route::middleware(['auth', 'verified'])
             ->name('purchase-requisitions.consolidate');
         Route::patch('purchase-requisitions/{purchaseRequisition}/approve', [AdminPurchaseRequisitionController::class, 'approve'])
             ->name('purchase-requisitions.approve');
+        Route::patch('purchase-requisitions/{purchaseRequisition}/supplier', [AdminPurchaseRequisitionController::class, 'selectSupplier'])
+            ->name('purchase-requisitions.select-supplier');
         Route::post('purchase-requisitions/{purchaseRequisition}/generate-purchase-order', [AdminPurchaseRequisitionController::class, 'generatePurchaseOrder'])
             ->name('purchase-requisitions.generate-purchase-order');
         Route::resource('purchase-requisitions', AdminPurchaseRequisitionController::class)

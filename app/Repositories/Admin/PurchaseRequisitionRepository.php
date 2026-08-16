@@ -55,6 +55,27 @@ class PurchaseRequisitionRepository extends AbstractAdminRepository implements P
         ])->loadCount('items');
     }
 
+    public function findForSupplierSelection(PurchaseRequisition $purchaseRequisition): PurchaseRequisition
+    {
+        return $purchaseRequisition->loadMissing('items.item');
+    }
+
+    public function lockForSupplierSelection(int $requisitionId): PurchaseRequisition
+    {
+        return PurchaseRequisition::query()
+            ->whereKey($requisitionId)
+            ->lockForUpdate()
+            ->with('items.item')
+            ->firstOrFail();
+    }
+
+    public function assignSupplier(PurchaseRequisition $requisition, int $supplierId): PurchaseRequisition
+    {
+        $requisition->update(['supplier_id' => $supplierId]);
+
+        return $requisition->refresh();
+    }
+
     public function createDraft(array $attributes): PurchaseRequisition
     {
         return PurchaseRequisition::query()->create($attributes);
