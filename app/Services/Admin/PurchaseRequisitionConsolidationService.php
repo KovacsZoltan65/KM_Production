@@ -84,6 +84,8 @@ final class PurchaseRequisitionConsolidationService
                     $item = $this->requisitions->createItem($requisition, [
                         'item_id' => $itemFirst->item_id,
                         'quantity' => $quantity,
+                        'planned_quantity' => $quantity,
+                        'replenishment_excess_quantity' => '0.000',
                         'unit' => $itemFirst->unit,
                         'status' => PurchaseRequisitionItemStatus::Draft->value,
                     ]);

@@ -56,6 +56,7 @@ Egy planning komponens:
 | `MaterialRequirementPeggingService`       | A 0009 allocation trace-ből current StockBalance/PO Item pegeket épít és perzisztál                            | 0010 planning traceability; tranzakciós rebuild, nem készletfoglalás vagy procurement execution                                           |
 | `PurchaseRequisitionConsolidationService` | Explicit selected approved Purchase Proposalokat Draft PR dokumentumokká csoportosít                           | 0011 execution orchestrator; supplier-, required- és proposed-supply-date szerint csoportosít, de nem választ Suppliert vagy generál PO-t |
 | `SupplierSelectionService`                | Supplierless Draft PR minden tételéhez közös eligible Supplier candidate-eket ad és manuális választást rögzít | 0012 procurement döntés; ItemSupplier az authoritative source, nincs automatikus ranking, quantity policy, PR split vagy PO-generálás     |
+| `PurchaseRequisitionReplenishmentService` | Supplier-resolved Draft PR minden tételére MOQ/order-multiple quantity policy-t alkalmaz                       | 0013 explicit execution-előkészítés; planned lineage-et őriz, requested quantityt és excesst ír, PO-t vagy stockot nem hoz létre          |
 
 ### Meglévő domain lánc
 
@@ -151,13 +152,13 @@ jövőbeli, még el nem készült production supply MRP-fedezetként való
 A nevek illeszkednek a jelenlegi `*Service` konvencióhoz, de implementáció előtt
 külön design review szükséges:
 
-| Komponens                             | Egyetlen elsődleges felelősség                                                                |
-| ------------------------------------- | --------------------------------------------------------------------------------------------- |
-| `MaterialRequirementsPlanningService` | Egy planning run koordinálása, bemeneti horizon és policy rögzítése, eredmények összeállítása |
-| `StockAvailabilityService`            | Használható on-hand stock meghatározása hely, quality, batch, reservation és idő alapján      |
-| `SupplyPlanningService`               | Elfogadható supply-k értékelése, shortage és stratégia-jelöltek képzése                       |
-| `SupplierSelectionService`            | Item procurement source-ok rangsorolása explicit, auditálható szabály szerint                 |
-| `ReplenishmentPlanningService`        | Az item replenishment strategy alkalmazása és paramétereinek értékelése                       |
+| Komponens                                 | Egyetlen elsődleges felelősség                                                                |
+| ----------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `MaterialRequirementsPlanningService`     | Egy planning run koordinálása, bemeneti horizon és policy rögzítése, eredmények összeállítása |
+| `StockAvailabilityService`                | Használható on-hand stock meghatározása hely, quality, batch, reservation és idő alapján      |
+| `SupplyPlanningService`                   | Elfogadható supply-k értékelése, shortage és stratégia-jelöltek képzése                       |
+| `SupplierSelectionService`                | Item procurement source-ok rangsorolása explicit, auditálható szabály szerint                 |
+| `PurchaseRequisitionReplenishmentService` | A kiválasztott procurement source mennyiségi feltételeinek alkalmazása a Draft PR-en          |
 
 A BOM explosion külön kalkulátor lehet. A repository-k csak adatot szolgáltatnak;
 nem döntik el, hogy egy supply elfogadható-e vagy mely supplier nyer.
@@ -322,7 +323,30 @@ nem generál PO-t és nem ír készletet. A részletes döntést a
 
 ### Replenishment Strategy
 
-Jövőbeli extension pointok:
+A 0013 V1 explicit Draft PR actionként alkalmazza a kiválasztott
+`ItemSupplier` base-unit MOQ és order multiple feltételeit. A source Proposal
+mennyiségek összege változatlan `planned_quantity`, a
+`PurchaseRequisitionItem.quantity` a számítás utáni requested mennyiség, a
+különbség pedig `replenishment_excess_quantity`. A szabály integer thousandths
+aritmetikával előbb az MOQ minimumot, majd a felfelé kerekített order multiple-t
+alkalmazza. Nulla demand nem aktivál MOQ-t.
+
+```text
+planned = 10.000 kg
+MOQ = 12.000 kg
+multiple = 5.000 kg
+→ requested = 15.000 kg
+→ excess = 5.000 kg
+```
+
+Minden újraszámítás az eredeti planned mennyiségből indul. A PR-nek Draftnak és
+supplier-resolvednak kell lennie, minden Itemhez aktuálisan eligible source
+szükséges. A számítás tranzakciós és auditált; nem approve-ol PR-t, nem generál
+PO-t és nem módosít stockot. A részletes contractot a
+[0013 Replenishment Strategies ADR](../decisions/0013-replenishment-strategies.md)
+rögzíti.
+
+Jövőbeli stock-policy extension pointok:
 
 - `make_to_order`;
 - `make_to_stock`;
@@ -437,7 +461,10 @@ Az első későbbi implementációk ajánlott sorrendje:
    konszolidációja explicit Proposal source trace-szel.~~ Elkészült a 0011
    döntésben.
 7. ~~Supplier selection policy (0012).~~ Elkészült a 0012 döntésben.
-8. Replenishment strategy és quantity-policy (0013).
+8. ~~Replenishment strategy és quantity-policy (0013).~~ Elkészült a 0013
+   döntésben.
+9. Purchase Requisition execution readiness és Purchase Order creation
+   hardening (source/policy snapshot, freshness, approval guard és ár).
 
 ### Legacy direct Requirement → PR deprecation
 
@@ -451,6 +478,8 @@ Approved Supply Proposal
 → Purchase Requisition
 → Supplier Selection
 → supplier-resolved Draft Purchase Requisition
+→ Replenishment Calculation
+→ quantity-adjusted Draft Purchase Requisition
 ```
 
 A legacy út csak az új workflow regressziós időszaka, a régi UI átvezetése és a
@@ -471,6 +500,7 @@ kap helyet. Controller nem tartalmazhat nettinget vagy supplier-döntést.
 - [Requirement Pegging ADR](../decisions/0010-requirement-pegging.md)
 - [Purchase Requisition Consolidation ADR](../decisions/0011-purchase-requisition-consolidation.md)
 - [Supplier Selection ADR](../decisions/0012-supplier-selection.md)
+- [Replenishment Strategies ADR](../decisions/0013-replenishment-strategies.md)
 - [Inventory](inventory.md)
 - [Procurement](procurement.md)
 - [Production](production.md)

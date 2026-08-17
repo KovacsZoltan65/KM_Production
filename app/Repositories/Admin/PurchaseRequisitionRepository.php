@@ -76,6 +76,22 @@ class PurchaseRequisitionRepository extends AbstractAdminRepository implements P
         return $requisition->refresh();
     }
 
+    public function lockForReplenishment(int $requisitionId): PurchaseRequisition
+    {
+        return PurchaseRequisition::query()
+            ->whereKey($requisitionId)
+            ->lockForUpdate()
+            ->with(['supplier', 'items.item', 'items.proposalSources'])
+            ->firstOrFail();
+    }
+
+    public function updateItemReplenishment(PurchaseRequisitionItem $item, array $attributes): PurchaseRequisitionItem
+    {
+        $item->update($attributes);
+
+        return $item->refresh();
+    }
+
     public function createDraft(array $attributes): PurchaseRequisition
     {
         return PurchaseRequisition::query()->create($attributes);

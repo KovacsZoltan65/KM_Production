@@ -81,6 +81,7 @@ const mountPage = (status, overrides = {}, extraProps = {}) =>
             supplierOptions: [{ id: 7, label: "SUP-7 - Supplier" }],
             supplierCandidates: [],
             canSelectSupplier: false,
+            canCalculateReplenishment: false,
             ...extraProps,
         },
         global: {
@@ -283,4 +284,67 @@ describe("Purchase Requisition workflow pending states", () => {
         expect(wrapper.vm.hasProposalSources).toBe(true);
         expect(wrapper.vm.form.supplier_id).toBe(7);
     });
+
+    it("calculates replenishment explicitly only for an authorized supplier-resolved draft", async () => {
+        const wrapper = mountPage(
+            "draft",
+            {
+                supplier_id: 7,
+                supplier: { id: 7, name: "Supplier" },
+                items: [
+                    {
+                        id: 1,
+                        planned_quantity: "10.000",
+                        quantity: "15.000",
+                        replenishment_excess_quantity: "5.000",
+                        replenishment_strategy: "moq_and_order_multiple",
+                        replenishment_minimum_order_quantity: "12.000",
+                        replenishment_order_multiple: "5.000",
+                        proposal_sources: [],
+                    },
+                ],
+            },
+            { canCalculateReplenishment: true },
+        );
+
+        expect(wrapper.vm.canCalculateReplenishment).toBe(true);
+        expect(wrapper.text()).toContain(
+            "procurement.replenishment.actions.calculate",
+        );
+
+        wrapper.vm.calculateReplenishment();
+        wrapper.vm.calculateReplenishment();
+        await nextTick();
+
+        expect(inertiaRouter.patch).toHaveBeenCalledOnce();
+        expect(inertiaRouter.patch).toHaveBeenCalledWith(
+            "/admin/purchase-requisitions/42/replenishment",
+            {},
+            expect.objectContaining({ preserveScroll: true }),
+        );
+        expect(wrapper.vm.calculatingReplenishment).toBe(true);
+
+        inertiaRouter.patch.mock.calls[0][2].onFinish();
+        await nextTick();
+        expect(wrapper.vm.calculatingReplenishment).toBe(false);
+    });
+
+    it.each([
+        ["draft", null],
+        ["requested", 7],
+        ["approved", 7],
+        ["ordered", 7],
+        ["cancelled", 7],
+    ])(
+        "does not offer replenishment for %s with supplier %s",
+        (status, supplierId) => {
+            const wrapper = mountPage(
+                status,
+                { supplier_id: supplierId },
+                { canCalculateReplenishment: true },
+            );
+
+            expect(wrapper.vm.canCalculateReplenishment).toBe(false);
+        },
+    );
 });

@@ -59,6 +59,8 @@ class PurchaseRequisitionService
                 $requisition->items()->create([
                     'item_id' => $item['item_id'],
                     'quantity' => $item['quantity'],
+                    'planned_quantity' => $item['quantity'],
+                    'replenishment_excess_quantity' => 0,
                     'unit' => $item['unit'],
                     'status' => PurchaseRequisitionItemStatus::Requested->value,
                     'notes' => $item['notes'] ?? null,
@@ -157,6 +159,8 @@ class PurchaseRequisitionService
                         'item_id' => $first->required_item_id,
                         'material_requirement_id' => $first->id,
                         'quantity' => $group->sum(fn (MaterialRequirement $requirement): float => (float) $requirement->missing_quantity),
+                        'planned_quantity' => $group->sum(fn (MaterialRequirement $requirement): float => (float) $requirement->missing_quantity),
+                        'replenishment_excess_quantity' => 0,
                         'unit' => $first->unit,
                         'status' => PurchaseRequisitionItemStatus::Requested->value,
                     ]);

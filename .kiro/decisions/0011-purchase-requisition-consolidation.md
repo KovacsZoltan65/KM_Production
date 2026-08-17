@@ -1,6 +1,6 @@
 # Purchase Requisition Consolidation
 
-- **Állapot:** Elfogadva, implementáció alatt
+- **Állapot:** Elfogadva és implementálva
 - **Dátum:** 2026-08-14
 - **Kapcsolódó döntések:** [0006 MRP Architecture](0006-material-requirements-planning-architecture.md), [0007 Item Supplier](0007-item-supplier-procurement-source.md), [0008 Supply Proposal](0008-supply-proposal.md), [0008.5 MRP Foundation Hardening](0008-5-mrp-foundation-hardening.md), [0009 Netting](0009-material-requirement-netting.md), [0010 Pegging](0010-requirement-pegging.md)
 
@@ -85,11 +85,17 @@ purchase-unit conversion és rounding nem része a 0011-nek.
 
 V1-ben partial Proposal consumption nincs: egy Proposal teljes
 `proposed_quantity` értéke pontosan egy PR Item source sorba kerül. Persist előtt
-és után teljesül:
+és közvetlenül a konszolidáció után teljesül:
 
 ```text
 sum(proposal source quantities) == purchase requisition item quantity
 ```
+
+A későbbi 0013 replenishment calculation ezt az invariantet explicit
+lifecycle-határon bővíti: a változatlan source total a külön
+`planned_quantity`, míg a PR Item `quantity` a supplier constraint szerinti
+requested quantity. Ekkor `planned_quantity + replenishment_excess_quantity =
+quantity`; a Proposal source sorok nem növekednek az excess értékével.
 
 ### Source traceability és fogyasztási állapot
 

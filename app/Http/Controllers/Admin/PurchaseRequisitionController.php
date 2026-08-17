@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Enums\PurchaseRequisitionStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ApprovePurchaseRequisitionRequest;
+use App\Http\Requests\Admin\CalculatePurchaseRequisitionReplenishmentRequest;
 use App\Http\Requests\Admin\ConsolidatePurchaseRequisitionsRequest;
 use App\Http\Requests\Admin\GeneratePurchaseOrderRequest;
 use App\Http\Requests\Admin\IndexRequest;
@@ -15,6 +16,7 @@ use App\Models\Item;
 use App\Models\PurchaseRequisition;
 use App\Models\Supplier;
 use App\Services\Admin\PurchaseRequisitionConsolidationService;
+use App\Services\Admin\PurchaseRequisitionReplenishmentService;
 use App\Services\Admin\PurchaseRequisitionService;
 use App\Services\Admin\SupplierSelectionService;
 use Illuminate\Http\RedirectResponse;
@@ -28,6 +30,7 @@ class PurchaseRequisitionController extends Controller
         private readonly PurchaseRequisitionService $service,
         private readonly PurchaseRequisitionConsolidationService $consolidation,
         private readonly SupplierSelectionService $supplierSelection,
+        private readonly PurchaseRequisitionReplenishmentService $replenishment,
     ) {}
 
     /**
@@ -71,6 +74,7 @@ class PurchaseRequisitionController extends Controller
             'supplierCandidates' => fn () => $this->supplierSelection
                 ->candidatesForPurchaseRequisition($purchaseRequisition),
             'canSelectSupplier' => request()->user()?->can('update', $purchaseRequisition) ?? false,
+            'canCalculateReplenishment' => request()->user()?->can('update', $purchaseRequisition) ?? false,
         ]);
     }
 
@@ -85,6 +89,18 @@ class PurchaseRequisitionController extends Controller
         );
 
         return back()->with('success', __('procurement.supplier_selection.messages.selected'));
+    }
+
+    public function calculateReplenishment(
+        CalculatePurchaseRequisitionReplenishmentRequest $request,
+        PurchaseRequisition $purchaseRequisition,
+    ): RedirectResponse {
+        $this->replenishment->calculateForPurchaseRequisition(
+            $purchaseRequisition,
+            $request->user(),
+        );
+
+        return back()->with('success', __('procurement.replenishment.messages.calculated'));
     }
 
     /**

@@ -33,6 +33,12 @@ interface ItemSupplierRepositoryInterface extends AdminRepositoryInterface
     public function eligibleForItemsAt(array $itemIds, Carbon $date): Collection;
 
     /**
+     * @param  list<int>  $itemIds
+     * @return Collection<int, ItemSupplier>
+     */
+    public function eligibleForSupplierAndItemsAt(int $supplierId, array $itemIds, Carbon $date): Collection;
+
+    /**
      * @return Collection<int, array{id: int, item_number: string, name: string, unit: string}>
      */
     public function itemOptions(int $limit = 500): Collection;

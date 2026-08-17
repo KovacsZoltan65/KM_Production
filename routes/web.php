@@ -183,6 +183,8 @@ Route::middleware(['auth', 'verified'])
             ->name('purchase-requisitions.approve');
         Route::patch('purchase-requisitions/{purchaseRequisition}/supplier', [AdminPurchaseRequisitionController::class, 'selectSupplier'])
             ->name('purchase-requisitions.select-supplier');
+        Route::patch('purchase-requisitions/{purchaseRequisition}/replenishment', [AdminPurchaseRequisitionController::class, 'calculateReplenishment'])
+            ->name('purchase-requisitions.calculate-replenishment');
         Route::post('purchase-requisitions/{purchaseRequisition}/generate-purchase-order', [AdminPurchaseRequisitionController::class, 'generatePurchaseOrder'])
             ->name('purchase-requisitions.generate-purchase-order');
         Route::resource('purchase-requisitions', AdminPurchaseRequisitionController::class)

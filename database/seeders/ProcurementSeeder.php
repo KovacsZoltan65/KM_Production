@@ -76,6 +76,8 @@ class ProcurementSeeder extends Seeder
                 ],
                 [
                     'quantity' => $seedItem['quantity'],
+                    'planned_quantity' => $seedItem['quantity'],
+                    'replenishment_excess_quantity' => 0,
                     'unit' => $item->unit,
                     'status' => PurchaseRequisitionItemStatus::Ordered->value,
                 ],

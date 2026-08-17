@@ -54,6 +54,12 @@ import { computed, ref } from "vue";
  * @typedef {Object} PurchaseRequisitionItem
  * @property {number} id A tétel azonosítója.
  * @property {number|string} quantity Az igényelt mennyiség.
+ * @property {number|string} planned_quantity A planning source mennyisége.
+ * @property {number|string} replenishment_excess_quantity A supplier policy miatti többlet.
+ * @property {string|null} replenishment_strategy A levezetett quantity strategy.
+ * @property {string|null} replenishment_minimum_order_quantity A számításkori MOQ snapshot.
+ * @property {string|null} replenishment_order_multiple A számításkori order multiple snapshot.
+ * @property {string|null} replenishment_calculated_at Az utolsó számítás időpontja.
  * @property {string} unit A mértékegység.
  * @property {string} status A tétel állapota.
  * @property {number|null} material_requirement_id A közvetlen anyagszükséglet azonosítója.
@@ -76,6 +82,7 @@ import { computed, ref } from "vue";
  * @property {SupplierOption[]} supplierOptions A választható beszállítók.
  * @property {SupplierCandidate[]} supplierCandidates A minden PR tételhez alkalmas beszállítók.
  * @property {boolean} canSelectSupplier A felhasználó supplier-választási jogosultsága.
+ * @property {boolean} canCalculateReplenishment A felhasználó quantity-számítási jogosultsága.
  */
 /** @type {Props} */
 const props = defineProps({
@@ -83,6 +90,7 @@ const props = defineProps({
     supplierOptions: Array,
     supplierCandidates: Array,
     canSelectSupplier: Boolean,
+    canCalculateReplenishment: Boolean,
 });
 const confirm = useConfirm();
 const toast = useToast();
@@ -91,13 +99,18 @@ const supplierDialogVisible = ref(false);
 const approving = ref(false);
 const generating = ref(false);
 const selectingSupplier = ref(false);
+const calculatingReplenishment = ref(false);
 const form = useForm({
     supplier_id: props.purchaseRequisition.supplier_id ?? null,
     expected_delivery_date: null,
 });
 const supplierForm = useForm({ supplier_id: null });
 const actionPending = computed(
-    () => approving.value || generating.value || selectingSupplier.value,
+    () =>
+        approving.value ||
+        generating.value ||
+        selectingSupplier.value ||
+        calculatingReplenishment.value,
 );
 const canApprove = computed(() =>
     ["draft", "requested"].includes(props.purchaseRequisition.status),
@@ -110,6 +123,12 @@ const canOpenSupplierSelection = computed(
         props.canSelectSupplier &&
         props.purchaseRequisition.status === "draft" &&
         props.purchaseRequisition.supplier_id == null,
+);
+const canCalculateReplenishment = computed(
+    () =>
+        props.canCalculateReplenishment &&
+        props.purchaseRequisition.status === "draft" &&
+        props.purchaseRequisition.supplier_id != null,
 );
 const hasProposalSources = computed(() =>
     props.purchaseRequisition.items.some(
@@ -131,7 +150,9 @@ const approve = () =>
     confirm.require({
         message: trans(
             "procurement.purchase_requisitions.confirm_approve_message",
-            { name: props.purchaseRequisition.requisition_number },
+            {
+                name: props.purchaseRequisition.requisition_number,
+            },
         ),
         header: trans(
             "procurement.purchase_requisitions.confirm_approve_header",
@@ -209,6 +230,29 @@ const selectSupplier = (candidate) => {
         },
     );
 };
+const calculateReplenishment = () => {
+    if (actionPending.value) {
+        return;
+    }
+
+    calculatingReplenishment.value = true;
+    router.patch(
+        route(
+            "admin.purchase-requisitions.calculate-replenishment",
+            props.purchaseRequisition.id,
+        ),
+        {},
+        {
+            preserveScroll: true,
+            onError: (error) => {
+                notifyRequestError(toast, error);
+            },
+            onFinish: () => {
+                calculatingReplenishment.value = false;
+            },
+        },
+    );
+};
 </script>
 
 <template>
@@ -272,6 +316,18 @@ const selectSupplier = (candidate) => {
                         @click="supplierDialogVisible = true"
                     />
                     <Button
+                        v-if="canCalculateReplenishment"
+                        type="button"
+                        :label="
+                            trans('procurement.replenishment.actions.calculate')
+                        "
+                        icon="pi pi-calculator"
+                        outlined
+                        :loading="calculatingReplenishment"
+                        :disabled="actionPending"
+                        @click="calculateReplenishment"
+                    />
+                    <Button
                         v-if="canApprove"
                         type="button"
                         :label="trans('actions.approve')"
@@ -305,11 +361,62 @@ const selectSupplier = (candidate) => {
                             {{ data.item?.name }}</template
                         ></Column
                     >
-                    <Column :header="trans('fields.quantity')"
+                    <Column
+                        :header="
+                            trans('procurement.replenishment.planned_quantity')
+                        "
+                        ><template #body="{ data }"
+                            >{{ number(data.planned_quantity) }}
+                            {{ data.unit }}</template
+                        ></Column
+                    >
+                    <Column
+                        :header="
+                            trans(
+                                'procurement.replenishment.requested_quantity',
+                            )
+                        "
                         ><template #body="{ data }"
                             >{{ number(data.quantity) }}
                             {{ data.unit }}</template
                         ></Column
+                    >
+                    <Column
+                        :header="
+                            trans('procurement.replenishment.excess_quantity')
+                        "
+                        ><template #body="{ data }"
+                            >{{ number(data.replenishment_excess_quantity) }}
+                            {{ data.unit }}</template
+                        ></Column
+                    >
+                    <Column
+                        :header="trans('procurement.supplier_selection.moq')"
+                        ><template #body="{ data }">{{
+                            valueOrDash(
+                                data.replenishment_minimum_order_quantity,
+                            )
+                        }}</template></Column
+                    >
+                    <Column
+                        :header="
+                            trans(
+                                'procurement.supplier_selection.order_multiple',
+                            )
+                        "
+                        ><template #body="{ data }">{{
+                            valueOrDash(data.replenishment_order_multiple)
+                        }}</template></Column
+                    >
+                    <Column
+                        :header="trans('procurement.replenishment.strategy')"
+                        ><template #body="{ data }">{{
+                            data.replenishment_strategy
+                                ? trans(
+                                      `procurement.replenishment.strategies.${data.replenishment_strategy}`,
+                                  )
+                                : "-"
+                        }}</template></Column
                     >
                     <Column field="status" :header="trans('fields.status')"
                         ><template #body="{ data }"

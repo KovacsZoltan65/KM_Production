@@ -18,6 +18,11 @@ interface PurchaseRequisitionRepositoryInterface extends AdminRepositoryInterfac
 
     public function assignSupplier(PurchaseRequisition $requisition, int $supplierId): PurchaseRequisition;
 
+    public function lockForReplenishment(int $requisitionId): PurchaseRequisition;
+
+    /** @param array<string, mixed> $attributes */
+    public function updateItemReplenishment(PurchaseRequisitionItem $item, array $attributes): PurchaseRequisitionItem;
+
     /** @param array<string, mixed> $attributes */
     public function createDraft(array $attributes): PurchaseRequisition;
 

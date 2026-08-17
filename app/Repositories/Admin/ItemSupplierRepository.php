@@ -140,6 +140,13 @@ class ItemSupplierRepository extends AbstractAdminRepository implements ItemSupp
             ->get();
     }
 
+    public function eligibleForSupplierAndItemsAt(int $supplierId, array $itemIds, Carbon $date): Collection
+    {
+        return $this->eligibleForItemsAt($itemIds, $date)
+            ->where('supplier_id', $supplierId)
+            ->values();
+    }
+
     public function itemOptions(int $limit = 500): Collection
     {
         return Item::query()

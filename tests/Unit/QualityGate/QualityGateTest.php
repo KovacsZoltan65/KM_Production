@@ -47,6 +47,9 @@ it('routes MRP foundation files to the focused backend and frontend suites', fun
     'proposal source model' => ['app/Models/PurchaseRequisitionItemProposalSource.php', 'tests/Feature/PurchaseRequisitionConsolidationTest.php'],
     'supplier selection service' => ['app/Services/Admin/SupplierSelectionService.php', 'tests/Feature/SupplierSelectionTest.php'],
     'supplier selection request' => ['app/Http/Requests/Admin/SelectPurchaseRequisitionSupplierRequest.php', 'tests/Feature/SupplierSelectionTest.php'],
+    'replenishment service' => ['app/Services/Admin/PurchaseRequisitionReplenishmentService.php', 'tests/Feature/PurchaseRequisitionReplenishmentTest.php'],
+    'replenishment result' => ['app/Support/Procurement/ReplenishmentQuantityResult.php', 'tests/Feature/PurchaseRequisitionReplenishmentTest.php'],
+    'replenishment request' => ['app/Http/Requests/Admin/CalculatePurchaseRequisitionReplenishmentRequest.php', 'tests/Feature/PurchaseRequisitionReplenishmentTest.php'],
     'supplier selection frontend' => ['resources/js/Pages/Admin/PurchaseRequisitions/Show.vue', 'tests/frontend/pages/PurchaseRequisitionShow.test.js'],
 ]);
 

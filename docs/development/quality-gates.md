@@ -221,7 +221,7 @@ Development work must use the project's layered quality gate system.
 
 Az `mrp` logikai modul a Material Requirement, Item Supplier, Supply Proposal,
 Material Requirement Netting, Requirement Pegging, Purchase Requisition
-Consolidation és Supplier Selection fájlokat a fókuszált backend/frontend
+Consolidation, Supplier Selection és Replenishment fájlokat a fókuszált backend/frontend
 suite-okhoz route-olja, és
 kapcsolódó modulként bevonja az inventory, procurement és production-planning
 ellenőrzéseket.

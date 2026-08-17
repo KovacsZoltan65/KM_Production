@@ -20,11 +20,15 @@ class PurchaseRequisitionItemFactory extends Factory
      */
     public function definition(): array
     {
+        $quantity = fake()->randomFloat(3, 1, 100);
+
         return [
             'purchase_requisition_id' => PurchaseRequisition::factory(),
             'material_requirement_id' => null,
             'item_id' => Item::factory()->purchasedMaterial(),
-            'quantity' => fake()->randomFloat(3, 1, 100),
+            'quantity' => $quantity,
+            'planned_quantity' => $quantity,
+            'replenishment_excess_quantity' => 0,
             'unit' => 'db',
             'status' => PurchaseRequisitionItemStatus::Draft,
             'notes' => fake()->optional()->sentence(),

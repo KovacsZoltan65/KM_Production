@@ -66,6 +66,7 @@ Memory
 - [Requirement Pegging](decisions/0010-requirement-pegging.md): a requirement coverage konkrét StockBalance és firm PO Item planning trace-e.
 - [Purchase Requisition Consolidation](decisions/0011-purchase-requisition-consolidation.md): approved Purchase Supply Proposalok determinisztikus Draft PR csoportosítása explicit Proposal source trace-szel.
 - [Supplier Selection](decisions/0012-supplier-selection.md): supplierless Draft PR-k manuális, common eligible ItemSupplier-metszetből történő supplier feloldása.
+- [Replenishment Strategies](decisions/0013-replenishment-strategies.md): supplier-resolved Draft PR-k planned mennyiségéből MOQ és order multiple alapján exact, auditálható requested mennyiséget számít.
 
 ## Reader-Facing Documentation
 
