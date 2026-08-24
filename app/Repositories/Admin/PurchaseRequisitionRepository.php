@@ -55,6 +55,15 @@ class PurchaseRequisitionRepository extends AbstractAdminRepository implements P
         ])->loadCount('items');
     }
 
+    public function findForExecutionReadiness(PurchaseRequisition $purchaseRequisition): PurchaseRequisition
+    {
+        return $purchaseRequisition->load([
+            'supplier',
+            'items.item',
+            'items.proposalSources',
+        ]);
+    }
+
     public function findForSupplierSelection(PurchaseRequisition $purchaseRequisition): PurchaseRequisition
     {
         return $purchaseRequisition->loadMissing('items.item');

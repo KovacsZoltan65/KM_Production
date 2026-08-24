@@ -74,6 +74,15 @@ const candidate = {
     ],
 };
 
+const readiness = (isReady = true, blockingReasons = [], warnings = []) => ({
+    purchase_requisition_id: 42,
+    is_ready: isReady,
+    blocking_reasons: blockingReasons,
+    warnings,
+    item_results: [],
+    checked_at: "2026-08-24T12:00:00.000000Z",
+});
+
 const mountPage = (status, overrides = {}, extraProps = {}) =>
     shallowMount(PurchaseRequisitionShow, {
         props: {
@@ -82,6 +91,7 @@ const mountPage = (status, overrides = {}, extraProps = {}) =>
             supplierCandidates: [],
             canSelectSupplier: false,
             canCalculateReplenishment: false,
+            executionReadiness: readiness(status === "approved"),
             ...extraProps,
         },
         global: {
@@ -179,6 +189,84 @@ describe("Purchase Requisition workflow pending states", () => {
 
         expect(wrapper.vm.generating).toBe(false);
         expect(services.toast.add).not.toHaveBeenCalled();
+    });
+
+    it("shows READY with warnings and keeps the PO action available", () => {
+        const wrapper = mountPage(
+            "approved",
+            {},
+            {
+                executionReadiness: readiness(
+                    true,
+                    [],
+                    [
+                        {
+                            code: "PRICE_MISSING",
+                            purchase_requisition_item_id: 1,
+                            parameters: { item: "MAT-1" },
+                        },
+                    ],
+                ),
+            },
+        );
+
+        expect(wrapper.vm.canGeneratePo).toBe(true);
+        expect(wrapper.text()).toContain(
+            "procurement.execution_readiness.ready",
+        );
+        expect(wrapper.text()).toContain(
+            "procurement.execution_readiness.reasons.price_missing",
+        );
+    });
+
+    it("shows structured blockers and disables PO generation for NOT READY", () => {
+        const blocker = {
+            code: "REPLENISHMENT_STALE",
+            purchase_requisition_item_id: 1,
+            parameters: { item: "MAT-1" },
+        };
+        const wrapper = mountPage(
+            "approved",
+            {},
+            { executionReadiness: readiness(false, [blocker]) },
+        );
+
+        expect(wrapper.vm.canShowGeneratePo).toBe(true);
+        expect(wrapper.vm.canGeneratePo).toBe(false);
+        expect(wrapper.text()).toContain(
+            "procurement.execution_readiness.not_ready",
+        );
+        expect(wrapper.text()).toContain(
+            "procurement.execution_readiness.reasons.replenishment_stale",
+        );
+
+        wrapper.vm.generatePo();
+        expect(wrapper.vm.form.post).not.toHaveBeenCalled();
+    });
+
+    it.each([
+        "SUPPLIER_MISSING",
+        "ITEM_SUPPLIER_INVALID",
+        "REPLENISHMENT_NOT_CALCULATED",
+        "QUANTITY_INVARIANT_FAILED",
+    ])("renders the %s blocker through i18n", (code) => {
+        const wrapper = mountPage(
+            "approved",
+            {},
+            {
+                executionReadiness: readiness(false, [
+                    {
+                        code,
+                        purchase_requisition_item_id: 1,
+                        parameters: { item: "MAT-1" },
+                    },
+                ]),
+            },
+        );
+
+        expect(wrapper.text()).toContain(
+            `procurement.execution_readiness.reasons.${code.toLowerCase()}`,
+        );
     });
 
     it("generation hiba után újrapróbálható és nem változtat lokális státuszt", () => {

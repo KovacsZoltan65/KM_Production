@@ -39,6 +39,9 @@ a magyar jelentés az üzleti értelmezést pontosítja.
 | `Order Multiple`                     | rendelési többszörös                | Az a mennyiségi lépés, amelynek egész számú többszörösében rendelhető az Item az adott procurement source-tól. Nem Minimum Order Quantity.                                                                                                              |
 | `Minimum Order Quantity` (`MOQ`)     | minimális rendelési mennyiség       | Az adott supplier/source által egy rendelésben elfogadott legkisebb mennyiség. MOQ miatti többlet nem növeli visszamenőleg a Gross Requirementet.                                                                                                       |
 | `Purchase Requisition`               | beszerzési igény                    | Belső, végrehajtás előtti beszerzési dokumentum. Jóváhagyható és Purchase Order alapja lehet; nem suppliernek tett megrendelés.                                                                                                                         |
+| `Purchase Requisition Approval`      | beszerzési igény jóváhagyása        | Üzleti döntés a PR igényének elfogadásáról. Nem bizonyítja, hogy az execution pillanatában a supplier, source, quantity és lineage még érvényes.                                                                                                       |
+| `Execution Readiness`                | végrehajtási készültség              | Nem perzisztált, aktuális és read-only értékelés arról, hogy egy Approved PR biztonságosan továbbléphet-e executionbe. Nem approval, reservation, lock vagy Purchase Order generation.                                                                  |
+| `Purchase Order Generation`          | beszerzési rendelés generálása      | Külön execution use case, amely readiness tranzakciós újraellenőrzése után hozhat létre supplier felé kötelezettséget és stabil execution snapshotot. Nem része a 0014 readiness értékelésnek.                                                          |
 | `Purchase Order`                     | beszerzési rendelés                 | Supplier felé létrehozott formális rendelés és üzleti kötelezettség. Nem Demand, Requirement vagy Proposal.                                                                                                                                             |
 | `Goods Receipt`                      | áruátvétel                          | A beérkezett áru rögzített üzleti eseménye. A received, accepted, rejected és stockba helyezett mennyiség eltérhet.                                                                                                                                     |
 | `On-hand Stock`                      | fizikailag nyilvántartott készlet   | A készletmozgásokból magyarázható, helyen lévő mennyiség. Nem automatikusan usable vagy available.                                                                                                                                                      |
@@ -77,6 +80,7 @@ rögzíteni.
 - [Material Requirements Planning Architecture ADR](../decisions/0006-material-requirements-planning-architecture.md)
 - [Material Requirement Netting ADR](../decisions/0009-material-requirement-netting.md)
 - [Replenishment Strategies ADR](../decisions/0013-replenishment-strategies.md)
+- [Purchase Requisition Execution Readiness ADR](../decisions/0014-purchase-requisition-execution-readiness.md)
 - [Inventory](inventory.md)
 - [Procurement](procurement.md)
 - [Production](production.md)

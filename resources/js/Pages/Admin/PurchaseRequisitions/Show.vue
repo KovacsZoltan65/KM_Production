@@ -18,6 +18,23 @@ import { computed, ref } from "vue";
 
 /** @typedef {{id: number, label: string}} SupplierOption */
 /**
+ * @typedef {Object} ExecutionReadinessReason
+ * @property {string} code
+ * @property {number|null} purchase_requisition_item_id
+ * @property {number|null} item_id
+ * @property {string|null} item_number
+ * @property {Object<string, number|string>} parameters
+ */
+/**
+ * @typedef {Object} ExecutionReadinessResult
+ * @property {number} purchase_requisition_id
+ * @property {boolean} is_ready
+ * @property {ExecutionReadinessReason[]} blocking_reasons
+ * @property {ExecutionReadinessReason[]} warnings
+ * @property {Array<Object>} item_results
+ * @property {string} checked_at
+ */
+/**
  * @typedef {Object} SupplierCandidateSource
  * @property {number} item_supplier_id
  * @property {number} item_id
@@ -83,6 +100,7 @@ import { computed, ref } from "vue";
  * @property {SupplierCandidate[]} supplierCandidates A minden PR tételhez alkalmas beszállítók.
  * @property {boolean} canSelectSupplier A felhasználó supplier-választási jogosultsága.
  * @property {boolean} canCalculateReplenishment A felhasználó quantity-számítási jogosultsága.
+ * @property {ExecutionReadinessResult} executionReadiness Az aktuális, nem perzisztált execution readiness eredmény.
  */
 /** @type {Props} */
 const props = defineProps({
@@ -91,6 +109,7 @@ const props = defineProps({
     supplierCandidates: Array,
     canSelectSupplier: Boolean,
     canCalculateReplenishment: Boolean,
+    executionReadiness: Object,
 });
 const confirm = useConfirm();
 const toast = useToast();
@@ -115,8 +134,11 @@ const actionPending = computed(
 const canApprove = computed(() =>
     ["draft", "requested"].includes(props.purchaseRequisition.status),
 );
-const canGeneratePo = computed(
+const canShowGeneratePo = computed(
     () => props.purchaseRequisition.status === "approved",
+);
+const canGeneratePo = computed(
+    () => canShowGeneratePo.value && props.executionReadiness.is_ready,
 );
 const canOpenSupplierSelection = computed(
     () =>
@@ -146,6 +168,11 @@ const number = (value) => Number(value || 0).toFixed(3);
 const valueOrDash = (value) => value ?? "-";
 const validity = (source) =>
     `${source.valid_from || "-"} – ${source.valid_until || "-"}`;
+const readinessReasonText = (reason) =>
+    trans(
+        `procurement.execution_readiness.reasons.${reason.code.toLowerCase()}`,
+        reason.parameters || {},
+    );
 const approve = () =>
     confirm.require({
         message: trans(
@@ -182,7 +209,7 @@ const approve = () =>
         },
     });
 const generatePo = () => {
-    if (actionPending.value) {
+    if (!canGeneratePo.value || actionPending.value) {
         return;
     }
 
@@ -338,7 +365,7 @@ const calculateReplenishment = () => {
                         @click="approve"
                     />
                     <Button
-                        v-if="canGeneratePo"
+                        v-if="canShowGeneratePo"
                         type="button"
                         :label="
                             trans(
@@ -348,11 +375,84 @@ const calculateReplenishment = () => {
                         icon="pi pi-shopping-cart"
                         outlined
                         :loading="generating"
-                        :disabled="actionPending"
+                        :disabled="actionPending || !canGeneratePo"
                         @click="poDialogVisible = true"
                     />
                 </div>
             </div>
+            <section
+                class="rounded border border-slate-200 bg-white p-4"
+                data-test="execution-readiness"
+            >
+                <div
+                    class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
+                >
+                    <div>
+                        <h2 class="text-lg font-semibold">
+                            {{ trans("procurement.execution_readiness.title") }}
+                        </h2>
+                        <p class="text-xs text-slate-500">
+                            {{
+                                trans(
+                                    "procurement.execution_readiness.checked_at",
+                                    {
+                                        checked_at:
+                                            executionReadiness.checked_at,
+                                    },
+                                )
+                            }}
+                        </p>
+                    </div>
+                    <span
+                        class="rounded px-3 py-1 text-sm font-semibold"
+                        :class="
+                            executionReadiness.is_ready
+                                ? 'bg-emerald-100 text-emerald-800'
+                                : 'bg-red-100 text-red-800'
+                        "
+                    >
+                        {{
+                            executionReadiness.is_ready
+                                ? trans("procurement.execution_readiness.ready")
+                                : trans(
+                                      "procurement.execution_readiness.not_ready",
+                                  )
+                        }}
+                    </span>
+                </div>
+                <div
+                    v-if="executionReadiness.blocking_reasons.length > 0"
+                    class="mt-4 rounded border border-red-200 bg-red-50 p-3 text-sm text-red-900"
+                >
+                    <div class="mb-1 font-semibold">
+                        {{ trans("procurement.execution_readiness.blockers") }}
+                    </div>
+                    <ul class="list-disc space-y-1 pl-5">
+                        <li
+                            v-for="reason in executionReadiness.blocking_reasons"
+                            :key="`blocker-${reason.code}-${reason.purchase_requisition_item_id || 'pr'}`"
+                        >
+                            {{ readinessReasonText(reason) }}
+                        </li>
+                    </ul>
+                </div>
+                <div
+                    v-if="executionReadiness.warnings.length > 0"
+                    class="mt-4 rounded border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900"
+                >
+                    <div class="mb-1 font-semibold">
+                        {{ trans("procurement.execution_readiness.warnings") }}
+                    </div>
+                    <ul class="list-disc space-y-1 pl-5">
+                        <li
+                            v-for="reason in executionReadiness.warnings"
+                            :key="`warning-${reason.code}-${reason.purchase_requisition_item_id || 'pr'}`"
+                        >
+                            {{ readinessReasonText(reason) }}
+                        </li>
+                    </ul>
+                </div>
+            </section>
             <div class="rounded border border-slate-200 bg-white p-4">
                 <DataTable :value="purchaseRequisition.items" data-key="id">
                     <Column :header="trans('fields.item')"

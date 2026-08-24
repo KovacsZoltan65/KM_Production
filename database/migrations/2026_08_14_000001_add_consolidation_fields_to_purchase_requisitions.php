@@ -21,10 +21,20 @@ return new class extends Migration
 
         Schema::create('purchase_requisition_item_proposal_sources', function (Blueprint $table): void {
             $table->id();
-            $table->foreignId('purchase_requisition_item_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('supply_proposal_id')->unique()->constrained()->restrictOnDelete();
+            $table->foreignId('purchase_requisition_item_id');
+            $table->foreignId('supply_proposal_id');
             $table->decimal('quantity', 18, 3);
             $table->timestamps();
+
+            $table->unique('supply_proposal_id', 'pr_item_proposal_source_proposal_uq');
+            $table->foreign('purchase_requisition_item_id', 'pr_item_proposal_source_pr_item_fk')
+                ->references('id')
+                ->on('purchase_requisition_items')
+                ->cascadeOnDelete();
+            $table->foreign('supply_proposal_id', 'pr_item_proposal_source_proposal_fk')
+                ->references('id')
+                ->on('supply_proposals')
+                ->restrictOnDelete();
         });
     }
 

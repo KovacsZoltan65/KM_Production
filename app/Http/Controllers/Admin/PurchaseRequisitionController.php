@@ -16,6 +16,7 @@ use App\Models\Item;
 use App\Models\PurchaseRequisition;
 use App\Models\Supplier;
 use App\Services\Admin\PurchaseRequisitionConsolidationService;
+use App\Services\Admin\PurchaseRequisitionExecutionReadinessService;
 use App\Services\Admin\PurchaseRequisitionReplenishmentService;
 use App\Services\Admin\PurchaseRequisitionService;
 use App\Services\Admin\SupplierSelectionService;
@@ -31,6 +32,7 @@ class PurchaseRequisitionController extends Controller
         private readonly PurchaseRequisitionConsolidationService $consolidation,
         private readonly SupplierSelectionService $supplierSelection,
         private readonly PurchaseRequisitionReplenishmentService $replenishment,
+        private readonly PurchaseRequisitionExecutionReadinessService $executionReadiness,
     ) {}
 
     /**
@@ -73,6 +75,9 @@ class PurchaseRequisitionController extends Controller
             'supplierOptions' => $this->supplierOptions(),
             'supplierCandidates' => fn () => $this->supplierSelection
                 ->candidatesForPurchaseRequisition($purchaseRequisition),
+            'executionReadiness' => fn () => $this->executionReadiness
+                ->evaluate($purchaseRequisition)
+                ->toArray(),
             'canSelectSupplier' => request()->user()?->can('update', $purchaseRequisition) ?? false,
             'canCalculateReplenishment' => request()->user()?->can('update', $purchaseRequisition) ?? false,
         ]);

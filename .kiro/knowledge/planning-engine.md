@@ -57,6 +57,7 @@ Egy planning komponens:
 | `PurchaseRequisitionConsolidationService` | Explicit selected approved Purchase Proposalokat Draft PR dokumentumokká csoportosít                           | 0011 execution orchestrator; supplier-, required- és proposed-supply-date szerint csoportosít, de nem választ Suppliert vagy generál PO-t |
 | `SupplierSelectionService`                | Supplierless Draft PR minden tételéhez közös eligible Supplier candidate-eket ad és manuális választást rögzít | 0012 procurement döntés; ItemSupplier az authoritative source, nincs automatikus ranking, quantity policy, PR split vagy PO-generálás     |
 | `PurchaseRequisitionReplenishmentService` | Supplier-resolved Draft PR minden tételére MOQ/order-multiple quantity policy-t alkalmaz                       | 0013 explicit execution-előkészítés; planned lineage-et őriz, requested quantityt és excesst ír, PO-t vagy stockot nem hoz létre          |
+| `PurchaseRequisitionExecutionReadinessService` | Approved PR aktuális supplier/source/replenishment/quantity/lineage állapotát értékeli                     | 0014 tiszta, read-only execution gate; strukturált blockert és warningot ad, PR-t, PO-t vagy stockot nem módosít                           |
 
 ### Meglévő domain lánc
 
@@ -398,6 +399,7 @@ Requirement
 → Supply Proposal
 → Purchase Requisition
 → Human approval
+→ Execution Readiness
 → Purchase Order
 ```
 
@@ -463,8 +465,9 @@ Az első későbbi implementációk ajánlott sorrendje:
 7. ~~Supplier selection policy (0012).~~ Elkészült a 0012 döntésben.
 8. ~~Replenishment strategy és quantity-policy (0013).~~ Elkészült a 0013
    döntésben.
-9. Purchase Requisition execution readiness és Purchase Order creation
-   hardening (source/policy snapshot, freshness, approval guard és ár).
+9. ~~Purchase Requisition execution readiness (0014).~~ Elkészült a 0014
+   read-only current-state értékelésével. A Purchase Order creation hardening,
+   tranzakciós readiness revalidation és execution snapshot a 0015 feladata.
 
 ### Legacy direct Requirement → PR deprecation
 
@@ -480,6 +483,10 @@ Approved Supply Proposal
 → supplier-resolved Draft Purchase Requisition
 → Replenishment Calculation
 → quantity-adjusted Draft Purchase Requisition
+→ Approval
+→ Purchase Requisition Execution Readiness
+→ READY
+→ [0015 Purchase Order Generation]
 ```
 
 A legacy út csak az új workflow regressziós időszaka, a régi UI átvezetése és a
@@ -501,6 +508,7 @@ kap helyet. Controller nem tartalmazhat nettinget vagy supplier-döntést.
 - [Purchase Requisition Consolidation ADR](../decisions/0011-purchase-requisition-consolidation.md)
 - [Supplier Selection ADR](../decisions/0012-supplier-selection.md)
 - [Replenishment Strategies ADR](../decisions/0013-replenishment-strategies.md)
+- [Purchase Requisition Execution Readiness ADR](../decisions/0014-purchase-requisition-execution-readiness.md)
 - [Inventory](inventory.md)
 - [Procurement](procurement.md)
 - [Production](production.md)

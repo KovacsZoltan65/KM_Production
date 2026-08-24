@@ -25,6 +25,7 @@ use App\Models\Employee;
 use App\Models\FactoryUnit;
 use App\Models\GoodsReceipt;
 use App\Models\Item;
+use App\Models\ItemSupplier;
 use App\Models\Location;
 use App\Models\MaterialRequirement;
 use App\Models\OperationType;
@@ -266,6 +267,28 @@ class E2ETestSeeder extends Seeder
             ],
         );
         $product = Item::query()->where('item_number', 'PRODUCT-AAA')->firstOrFail();
+        $generatePurchaseSource = ItemSupplier::query()->updateOrCreate(
+            [
+                'item_id' => $item->id,
+                'supplier_id' => $supplier->id,
+            ],
+            [
+                'supplier_item_code' => 'E2E-MAT-001',
+                'purchase_unit' => $item->unit,
+                'conversion_factor' => '1.000000',
+                'minimum_order_quantity' => null,
+                'order_multiple' => null,
+                'unit_price' => '100.0000',
+                'currency' => 'HUF',
+                'lead_time_days' => 5,
+                'priority' => 1,
+                'is_preferred' => true,
+                'is_approved' => true,
+                'is_active' => true,
+                'valid_from' => null,
+                'valid_until' => null,
+            ],
+        );
 
         $refreshPurchaseRequisition = PurchaseRequisition::query()->create([
             'requisition_number' => 'E2E-PR-REFRESH-001',
@@ -298,13 +321,21 @@ class E2ETestSeeder extends Seeder
         $generatePurchaseRequisition = PurchaseRequisition::query()->create([
             'requisition_number' => 'E2E-PR-GENERATE-001',
             'status' => PurchaseRequisitionStatus::Approved,
+            'supplier_id' => $supplier->id,
             'requested_by' => $admin->id,
             'requested_at' => '2035-01-17 12:00:00',
             'notes' => 'E2E purchase requisition PO generation fixture.',
         ]);
         $generatePurchaseRequisition->items()->create([
             'item_id' => $item->id,
+            'planned_quantity' => 33.333,
             'quantity' => 33.333,
+            'replenishment_excess_quantity' => 0,
+            'replenishment_item_supplier_id' => $generatePurchaseSource->id,
+            'replenishment_minimum_order_quantity' => null,
+            'replenishment_order_multiple' => null,
+            'replenishment_strategy' => 'exact',
+            'replenishment_calculated_at' => now(),
             'unit' => $item->unit,
             'status' => PurchaseRequisitionItemStatus::Requested,
         ]);

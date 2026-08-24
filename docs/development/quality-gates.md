@@ -64,6 +64,7 @@ php tools/quality-gate.php modules
 | `inventory`                  | inventory, item/serial és cache invalidation                   | stock reservation frontend/E2E                                        |
 | `manufacturing-intelligence` | intelligence és Python AI engine                               | intelligence/chart komponensek                                        |
 | `master-data`                | partner, item és production master data                        | employee/admin CRUD                                                   |
+| `mrp`                        | netting, pegging, supply proposal és PR execution readiness    | Item Supplier, Supply Proposal és PR detail frontend                  |
 | `procurement`                | requisition, order, receipt, supplier, cache és partial reload | három procurement frontend oldal és a teljes procurement E2E könyvtár |
 | `production`                 | execution, structure és order production                       | production-task/quality workflow E2E                                  |
 | `production-planning`        | production plans és capacity                                   | planning/schedule frontend és E2E                                     |
@@ -221,7 +222,7 @@ Development work must use the project's layered quality gate system.
 
 Az `mrp` logikai modul a Material Requirement, Item Supplier, Supply Proposal,
 Material Requirement Netting, Requirement Pegging, Purchase Requisition
-Consolidation, Supplier Selection és Replenishment fájlokat a fókuszált backend/frontend
+Consolidation, Supplier Selection, Replenishment és Execution Readiness fájlokat a fókuszált backend/frontend
 suite-okhoz route-olja, és
 kapcsolódó modulként bevonja az inventory, procurement és production-planning
 ellenőrzéseket.

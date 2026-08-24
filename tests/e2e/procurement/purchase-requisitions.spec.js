@@ -3,7 +3,6 @@ import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { test, expect } from "../helpers/test.js";
 import { loginThroughUi } from "../helpers/auth.js";
-import { selectComboboxOptionMatching } from "../helpers/forms.js";
 import { e2eUsers } from "../fixtures/users.js";
 
 const projectRoot = resolve(
@@ -142,11 +141,10 @@ test("an approved requisition generates exactly one purchase order", async ({
     const dialog = page.getByRole("dialog", {
         name: "Generate Purchase Order",
     });
-    await selectComboboxOptionMatching(
-        page,
-        dialog,
-        "Supplier",
-        /E2E-SUP - E2E Supplier Before Partial Reload/,
+    const supplier = dialog.getByRole("combobox", { name: "Supplier" });
+    await expect(supplier).toBeDisabled();
+    await expect(supplier).toHaveText(
+        "E2E-SUP - E2E Supplier Before Partial Reload",
     );
 
     let continueRequest;
