@@ -29,7 +29,8 @@ class GeneratePurchaseOrderRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'supplier_id' => ['required', 'integer', 'exists:suppliers,id'],
+            // Deprecated compatibility input. The locked PR remains authoritative.
+            'supplier_id' => ['sometimes', 'nullable', 'integer', 'exists:suppliers,id'],
             'expected_delivery_date' => ['nullable', 'date'],
         ];
     }

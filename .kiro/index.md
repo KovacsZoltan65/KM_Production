@@ -68,6 +68,7 @@ Memory
 - [Supplier Selection](decisions/0012-supplier-selection.md): supplierless Draft PR-k manuális, common eligible ItemSupplier-metszetből történő supplier feloldása.
 - [Replenishment Strategies](decisions/0013-replenishment-strategies.md): supplier-resolved Draft PR-k planned mennyiségéből MOQ és order multiple alapján exact, auditálható requested mennyiséget számít.
 - [Purchase Requisition Execution Readiness](decisions/0014-purchase-requisition-execution-readiness.md): az Approved PR aktuális supplier-, source-, replenishment-, quantity- és lineage állapotának read-only execution előtti értékelése.
+- [Purchase Order Generation / Execution Hardening](decisions/0015-purchase-order-generation.md): execution-ready Approved PR tranzakciós, zárolt, idempotens átalakítása immutable snapshotokat őrző Draft PO-vá.
 
 ## Reader-Facing Documentation
 

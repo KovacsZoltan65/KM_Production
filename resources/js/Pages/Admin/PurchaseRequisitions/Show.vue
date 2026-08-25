@@ -9,14 +9,12 @@ import ConfirmDialog from "primevue/confirmdialog";
 import DataTable from "primevue/datatable";
 import DatePicker from "primevue/datepicker";
 import Dialog from "primevue/dialog";
-import Select from "primevue/select";
 import Tag from "primevue/tag";
 import { useConfirm } from "primevue/useconfirm";
 import { useToast } from "primevue/usetoast";
 import { trans } from "laravel-vue-i18n";
 import { computed, ref } from "vue";
 
-/** @typedef {{id: number, label: string}} SupplierOption */
 /**
  * @typedef {Object} ExecutionReadinessReason
  * @property {string} code
@@ -96,7 +94,6 @@ import { computed, ref } from "vue";
  * A komponens bemeneti tulajdonságai.
  * @typedef {Object} Props
  * @property {PurchaseRequisitionRecord} purchaseRequisition A megjelenített beszerzési igény.
- * @property {SupplierOption[]} supplierOptions A választható beszállítók.
  * @property {SupplierCandidate[]} supplierCandidates A minden PR tételhez alkalmas beszállítók.
  * @property {boolean} canSelectSupplier A felhasználó supplier-választási jogosultsága.
  * @property {boolean} canCalculateReplenishment A felhasználó quantity-számítási jogosultsága.
@@ -105,7 +102,6 @@ import { computed, ref } from "vue";
 /** @type {Props} */
 const props = defineProps({
     purchaseRequisition: Object,
-    supplierOptions: Array,
     supplierCandidates: Array,
     canSelectSupplier: Boolean,
     canCalculateReplenishment: Boolean,
@@ -120,7 +116,6 @@ const generating = ref(false);
 const selectingSupplier = ref(false);
 const calculatingReplenishment = ref(false);
 const form = useForm({
-    supplier_id: props.purchaseRequisition.supplier_id ?? null,
     expected_delivery_date: null,
 });
 const supplierForm = useForm({ supplier_id: null });
@@ -765,18 +760,10 @@ const calculateReplenishment = () => {
             class="w-[min(36rem,calc(100vw-2rem))]"
         >
             <form class="space-y-4" @submit.prevent="generatePo">
-                <Select
-                    v-model="form.supplier_id"
-                    :options="supplierOptions"
-                    option-label="label"
-                    option-value="id"
-                    :placeholder="trans('fields.supplier')"
-                    filter
-                    :disabled="
-                        generating || purchaseRequisition.supplier_id != null
-                    "
-                    class="w-full"
-                />
+                <p class="text-sm text-surface-600 dark:text-surface-300">
+                    {{ trans("fields.supplier") }}:
+                    {{ purchaseRequisition.supplier?.name || "-" }}
+                </p>
                 <DatePicker
                     v-model="form.expected_delivery_date"
                     date-format="yy-mm-dd"
@@ -784,6 +771,21 @@ const calculateReplenishment = () => {
                     :disabled="generating"
                     class="w-full"
                 />
+                <ul
+                    v-if="form.errors.execution_readiness"
+                    class="list-disc space-y-1 pl-5 text-sm text-red-600"
+                >
+                    <li
+                        v-for="message in Array.isArray(
+                            form.errors.execution_readiness,
+                        )
+                            ? form.errors.execution_readiness
+                            : [form.errors.execution_readiness]"
+                        :key="message"
+                    >
+                        {{ message }}
+                    </li>
+                </ul>
                 <div class="flex justify-end gap-2">
                     <Button
                         type="button"

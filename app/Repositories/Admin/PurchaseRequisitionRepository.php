@@ -2,6 +2,7 @@
 
 namespace App\Repositories\Admin;
 
+use App\Models\Item;
 use App\Models\MaterialRequirement;
 use App\Models\PurchaseRequisition;
 use App\Models\PurchaseRequisitionItem;
@@ -92,6 +93,43 @@ class PurchaseRequisitionRepository extends AbstractAdminRepository implements P
             ->lockForUpdate()
             ->with(['supplier', 'items.item', 'items.proposalSources'])
             ->firstOrFail();
+    }
+
+    public function lockForPurchaseOrderGeneration(int $requisitionId): PurchaseRequisition
+    {
+        $requisition = PurchaseRequisition::query()
+            ->whereKey($requisitionId)
+            ->lockForUpdate()
+            ->firstOrFail();
+
+        $supplier = $requisition->supplier()
+            ->lockForUpdate()
+            ->first();
+        $items = $requisition->items()
+            ->orderBy('id')
+            ->lockForUpdate()
+            ->get();
+        $itemModels = Item::query()
+            ->whereKey($items->pluck('item_id')->all())
+            ->orderBy('id')
+            ->lockForUpdate()
+            ->get()
+            ->keyBy('id');
+        $proposalSources = PurchaseRequisitionItemProposalSource::query()
+            ->whereIn('purchase_requisition_item_id', $items->modelKeys())
+            ->orderBy('id')
+            ->lockForUpdate()
+            ->get()
+            ->groupBy('purchase_requisition_item_id');
+
+        foreach ($items as $item) {
+            $item->setRelation('item', $itemModels->get($item->item_id));
+            $item->setRelation('proposalSources', $proposalSources->get($item->id, collect()));
+        }
+
+        return $requisition
+            ->setRelation('supplier', $supplier)
+            ->setRelation('items', $items);
     }
 
     public function updateItemReplenishment(PurchaseRequisitionItem $item, array $attributes): PurchaseRequisitionItem

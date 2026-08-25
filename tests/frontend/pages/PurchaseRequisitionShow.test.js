@@ -87,7 +87,6 @@ const mountPage = (status, overrides = {}, extraProps = {}) =>
     shallowMount(PurchaseRequisitionShow, {
         props: {
             purchaseRequisition: { ...requisition(status), ...overrides },
-            supplierOptions: [{ id: 7, label: "SUP-7 - Supplier" }],
             supplierCandidates: [],
             canSelectSupplier: false,
             canCalculateReplenishment: false,
@@ -105,7 +104,6 @@ const mountPage = (status, overrides = {}, extraProps = {}) =>
                 Dialog: PassthroughStub,
                 Head: true,
                 Link: true,
-                Select: true,
                 Tag: true,
             },
         },
@@ -169,8 +167,6 @@ describe("Purchase Requisition workflow pending states", () => {
 
     it("csak approved állapotban generál PO-t, és blokkolja a dupla kérést", async () => {
         const wrapper = mountPage("approved");
-        wrapper.vm.form.supplier_id = 7;
-
         wrapper.vm.generatePo();
         wrapper.vm.generatePo();
         await nextTick();
@@ -287,6 +283,22 @@ describe("Purchase Requisition workflow pending states", () => {
         });
     });
 
+    it("renders backend execution-readiness validation and sends no supplier override", async () => {
+        const wrapper = mountPage("approved", {
+            supplier_id: 7,
+            supplier: { id: 7, name: "Supplier" },
+        });
+        wrapper.vm.form.errors.execution_readiness = [
+            "The procurement quantity must be recalculated.",
+        ];
+        await nextTick();
+
+        expect(wrapper.text()).toContain(
+            "The procurement quantity must be recalculated.",
+        );
+        expect(wrapper.vm.form.supplier_id).toBeUndefined();
+    });
+
     it("egy másik pending művelet alatt nem indít generation kérést", () => {
         const wrapper = mountPage("approved");
         wrapper.vm.approving = true;
@@ -370,7 +382,7 @@ describe("Purchase Requisition workflow pending states", () => {
         });
 
         expect(wrapper.vm.hasProposalSources).toBe(true);
-        expect(wrapper.vm.form.supplier_id).toBe(7);
+        expect(wrapper.vm.form.supplier_id).toBeUndefined();
     });
 
     it("calculates replenishment explicitly only for an authorized supplier-resolved draft", async () => {

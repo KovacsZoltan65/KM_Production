@@ -147,6 +147,20 @@ class ItemSupplierRepository extends AbstractAdminRepository implements ItemSupp
             ->values();
     }
 
+    public function lockExecutionSources(array $sourceIds): Collection
+    {
+        if ($sourceIds === []) {
+            return collect();
+        }
+
+        return ItemSupplier::query()
+            ->whereKey($sourceIds)
+            ->lockForUpdate()
+            ->orderBy('id')
+            ->get()
+            ->keyBy('id');
+    }
+
     public function itemOptions(int $limit = 500): Collection
     {
         return Item::query()

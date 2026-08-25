@@ -125,6 +125,73 @@ test("an authorized user can approve a purchase requisition once", async ({
     expect(browserErrors).toBeDefined();
 });
 
+test("generation revalidates a procurement source after the page was READY", async ({
+    page,
+    browserErrors,
+    e2eData,
+}) => {
+    const requisitionId = e2eData.generatePurchaseRequisitionId;
+    const generatePath = `/admin/purchase-requisitions/${requisitionId}/generate-purchase-order`;
+    const sourceId = Number(
+        scalarSql(
+            "SELECT replenishment_item_supplier_id FROM purchase_requisition_items WHERE purchase_requisition_id = ?",
+            [requisitionId],
+        ),
+    );
+
+    await loginThroughUi(page, e2eUsers.admin);
+    await page.goto(`/admin/purchase-requisitions/${requisitionId}`);
+    await expect(
+        page.getByText("Ready for procurement execution", { exact: true }),
+    ).toBeVisible();
+
+    scalarSql("UPDATE item_suppliers SET is_active = 0 WHERE id = ?", [
+        sourceId,
+    ]);
+
+    try {
+        await page
+            .getByRole("button", { name: "Generate Purchase Order" })
+            .click();
+        const dialog = page.getByRole("dialog", {
+            name: "Generate Purchase Order",
+        });
+        const response = page.waitForResponse(
+            (candidate) =>
+                new URL(candidate.url()).pathname === generatePath &&
+                candidate.request().method() === "POST",
+        );
+
+        await dialog.getByRole("button", { name: "Generate" }).click();
+
+        expect((await response).status()).toBe(302);
+        await expect(
+            dialog.getByText(
+                "The selected supplier has no currently valid procurement source for item E2E-MAT-001.",
+                { exact: true },
+            ),
+        ).toBeVisible();
+        expect(
+            Number(
+                scalarSql(
+                    "SELECT COUNT(*) FROM purchase_orders WHERE purchase_requisition_id = ?",
+                    [requisitionId],
+                ),
+            ),
+        ).toBe(0);
+        expect(
+            scalarSql("SELECT status FROM purchase_requisitions WHERE id = ?", [
+                requisitionId,
+            ]),
+        ).toBe("approved");
+        expect(browserErrors).toBeDefined();
+    } finally {
+        scalarSql("UPDATE item_suppliers SET is_active = 1 WHERE id = ?", [
+            sourceId,
+        ]);
+    }
+});
+
 test("an approved requisition generates exactly one purchase order", async ({
     page,
     browserErrors,
@@ -141,11 +208,12 @@ test("an approved requisition generates exactly one purchase order", async ({
     const dialog = page.getByRole("dialog", {
         name: "Generate Purchase Order",
     });
-    const supplier = dialog.getByRole("combobox", { name: "Supplier" });
-    await expect(supplier).toBeDisabled();
-    await expect(supplier).toHaveText(
-        "E2E-SUP - E2E Supplier Before Partial Reload",
-    );
+    await expect(
+        dialog.getByText(/Supplier:\s*E2E Supplier Before Partial Reload/),
+    ).toBeVisible();
+    await expect(
+        dialog.getByRole("combobox", { name: "Supplier" }),
+    ).toHaveCount(0);
 
     let continueRequest;
     let requestIntercepted;

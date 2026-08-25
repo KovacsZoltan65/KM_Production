@@ -10,11 +10,13 @@ use App\Enums\StockMovementType;
 use App\Models\GoodsReceipt;
 use App\Models\GoodsReceiptItem;
 use App\Models\Item;
+use App\Models\ItemSupplier;
 use App\Models\Location;
 use App\Models\MaterialRequirement;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderItem;
 use App\Models\PurchaseRequisition;
+use App\Models\PurchaseRequisitionItem;
 use App\Models\StockBalance;
 use App\Models\StockMovement;
 use App\Models\Supplier;
@@ -122,7 +124,7 @@ class ProcurementManagementUiTest extends TestCase
         $user = $this->verifiedUser('procurement-manager');
         $requisition = PurchaseRequisition::factory()->create(['status' => PurchaseRequisitionStatus::Requested]);
         $item = $requisition->items()->create([
-            'item_id' => Item::factory()->purchasedMaterial()->create()->id,
+            'item_id' => Item::factory()->purchasedMaterial()->create(['unit' => 'db'])->id,
             'quantity' => 4,
             'unit' => 'db',
             'status' => PurchaseRequisitionItemStatus::Draft,
@@ -202,13 +204,17 @@ class ProcurementManagementUiTest extends TestCase
     {
         $user = $this->verifiedUser('procurement-manager');
         $supplier = Supplier::factory()->create();
-        $requisition = PurchaseRequisition::factory()->create(['status' => PurchaseRequisitionStatus::Approved]);
+        $requisition = PurchaseRequisition::factory()->create([
+            'status' => PurchaseRequisitionStatus::Approved,
+            'supplier_id' => $supplier->id,
+        ]);
         $material = Item::factory()->purchasedMaterial()->create();
-        $requisition->items()->create([
+        $requisitionItem = $requisition->items()->create([
             'item_id' => $material->id,
             'quantity' => 4,
             'unit' => $material->unit,
         ]);
+        $this->makeRequisitionExecutionReady($requisitionItem, $supplier);
 
         $response = $this->actingAs($user)
             ->post(route('admin.purchase-requisitions.generate-purchase-order', $requisition), [
@@ -246,12 +252,16 @@ class ProcurementManagementUiTest extends TestCase
     {
         $user = $this->verifiedUser('procurement-manager');
         $supplier = Supplier::factory()->create();
-        $requisition = PurchaseRequisition::factory()->create(['status' => PurchaseRequisitionStatus::Approved]);
-        $requisition->items()->create([
-            'item_id' => Item::factory()->purchasedMaterial()->create()->id,
+        $requisition = PurchaseRequisition::factory()->create([
+            'status' => PurchaseRequisitionStatus::Approved,
+            'supplier_id' => $supplier->id,
+        ]);
+        $requisitionItem = $requisition->items()->create([
+            'item_id' => Item::factory()->purchasedMaterial()->create(['unit' => 'db'])->id,
             'quantity' => 4,
             'unit' => 'db',
         ]);
+        $this->makeRequisitionExecutionReady($requisitionItem, $supplier);
 
         $payload = ['supplier_id' => $supplier->id];
         $this->actingAs($user)->post(route('admin.purchase-requisitions.generate-purchase-order', $requisition), $payload);
@@ -266,7 +276,10 @@ class ProcurementManagementUiTest extends TestCase
     public function test_user_without_permission_cannot_generate_purchase_order(): void
     {
         $supplier = Supplier::factory()->create();
-        $requisition = PurchaseRequisition::factory()->create(['status' => PurchaseRequisitionStatus::Approved]);
+        $requisition = PurchaseRequisition::factory()->create([
+            'status' => PurchaseRequisitionStatus::Approved,
+            'supplier_id' => $supplier->id,
+        ]);
 
         $this->actingAs($this->verifiedUser())
             ->post(route('admin.purchase-requisitions.generate-purchase-order', $requisition), [
@@ -281,13 +294,17 @@ class ProcurementManagementUiTest extends TestCase
     public function test_purchase_order_generation_rolls_back_when_audit_fails(): void
     {
         $supplier = Supplier::factory()->create();
-        $requisition = PurchaseRequisition::factory()->create(['status' => PurchaseRequisitionStatus::Approved]);
+        $requisition = PurchaseRequisition::factory()->create([
+            'status' => PurchaseRequisitionStatus::Approved,
+            'supplier_id' => $supplier->id,
+        ]);
         $item = $requisition->items()->create([
-            'item_id' => Item::factory()->purchasedMaterial()->create()->id,
+            'item_id' => Item::factory()->purchasedMaterial()->create(['unit' => 'db'])->id,
             'quantity' => 4,
             'unit' => 'db',
             'status' => PurchaseRequisitionItemStatus::Requested,
         ]);
+        $this->makeRequisitionExecutionReady($item, $supplier);
         $auditLog = Mockery::mock(AuditLogService::class);
         $expectation = $auditLog->shouldReceive('log');
         if (! $expectation instanceof CompositeExpectation) {
@@ -682,6 +699,31 @@ class ProcurementManagementUiTest extends TestCase
         }
 
         return $user;
+    }
+
+    private function makeRequisitionExecutionReady(PurchaseRequisitionItem $item, Supplier $supplier): void
+    {
+        $source = ItemSupplier::factory()->approved()->create([
+            'item_id' => $item->item_id,
+            'supplier_id' => $supplier->id,
+            'purchase_unit' => $item->unit,
+            'conversion_factor' => '1.000000',
+            'minimum_order_quantity' => null,
+            'order_multiple' => null,
+            'is_active' => true,
+            'valid_from' => null,
+            'valid_until' => null,
+        ]);
+
+        $item->update([
+            'planned_quantity' => $item->quantity,
+            'replenishment_excess_quantity' => '0.000',
+            'replenishment_item_supplier_id' => $source->id,
+            'replenishment_minimum_order_quantity' => null,
+            'replenishment_order_multiple' => null,
+            'replenishment_strategy' => 'exact',
+            'replenishment_calculated_at' => now(),
+        ]);
     }
 
     private function mockFailingPurchaseOrderAudit(string $message): void

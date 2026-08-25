@@ -36,6 +36,19 @@ It usually identifies:
 
 Purchase orders support planning, receiving, supplier performance, and financial reconciliation.
 
+### Generation from a Purchase Requisition
+
+An Approved Purchase Requisition may create one Draft Purchase Order only
+after its current execution readiness is revalidated inside the generation
+transaction and after the requisition row is locked. The requisition owns the
+Supplier and the replenishment-adjusted base-unit quantities; request data
+cannot select them again.
+
+The generated order keeps immutable Supplier, Item, ItemSupplier, unit,
+conversion, reference-price and replenishment-policy snapshots together with
+explicit PR and PR-item lineage. Generation does not send the order, receive
+goods, recalculate replenishment or mutate inventory.
+
 ## Goods Receipt
 
 Goods receipt records that ordered goods have arrived.

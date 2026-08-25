@@ -17,6 +17,8 @@ use Illuminate\Support\Carbon;
  * @property int $id
  * @property string $order_number
  * @property int $supplier_id
+ * @property string|null $supplier_code_snapshot
+ * @property string|null $supplier_name_snapshot
  * @property int|null $purchase_requisition_id
  * @property PurchaseOrderStatus $status
  * @property Carbon|null $ordered_at
@@ -57,6 +59,8 @@ use Illuminate\Support\Carbon;
 #[Fillable([
     'order_number',
     'supplier_id',
+    'supplier_code_snapshot',
+    'supplier_name_snapshot',
     'purchase_requisition_id',
     'status',
     'ordered_at',

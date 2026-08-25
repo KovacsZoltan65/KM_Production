@@ -53,6 +53,10 @@ it('routes MRP foundation files to the focused backend and frontend suites', fun
     'execution readiness service' => ['app/Services/Admin/PurchaseRequisitionExecutionReadinessService.php', 'tests/Feature/PurchaseRequisitionExecutionReadinessTest.php'],
     'execution readiness result' => ['app/Support/Procurement/PurchaseRequisitionExecutionReadinessResult.php', 'tests/Feature/PurchaseRequisitionExecutionReadinessTest.php'],
     'execution readiness reason' => ['app/Enums/PurchaseRequisitionExecutionReadinessReason.php', 'tests/Feature/PurchaseRequisitionExecutionReadinessTest.php'],
+    'PO generation regression' => ['tests/Feature/PurchaseOrderGenerationTest.php', 'tests/Feature/PurchaseOrderGenerationTest.php'],
+    'PO generation request' => ['app/Http/Requests/Admin/GeneratePurchaseOrderRequest.php', 'tests/Feature/PurchaseOrderGenerationTest.php'],
+    'legacy PR generation service' => ['app/Services/Admin/PurchaseRequisitionService.php', 'tests/Feature/PurchaseOrderGenerationTest.php'],
+    'PO execution model' => ['app/Models/PurchaseOrder.php', 'tests/Feature/PurchaseOrderGenerationTest.php'],
     'supplier selection frontend' => ['resources/js/Pages/Admin/PurchaseRequisitions/Show.vue', 'tests/frontend/pages/PurchaseRequisitionShow.test.js'],
 ]);
 

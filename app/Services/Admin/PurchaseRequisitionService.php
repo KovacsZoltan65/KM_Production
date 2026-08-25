@@ -11,11 +11,14 @@ use App\Models\PurchaseOrder;
 use App\Models\PurchaseRequisition;
 use App\Models\PurchaseRequisitionItem;
 use App\Models\User;
+use App\Repositories\Contracts\ItemSupplierRepositoryInterface;
 use App\Repositories\Contracts\PurchaseRequisitionRepositoryInterface;
 use App\Services\AuditLogService;
 use App\Services\BusinessCacheInvalidator;
+use App\Support\Procurement\PurchaseRequisitionExecutionReadinessResult;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Lang;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -27,6 +30,8 @@ class PurchaseRequisitionService
 {
     public function __construct(
         private readonly PurchaseRequisitionRepositoryInterface $purchaseRequisitions,
+        private readonly ItemSupplierRepositoryInterface $itemSuppliers,
+        private readonly PurchaseRequisitionExecutionReadinessService $executionReadiness,
         private readonly AuditLogService $auditLogService,
         private readonly BusinessCacheInvalidator $cacheInvalidator,
     ) {}
@@ -186,29 +191,63 @@ class PurchaseRequisitionService
         return $requisition;
     }
 
-    public function generatePurchaseOrder(PurchaseRequisition $purchaseRequisition, int $supplierId, ?string $expectedDeliveryDate = null, ?User $causer = null): PurchaseOrder
+    /**
+     * The optional supplier id is a deprecated compatibility assertion only.
+     * The locked Purchase Requisition is the authoritative supplier source.
+     */
+    public function generatePurchaseOrder(PurchaseRequisition $purchaseRequisition, ?int $supplierId = null, ?string $expectedDeliveryDate = null, ?User $causer = null): PurchaseOrder
     {
         $purchaseOrder = DB::transaction(function () use ($purchaseRequisition, $supplierId, $expectedDeliveryDate, $causer): PurchaseOrder {
-            $purchaseRequisition = PurchaseRequisition::query()
-                ->whereKey($purchaseRequisition->id)
-                ->lockForUpdate()
-                ->firstOrFail();
+            $purchaseRequisition = $this->purchaseRequisitions
+                ->lockForPurchaseOrderGeneration($purchaseRequisition->id);
 
-            if ($purchaseRequisition->status !== PurchaseRequisitionStatus::Approved) {
-                throw ValidationException::withMessages(['status' => __('procurement.purchase_requisitions.validation.only_approved_generate_po')]);
+            if (PurchaseOrder::query()
+                ->withTrashed()
+                ->where('purchase_requisition_id', $purchaseRequisition->id)
+                ->exists()) {
+                throw ValidationException::withMessages([
+                    'status' => __('procurement.purchase_requisitions.validation.purchase_order_already_generated'),
+                ]);
             }
 
-            if ($purchaseRequisition->supplier_id !== null && $purchaseRequisition->supplier_id !== $supplierId) {
+            if ($supplierId !== null && $purchaseRequisition->supplier_id !== $supplierId) {
                 throw ValidationException::withMessages([
                     'supplier_id' => __('procurement.purchase_requisitions.validation.supplier_mismatch'),
                 ]);
             }
 
-            $purchaseRequisition->load('items');
+            $readiness = $this->executionReadiness->evaluate($purchaseRequisition);
+            $this->ensureExecutionReady($readiness);
+
+            $sourceIds = collect($readiness->itemResults)
+                ->pluck('itemSupplierId')
+                ->filter(fn (?int $id): bool => $id !== null)
+                ->map(fn (mixed $id): int => (int) $id)
+                ->unique()
+                ->sort()
+                ->values()
+                ->all();
+            $executionSources = $this->itemSuppliers->lockExecutionSources($sourceIds);
+
+            // Source locks close the gap between readiness and immutable snapshot creation.
+            $readiness = $this->executionReadiness->evaluate($purchaseRequisition);
+            $this->ensureExecutionReady($readiness);
+
+            $sourceIdByItem = collect($readiness->itemResults)
+                ->mapWithKeys(fn ($result): array => [$result->purchaseRequisitionItemId => $result->itemSupplierId]);
+
+            $supplier = $purchaseRequisition->supplier;
+            if ($supplier === null) {
+                throw ValidationException::withMessages([
+                    'execution_readiness' => __('procurement.execution_readiness.reasons.supplier_missing'),
+                ]);
+            }
 
             $purchaseOrder = PurchaseOrder::query()->create([
                 'order_number' => $this->nextPurchaseOrderNumber(),
-                'supplier_id' => $supplierId,
+                'supplier_id' => $supplier->id,
+                'supplier_code_snapshot' => $supplier->code,
+                'supplier_name_snapshot' => $supplier->name,
                 'purchase_requisition_id' => $purchaseRequisition->id,
                 'status' => PurchaseOrderStatus::Draft->value,
                 'expected_delivery_date' => $expectedDeliveryDate,
@@ -216,23 +255,47 @@ class PurchaseRequisitionService
             ]);
 
             foreach ($purchaseRequisition->items as $item) {
+                $sourceId = $sourceIdByItem->get($item->id);
+                $source = $sourceId === null ? null : $executionSources->get($sourceId);
+
+                if ($source === null) {
+                    throw ValidationException::withMessages([
+                        'execution_readiness' => __('procurement.purchase_requisitions.validation.execution_source_changed'),
+                    ]);
+                }
+
                 $purchaseOrder->items()->create([
                     'purchase_requisition_item_id' => $item->id,
+                    'item_supplier_id' => $source->id,
                     'item_id' => $item->item_id,
+                    'item_number_snapshot' => $item->item?->item_number,
+                    'item_name_snapshot' => $item->item?->name,
                     'ordered_quantity' => $item->quantity,
+                    'planned_quantity_snapshot' => $item->planned_quantity,
+                    'replenishment_excess_quantity_snapshot' => $item->replenishment_excess_quantity,
                     'received_quantity' => 0,
                     'unit' => $item->unit,
+                    'purchase_unit_snapshot' => $source->purchase_unit,
+                    'conversion_factor_snapshot' => $source->conversion_factor,
+                    'unit_price_snapshot' => $source->unit_price,
+                    'currency_snapshot' => $source->currency,
+                    'lead_time_days_snapshot' => $source->lead_time_days,
+                    'minimum_order_quantity_snapshot' => $source->minimum_order_quantity,
+                    'order_multiple_snapshot' => $source->order_multiple,
                     'status' => PurchaseOrderItemStatus::Ordered->value,
                     'notes' => $item->notes,
                 ]);
             }
 
+            $this->auditLogService->log('purchase_order_generated', $purchaseOrder, [
+                'purchase_order_id' => $purchaseOrder->id,
+                'purchase_requisition_id' => $purchaseRequisition->id,
+                'supplier_id' => $supplier->id,
+                'items_count' => $purchaseRequisition->items->count(),
+            ], $causer);
+
             $purchaseRequisition->update(['status' => PurchaseRequisitionStatus::Ordered->value]);
             $purchaseRequisition->items()->update(['status' => PurchaseRequisitionItemStatus::Ordered->value]);
-
-            $this->auditLogService->log('purchase_order_generated', $purchaseOrder, [
-                'purchase_requisition_id' => $purchaseRequisition->id,
-            ], $causer);
 
             return $purchaseOrder->refresh();
         });
@@ -240,6 +303,23 @@ class PurchaseRequisitionService
         $this->cacheInvalidator->procurementChanged();
 
         return $purchaseOrder;
+    }
+
+    private function ensureExecutionReady(PurchaseRequisitionExecutionReadinessResult $readiness): void
+    {
+        if ($readiness->isReady()) {
+            return;
+        }
+
+        throw ValidationException::withMessages([
+            'execution_readiness' => array_map(
+                fn ($reason): string => Lang::get(
+                    'procurement.execution_readiness.reasons.'.strtolower($reason->code->value),
+                    $reason->parameters,
+                ),
+                $readiness->blockingReasons,
+            ),
+        ]);
     }
 
     private function nextRequisitionNumber(): string

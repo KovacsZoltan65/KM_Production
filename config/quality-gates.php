@@ -163,6 +163,7 @@ return [
                 'tests/Feature/MaterialRequirementPeggingTest.php',
                 'tests/Feature/PurchaseRequisitionConsolidationTest.php',
                 'tests/Feature/PurchaseRequisitionExecutionReadinessTest.php',
+                'tests/Feature/PurchaseOrderGenerationTest.php',
                 'tests/Feature/PurchaseRequisitionReplenishmentTest.php',
                 'tests/Feature/SupplierSelectionTest.php',
                 'tests/Feature/SupplyProposalTest.php',
@@ -179,6 +180,7 @@ return [
         'procurement' => [
             'backend' => [
                 'tests/Feature/ProcurementManagementUiTest.php',
+                'tests/Feature/PurchaseOrderGenerationTest.php',
                 'tests/Feature/ProcurementTest.php',
                 'tests/Feature/BusinessPartnersUiTest.php',
                 'tests/Feature/AdminIndexPartialReloadTest.php',
@@ -322,6 +324,10 @@ return [
                 '**/CalculatePurchaseRequisitionReplenishment*.php',
                 '**/PurchaseRequisitionExecutionReadiness*.php',
                 '**/ExecutionReadiness*.php',
+                '**/PurchaseOrderGeneration*.php',
+                '**/GeneratePurchaseOrderRequest.php',
+                '**/PurchaseRequisitionService.php',
+                '**/PurchaseOrder*.php',
                 '**/PurchaseRequisitions/Show.vue',
             ],
             'modules' => ['mrp'],

@@ -15,16 +15,29 @@ use Illuminate\Support\Carbon;
  * @property int $id
  * @property int $purchase_order_id
  * @property int|null $purchase_requisition_item_id
+ * @property int|null $item_supplier_id
  * @property int $item_id
+ * @property string|null $item_number_snapshot
+ * @property string|null $item_name_snapshot
  * @property numeric $ordered_quantity
+ * @property numeric|null $planned_quantity_snapshot
+ * @property numeric|null $replenishment_excess_quantity_snapshot
  * @property numeric $received_quantity
  * @property string $unit
+ * @property string|null $purchase_unit_snapshot
+ * @property numeric|null $conversion_factor_snapshot
+ * @property numeric|null $unit_price_snapshot
+ * @property string|null $currency_snapshot
+ * @property int|null $lead_time_days_snapshot
+ * @property numeric|null $minimum_order_quantity_snapshot
+ * @property numeric|null $order_multiple_snapshot
  * @property PurchaseOrderItemStatus $status
  * @property string|null $notes
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
  * @property-read Item|null $item
+ * @property-read ItemSupplier|null $itemSupplier
  * @property-read PurchaseOrder|null $purchaseOrder
  * @property-read PurchaseRequisitionItem|null $purchaseRequisitionItem
  *
@@ -53,10 +66,22 @@ use Illuminate\Support\Carbon;
 #[Fillable([
     'purchase_order_id',
     'purchase_requisition_item_id',
+    'item_supplier_id',
     'item_id',
+    'item_number_snapshot',
+    'item_name_snapshot',
     'ordered_quantity',
+    'planned_quantity_snapshot',
+    'replenishment_excess_quantity_snapshot',
     'received_quantity',
     'unit',
+    'purchase_unit_snapshot',
+    'conversion_factor_snapshot',
+    'unit_price_snapshot',
+    'currency_snapshot',
+    'lead_time_days_snapshot',
+    'minimum_order_quantity_snapshot',
+    'order_multiple_snapshot',
     'status',
     'notes',
 ])]
@@ -81,6 +106,12 @@ class PurchaseOrderItem extends Model
         return $this->belongsTo(PurchaseRequisitionItem::class);
     }
 
+    /** @return BelongsTo<ItemSupplier, $this> */
+    public function itemSupplier(): BelongsTo
+    {
+        return $this->belongsTo(ItemSupplier::class);
+    }
+
     /**
      * @return BelongsTo<Item, $this>
      */
@@ -96,7 +127,14 @@ class PurchaseOrderItem extends Model
     {
         return [
             'ordered_quantity' => 'decimal:3',
+            'planned_quantity_snapshot' => 'decimal:3',
+            'replenishment_excess_quantity_snapshot' => 'decimal:3',
             'received_quantity' => 'decimal:3',
+            'conversion_factor_snapshot' => 'decimal:6',
+            'unit_price_snapshot' => 'decimal:4',
+            'lead_time_days_snapshot' => 'integer',
+            'minimum_order_quantity_snapshot' => 'decimal:3',
+            'order_multiple_snapshot' => 'decimal:3',
             'status' => PurchaseOrderItemStatus::class,
         ];
     }

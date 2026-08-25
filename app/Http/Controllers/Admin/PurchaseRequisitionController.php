@@ -14,7 +14,6 @@ use App\Http\Requests\Admin\StorePurchaseRequisitionRequest;
 use App\Http\Requests\Admin\UpdatePurchaseRequisitionRequest;
 use App\Models\Item;
 use App\Models\PurchaseRequisition;
-use App\Models\Supplier;
 use App\Services\Admin\PurchaseRequisitionConsolidationService;
 use App\Services\Admin\PurchaseRequisitionExecutionReadinessService;
 use App\Services\Admin\PurchaseRequisitionReplenishmentService;
@@ -72,7 +71,6 @@ class PurchaseRequisitionController extends Controller
 
         return Inertia::render('Admin/PurchaseRequisitions/Show', [
             'purchaseRequisition' => $purchaseRequisition,
-            'supplierOptions' => $this->supplierOptions(),
             'supplierCandidates' => fn () => $this->supplierSelection
                 ->candidatesForPurchaseRequisition($purchaseRequisition),
             'executionReadiness' => fn () => $this->executionReadiness
@@ -189,7 +187,7 @@ class PurchaseRequisitionController extends Controller
     {
         $purchaseOrder = $this->service->generatePurchaseOrder(
             $purchaseRequisition,
-            (int) $request->validated('supplier_id'),
+            $request->validated('supplier_id') === null ? null : (int) $request->validated('supplier_id'),
             $request->validated('expected_delivery_date'),
             $request->user()
         );
@@ -263,23 +261,6 @@ class PurchaseRequisitionController extends Controller
                 'id' => $item->id,
                 'unit' => $item->unit,
                 'label' => "{$item->item_number} - {$item->name}",
-            ]);
-    }
-
-    /**
-     * Összeállítja az aktív beszállítók választási listáját.
-     *
-     * @return Collection<int, array{id: int, label: non-falsy-string}> A beszállítóopciók.
-     */
-    private function supplierOptions(): Collection
-    {
-        return Supplier::query()
-            ->where('is_active', true)
-            ->orderBy('name')
-            ->get(['id', 'code', 'name'])
-            ->map(fn (Supplier $supplier): array => [
-                'id' => $supplier->id,
-                'label' => "{$supplier->code} - {$supplier->name}",
             ]);
     }
 }

@@ -53,6 +53,7 @@ class PurchaseOrderRepository extends AbstractAdminRepository implements Purchas
             'creator',
             'purchaseRequisition',
             'items.item',
+            'items.itemSupplier',
             'items.purchaseRequisitionItem.purchaseRequisition',
         ])->loadCount('items');
     }

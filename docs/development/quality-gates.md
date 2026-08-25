@@ -52,24 +52,24 @@ php tools/quality-gate.php modules
 
 ## Modulok és fő suite-ok
 
-| Modul                        | Fő backend regresszió                                          | Frontend / Playwright fókusz                                          |
-| ---------------------------- | -------------------------------------------------------------- | --------------------------------------------------------------------- |
-| `admin`                      | admin foundation, partial reload, route authorization          | Admin CRUD komponensek és admin E2E                                   |
-| `authentication`             | authentication/permission foundation, hardening                | auth és permission navigation                                         |
-| `bom`                        | production structure és master UI                              | BOM oldal; kapcsolódó production regresszió                           |
-| `capacity`                   | capacity planning                                              | schedule és dashboard komponensek                                     |
-| `code-generation`            | code generation                                                | nincs külön frontend/E2E suite                                        |
-| `customer-orders`            | customer order UI és order-to-production                       | workflow komponensek és customer-order E2E                            |
-| `documents`                  | document UI, verziózás és intelligence pipeline                | dokumentum komponensek és E2E                                         |
-| `inventory`                  | inventory, item/serial és cache invalidation                   | stock reservation frontend/E2E                                        |
-| `manufacturing-intelligence` | intelligence és Python AI engine                               | intelligence/chart komponensek                                        |
-| `master-data`                | partner, item és production master data                        | employee/admin CRUD                                                   |
-| `mrp`                        | netting, pegging, supply proposal és PR execution readiness    | Item Supplier, Supply Proposal és PR detail frontend                  |
-| `procurement`                | requisition, order, receipt, supplier, cache és partial reload | három procurement frontend oldal és a teljes procurement E2E könyvtár |
-| `production`                 | execution, structure és order production                       | production-task/quality workflow E2E                                  |
-| `production-planning`        | production plans és capacity                                   | planning/schedule frontend és E2E                                     |
-| `quality`                    | production execution quality útvonalai                         | workflow komponensek és task-quality E2E                              |
-| `reports`                    | reporting analytics                                            | dashboard/chart komponensek                                           |
+| Modul                        | Fő backend regresszió                                                      | Frontend / Playwright fókusz                                          |
+| ---------------------------- | -------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| `admin`                      | admin foundation, partial reload, route authorization                      | Admin CRUD komponensek és admin E2E                                   |
+| `authentication`             | authentication/permission foundation, hardening                            | auth és permission navigation                                         |
+| `bom`                        | production structure és master UI                                          | BOM oldal; kapcsolódó production regresszió                           |
+| `capacity`                   | capacity planning                                                          | schedule és dashboard komponensek                                     |
+| `code-generation`            | code generation                                                            | nincs külön frontend/E2E suite                                        |
+| `customer-orders`            | customer order UI és order-to-production                                   | workflow komponensek és customer-order E2E                            |
+| `documents`                  | document UI, verziózás és intelligence pipeline                            | dokumentum komponensek és E2E                                         |
+| `inventory`                  | inventory, item/serial és cache invalidation                               | stock reservation frontend/E2E                                        |
+| `manufacturing-intelligence` | intelligence és Python AI engine                                           | intelligence/chart komponensek                                        |
+| `master-data`                | partner, item és production master data                                    | employee/admin CRUD                                                   |
+| `mrp`                        | netting, pegging, supply proposal, PR execution readiness és PO generation | Item Supplier, Supply Proposal és PR detail frontend                  |
+| `procurement`                | requisition, order, receipt, supplier, cache és partial reload             | három procurement frontend oldal és a teljes procurement E2E könyvtár |
+| `production`                 | execution, structure és order production                                   | production-task/quality workflow E2E                                  |
+| `production-planning`        | production plans és capacity                                               | planning/schedule frontend és E2E                                     |
+| `quality`                    | production execution quality útvonalai                                     | workflow komponensek és task-quality E2E                              |
+| `reports`                    | reporting analytics                                                        | dashboard/chart komponensek                                           |
 
 A `related_modules` kapcsolatok tranzitívan bővülnek, ciklusbiztosak, és az
 azonos tesztfájl minden tervben csak egyszer jelenik meg.
@@ -222,7 +222,8 @@ Development work must use the project's layered quality gate system.
 
 Az `mrp` logikai modul a Material Requirement, Item Supplier, Supply Proposal,
 Material Requirement Netting, Requirement Pegging, Purchase Requisition
-Consolidation, Supplier Selection, Replenishment és Execution Readiness fájlokat a fókuszált backend/frontend
+Consolidation, Supplier Selection, Replenishment, Execution Readiness és
+Purchase Order Generation fájlokat a fókuszált backend/frontend
 suite-okhoz route-olja, és
 kapcsolódó modulként bevonja az inventory, procurement és production-planning
 ellenőrzéseket.

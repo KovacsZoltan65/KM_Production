@@ -22,6 +22,8 @@ interface PurchaseRequisitionRepositoryInterface extends AdminRepositoryInterfac
 
     public function lockForReplenishment(int $requisitionId): PurchaseRequisition;
 
+    public function lockForPurchaseOrderGeneration(int $requisitionId): PurchaseRequisition;
+
     /** @param array<string, mixed> $attributes */
     public function updateItemReplenishment(PurchaseRequisitionItem $item, array $attributes): PurchaseRequisitionItem;
 
