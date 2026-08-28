@@ -68,15 +68,18 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('material_requirements', function (Blueprint $table): void {
+            $table->dropForeign(['bom_item_id']);
+            $table->dropForeign(['production_order_id']);
+        });
+
+        Schema::table('material_requirements', function (Blueprint $table): void {
             $table->dropIndex('material_requirements_demand_item_date_index');
             $table->dropIndex('material_requirements_production_bom_index');
             $table->dropIndex('material_requirements_required_at_index');
         });
 
         Schema::table('material_requirements', function (Blueprint $table): void {
-            $table->dropConstrainedForeignId('bom_item_id');
-            $table->dropConstrainedForeignId('production_order_id');
-            $table->dropColumn('required_at');
+            $table->dropColumn(['bom_item_id', 'production_order_id', 'required_at']);
         });
     }
 };

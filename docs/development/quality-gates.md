@@ -44,6 +44,12 @@ composer qa:integration
 composer qa:full
 ```
 
+A `qa:*` Composer scriptek letiltják a Composer általános, 300 másodperces
+process timeoutját. A futást továbbra is a quality-gate runner felügyeli az
+alábbi, parancstípusonkénti timeoutokkal. Így egy szabályosan futó összesített
+gate-et nem szakít meg a külső wrapper, miközben egy elakadt alfolyamat továbbra
+is 124-es hibával és processzfa-takarítással áll le.
+
 Az elérhető modulnevek:
 
 ```bash
@@ -137,6 +143,22 @@ QUALITY_GATE_TIMEOUT_PHPSTAN
 
 A verziózott alapértékek rendre 120, 600, 240, 900, 180 és 240 másodperc;
 ezek a projekt jelenlegi mért Windows futásaihoz igazodnak.
+
+A timeout tulajdonosa a runner, nem a Composer wrapper. A 0015.5 baseline-ban
+az MRP modul backend része körülbelül 204 másodpercig futott, míg a teljes
+integration wrapper a sikeres előlépések után pontosan a Composer 300
+másodperces limitjén állt le. Ezért a kategóriaértékek nem változtak: a backend
+600 másodperces kerete megfelelő biztonsági tartalékot ad, a konkurens külső
+300 másodperces limit eltávolítása pedig a bizonyított orchestration hibát
+javítja.
+
+Az integration és full gate teljes frontend/coverage lépése egy Vitest
+workert használ. Ezek a lépések közvetlenül a nagy backend regresszió után
+futnak; a korábbi worker-stabilitási audit szerint az egyszálas `forks` profil
+megtartja az izolációt, miközben kisebb a jsdom memóriaigénye. A célzott module
+és affected frontend futások továbbra is a verziózott, két workeres
+alapkonfigurációt használják. Ez nem emel timeoutot, nem ad retry-t és nem hagy
+ki tesztet.
 
 Timeout esetén a runner kiírja az elakadt parancsot, 124-es exit code-ot ad,
 és lezárja a saját processzfáját. Windowson ezt a

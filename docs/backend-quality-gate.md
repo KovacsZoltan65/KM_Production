@@ -75,6 +75,13 @@ composer test:backend:mysql
 composer test:backend:migrations:mysql
 ```
 
+WAMP használatakor a ténylegesen futó MySQL service portja tipikusan `3306`.
+A fenti override előtt ellenőrizd, hogy a service MySQL 8.4-et futtat, és hogy
+kizárólag a guard által elfogadott `km_production_testing` adatbázist használja
+a dedikált `km_testing` felhasználóval. A repository alapértelmezett `33060`
+portja a `compose.testing.yml` által indított service-é; a WAMP service-t a
+repository nem indítja el automatikusan.
+
 Linux/macOS alatt:
 
 ```bash
@@ -106,15 +113,15 @@ Az ismételt seeder futás bizonyítja az alap role-, permission- és adminfelha
 
 ## Adatbázismotorok eltérései
 
-| Terület | SQLite | MySQL | Projektmegoldás |
-| --- | --- | --- | --- |
-| Foreign key | PRAGMA-alapú | InnoDB | Mindkét gate-ben bekapcsolva |
-| Dátum/idő | SQLite függvények | MySQL függvények | UTC és izolált driver-specifikus expression helper |
-| JSON | szöveges/JSON1 viselkedés | natív JSON | Eloquent cast és Query Builder preferált |
-| Group by | megengedőbb lehet | strict `ONLY_FULL_GROUP_BY` | strict MySQL gate |
-| Decimal | gyakran numerikus/string konverzió | DECIMAL precision | modell cast és kétmotoros suite |
-| Case sensitivity | collationfüggő | `utf8mb4_unicode_ci` | felhasználói keresésnél dokumentált collation |
-| Index rollback | SQLite tábla-újraépítés | natív ALTER | index eltávolítása oszlop előtt |
+| Terület          | SQLite                             | MySQL                       | Projektmegoldás                                    |
+| ---------------- | ---------------------------------- | --------------------------- | -------------------------------------------------- |
+| Foreign key      | PRAGMA-alapú                       | InnoDB                      | Mindkét gate-ben bekapcsolva                       |
+| Dátum/idő        | SQLite függvények                  | MySQL függvények            | UTC és izolált driver-specifikus expression helper |
+| JSON             | szöveges/JSON1 viselkedés          | natív JSON                  | Eloquent cast és Query Builder preferált           |
+| Group by         | megengedőbb lehet                  | strict `ONLY_FULL_GROUP_BY` | strict MySQL gate                                  |
+| Decimal          | gyakran numerikus/string konverzió | DECIMAL precision           | modell cast és kétmotoros suite                    |
+| Case sensitivity | collationfüggő                     | `utf8mb4_unicode_ci`        | felhasználói keresésnél dokumentált collation      |
+| Index rollback   | SQLite tábla-újraépítés            | natív ALTER                 | index eltávolítása oszlop előtt                    |
 
 A reporting és manufacturing-intelligence repositoryk néhány dátum- és aggregációs expressiont driver szerint izolálnak. A többi lekérdezés adatbázisfüggetlen Query Builder/Eloquent formát használ.
 
@@ -154,7 +161,7 @@ Branch protection alatt mind a négy fenti checket required státuszra kell áll
 ## Hibakeresés és biztonságos leállítás
 
 - Guard hiba: a magyar üzenetben megnevezett drivert állítsd vissza a tesztértékre; ne lazítsd a guardot.
-- MySQL connection refused: ellenőrizd a compose health állapotát és a `TEST_MYSQL_PORT` értékét.
+- MySQL connection refused: ellenőrizd a compose health állapotát és a `TEST_MYSQL_PORT` értékét. Docker hiányában ellenőrizd külön a WAMP MySQL 8.4 service állapotát, majd használd a dokumentált `3306` port override-ot; ne válts SQLite-ra.
 - Collation vagy strict-mode hiba: a queryt vagy sémát javítsd; ne kapcsold ki a strict módot.
 - Maradt tesztfájl: csak a `storage/framework/testing/backend` könyvtárat ellenőrizd; fejlesztői upload könyvtárat ne törölj.
 - Leállítás: `docker compose -f compose.testing.yml down -v`. A helyi, manuálisan létrehozott tesztadatbázist csak név és guard ellenőrzése után szabad törölni.

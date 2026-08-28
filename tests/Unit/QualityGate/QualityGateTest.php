@@ -16,6 +16,33 @@ function qualityGateConfiguration(): array
     return require dirname(__DIR__, 3).'/config/quality-gates.php';
 }
 
+it('lets the gate runner own command timeouts instead of Composer', function () {
+    $composer = json_decode(
+        file_get_contents(dirname(__DIR__, 3).'/composer.json'),
+        true,
+        flags: JSON_THROW_ON_ERROR,
+    );
+
+    foreach (['qa:fast', 'qa:affected', 'qa:module', 'qa:integration', 'qa:full'] as $script) {
+        expect($composer['scripts'][$script])
+            ->toBeArray()
+            ->and($composer['scripts'][$script][0])
+            ->toBe('Composer\\Config::disableProcessTimeout');
+    }
+});
+
+it('caps full frontend gates to one worker after the backend regression', function () {
+    $planner = new GatePlanner(new ModuleMatrix(qualityGateConfiguration()));
+
+    foreach ([$planner->integration(), $planner->full()] as $plan) {
+        $frontend = collect($plan->commands)
+            ->first(fn (GateCommand $command): bool => str_starts_with($command->id, 'frontend-'));
+
+        expect($frontend)->toBeInstanceOf(GateCommand::class)
+            ->and($frontend->arguments)->toContain('--maxWorkers=1');
+    }
+});
+
 it('maps a goods receipt service to procurement and inventory with workflow E2E', function () {
     $selection = (new AffectedSelector(qualityGateConfiguration()))
         ->select(['app/Services/Admin/GoodsReceiptService.php']);

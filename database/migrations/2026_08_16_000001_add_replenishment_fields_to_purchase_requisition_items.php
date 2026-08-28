@@ -36,7 +36,14 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('purchase_requisition_items', function (Blueprint $table): void {
-            $table->dropForeign('pr_item_replenishment_supplier_fk');
+            if (DB::getDriverName() === 'sqlite') {
+                $table->dropForeign(['replenishment_item_supplier_id']);
+            } else {
+                $table->dropForeign('pr_item_replenishment_supplier_fk');
+            }
+        });
+
+        Schema::table('purchase_requisition_items', function (Blueprint $table): void {
             $table->dropColumn([
                 'planned_quantity',
                 'replenishment_excess_quantity',

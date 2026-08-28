@@ -47,10 +47,13 @@ return new class extends Migration
         });
 
         Schema::table('purchase_requisitions', function (Blueprint $table): void {
+            $table->dropForeign(['supplier_id']);
+        });
+
+        Schema::table('purchase_requisitions', function (Blueprint $table): void {
             $table->dropIndex('pr_consolidation_group_index');
             $table->dropIndex(['required_at']);
             $table->dropIndex(['proposed_supply_at']);
-            $table->dropForeign(['supplier_id']);
             $table->dropColumn(['supplier_id', 'required_at', 'proposed_supply_at']);
         });
     }
