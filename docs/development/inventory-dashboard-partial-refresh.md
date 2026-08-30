@@ -96,9 +96,9 @@ oldal egyszerű navigációs szerepét, és nem sugall hamis frissességi garanc
 
 **D. Jelenleg nem indokolt partial refresh.**
 
-- Globálisan frissítendő page-local propok: `[]`.
-- Szekciónként frissítendő page-local propok: `[]`.
-- Dashboard lazy propok: nincsenek.
+- Globálisan frissítendő page-local tulajdonságok: `[]`.
+- Szekciónként frissítendő page-local tulajdonságok: `[]`.
+- Dashboard lazy tulajdonságok: nincsenek.
 - Statikus dashboardadat: a frontend `sections` konstans és a translation
   key-k; ezekhez nem tartozik reload.
 - Frissítés gomb: nincs globális és nincs szekciónkénti gomb.
@@ -140,11 +140,11 @@ megkapja az `Admin/Inventory/Index` komponenst, jogosultság nélküli felhaszn�
 403 választ kap. Frontend refresh- és Playwright frissességi teszt jelenleg nem
 alkalmazható, mert nincs dinamikus adat vagy refresh interakció.
 
-Ha később dinamikus propok kerülnek a dashboardra, az implementáció előtt az
+Ha később dinamikus tulajdonságok kerülnek a dashboardra, az implementáció előtt az
 alábbi konkrét regressziós szerződés szükséges:
 
 1. Backend feature teszt: teljes payload, pontos partial `only` payload,
-   statikus propok hiánya, engedélyezett és 403 ág, cache hit/miss és releváns
+   statikus tulajdonságok hiánya, engedélyezett és 403 ág, cache hit/miss és releváns
    üzleti invalidálás, legalább egy külső adatváltozás.
 2. Frontend unit teszt: pontos `only` lista, loading/disabled, dupla kérés
    blokkolása, hibaág, régi adatok megtartása és success toast hiánya.
@@ -174,6 +174,6 @@ movement lista kerül. Akkor először a business-definíciót, adatforrást,
 jogosultsági scope-ot, konzisztenciahatárt, queryköltséget és cache-invalidálást
 kell lezárni; csak ezután választható globális vagy szekciónkénti refresh.
 
-Az új audit nem nevezheti át a meglévő propokat, nem másolhatja automatikusan a
+Az új audit nem nevezheti át a meglévő tulajdonságokat, nem másolhatja automatikusan a
 listaoldalak `records` szerződését, és nem vezethet be pollingot, Axios-hívást,
 új API-t vagy cache bypass-t bizonyított igény nélkül.

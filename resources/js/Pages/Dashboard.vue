@@ -4,7 +4,7 @@ import { Head, usePage } from "@inertiajs/vue3";
 import { computed } from "vue";
 
 /**
- * A közös jogosultsági Inertia propok.
+ * A közös jogosultsági Inertia tulajdonságok.
  * @typedef {Object} SharedAuth
  * @property {string[]} roles A felhasználó szerepkörei.
  * @property {string[]} permissions A felhasználó jogosultságai.

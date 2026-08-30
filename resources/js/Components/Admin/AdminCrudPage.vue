@@ -324,8 +324,10 @@ const submit = () => {
             if (suggestion && generatedField) {
                 form[generatedField.name] = suggestion;
                 generatedValues[generatedField.name] = suggestion;
-                const { code_suggestion: ignored, ...visibleErrors } =
-                    responseErrors;
+
+                const visibleErrors = { ...responseErrors };
+                delete visibleErrors.code_suggestion;
+
                 errors.value = visibleErrors;
                 focusFirstInvalidField(visibleErrors);
                 return;

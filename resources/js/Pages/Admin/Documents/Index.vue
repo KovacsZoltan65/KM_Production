@@ -7,7 +7,6 @@ import AdminLayout from "@/Layouts/AdminLayout.vue";
 import { route } from "@/Utils/routes";
 import { Head, Link, router, usePage } from "@inertiajs/vue3";
 import { trans } from "laravel-vue-i18n";
-import Button from "primevue/button";
 import Column from "primevue/column";
 import DataTable from "primevue/datatable";
 import Dialog from "primevue/dialog";

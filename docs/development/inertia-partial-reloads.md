@@ -60,7 +60,7 @@ flow pedig az egyetlen PATCH kérést, a pending állapotot, az aktív státuszf
 toastot és a felszabadított rekord helyes eltűnését ellenőrzi.
 
 Az Inventory / Stock Movements read-only auditlista `records` propja, valamint a
-`movementTypeOptions`, `itemOptions` és `locationOptions` selectorpropok lazy controller closure-k. A
+`movementTypeOptions`, `itemOptions` és `locationOptions` selectortulajdonságok lazy controller closure-k. A
 csak `records`-ot kérő partial payloadból ezek az optionök és a `filters` kimaradnak. A tényleges
 repository-filterek a `movement_type`, `item_id`, a forrás- vagy célraktárhelyre alkalmazott
 `location_id`, továbbá az inkluzív `date_from` és `date_to`; a frontend által küldött `search` jelenleg
@@ -94,7 +94,7 @@ használja; maga az index nem cache-elt. Az elkülönített E2E fixture-ek a ké
 egyszeri approve kérést, valamint az egyszeri PO- és PO-item-generálást igazolják.
 
 A Procurement / Purchase Orders index célzott frissítési propja a `records`; a controller ezt, a
-`statusOptions`, `supplierOptions` és `itemOptions` propokat lazy closure-ként adja át. A csak
+`statusOptions`, `supplierOptions` és `itemOptions` tulajdonságokat lazy closure-ként adja át. A csak
 `records`-ot kérő partial válaszból a `filters` és mindhárom option prop kimarad. A repository a
 `status`, `supplier_id` és az order numberre, notes mezőre vagy supplier névre/kódra alkalmazott
 `search` filtert kezeli; az alapértelmezett rendezés `id asc`. A lista a suppliert és a kapcsolódó
@@ -111,7 +111,7 @@ státuszt, nem indít második reloadot, a domain success flash pedig a redirect
 close PATCH kérést, auditot és dokumentumnavigáció nélküli redirectet ellenőrzik.
 
 A Procurement / Goods Receipts index célzott frissítési propja a `records`; a controller ezt, a
-`statusOptions`, `purchaseOrderOptions`, `itemOptions` és `locationOptions` propokat lazy closure-ként
+`statusOptions`, `purchaseOrderOptions`, `itemOptions` és `locationOptions` tulajdonságokat lazy closure-ként
 adja át. A records-only válaszból a `filters` és mind a négy option prop kimarad. A repository a
 receipt numberre, notes mezőre vagy Purchase Order számra alkalmazott `search`, valamint a `status`
 filtert kezeli; az alapértelmezett rendezés `id asc`. A lista a Purchase Order/supplier és receiver
@@ -147,7 +147,7 @@ megosztott lokalizált kéréshiba-értesítést hibák esetén. Egy sikeres fri
 
 Új listaoldal bekötésekor egészítsd ki a közös frontend szerződéstesztet a komponenssel és a
 teljes kezdeti propkészlettel. A backend teszt igazolja a teljes Inertia payloadot, majd egy
-`reloadOnly("records")` ellenőrzéssel azt is, hogy a filter- és option propok kimaradnak.
+`reloadOnly("records")` ellenőrzéssel azt is, hogy a filter- és option tulajdonságok kimaradnak.
 Playwrightban elkülönített E2E fixture rekordot módosíts közvetlenül a tesztadatbázisban, majd
 ellenőrizd a `records` partial headert, a loading állapotot, a változatlan URL-t és keresést,
 valamint a módosított adat megjelenését teljes dokumentumnavigáció nélkül.

@@ -55,7 +55,7 @@ import DataTable from "primevue/datatable";
  * @property {QualityResultOption[]} qualityResultOptions A választható ellenőrzési eredmények.
  */
 /** @type {Props} */
-const props = defineProps({
+defineProps({
     productionTask: Object,
     employeeOptions: Array,
     itemOptions: Array,

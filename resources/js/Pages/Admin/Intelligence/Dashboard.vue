@@ -69,7 +69,7 @@ import DataTable from "primevue/datatable";
  * @property {string[]} related_customer_orders A kapcsolódó rendelések.
  */
 /**
- * Átfutásiidő-pontosság.
+ * Átfutási idő-pontosság.
  * @typedef {Object} LeadTimeAccuracy
  * @property {boolean} enough_data Van-e elegendő historikus adat.
  * @property {string} [message] Az adathiány üzenete.

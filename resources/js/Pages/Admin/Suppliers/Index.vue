@@ -93,7 +93,7 @@ const fields = [
 
     // A "media" layoutGroup azt jelenti,
     // hogy az email és a telefon mezők
-    // egymás mellett jelennek meg a formon.
+    // egymás mellett jelennek meg a űrlapon.
     {
         name: "email",
         labelKey: "fields.email",

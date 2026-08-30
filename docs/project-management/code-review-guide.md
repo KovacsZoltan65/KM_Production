@@ -137,7 +137,7 @@ megőrzendő.
 
 ## Frontend ellenőrzési szempontok
 
-- A `defineProps()` és Inertia propok szerződése egyezik.
+- A `defineProps()` és Inertia tulajdonságok szerződése egyezik.
 - A `defineEmits()` események és prop/event átnevezések következetesek.
 - Loading, empty, success, validation és error állapotok kezeltek.
 - A PrimeVue komponensek és mezőtípusok következetesek.

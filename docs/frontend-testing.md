@@ -6,7 +6,7 @@ A frontend tesztrendszer a közös Vue-komponensek, az Inertia-hívási szerződ
 
 ## Audit és prioritások
 
-Az induló audit 104 Vue-fájlt talált: 69 Inertia page és 33 közös komponens, továbbá 1 composable és 2 utility/constants fájl. Korábban nem volt frontend teszt vagy tesztkonfiguráció. A projektben nincs általános frontend permission guard; a tényleges szerződések oldalankénti jogosultság propok (`canPlan`) és közös komponensállapotok (`readOnly`, `canEdit`, `canDelete`).
+Az induló audit 104 Vue-fájlt talált: 69 Inertia page és 33 közös komponens, továbbá 1 composable és 2 utility/constants fájl. Korábban nem volt frontend teszt vagy tesztkonfiguráció. A projektben nincs általános frontend permission guard; a tényleges szerződések oldalankénti jogosultság tulajdonságok (`canPlan`) és közös komponensállapotok (`readOnly`, `canEdit`, `canDelete`).
 
 A leltár fő csoportjai:
 
@@ -170,9 +170,9 @@ Az új fixture factory-k reservationt, dokumentumot, dokumentumverziót, auth pa
 
 A projekt status donut diagramja saját SVG-t használ, külső chart library nincs. Emiatt canvas/chart-library mock bevezetése helyett a `buildStatusChart()` transzformáció került tiszta helperbe. A helper normalizálja a stringként kapott számokat és a hibás/null/negatív értékeket, kiszámítja a teljes összeget, a körszegmenseket, offseteket és stabil színeket.
 
-Tiszta helper kiemelése akkor indokolt, ha a komponens belsejében lévő transzformáció több elágazást tartalmaz, önálló input/output szerződése van, és a kiemelés nem változtatja meg a propokat, emiteket vagy a normál adatra készülő diagramkonfigurációt. A wrapper komponensnél csak az empty state-et, a saját átadott adatot és a propváltozásra történő frissülést teszteljük.
+Tiszta helper kiemelése akkor indokolt, ha a komponens belsejében lévő transzformáció több elágazást tartalmaz, önálló input/output szerződése van, és a kiemelés nem változtatja meg a tulajdonságokat, emiteket vagy a normál adatra készülő diagramkonfigurációt. A wrapper komponensnél csak az empty state-et, a saját átadott adatot és a propváltozásra történő frissülést teszteljük.
 
-Ha később külső chart library kerül be, könnyű stubot használjunk, amely deklarálja a `data`, `options` és `type` propokat. Canvas vagy SVG belső struktúrát továbbra se ellenőrizzünk.
+Ha később külső chart library kerül be, könnyű stubot használjunk, amely deklarálja a `data`, `options` és `type` tulajdonságokat. Canvas vagy SVG belső struktúrát továbbra se ellenőrizzünk.
 
 ### Részleges backend adatok
 

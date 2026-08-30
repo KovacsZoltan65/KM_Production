@@ -28,7 +28,6 @@ import Tag from "primevue/tag";
  */
 /** @type {Props} */
 defineProps({ report: { type: Object, required: true } });
-const typeLabel = (value) => String(value || "").replaceAll("_", " ");
 </script>
 
 <template>
