@@ -73,7 +73,11 @@ toastservice
 tulajdonságai
 useconfirm
 usetoast
-várhatóan
 tulajdonságok
 kikapcsolja
 Prettierrel
+várhatóan
+southeners
+laravel
+esbenp
+spellright

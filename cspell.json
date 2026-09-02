@@ -4,6 +4,10 @@
     "language": "en,hu,hu-hu",
     "import": ["@cspell/dict-hu-hu/cspell-ext.json"],
     "useGitignore": true,
+    "enabledFileTypes": {
+        "*": true,
+        "markdown": false
+    },
     "dictionaryDefinitions": [
         {
             "name": "km-production",

@@ -464,6 +464,59 @@ Rules:
 - Keep documentation close to stable concepts.
 - Update steering documents when architectural guidance changes.
 
+### Documentation Language and Readability
+
+Project documentation must be technically precise and easy to understand.
+
+The purpose of documentation is to help the reader understand the system, not
+to demonstrate technical complexity.
+
+Rules:
+
+- Explain business meaning before technical implementation.
+- Use simple, natural language and short sentences.
+- Prefer one main idea per sentence.
+- Write explanations so that a reader who understands the business domain but
+  is not a developer can understand the business purpose and behavior.
+- Keep code identifiers, class names, field names, enum values, database names,
+  and other technical identifiers unchanged.
+- Do not replace clear everyday language with unnecessary technical jargon.
+- When a technical term is necessary, explain its meaning when it first appears
+  if the intended reader may not know it.
+- Prefer Hungarian wording in Hungarian project documentation when it expresses
+  the same meaning clearly. Keep English terminology where it is an established
+  domain term or an actual code identifier.
+- Do not mix Hungarian and English merely for technical tone.
+- Introduce complex rules with a simple explanation or example before describing
+  implementation details.
+- Do not assume that the reader has detailed knowledge of earlier ADRs. Briefly
+  explain the relevant context and link to the detailed decision.
+- Examples should use realistic business situations where they make a complex
+  rule easier to understand.
+- Simplicity must not remove important domain distinctions, constraints,
+  invariants, or implementation requirements.
+
+For architecture decisions and domain documentation, prefer this order:
+
+1. Explain the business problem in plain language.
+2. Explain the expected business behavior.
+3. Give a simple example when useful.
+4. Explain the architectural or domain decision.
+5. Describe the technical implementation details and constraints.
+
+A business-facing section passes the readability check when a non-developer
+reader familiar with the business can answer:
+
+- What is the problem?
+- What will the system do?
+- Why was this solution chosen?
+- What changes?
+- What does not change?
+- What happens in a typical example?
+
+Technical sections may use precise implementation terminology, but the
+surrounding explanation must remain as clear and simple as practical.
+
 ## Testing Style
 
 Use clear test names.

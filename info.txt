@@ -24,6 +24,13 @@ php artisan db:seed --class="Database\Seeders\LocationsSeeder"
 php artisan key:generate --env=testing
 
 =========================================
+= nyelvi ellenőrzés
+=========================================
+    npx cspell "resources/**/*.{js,vue,php}" --no-progress
+Ha a teljes projektet akarjuk ellenőrizni:
+    npx cspell . --no-progress
+
+=========================================
 = 
 =========================================
 
