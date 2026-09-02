@@ -496,6 +496,11 @@ Rules:
 - Simplicity must not remove important domain distinctions, constraints,
   invariants, or implementation requirements.
 
+The authoritative terminology categories, preferred Hungarian wording, and
+protected domain distinctions are defined in the
+[Documentation Terminology Standard](../knowledge/domain-terminology.md). Do
+not duplicate or redefine that terminology in local documentation.
+
 For architecture decisions and domain documentation, prefer this order:
 
 1. Explain the business problem in plain language.

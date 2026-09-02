@@ -6,20 +6,22 @@
 
 ## Kontextus
 
-A 0015 egy execution-ready, Approved Purchase Requisitionből tranzakciósan,
-idempotensen és történeti snapshotokkal hoz létre Draft Purchase Ordert. Ez a
-belső execution dokumentum létrejötte; a 0015 explicit módon nem küldi el a
-rendelést a Suppliernek, nem rögzít Supplier-visszaigazolást, nem vételez árut,
-és nem módosít készletet.
+A [0015-ös döntés](0015-purchase-order-generation.md) egy végrehajtásra kész,
+jóváhagyott Purchase Requisitionből hozza létre a beszerzés belső dokumentumát,
+a `Draft` állapotú Purchase Ordert. A létrehozás egyetlen
+adatbázis-tranzakcióban, idempotens módon és történeti másolatokkal történik. A
+Purchase Order létrejötte azonban nem bizonyítja, hogy a rendelést elküldték a
+Suppliernek. A 0015 nem rögzít Supplier-visszaigazolást, nem vételez árut, és
+nem módosít készletet.
 
-A következő execution-határon a rendszernek külön kell megválaszolnia:
+A beszerzőnek ezért külön kell látnia:
 
-- történt-e tényleges dispatch-kísérlet a Supplier felé;
-- sikeres volt-e a kísérlet, mikor, milyen csatornán és mely recipient felé;
+- történt-e tényleges Dispatch-kísérlet a Supplier felé;
+- sikeres volt-e a kísérlet, mikor, milyen csatornán és mely címzett felé;
 - érkezett-e Supplier Acknowledgement;
 - a Supplier tételenként milyen mennyiséget és szállítási dátumot ígért;
-- a válasz eltér-e a Purchase Order tartalmától;
-- szükséges-e operatív follow-up vagy replanning.
+- eltér-e a válasz a Purchase Order tartalmától;
+- szükséges-e beszerzői utánkövetés vagy újratervezés.
 
 A `Purchase Order`, `Dispatch`, `Supplier Acknowledgement`, `Goods Receipt` és
 `Invoice / Financial Settlement` eltérő üzleti tény. Egyik sem bizonyítja
@@ -27,93 +29,154 @@ automatikusan a másikat.
 
 ## Probléma
 
-A jelenlegi Purchase Orderből nem állapítható meg, hogy a dokumentum ténylegesen
-elhagyta-e a rendszert, illetve mit igazolt vissza a Supplier. Ha ezeket az
-információkat kizárólag a `PurchaseOrder.status`, az `ordered_at` vagy az
-`expected_delivery_date` mezőbe olvasztanánk, akkor eltűnne:
+A jelenlegi Purchase Orderből nem állapítható meg, hogy a rendelést ténylegesen
+elküldték-e, illetve mit igazolt vissza a Supplier. Ha ezeket az információkat
+kizárólag a `PurchaseOrder.status`, az `ordered_at` vagy az
+`expected_delivery_date` mezőben tárolnánk, akkor nem maradna külön látható:
 
-- a sikertelen és ismételt dispatch-kísérletek története;
-- a dispatch recipient és channel történeti állapota;
-- az eredeti rendelés és a Supplier promise közötti különbség;
-- a részleges, eltérő vagy javított acknowledgement magyarázhatósága;
-- a dispatch, acknowledgement és Goods Receipt közötti domain-határ.
+- a sikertelen és ismételt Dispatch-kísérletek története;
+- az egyes Dispatch-kísérletek címzettje és csatornája;
+- az eredeti rendelés és a Supplier ígérete közötti különbség;
+- a részleges, eltérő vagy javított Acknowledgement magyarázata;
+- a Dispatch, az Acknowledgement és a Goods Receipt közötti üzleti határ.
 
-Az implementációnak emellett egyszerre kell védenie az ismételt HTTP-kérések
-idempotenciáját és engednie a szándékos redispatchet, illetve az append-only
-acknowledgement-korrekciót.
-
-## A Phase 1 auditból következő meglévő korlátok
-
-1. A `PurchaseOrderStatus` jelenleg `Draft`, `Ordered`, `PartiallyReceived`,
-   `Received` és `Cancelled` értékeket tartalmaz. Az enum egyszerre szolgálja a
-   belső ordering és a receiving/MRP lifecycle-t.
-2. A `PurchaseOrderService::approve()` a Draft PO-t `Ordered` állapotba teszi,
-   és ekkor állítja be az `ordered_at` értéket. Nem történik külső kommunikáció.
-3. A `PurchaseOrderItem` kizárólag ordered és received mennyiséget, valamint
-   receipt-orientált státuszt tárol; supplier-promised quantity/date nincs.
-4. A buyer delivery baseline csak a PO header
-   `PurchaseOrder.expected_delivery_date` mezőjén létezik. PO item-szintű
-   requested delivery date nincs.
-5. A 0015-tel generált PO immutable Supplier-, Item-, ItemSupplier-, unit-,
-   conversion-, price- és replenishment-snapshotokat tart. Legacy vagy kézzel
-   létrehozott PO-ból ezek egy része hiányozhat.
-6. A Supplier törzs egy általános emailt, telefont és címet tárol; nincs named
-   contact, több destination, Supplier Portal vagy EDI endpoint modell.
-7. A Goods Receipt külön aggregate, amely postingkor Stock Movementet hoz
-   létre, frissíti a received mennyiséget és a PO receiving státuszát.
-8. Nincs procurement mailer, supplier notification, Supplier Portal vagy EDI
-   infrastruktúra. A Laravel user email verification nem újrahasznosítható
-   Purchase Order dispatch mechanizmusként.
-9. Nincs általános idempotency-key framework. A meglévő kritikus workflow-k
-   row lockot, status revalidationt és adatbázis unique constraintet használnak.
-10. A meglévő PO `close()` viselkedés `Received` státuszt állít Goods Receipt
-    létrehozása nélkül. Ennek rendezése nem a 0016 feladata.
-11. A meglévő PO update flow a Suppliert és a header
-    `expected_delivery_date` értékét lifecycle-specifikus immutability guard
-    nélkül módosíthatja. A 0016 ezt a legacy viselkedést nem tervezi át, ezért
-    a dispatch és acknowledgement összehasonlítási alapjait saját történeti
-    snapshotokban kell megőrizni.
+A megoldásnak két hasonló, de eltérő esetet is szét kell választania. Egy
+véletlenül megismételt HTTP-kérés nem hozhat létre új rekordot. Egy szándékos
+újraküldésnek vagy javított Supplier-válasznak viszont új, történetileg
+megőrzött rekordot kell létrehoznia.
 
 ## Döntés
 
-A dispatch és a Supplier Acknowledgement két új, egymástól és a Purchase
-Ordertől is elkülönülő, append-only domain record története:
+A rendszer a Dispatch-kísérleteket és a Supplier Acknowledgementeket két külön,
+csak új rekordokkal bővíthető történetként tárolja. Mindkettő elkülönül magától
+a Purchase Ordertől:
 
 ```text
 Purchase Order
-├─ Purchase Order Dispatch attempt 1 (failed)
-├─ Purchase Order Dispatch attempt 2 (succeeded)
+├─ 1. Purchase Order Dispatch-kísérlet (sikertelen)
+├─ 2. Purchase Order Dispatch-kísérlet (sikeres)
 └─ Supplier Acknowledgement v1
-   ├─ line response for PO item A
-   └─ line response for PO item B
-      ↓ superseded by
+   ├─ válasz az A PO-tételre
+   └─ válasz a B PO-tételre
+      ↓ felváltja
    Supplier Acknowledgement v2
 ```
 
 A `PurchaseOrderStatus` nem kap `Dispatched`, `Acknowledged` vagy hasonló új
-értéket. A dispatch state a dispatch rekordokból, az acknowledgement state az
-acknowledgement rekordokból származtatott, egymástól ortogonális read state.
+értéket. A Dispatch és az Acknowledgement aktuális állapotát a hozzájuk tartozó
+rekordokból kell kiszámítani. A két állapot egymástól függetlenül jelenik meg.
 
 Az `Ordered` és az `ordered_at` jelentése változatlan. Az `ordered_at` továbbra
-is a meglévő belső approval/ordering transition időpontja, nem dispatch
-timestamp. A sikeres dispatch saját `dispatched_at` mezőt kap.
+is a meglévő belső jóváhagyási és rendelési átmenet időpontja, nem a kiküldés
+időpontja. A sikeres Dispatch saját `dispatched_at` mezőt kap.
 
-## Domain terminológia
+## Üzleti fogalmak
 
-| Fogalom                             | Jelentés                                                                                      | Nem jelenti                                                    |
-| ----------------------------------- | --------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
-| `PurchaseOrder`                     | A buyer által rögzített formális rendelés és execution dokumentum.                            | Nem bizonyít dispatch-et, Supplier promise-t vagy receiptet.   |
-| `PurchaseOrderDispatch`             | Egy konkrét, kimenetellel lezárt dispatch-kísérlet auditálható ténye.                         | Nem approval, acknowledgement vagy Goods Receipt.              |
-| `SupplierAcknowledgement`           | A Supplier egy konkrét időpontban rögzített válaszának header snapshotja.                     | Nem módosított PO, receipt, invoice vagy payment.              |
-| `SupplierAcknowledgementItem`       | Egy PO itemre adott supplier-promised quantity/date vagy explicit rejection.                  | Nem PO item módosítás és nem receipt line.                     |
-| `effective acknowledgement`         | A supersession-lánc egyetlen, utód nélküli aktuális eleme.                                    | Nem törli vagy teszi valótlanná a korábbi történeti választ.   |
-| `buyer requested delivery baseline` | A PO header `expected_delivery_date` értékéből a válaszhoz snapshotolt összehasonlítási alap. | Nem Supplier promise, receipt date vagy automatikus MRP dátum. |
+| Fogalom                              | Jelentés                                                                                   | Nem jelenti                                                     |
+| ------------------------------------ | ------------------------------------------------------------------------------------------ | --------------------------------------------------------------- |
+| `PurchaseOrder`                      | A vevő által rögzített formális rendelés és belső végrehajtási dokumentum.                 | Nem bizonyít Dispatch-et, Supplier-ígéretet vagy áruátvételt.   |
+| `PurchaseOrderDispatch`              | Egy konkrét, ismert eredménnyel lezárt Dispatch-kísérlet ellenőrizhető ténye.              | Nem jóváhagyás, Acknowledgement vagy Goods Receipt.             |
+| `SupplierAcknowledgement`            | A Supplier egy adott időpontban kapott válaszának teljes fejlécmásolata.                   | Nem módosított PO, áruátvétel, számla vagy fizetés.             |
+| `SupplierAcknowledgementItem`        | Egy PO-tételre adott ígért mennyiség és dátum, vagy kifejezett elutasítás.                 | Nem PO-tétel-módosítás és nem áruátvételi sor.                  |
+| hatályos Acknowledgement             | A felülírási lánc egyetlen olyan aktuális eleme, amelyet még nem váltott fel újabb válasz. | Nem törli és nem teszi valótlanná a korábbi történeti választ.  |
+| vevő által kért szállítási alapdátum | A PO fejléc `expected_delivery_date` értékének a válaszhoz rögzített történeti másolata.   | Nem Supplier-ígéret, átvételi dátum vagy automatikus MRP-dátum. |
 
-## Domain model
+## Üzleti példa
+
+Egy Purchase Order 1000 darabot kér szeptember 20-i szállítással. Az első
+Dispatch-kísérlet sikertelen, ezért a rendszer megőrzi a hibát és annak okát. A
+második Dispatch-kísérlet sikeres; ez sem írja át és nem törli az első
+próbálkozást.
+
+A Supplier ezután 900 darabot igazol vissza szeptember 22-re. A rendszer ezt
+`accepted_with_changes` állapotú Acknowledgementként rögzíti, mert mind a
+mennyiség, mind a dátum eltér a vevői igénytől. Az eltérés utánkövetést és
+újratervezést igényel, de nem módosítja automatikusan a Purchase Ordert vagy az
+MRP számítási alapját.
+
+Később kiderül, hogy a Supplier helyes ígérete 1000 darab szeptember 21-re. A
+javítás új, teljes Acknowledgementként kerül a történetbe, amely közvetlenül az
+előző választ váltja fel. A korábbi 900 darabos, szeptember 22-i válasz
+megmarad. Az aktuális nézet a javított választ mutatja hatályosként. Ez továbbra
+is `accepted_with_changes`, és utánkövetést, valamint újratervezést igényel,
+mert a dátum egy nappal későbbi a kért szeptember 20-nál. A teljes előzmény
+közben változatlanul ellenőrizhető.
+
+## Az Acknowledgement üzleti értelmezése
+
+### Értékelési kör és hiányzó tételek
+
+Minden válaszhoz történetileg rögzíteni kell az összes akkor érvényes, nem
+`cancelled` PO-tételt. Ha ezek közül valamelyikhez nem érkezik tételválasz, az
+`missing`: nem tekinthető sem elfogadottnak, sem elutasítottnak. Egy javítás
+mindig teljes új válasz, ezért nem örökli a korábbi változat tételsorait.
+
+### Státusz és figyelmeztető jelzők
+
+A válasz csak akkor `accepted`, ha minden érintett tétel szerepel, minden sor
+elfogadott, és minden ígért mennyiség, valamint dátum pontosan egyezik. Csak a
+minden tételre kiterjedő, kifejezett elutasítás `rejected`; minden más érvényes
+eset `accepted_with_changes`. A rendszer a tételadatokból számítja a
+`requires_follow_up` és `requires_replanning` jelzőket, a felhasználó nem
+választhatja meg őket.
+
+### Előzmények és hatályos válasz
+
+A Dispatch-kísérletek és az Acknowledgementek korábbi rekordjai mindig
+megmaradnak. A legutóbbi sikertelen újraküldés nem törli a korábbi sikeres
+Dispatch-et. A Supplier javított válasza pedig új, teljes rekordként közvetlenül
+az addig hatályos választ váltja fel; egy PO-hoz a láncban egyszerre csak egy
+hatályos Acknowledgement tartozhat.
+
+### Hatás más üzleti folyamatokra
+
+A Dispatch és az Acknowledgement nem írja át a Purchase Ordert, nem vesz át
+árut, nem módosít készletet, és nem hoz létre számlát vagy fizetést. A Supplier
+ígérete V1-ben figyelmeztető beszerzési információ, nem automatikus MRP-,
+netting- vagy pegging-bemenet.
+
+## Meglévő rendszerkorlátok
+
+1. A `PurchaseOrderStatus` jelenleg `Draft`, `Ordered`, `PartiallyReceived`,
+   `Received` és `Cancelled` értékeket tartalmaz. Ez az enum egyszerre írja le a
+   belső rendelési, áruátvételi és MRP-életciklust.
+2. A `PurchaseOrderService::approve()` a Draft PO-t `Ordered` állapotba teszi,
+   és ekkor állítja be az `ordered_at` értéket. Nem történik külső kommunikáció.
+3. A `PurchaseOrderItem` kizárólag ordered és received mennyiséget, valamint
+   áruátvételi státuszt tárol. A Supplier által ígért mennyiség és dátum nincs
+   benne.
+4. A buyer delivery baseline csak a PO header
+   `PurchaseOrder.expected_delivery_date` mezőjén létezik. PO item-szintű
+   requested delivery date nincs.
+5. A 0015-tel létrehozott PO változatlan történeti másolatokat tart a
+   Supplierről, az Itemről, az ItemSupplier kapcsolatról, valamint az egység-,
+   átváltási-, ár- és utánpótlási adatokról. Régi vagy kézzel létrehozott PO-ból
+   ezek egy része hiányozhat.
+6. A Supplier törzs egy általános e-mail-címet, telefonszámot és címet tárol.
+   Nincs megnevezett kapcsolattartó, több lehetséges célcím, Supplier Portal
+   vagy EDI-végpont modell.
+7. A Goods Receipt külön üzleti egység. Könyvelésekor Stock Movementet hoz
+   létre, frissíti az átvett mennyiséget és a PO áruátvételi státuszát.
+8. Nincs beszerzési levelező, Supplier-értesítés, Supplier Portal vagy EDI
+   infrastruktúra. A Laravel felhasználói e-mail-ellenőrzése nem használható
+   Purchase Order Dispatch-mechanizmusként.
+9. Nincs általános idempotenciakulcs-kezelés. A meglévő kritikus folyamatok
+   sorzárolást, ismételt státuszellenőrzést és adatbázis-egyediségi korlátot
+   használnak.
+10. A meglévő PO `close()` viselkedés `Received` státuszt állít Goods Receipt
+    létrehozása nélkül. Ennek rendezése nem a 0016 feladata.
+11. A meglévő PO-módosítási folyamat az életciklushoz kötött változtathatósági
+    védelem nélkül módosíthatja a Suppliert és a fejléc
+    `expected_delivery_date` értékét. A 0016 ezt a korábbi viselkedést nem
+    tervezi át. A Dispatch és az Acknowledgement összehasonlítási alapjait ezért
+    saját történeti másolatukban kell megőrizni.
+
+## Adatmodell és megőrzött üzleti tények
 
 ### PurchaseOrderDispatch
 
-A `PurchaseOrderDispatch` egy append-only dispatch-attempt. Legalább a
+A `PurchaseOrderDispatch` egyetlen, már lezárt Dispatch-kísérletet rögzít. A
+rekord a létrehozása után felhasználói folyamatból nem módosítható. Legalább a
 következő üzleti tényeket őrzi:
 
 - `purchase_order_id`;
@@ -137,14 +200,14 @@ következő üzleti tényeket őrzi:
 - nullable `notes`;
 - technikai timestampok.
 
-V1-ben nincs `pending` vagy `cancelled` dispatch state. Mivel nincs rendszer
-által végrehajtott aszinkron küldés, a rekord csak ismert kimenetellel jön
-létre. Egy tervezett, de meg nem kísérelt küldés még nem dispatch domain fact.
+V1-ben nincs `pending` vagy `cancelled` Dispatch-állapot. Mivel a rendszer nem
+végez háttérben automatikus küldést, a rekord csak ismert eredménnyel jön létre.
+Egy tervezett, de meg nem kísérelt küldés még nem számít Dispatchnek.
 
 ### SupplierAcknowledgement
 
-A `SupplierAcknowledgement` egy teljes, önmagában értelmezhető response
-snapshot header:
+A `SupplierAcknowledgement` a Supplier válaszának teljes, önmagában is
+értelmezhető fejlécmásolata:
 
 - `purchase_order_id`;
 - nullable `purchase_order_dispatch_id`;
@@ -163,13 +226,14 @@ snapshot header:
 - nullable `notes`;
 - technikai timestampok.
 
-A header status és a két attention flag service-ben, a line snapshotokból
-determinista módon számított és perzisztált evaluation result. Nem a request
-szabadon választható állítása.
+A fejléc `status` értékét és a két figyelmeztető jelzőt a Service számítja ki a
+tételsorok történeti adataiból, majd eltárolja. Ezeket a kérés küldője nem
+választhatja meg, és ugyanazokból az adatokból mindig ugyanannak az eredménynek
+kell származnia.
 
 ### SupplierAcknowledgementItem
 
-Minden line egy konkrét `PurchaseOrderItem` válasza:
+Minden sor egy konkrét `PurchaseOrderItem` tételre adott választ rögzít:
 
 - `supplier_acknowledgement_id`;
 - `purchase_order_item_id`;
@@ -187,36 +251,36 @@ Minden line egy konkrét `PurchaseOrderItem` válasza:
 - nullable `notes`;
 - technikai timestampok.
 
-Az acknowledgement line snapshot nem delta. Egy correction/superseding
-acknowledgement minden aktuálisan közölni kívánt line választ új rekordokban
-ismét teljesen rögzít.
+Az Acknowledgement tételsora teljes történeti másolat, nem csak az előző
+válaszhoz képest megváltozott adat. Egy javító Acknowledgement minden jelenleg
+érvényesnek szánt tételválaszt ismét, új rekordokban rögzít.
 
 ### SupplierAcknowledgementScopeItem
 
-Minden acknowledgement saját, append-only evaluation scope snapshotot kap. A
-`SupplierAcknowledgementScopeItem` egy acknowledgement és a rögzítéskor a PO
-scope-jába tartozó minden nem cancelled PO item kapcsolatát őrzi. Nem Supplier
-response és nem placeholder acknowledgement line.
+Minden Acknowledgementhez rögzíteni kell, hogy a válasz felvételekor mely nem
+`cancelled` PO-tételekre várt választ a rendszer. Ezt a csak új rekordokkal
+bővíthető történeti kört a `SupplierAcknowledgementScopeItem` tárolja. Ez nem
+Supplier-válasz, és nem üres helykitöltő tételsor.
 
-Az acknowledgement line csak a saját acknowledgement scope-jában szereplő PO
-itemre hivatkozhat. Egy scope item akkor `missing`, ha ugyanahhoz az
-acknowledgementhez nincs hozzá `SupplierAcknowledgementItem`. Ez megőrzi a
-történeti missing-line jelentést akkor is, ha a PO item scope-ja később
-megváltozna, és a tárolt header status/attention flag soha nem értékelődik újra
-aktuális PO scope alapján.
+Egy Acknowledgement-tételsor csak a saját történeti körében szereplő PO-tételre
+hivatkozhat. Egy tétel akkor `missing`, ha szerepel ebben a körben, de ugyanahhoz
+az Acknowledgementhez nincs `SupplierAcknowledgementItem` sora. Emiatt későbbi
+PO-módosítás nem változtathatja meg visszamenőleg, mely tétel számított
+hiányzónak. A tárolt fejlécstátuszt és figyelmeztető jelzőket sem szabad az
+aktuális PO-tételek alapján újraszámítani.
 
-## Lifecycle és származtatott state
+## Életciklusok és számított állapotok
 
-A Purchase Order meglévő lifecycle-ja és a jelenlegi transition guardok
-változatlanok. A fő receiving útvonal és a már létező terminális enum state:
+A Purchase Order meglévő életciklusa és átmeneti szabályai változatlanok. A fő
+áruátvételi útvonal és a már létező lezárt enumérték:
 
 ```text
 Draft → Ordered ───────────────────→ Received
           └→ PartiallyReceived ────→ Received
-Cancelled (meglévő terminális state; a 0016 nem vezet be új transitiont)
+Cancelled (meglévő lezárt állapot; a 0016 nem vezet be új átmenetet)
 ```
 
-A dispatch state ettől függetlenül származik:
+A Dispatch állapota ettől függetlenül, a kísérletekből számítható:
 
 ```text
 no dispatch attempts
@@ -225,11 +289,11 @@ no dispatch attempts
 → successfully redispatched
 ```
 
-Sikeres dispatch után egy későbbi failed redispatch nem teszi meg nem történtté
-az előző sikeres dispatch-et. A read model ezért külön adja vissza a latest
-attemptet és a latest successful dispatch-et.
+Sikeres Dispatch után egy későbbi sikertelen újraküldés nem teszi meg nem
+történtté az előző sikert. Az olvasási modell ezért külön adja vissza a
+legutóbbi kísérletet és a legutóbbi sikeres Dispatch-et.
 
-Az acknowledgement state szintén külön származik:
+Az Acknowledgement állapota szintén külön számítható:
 
 ```text
 no acknowledgement
@@ -238,10 +302,10 @@ no acknowledgement
 → rejected
 ```
 
-Mindig az effective acknowledgement statusa jelenik meg aktuális state-ként;
-az előzményei historyként maradnak láthatók.
+Aktuális állapotként mindig a hatályos Acknowledgement státusza jelenik meg. A
+korábbi válaszok az előzmények között továbbra is láthatók.
 
-## Invariánsok
+## Mindig érvényes üzleti szabályok
 
 1. Dispatch létrehozása nem módosít `PurchaseOrder.status` vagy
    `PurchaseOrder.ordered_at` értéket.
@@ -281,76 +345,77 @@ az előzményei historyként maradnak láthatók.
     attention flag és missing-line read model kizárólag ebből a történeti
     scope-ból és ugyanazon acknowledgement response line-jaiból származik.
 
-## Dispatch szabályok
+## A Dispatch rögzítésének szabályai
 
-### Eligibility
+### Mikor rögzíthető új Dispatch-kísérlet?
 
-Új dispatch-attempt csak akkor rögzíthető, ha:
+Új Dispatch-kísérlet csak akkor rögzíthető, ha:
 
 - a PO státusza `Ordered` vagy `PartiallyReceived`;
 - a PO Supplier kapcsolata létezik és a Supplier aktív;
-- a PO-n legalább egy nem cancelled item van, és minden ilyen item ordered
-  quantityje pozitív;
-- a channel- és recipient-validáció teljesül;
-- az authenticated actor rendelkezik `procurement.view` és
-  `purchase-orders.dispatch` permissionnel.
+- a PO-n legalább egy nem `cancelled` tétel van, és minden ilyen tétel rendelt
+  mennyisége pozitív;
+- a csatorna és a címzett megfelel az alább meghatározott szabályoknak;
+- a bejelentkezett felhasználó rendelkezik `procurement.view` és
+  `purchase-orders.dispatch` jogosultsággal.
 
-`Draft`, `Received` és `Cancelled` PO nem dispatch-elhető. A meglévő `close()`
-semantikát a 0016 nem változtatja meg; az általa `Received` állapotba tett PO is
-ineligible.
+`Draft`, `Received` és `Cancelled` PO-hoz nem rögzíthető Dispatch. A meglévő
+`close()` jelentését a 0016 nem változtatja meg: az általa `Received` állapotba
+tett PO szintén nem jogosult új Dispatchre.
 
-### Legacy és manual Purchase Orderek
+### Régi és kézzel létrehozott Purchase Orderek
 
-A 0015 execution snapshotok részleges hiánya önmagában nem blokkolja a
-dispatch-et. Legacy/manual PO dispatch-elhető, ha a fenti lifecycle-, Supplier-
-és item-invariánsok teljesülnek. A service nem talál ki, nem backfillel és nem
-rekonstruál hiányzó 0015 snapshotokat aktuális master datából.
+A 0015 által előírt történeti másolatok részleges hiánya önmagában nem tiltja a
+Dispatch-et. Régi vagy kézzel létrehozott PO-hoz is rögzíthető Dispatch, ha a
+fenti életciklus-, Supplier- és tételszabályok teljesülnek. A Service nem talál
+ki, nem tölt vissza, és nem állít elő utólag hiányzó 0015-ös történeti adatot az
+aktuális törzsadatokból.
 
-A dispatch a rögzítéskor aktuálisan kapcsolt Supplier code/name értékét és a
-tényleges recipientet külön snapshotolja. A PO meglévő 0015 Supplier snapshotja
-nem írható felül, és hiánya nem pótolható visszamenőleg. A Supplier aktuális
-emailje csak UI-prefill lehet; a backend a felhasználó által ténylegesen
-jóváhagyott recipient adatot menti. Ez auditálhatóvá teszi azt is, hogy egy
-legacy vagy időközben módosított PO-t a dispatch pillanatában mely Supplier és
-recipient felé rögzítettek.
+A Dispatch külön történeti másolatban őrzi a rögzítéskor a PO-hoz kapcsolt
+Supplier kódját és nevét, valamint a tényleges címzettet. A PO meglévő, 0015
+szerinti Supplier-másolata nem írható felül, és a hiánya nem pótolható
+visszamenőleg. A Supplier aktuális e-mail-címe csak felületi előtöltés lehet; a
+backend a felhasználó által ténylegesen jóváhagyott címzettadatot menti. Így
+később is ellenőrizhető, hogy a Dispatch pillanatában mely Supplier és címzett
+felé rögzítették a rendelést.
 
-### Channel és recipient
+### Csatorna és címzett
 
 V1 channel értékek:
 
 - `manual`: személyes, nyomtatott, telefonon koordinált vagy más manuális
   átadás rögzítése;
 - `email`: a felhasználó által a rendszeren kívül elküldött email rögzítése;
-- `other`: más, notes/reference adatokkal magyarázott külső módszer.
+- `other`: más külső módszer, amelyet a megjegyzés és a hivatkozás magyaráz.
 
-`email` esetén valid `recipient_email` kötelező. `manual` esetén legalább egy
-recipient descriptor (`recipient_name`, `recipient_email` vagy
-`recipient_reference`) kötelező. `other` esetén `recipient_reference` és notes
-kötelező.
+`email` esetén érvényes `recipient_email` kötelező. `manual` esetén legalább
+egy címzettazonosító (`recipient_name`, `recipient_email` vagy
+`recipient_reference`) kötelező. `other` esetén `recipient_reference` és
+`notes` kötelező.
 
 A `portal` és `edi` V1-ben nem választható, mert nincs hozzá működő
 infrastruktúra. Ezek későbbi enum-bővítési pontok, nem jelenlegi képességek.
 
-### A dispatch V1 jelentése
+### Mit bizonyít a Dispatch V1-ben?
 
-A rendszer V1-ben nem küld emailt, nem tölt fel Supplier Portalra, és nem ad át
-EDI üzenetet. A sikeres dispatch rekord az authenticated felhasználó auditált
+A rendszer V1-ben nem küld e-mailt, nem tölt fel Supplier Portalra, és nem ad át
+EDI-üzenetet. A sikeres Dispatch-rekord a bejelentkezett felhasználó ellenőrizhető
 állítása arról, hogy a dokumentumot a megadott külső csatornán átadta.
-A failed rekord ugyanígy a felhasználó auditált állítása arról, hogy a külső
+A sikertelen rekord ugyanígy a felhasználó ellenőrizhető állítása arról, hogy a külső
 átadást megkísérelte, de az a rögzített okból nem fejeződött be sikeresen.
 
-Az UI és az audit nem használhat olyan szöveget, amely rendszer általi fizikai
-kézbesítést állít. Technikai delivery receipt, email provider message ID vagy
-külső kézbesítési garancia nincs.
+A felület és az auditnapló nem használhat olyan szöveget, amely a rendszer
+általi fizikai kézbesítést állít. Nincs technikai kézbesítési nyugta,
+e-mail-szolgáltatói üzenetazonosító vagy külső kézbesítési garancia.
 
-### Többszöri dispatch és redispatch
+### Ismételt próbálkozás és szándékos újraküldés
 
-Több attempt engedett:
+Több kísérlet engedett:
 
 - failed attempt után retry rögzíthető;
 - successful attempt után szándékos redispatch is rögzíthető;
-- minden új attempt új append-only rekord és következő sequence;
-- a második és későbbi attempt `previous_dispatch_id` értéke az előző attempt,
+- minden új kísérlet új, nem módosítható rekordot és következő sorszámot kap;
+- a második és későbbi kísérlet `previous_dispatch_id` értéke az előző kísérlet,
   és `redispatch_reason` kötelező;
 - failed attemptnél `failure_reason` kötelező, `dispatched_at` null;
 - succeeded attemptnél `dispatched_at` kötelező és nem korábbi az
@@ -359,31 +424,34 @@ Több attempt engedett:
 - succeeded attemptnél `failure_reason` null, első attemptnél
   `previous_dispatch_id` és `redispatch_reason` null.
 
-A service a PO row lock alatt a következő sequence-et `max(sequence) + 1`
-értékként osztja ki. Második és későbbi attemptnél a
-`previous_dispatch_id`-nek ugyanazon PO legutolsó attemptjére kell mutatnia;
-stale vagy másik PO-hoz tartozó predecessor explicit conflict. A failure és
-redispatch reason trim után nem lehet üres.
+A Service a PO-sor zárolása alatt a következő sorszámot `max(sequence) + 1`
+értékként osztja ki. A második és későbbi kísérletnél a
+`previous_dispatch_id`-nek ugyanazon PO legutóbbi kísérletére kell mutatnia. Az
+elavult vagy másik PO-hoz tartozó előzményhivatkozás kifejezett ütközési hiba.
+A sikertelenség és az újraküldés indoka a szélső szóközök eltávolítása után nem
+lehet üres.
 
-Az előző sikeres dispatch soha nem lesz failed vagy superseded. A későbbi
-attempt csak új tényt ad a historyhoz.
+Az előző sikeres Dispatch soha nem válik sikertelenné vagy felülírttá. A
+későbbi kísérlet csak új tényt ad az előzményekhez.
 
-## Supplier Acknowledgement szabályok
+## A Supplier Acknowledgement rögzítésének szabályai
 
-### Eligibility és dispatch nélküli acknowledgement
+### Mikor rögzíthető válasz?
 
 Első acknowledgement `Ordered` vagy `PartiallyReceived` PO-hoz rögzíthető.
 `Draft`, `Received` vagy `Cancelled` PO-hoz új, előzmény nélküli
 acknowledgement nem rögzíthető. A scope nem lehet üres, és minden scope item
 ordered quantityjének pozitívnak kell lennie.
 
-Meglévő effective acknowledgement korrekciója terminális PO-státusz után is
-megengedett, mert ez történeti tényt javít, nem új executiont indít. Ilyenkor
-kötelező a supersession link és a `correction_reason`, és az eredmény nem
-módosíthat PO-, MRP-, receipt- vagy inventory-state-et.
+A meglévő hatályos Acknowledgement javítása lezárt PO-státusz után is
+megengedett, mert ez történeti tényt helyesbít, nem új végrehajtást indít.
+Ilyenkor kötelező az előző válaszra mutató felülírási kapcsolat és a
+`correction_reason`. A javítás nem módosíthat PO-, MRP-, áruátvételi vagy
+készletállapotot.
 
-Acknowledgement sikeres dispatch nélkül is rögzíthető. Ez támogatja például a
-telefonon, Supplier által kezdeményezve vagy legacy folyamatból érkező választ.
+Acknowledgement sikeres Dispatch nélkül is rögzíthető. Ilyen lehet például a
+telefonon, a Supplier kezdeményezésére vagy egy korábbi folyamatból érkező
+válasz.
 Minden acknowledgementnél kötelező:
 
 - `source`;
@@ -392,11 +460,11 @@ Minden acknowledgementnél kötelező:
 - a következő attribution mezők közül legalább egy:
   `supplier_reference`, `acknowledged_by_name`, `acknowledged_by_email`.
 
-Dispatch nélküli rögzítésnél ezen felül kötelező a notes, amely röviden
-megmagyarázza, hogyan érkezett a válasz. A `source` a Supplier response bejövő
+Dispatch nélküli rögzítésnél ezen felül kötelező a `notes`, amely röviden
+megmagyarázza, hogyan érkezett a válasz. A `source` a Supplier válaszának bejövő
 csatornáját jelenti: `email`, `phone`, `manual` esetén papír/személyes átadás,
 `other` esetén pedig notes-ban megnevezett más forrás. Nem a rendszer
-adatbeviteli módját jelöli; V1-ben minden acknowledgementet authenticated User
+adatbeviteli módját jelöli; V1-ben minden Acknowledgementet bejelentkezett User
 rögzít.
 
 Ha dispatch kapcsolat szerepel, annak ugyanahhoz a PO-hoz kell tartoznia és
@@ -410,10 +478,10 @@ nem lehet korábbi annak kötelező `dispatched_at` értékénél. Dispatch nél
 esetben, ha az `ordered_at` ismert, nem lehet annál korábbi. Legacy PO hiányzó
 `ordered_at` értéke nem kap kitalált fallbacket.
 
-### Overall status és attention flag
+### Összesített státusz és figyelmeztető jelzők
 
-Az értékelés scope-ja a PO acknowledgement-rögzítéskor létező összes nem
-cancelled itemének ugyanabban a tranzakcióban létrehozott scope snapshotja.
+Az értékelés köre a PO Acknowledgement-rögzítéskor létező összes nem
+`cancelled` tételének ugyanabban a tranzakcióban létrehozott történeti másolata.
 
 - `accepted`: minden scope-beli line szerepel, mind `accepted`, minden quantity
   matched, és minden delivery date matched;
@@ -431,30 +499,32 @@ date későbbi, nincs megerősítve, vagy buyer baseline hiányában nem
 hasonlítható. Pusztán increased quantity vagy earlier date follow-upot
 igényelhet, de önmagában nem teszi kötelezővé a replanninget.
 
-A két flag egymástól független boolean evaluation result, ezért egyszerre is
-lehetnek `true` értékűek. Mindkettő a header statushoz hasonlóan a snapshotolt
-scope-ból és line factekből determinisztikusan számított, perzisztált tény; a
-request nem választhatja meg őket, a UI pedig nem számíthat eltérő szabállyal.
+A két jelző egymástól független logikai eredmény, ezért egyszerre is lehetnek
+`true` értékűek. A fejléc státuszához hasonlóan mindkettőt a történeti
+értékelési körből és a tételválaszokból kell egyértelműen kiszámítani és
+eltárolni. A kérés nem választhatja meg őket, a felület pedig nem használhat
+eltérő számítási szabályt.
 
-Ezek attention signalok. A 0016 nem indít automatikus follow-up taskot vagy MRP
-újraszámítást.
+Ezek figyelmeztető jelzések. A 0016 nem indít automatikus utánkövetési feladatot
+vagy MRP-újraszámítást.
 
-## Line-level acknowledgement szabályok
+## Tételszintű válaszok és hiányzó tételek
 
-### Rejection
+### Kifejezett elutasítás
 
-A rejection explicit `line_status = rejected`. Rejected line nem ad
-promised quantityt vagy promised delivery date-et. A nulla promised quantity
-nem rejection-kód és accepted line-on nem valid.
+Az elutasítást kifejezetten a `line_status = rejected` érték rögzíti. Elutasított
+sorhoz nem tartozhat ígért mennyiség vagy szállítási dátum. A nulla ígért
+mennyiség nem helyettesíti az elutasítási státuszt, és elfogadott soron nem
+érvényes.
 
 Vegyes accepted és rejected line-ok header statusa
 `accepted_with_changes`. Header `rejected` csak teljes, minden aktív PO line-ra
 kiterjedő explicit rejection esetén áll elő.
 
-### Partial és missing line
+### Részleges válasz és hiányzó tétel
 
-Partial acknowledgement megengedett, ha legalább egy valid line szerepel. A
-kimaradó PO item:
+Részleges Acknowledgement megengedett, ha legalább egy érvényes tételválasz
+szerepel. A kimaradó PO-tétel:
 
 - `missing`, vagyis még nincs rá supplier response;
 - nem implicit accepted;
@@ -463,17 +533,18 @@ kimaradó PO item:
 - `accepted_with_changes`, `requires_follow_up = true` és
   `requires_replanning = true` eredményt okoz.
 
-A current acknowledgement read model a hiányzó line-okat az effective
-acknowledgement saját scope snapshotja és response line-jainak különbségéből
-származtatja. Külön placeholder response line nem készül; a scope membership
-rekord nem állít Supplier választ.
+Az aktuális nézet a hiányzó tételeket a hatályos Acknowledgement történeti
+értékelési köre és tényleges tételválaszai közötti különbségből állapítja meg.
+Nem készül külön üres válaszsor; a körhöz tartozást jelző rekord önmagában nem
+állítja, hogy a Supplier válaszolt.
 
-Superseding acknowledgement nem örököl line-t az elődjéből. Ha egy korábban
-megválaszolt PO item az új verzió scope-jában szerepel, de az új response
-line-jai közül kimarad, az az új effective verzióban `missing`. Ez a "teljes
-response snapshot, nem delta" szabály kötelező jelentése.
+A korábbit felváltó Acknowledgement nem örököl tételsort az elődjéből. Ha egy
+korábban megválaszolt PO-tétel az új verzió értékelési körében szerepel, de az
+új válaszsorok közül kimarad, akkor az új hatályos verzióban `missing`. Ezt
+jelenti kötelezően az a szabály, hogy minden válasz teljes történeti másolat,
+nem csak a változások listája.
 
-### Quantity promise és variance
+### Ígért mennyiség és eltérés
 
 Az accepted line `promised_quantity` értéke Supplier által megerősített
 mennyiség, a PO item base unitjában, pontosan három tizedes pontossággal.
@@ -505,7 +576,7 @@ positive → increased / over-confirmation
 Rejected line-on a `quantity_variance_amount` null. A kategória és az összeg
 ugyanabból az exact integer-thousandths számításból készül; nem térhetnek el.
 
-### Promised delivery date és header baseline
+### Ígért szállítási dátum és a fejléc alapdátuma
 
 Mivel a PO itemnek nincs requested delivery date mezője, V1-ben minden line a
 PO header buyer-requested date-jéhez hasonlít.
@@ -535,35 +606,44 @@ A delivery variance kiértékelési precedenciája:
 Ha mind a promised date, mind a baseline null, az eredmény `not_confirmed`, nem
 `matched`, mert a Supplier nem tett dátumígéretet.
 
-## Duplicate- és idempotency-szabályok
+## Ismételt kérések és idempotencia
+
+Az idempotencia itt azt jelenti, hogy ugyanannak a kérésnek a véletlen
+megismétlése nem hoz létre még egy üzleti rekordot. A szándékosan megváltoztatott
+újraküldés vagy javítás ettől eltérő eset, ezért új rekordot hozhat létre.
 
 ### Dispatch
 
-Minden dispatch request kötelező, kliens által generált `idempotency_key`
-értéket kap. A key trimelt, nem üres, legfeljebb 100 ASCII karakteres,
-case-sensitive opaque token. Adatbázis binary collationnel létrehozott unique
-constraint védi a `purchase_order_id + idempotency_key` párt.
+Minden Dispatch-kérés kötelező, kliens által generált `idempotency_key` értéket
+kap. A kulcs a szélső szóközök eltávolítása után nem üres, legfeljebb 100 ASCII
+karakteres, kis- és nagybetűérzékeny, a rendszer számára belső jelentés nélküli
+azonosító. A `purchase_order_id + idempotency_key` pár egyediségét bináris
+karakter-összehasonlítást használó adatbázis-korlát védi.
 
-A backend SHA-256 `request_fingerprint` értéket képez a következő kanonikus
-business payloadból: status, channel, trimelt recipient mezők, UTC másodperc
-pontosságú `attempted_at` és `dispatched_at`, trimelt failure/redispatch reason,
-trimelt notes és a kliens által megadott `previous_dispatch_id`. Üres string
-nullra normalizálódik, az email lowercase, a JSON kulcssorrend rögzített. A
-sequence, Supplier/buyer-date server snapshot, actor, idempotency key és
-technikai timestamp nem része. A fingerprint lowercase hex `char(64)`.
+A backend SHA-256 `request_fingerprint` ujjlenyomatot képez a következő,
+egységesen rendezett üzleti adattartalomból: `status`, `channel`, a szélső
+szóközöktől megtisztított címzettmezők, az `attempted_at` és `dispatched_at` UTC
+idő szerint másodpercre kerekítve, a megtisztított sikertelenségi és újraküldési
+indok, a megtisztított `notes`, valamint a kliens által megadott
+`previous_dispatch_id`. Az üres szöveg `null` értékké alakul, az e-mail-cím
+kisbetűs, a JSON kulcssorrendje rögzített. Nem része a sorszám, a szerver által
+rögzített Supplier- és vevőidátum-másolat, a végrehajtó, az idempotenciakulcs és
+a technikai időbélyeg. Az ujjlenyomat kisbetűs hexadecimális `char(64)`.
 
-A service a PO sort zárolja, majd:
+A Service zárolja a PO adatbázissorát, majd:
 
-- azonos key és kanonikusan azonos payload esetén a meglévő rekordot adja
+- azonos kulcs és egységesített adattartalom esetén a meglévő rekordot adja
   vissza, új audit nélkül;
-- azonos key és eltérő payload esetén explicit idempotency conflict hibát ad;
-- új key esetén új attempt készül, és ha már volt attempt, azt szándékos
-  redispatchként csak `previous_dispatch_id` és reason mellett fogadja el.
+- azonos kulcs és eltérő adattartalom esetén kifejezett idempotenciaütközési
+  hibát ad;
+- új kulcs esetén új kísérlet készül; ha már volt kísérlet, ezt csak
+  `previous_dispatch_id` és indok mellett fogadja el szándékos újraküldésként.
 
-Az idempotency lookup és canonical conflict check megelőzi az új írásra
-vonatkozó aktuális lifecycle eligibility ellenőrzést. Ezért egy exact replay a
-PO későbbi terminális állapotában is a meglévő rekordot adja vissza; új key csak
-az aktuális eligibility teljesülésekor hozhat létre új attemptet.
+Az idempotenciakulcs keresése és az egységesített adattartalom ütközésének
+ellenőrzése megelőzi az új írásra vonatkozó életciklus-ellenőrzést. Ezért egy
+pontos ismétlés a PO későbbi lezárt állapotában is a meglévő rekordot adja
+vissza. Új kulcs csak az aktuális jogosultsági és életciklusfeltételek
+teljesülésekor hozhat létre új kísérletet.
 
 A `purchase_order_id + dispatch_sequence` unique constraint a sequence
 concurrency backstop. A `(previous_dispatch_id)` unique constraint lineáris
@@ -571,9 +651,10 @@ attempt-láncot véd.
 
 ### Supplier Acknowledgement
 
-Az acknowledgement `idempotency_key` ugyanazt a trimelt, 1–100 ASCII
-karakteres, case-sensitive opaque-token contractot és binary database
-collationt használja, mint a dispatch key.
+Az Acknowledgement `idempotency_key` mezőjére ugyanaz a szabály vonatkozik,
+mint a Dispatch kulcsára: a szélső szóközök eltávolítása után 1–100 ASCII
+karakteres, kis- és nagybetűérzékeny, belső jelentés nélküli azonosító, bináris
+adatbázis-karakter-összehasonlítással.
 
 Az acknowledgementet két független DB-backed guard védi:
 
@@ -607,9 +688,9 @@ későbbi állapotától függetlenül visszaadja az eredeti rekordot; csak új 
 response igényel aktuális eligibilityt vagy az effective predecessor explicit
 supersedelését.
 
-## Supersession és effective acknowledgement
+## Javítás, felülírás és a hatályos Acknowledgement
 
-Az acknowledgement append-only correction policy-ja:
+Az Acknowledgement javítása nem írhatja át a korábbi választ. A szabályok:
 
 1. Az első response `supersedes_acknowledgement_id = null`.
 2. Ha már van effective acknowledgement, minden új response csak annak
@@ -627,19 +708,19 @@ Az acknowledgement append-only correction policy-ja:
    user workflow-ból nem támogatott és nem alakítható át csendesen "no
    acknowledgement" állapottá.
 
-Effective az a PO-hoz tartozó acknowledgement, amelyre nem mutat másik
-acknowledgement `supersedes_acknowledgement_id` mezője. A service PO row lock
-mellett csak az aktuális effective rekord supersedelését engedi. A
+Hatályos az a PO-hoz tartozó Acknowledgement, amelyre nem mutat másik
+Acknowledgement `supersedes_acknowledgement_id` mezője. A Service a PO-sor
+zárolása mellett csak az aktuális hatályos rekord felülírását engedi. A
 `supersedes_acknowledgement_id` unique constraint megakadályozza, hogy egy
 elődnek két utóda legyen. PO-n belül a sequence unique és monoton.
 
-Nem készül mutable `is_current`, `is_effective` vagy `superseded_at` flag. Az
-effective state a történeti chainből authoritatively származik, így nincs
-duplikált current-state invariáns.
+Nem készül módosítható `is_current`, `is_effective` vagy `superseded_at` jelző.
+A hatályos állapotot mindig a történeti láncból kell meghatározni, így nem jön
+létre második, külön szinkronban tartandó aktuálisállapot-jelző.
 
-## Authorization
+## Jogosultságok
 
-Két új, üzletileg elkülönülő permission szükséges:
+Két új, üzletileg elkülönülő jogosultság szükséges:
 
 - `purchase-orders.dispatch`;
 - `purchase-orders.acknowledge`.
@@ -658,11 +739,11 @@ nem helyettesíti automatikusan az új permissionöket. A későbbi permission
 seeder a procurement-manager szerepkörhöz explicit módon rendeli őket. A
 frontend permission-aware action visibility csak UX, nem security boundary.
 
-## Auditálhatóság
+## Ellenőrizhetőség és auditnapló
 
-Az új domain record és az activity log egymást kiegészíti. A domain record a
-teljes üzleti tény Single Source of Truth-ja; az activity log az actiont és az
-actort teszi könnyen követhetővé.
+Az új üzleti rekord és az aktivitásnapló egymást kiegészíti. Az üzleti rekord a
+teljes tény elsődleges forrása; az aktivitásnapló azt teszi könnyen követhetővé,
+hogy ki és milyen műveletet végzett.
 
 Események:
 
@@ -671,8 +752,9 @@ Események:
 - `supplier_acknowledgement_recorded` első acknowledgementnél;
 - `supplier_acknowledgement_superseded` correctionnél.
 
-Az audit ugyanabban a DB-tranzakcióban készül, mint a domain recordok. Audit
-hiba minden írást rollbackel. Idempotens replay nem készít új auditot.
+Az auditbejegyzés ugyanabban az adatbázis-tranzakcióban készül, mint az üzleti
+rekordok. Ha az auditálás sikertelen, minden írást vissza kell görgetni. Egy
+idempotens ismétlés nem készít új auditbejegyzést.
 
 Az activity subject az új Dispatch vagy Acknowledgement record. Metadata:
 Purchase Order ID, sequence, outcome/status, kapcsolt record ID-k, item count,
@@ -680,13 +762,13 @@ missing/rejected/variance count és attention flag-ek. Különböző unitok
 mennyisége nem aggregálható. Recipient email, teljes notes és teljes line
 payload nem duplikálható activity metadata-ba.
 
-## Interakció a Purchase Orderrel, MRP-vel és Goods Receipttel
+## Kapcsolat a Purchase Orderrel, az MRP-vel és a Goods Receipttel
 
 ### Purchase Order
 
-A PO marad a buyer order Single Source of Truth-ja. Dispatch és
-acknowledgement relationként olvasható róla, de nem írja át a dokumentumot. A
-PO detail read model külön adja vissza:
+A PO marad a vevői rendelés elsődleges forrása. A Dispatch és az
+Acknowledgement kapcsolódó adatként olvasható róla, de nem írja át a
+dokumentumot. A PO részletes olvasási modellje külön adja vissza:
 
 - dispatch history;
 - latest attempt;
@@ -723,13 +805,16 @@ settlement workflow. Dispatch és acknowledgement nem hoz létre pénzügyi
 kötelezettség-könyvelést, invoice match-et, payment state-et vagy settlement
 recordot.
 
-## V1 boundaries és non-goals
+## A V1 határai és kifejezetten kizárt céljai
 
-A 0016 V1 nem implementál:
+A 0016 V1 nem valósítja meg:
 
 - fizikai SMTP/email küldést vagy delivery trackinget;
 - Supplier Portalt, Supplier authenticationt vagy recipient directoryt;
 - EDI-t vagy külső procurement API-t;
+- automatikus Supplier-kiválasztást; a Dispatch a PO már létező
+  Supplier-kapcsolatát használja;
+- Supplier-válasz automatikus létrehozását vagy automatikus elfogadását;
 - automatikus PO amendmentet vagy quantity/date átírást;
 - PO item-szintű requested delivery date bevezetését;
 - automatikus follow-up taskot, escalationt vagy notificationt;
@@ -740,7 +825,7 @@ A 0016 V1 nem implementál:
 - a meglévő PO approval, cancellation vagy close lifecycle áttervezését;
 - általános workflow engine-t vagy event sourcingot.
 
-## Implied schema a Phase 3 implementációhoz
+## Kötelező adatbázisséma a Phase 3 megvalósításhoz
 
 ### `purchase_order_dispatches`
 
@@ -903,51 +988,53 @@ a meglévő soft delete továbbra is történeti elérhetőséget ad. Az `update
 létrehozáskor kitöltött technikai érték, később nem írható; az actor FK-knél
 korábban definiált `NULL ON DELETE` az egyetlen DB-vezérelt változás.
 
-## Következmények és trade-offok
+## Következmények és vállalt kompromisszumok
 
-Pozitív:
+Előnyök:
 
-- a PO, dispatch, Supplier promise, receipt és financial lifecycle nem mosódik
-  össze;
-- minden failed attempt, redispatch és correction megmarad;
-- a historyból determinisztikusan származtatható a latest attempt, latest
-  success és effective acknowledgement;
-- a line-level variance megőrzi az ordered és buyer-date baseline-t;
-- a meglévő 0015 snapshot, PO status, MRP és Goods Receipt behavior kompatibilis
-  marad;
-- a DB unique guardok concurrency és ismételt submission ellen is védenek.
+- a PO, a Dispatch, a Supplier ígérete, az áruátvétel és a pénzügyi életciklus
+  nem mosódik össze;
+- minden sikertelen kísérlet, újraküldés és javítás megmarad;
+- az előzményekből egyértelműen meghatározható a legutóbbi kísérlet, a legutóbbi
+  siker és a hatályos Acknowledgement;
+- a tételszintű eltérés megőrzi a rendelt mennyiséget és a vevői alapdátumot;
+- a meglévő 0015-ös történeti másolat, PO-státusz, MRP és Goods Receipt
+  viselkedés változatlanul együttműködik az új modellel;
+- az adatbázis-egyediségi korlátok a párhuzamos és az ismételt beküldések ellen
+  is védenek.
 
-Trade-offok:
+Vállalt kompromisszumok:
 
-- az append-only history több sort és összetettebb show-page read modelt jelent;
-- a header-only PO delivery date miatt minden line ugyanahhoz a buyer baseline-
-  hoz hasonlít V1-ben;
-- a response fingerprint kanonizálási szabálya publikus service-invariáns, ezért
-  stabil és tesztelt implementációt igényel;
+- a csak új rekordokkal bővíthető történet több adatbázissort és összetettebb
+  részletes olvasási modellt jelent;
+- mivel a PO csak fejlécszintű szállítási dátumot tárol, V1-ben minden tételt
+  ugyanahhoz a vevői alapdátumhoz kell hasonlítani;
+- a válasz ujjlenyomatának egységesítési szabálya a Service nyilvános és stabil
+  szerződése, ezért alaposan tesztelt megvalósítást igényel;
 - a rendszer V1-ben csak felhasználói állítást auditál a dispatchről, külső
-  delivery evidence-et nem;
-- az acknowledgement variance nem javítja automatikusan az MRP tervet, ezért az
-  operatív follow-up emberi feladat marad.
+  kézbesítési bizonyítékot nem;
+- az Acknowledgement eltérése nem javítja automatikusan az MRP tervet, ezért az
+  operatív utánkövetés emberi feladat marad.
 
 ## Elutasított alternatívák
 
-- **`Dispatched` és `Acknowledged` PO statusok.** Elutasítva, mert a dispatch,
-  acknowledgement és receiving egymástól független dimenzió; egyetlen enum
+- **`Dispatched` és `Acknowledged` PO-státuszok.** Elutasítva, mert a Dispatch,
+  az Acknowledgement és az áruátvétel egymástól független dimenzió; egyetlen enum
   elveszítené a kombinált és történeti állapotokat.
 - **`ordered_at` átértelmezése dispatch timestampként.** Elutasítva, mert a
   meglévő approval transition írja, külső kommunikáció nélkül.
 - **Dispatch mezők közvetlenül a Purchase Orderen.** Elutasítva, mert nem őrizné
   a failed attemptet, redispatchet, recipient historyt és idempotency-határt.
-- **Egy mutable current acknowledgement rekord.** Elutasítva, mert correction
-  felülírná a Supplier korábbi válaszát és az audit trailt.
+- **Egy módosítható aktuális Acknowledgement-rekord.** Elutasítva, mert a javítás
+  felülírná a Supplier korábbi válaszát és az auditelőzményt.
 - **Header-only acknowledgement.** Elutasítva, mert multi-item PO-n a Supplier
   eltérő mennyiséget, dátumot vagy rejectiont adhat tételenként.
 - **Nulla promised quantity mint rejection.** Elutasítva, mert többértelmű és
   eltünteti az explicit Supplier döntést.
 - **Missing line implicit rejection vagy acceptance.** Elutasítva, mert a
   hiányzó válasz bizonytalanság, nem Supplier által közölt döntés.
-- **Acknowledgementből automatikus PO amendment.** Elutasítva, mert a buyer
-  order és Supplier response eltérő tény; amendment külön business action.
+- **Acknowledgementből automatikus PO-módosítás.** Elutasítva, mert a vevői
+  rendelés és a Supplier válasza eltérő tény; a módosítás külön üzleti művelet.
 - **Acknowledgementből automatikus receipt vagy inventory posting.** Elutasítva,
   mert Supplier promise nem bizonyít fizikai beérkezést.
 - **Acknowledgement promised date visszaírása a PO
