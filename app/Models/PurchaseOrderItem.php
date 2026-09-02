@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 
@@ -118,6 +119,16 @@ class PurchaseOrderItem extends Model
     public function item(): BelongsTo
     {
         return $this->belongsTo(Item::class);
+    }
+
+    public function supplierAcknowledgementItems(): HasMany
+    {
+        return $this->hasMany(SupplierAcknowledgementItem::class);
+    }
+
+    public function supplierAcknowledgementScopeItems(): HasMany
+    {
+        return $this->hasMany(SupplierAcknowledgementScopeItem::class);
     }
 
     /**

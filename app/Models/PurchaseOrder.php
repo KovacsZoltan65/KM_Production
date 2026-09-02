@@ -30,6 +30,8 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $deleted_at
  * @property-read User|null $creator
  * @property-read Collection<int, PurchaseOrderItem> $items
+ * @property-read Collection<int, PurchaseOrderDispatch> $dispatches
+ * @property-read Collection<int, SupplierAcknowledgement> $supplierAcknowledgements
  * @property-read int|null $items_count
  * @property-read PurchaseRequisition|null $purchaseRequisition
  * @property-read Supplier|null $supplier
@@ -103,6 +105,18 @@ class PurchaseOrder extends Model
     public function items(): HasMany
     {
         return $this->hasMany(PurchaseOrderItem::class);
+    }
+
+    /** @return HasMany<PurchaseOrderDispatch, $this> */
+    public function dispatches(): HasMany
+    {
+        return $this->hasMany(PurchaseOrderDispatch::class);
+    }
+
+    /** @return HasMany<SupplierAcknowledgement, $this> */
+    public function supplierAcknowledgements(): HasMany
+    {
+        return $this->hasMany(SupplierAcknowledgement::class);
     }
 
     /**

@@ -37,6 +37,9 @@ Project-specific rules, decisions, knowledge, playbooks, prompts, templates, che
 
 Reader-facing product documentation lives under [docs/](docs/).
 
+All project documentation must follow the language and readability rules in
+[Coding Style Guidance](.kiro/steering/coding-style.md).
+
 ## Git and Commits
 
 Commit messages and AI-agent commit rules are defined in

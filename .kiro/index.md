@@ -69,6 +69,7 @@ Memory
 - [Replenishment Strategies](decisions/0013-replenishment-strategies.md): supplier-resolved Draft PR-k planned mennyiségéből MOQ és order multiple alapján exact, auditálható requested mennyiséget számít.
 - [Purchase Requisition Execution Readiness](decisions/0014-purchase-requisition-execution-readiness.md): az Approved PR aktuális supplier-, source-, replenishment-, quantity- és lineage állapotának read-only execution előtti értékelése.
 - [Purchase Order Generation / Execution Hardening](decisions/0015-purchase-order-generation.md): execution-ready Approved PR tranzakciós, zárolt, idempotens átalakítása immutable snapshotokat őrző Draft PO-vá.
+- [Purchase Order Dispatch / Supplier Acknowledgement](decisions/0016-purchase-order-dispatch-supplier-acknowledgement.md): append-only dispatch-attempt és line-level Supplier response history, a Purchase Order, MRP, Goods Receipt, inventory és financial lifecycle állapotaitól elkülönítve.
 
 ## Reader-Facing Documentation
 

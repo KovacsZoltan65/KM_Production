@@ -79,4 +79,14 @@ class PurchaseOrderPolicy
     {
         return $user->can('procurement.update');
     }
+
+    public function dispatch(User $user, PurchaseOrder $purchaseOrder): bool
+    {
+        return $user->can('procurement.view') && $user->can('purchase-orders.dispatch');
+    }
+
+    public function acknowledge(User $user, PurchaseOrder $purchaseOrder): bool
+    {
+        return $user->can('procurement.view') && $user->can('purchase-orders.acknowledge');
+    }
 }

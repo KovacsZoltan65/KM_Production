@@ -7,4 +7,6 @@ use App\Models\PurchaseOrder;
 interface PurchaseOrderRepositoryInterface extends AdminRepositoryInterface
 {
     public function findForShow(PurchaseOrder $purchaseOrder): PurchaseOrder;
+
+    public function lockForExecution(int $purchaseOrderId): PurchaseOrder;
 }

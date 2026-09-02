@@ -57,4 +57,16 @@ class PurchaseOrderRepository extends AbstractAdminRepository implements Purchas
             'items.purchaseRequisitionItem.purchaseRequisition',
         ])->loadCount('items');
     }
+
+    public function lockForExecution(int $purchaseOrderId): PurchaseOrder
+    {
+        return PurchaseOrder::query()
+            ->with([
+                'supplier' => fn ($query) => $query->withTrashed(),
+                'items',
+            ])
+            ->whereKey($purchaseOrderId)
+            ->lockForUpdate()
+            ->firstOrFail();
+    }
 }
