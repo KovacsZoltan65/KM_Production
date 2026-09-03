@@ -4,152 +4,184 @@
 - **Dátum:** 2026-08-15
 - **Kapcsolódó döntések:** [0007 Item Supplier](0007-item-supplier-procurement-source.md), [0008 Supply Proposal](0008-supply-proposal.md), [0011 Purchase Requisition Consolidation](0011-purchase-requisition-consolidation.md)
 
-## Cél és authoritative forrás
+## Üzleti probléma
 
-A Supplier Selection explicit procurement döntés arról, hogy egy supplierless
-Draft Purchase Requisition minden tételét melyik közös Supplier láthatja el.
-Candidate kizárólag authoritative `ItemSupplier` procurement source-ból
-származhat. A candidate lista számított, nem perzisztált read result; a választás
-tárolt üzleti ténye a `PurchaseRequisition.supplier_id` és annak activity logja.
+Egy beszerzési igény (`Purchase Requisition`, PR) több különböző cikket is
+tartalmazhat. A teljes igényhez egyetlen olyan beszállítót kell választani,
+amely minden cikket szállíthat. A választás csak akkor biztonságos, ha a rendszer
+az aktuális, jóváhagyott cikk–beszállító kapcsolatokból indul ki, és nem választ
+automatikusan a felhasználó helyett.
+
+A Supplier Selection ezért kifejezett beszerzési döntés: egy beszállító nélküli,
+Draft állapotú PR minden tételéhez közös Suppliert rendel. A választható
+beszállítók kizárólag a mérvadó `ItemSupplier` beszerzési forrásokból
+származhatnak.
+
+Ez nem automatikus rangsorolás, legolcsóbb-beszállító optimalizálás vagy
+mesterséges intelligencián alapuló ajánlás. Nem hagyja jóvá a PR-t, nem hoz
+létre Purchase Ordert, és nem végzi el az utánpótlási mennyiség számítását.
 
 ```text
-supplierless Draft Purchase Requisition
-→ bulk ItemSupplier eligibility
-→ common Supplier intersection
-→ explicit user selection
-→ supplier-resolved Draft Purchase Requisition
+beszállító nélküli Draft Purchase Requisition
+→ érvényes ItemSupplier kapcsolatok meghatározása
+→ minden tételhez közös Supplierek metszete
+→ a felhasználó kifejezett választása
+→ Supplierrel rendelkező Draft Purchase Requisition
 ```
 
-## Selection granularity és multi-item PR
+A jelöltlista számított, nem tárolt lekérdezési eredmény. A választás tárolt
+üzleti ténye a `PurchaseRequisition.supplier_id` és a hozzá tartozó
+tevékenységnapló-bejegyzés.
 
-V1-ben a selection granularity a **Purchase Requisition header**. Ez illeszkedik
-a jelenlegi PR és Purchase Order supplier-header contractjához. Item-szintű
-supplier nem kerül a PR-be, mert az egyetlen header Supplierrel ellentmondó
-állapotot hozna létre, a későbbi PO split pedig még nincs specifikálva.
+## A választás szintje és a közös beszállító
 
-Multi-item PR candidate-jeinek halmaza az egyes Itemek eligible Supplier
-halmazainak metszete. Egy Supplier csak akkor választható, ha a PR minden egyedi
-Itemjéhez pontosan létező, eligible ItemSupplier source tartozik. A bulk query
-egyszer tölti be az ItemSupplier, Supplier és Item adatokat; nincs itemenkénti
-N+1 query.
+V1-ben a Supplier a teljes PR fejlécére vonatkozik. Ez illeszkedik ahhoz, hogy a
+PR és a későbbi Purchase Order is egyetlen fejlécszintű Supplierrel rendelkezik.
+A PR tételei ezért nem kapnak külön Supplier mezőt: ez felosztási szabály nélkül
+ellentmondó állapotot eredményezne.
 
-Ha nincs közös Supplier, V1-ben a selection explicit `NO_ELIGIBLE_SUPPLIER`
-hibával blokkol. Nem választ részlegesen és nem mutálja vagy bontja automatikusan
-a PR-t. Az automatikus PR split külön ADR-t igényelne az eredeti dokumentum
-lifecycle-járól, a Proposal lineage mozgatásáról, kódgenerálásról és auditról.
-A supplierless, nem feloldható multi-item PR operatív újracsoportosítása ezért
-nyitott követő policy.
+Többtételes PR esetén a rendszer minden egyedi Itemhez meghatározza az érvényes
+Suppliereket, majd ezek metszetét veszi. Egy Supplier csak akkor választható, ha
+a PR minden egyedi Itemjéhez pontosan egy érvényes `ItemSupplier` forrás
+tartozik. A tömeges lekérdezés egyszerre tölti be az `ItemSupplier`, `Supplier`
+és `Item` adatokat; nem indít külön lekérdezést minden tételhez.
 
-## Eligibility és effective date
+Például ha az A cikket az X és az Y Supplier, a B cikket pedig az Y és a Z
+Supplier szállíthatja, akkor a közös jelölt kizárólag Y. A rendszer nem rangsorolja
+és nem választja ki automatikusan Y-t: a döntést továbbra is jogosult
+felhasználónak kell meghoznia.
 
-A selection effective date a művelet végrehajtásának aktuális üzleti napja
-(`today`, alkalmazás timezone). Nem a PR `required_at` vagy
-`proposed_supply_at` dátuma: ezek demand/supply timing tények, nem a source
-feltételének kiválasztási időpontjai.
+Ha nincs közös Supplier, a művelet `NO_ELIGIBLE_SUPPLIER` hibával leáll. Nem
+választ részlegesen, és nem módosítja vagy bontja fel automatikusan a PR-t. Az
+automatikus felosztáshoz külön ADR szükséges, mert rendezni kellene az eredeti
+dokumentum életciklusát, a Proposal eredetkapcsolatok áthelyezését, a
+kódgenerálást és az auditot. A fel nem oldható többtételes PR operatív
+újracsoportosítása ezért nyitott későbbi szabály.
 
-Egy source csak akkor eligible, ha:
+## Mikor érvényes egy beszerzési forrás?
 
-- az ItemSupplier aktív és approved;
-- `valid_from` null vagy nem későbbi a selection napjánál;
-- `valid_until` null vagy nem korábbi a selection napjánál;
+A választás érvényességi napja a művelet végrehajtásának aktuális üzleti napja
+(`today`, az alkalmazás időzónájában). Nem a PR `required_at` vagy
+`proposed_supply_at` dátuma, mert ezek az igény és a tervezett ellátás időzítését
+írják le, nem a beszállítóválasztás időpontját.
+
+Egy `ItemSupplier` forrás csak akkor használható, ha:
+
+- aktív és approved;
+- a `valid_from` értéke null, vagy nem későbbi a választás napjánál;
+- a `valid_until` értéke null, vagy nem korábbi a választás napjánál;
 - a kapcsolódó Supplier aktív;
 - a kapcsolódó Item aktív.
 
-A candidate read és a commit ugyanazt a központi repository query contractot
-használja. A commit a PR row lockja után újra lekérdezi az eligibility-t; a
-frontend candidate snapshot soha nem authoritative.
+A jelöltek megjelenítése és a választás mentése ugyanazt a központi repository
+lekérdezési szabályt használja. Mentéskor a rendszer a PR sorának zárolása után
+ismét lekérdezi az érvényességet. A frontend korábban betöltött jelöltlistája
+nem mérvadó.
 
-## Candidate contract és ordering
+## Mit lát a döntéshozó?
 
-A nem perzisztált candidate tartalmazza a Supplier azonosítóját, kódját és
-nevét, valamint minden PR Itemhez a hozzá tartozó source szükséges adatait:
-preferred, priority, lead time, referenciaár és currency, purchase unit,
+A nem tárolt jelöltlista tartalmazza a Supplier azonosítóját, kódját és nevét.
+Emellett minden PR Itemhez megmutatja a kapcsolódó forrás szükséges adatait:
+preferred jelölés, priority, lead time, referenciaár és currency, purchase unit,
 conversion factor, MOQ, order multiple és validity.
 
-V1-ben **nincs automatikus ranking vagy selection**. A candidate-ek kizárólag
-determinista megjelenítési sorrendet kapnak:
+V1-ben nincs automatikus rangsorolás vagy kiválasztás. A jelöltek csak
+meghatározott megjelenítési sorrendet kapnak:
 
 ```text
 supplier name ASC
 supplier id ASC
 ```
 
-Az item-szintű `is_preferred` és `priority` (`1` a legjobb) magyarázó adat,
-nem aggregált score. A preferred nem kötelező. A referenciaár nem használható
-„cheapest wins” döntésre, mert source-onként eltérő purchase unit/currency lehet,
-és nincs stabil történeti vagy egységes összehasonlítási contract. A lead time
-szintén csak információ; latest-order-date vagy feasibility számítás a 0012-n
-kívül marad. A Suppliert mindig jogosult felhasználó választja explicit módon.
+Az itemszintű `is_preferred` és `priority` — ahol `1` a legjobb — magyarázó
+adat, nem összevont pontszám. A preferred jelölés nem kötelező. A referenciaár
+alapján sem választható automatikusan a legolcsóbb Supplier, mert a források
+purchase unit és currency adatai eltérhetnek, és nincs egységes történeti
+összehasonlítási szabály. A lead time szintén csak tájékoztató adat; a legkésőbbi
+rendelési nap és a teljesíthetőség számítása nem része ennek a döntésnek.
 
-## Lifecycle, supplierless és meglévő Supplier
+## Életciklus és ismételt választás
 
-Supplier csak Draft PR-en választható. A választás nem módosítja a PR vagy a PR
-Item státuszát, és nem approve-olja a dokumentumot.
+Supplier csak Draft PR-en választható. A választás nem módosítja sem a PR, sem
+a PR Item státuszát, és nem hagyja jóvá a dokumentumot.
 
-- Supplierless Draft PR: a közös candidate-ek egyike explicit kiválasztható.
-- Már supplieres PR + azonos Supplier: eligibility revalidation után idempotens
-  no-op, új audit event nélkül.
-- Már supplieres PR + más Supplier: explicit conflict; silent replacement tilos.
-- Nem Draft PR: selection tiltott.
-- Approved Supply Proposal Supplierét a 0012 nem módosítja; a 0008 approval
-  integritása megmarad.
+- Beszállító nélküli Draft PR esetén a közös jelöltek egyike kifejezetten
+  kiválasztható.
+- Ha a PR már ugyanazzal a Supplierrel rendelkezik, az érvényesség ismételt
+  ellenőrzése után a művelet változtatás nélkül sikerül, és nem ír új
+  auditeseményt.
+- Ha a PR már másik Supplierrel rendelkezik, a művelet ütközési hibával leáll;
+  csendes felülírás nem történhet.
+- Nem Draft PR-en a választás tiltott.
+- A 0012 nem módosítja az Approved Supply Proposal Supplierét, így megőrzi a
+  0008 jóváhagyási integritását.
 
-## Tranzakció, concurrency és audit
+## Tranzakció, párhuzamos kérések és audit
 
-A selection egy adatbázis-tranzakcióban:
+A választás egyetlen adatbázis-tranzakcióban történik:
 
-1. `lockForUpdate()` zárolja a PR sort;
-2. újraellenőrzi a Draft lifecycle-t és a jelenlegi Suppliert;
-3. bulk queryvel újraellenőrzi az aktív Itemeket és a teljes common eligibility-t;
+1. a `lockForUpdate()` zárolja a PR sorát;
+2. a rendszer újraellenőrzi a Draft életciklust és a jelenlegi Suppliert;
+3. tömeges lekérdezéssel újraellenőrzi az aktív Itemeket és a teljes közös
+   jogosultságot;
 4. beállítja a `supplier_id` értéket;
-5. egy `supplier_selected` activity eseményt ír.
+5. létrehoz egy `supplier_selected` tevékenységnapló-eseményt.
 
-Az event subjectje a PR, actora a kiválasztó user, metadata:
+Az esemény tárgya a PR, végrehajtója a választó felhasználó. A metaadatai:
 `purchase_requisition_id`, `supplier_id`, `selection_mode = manual` és
-`candidate_count`. A row lock tiltja a silent last-write-wins viselkedést.
-Az azonos Supplier ismétlése idempotens és nem hoz létre audit zajt; eltérő
-Supplier versenyző kérése a lock utáni revalidationnél elbukik.
+`candidate_count`.
 
-## Quantity és execution határok
+A sorzárolás megakadályozza, hogy két párhuzamos kérés közül észrevétlenül az
+utolsó felülírja az elsőt. Az azonos Supplier ismételt kiválasztása idempotens,
+és nem hoz létre audit-zajt. Eltérő Supplierrel érkező versenyző kérés a zárolás
+utáni újraellenőrzéskor meghiúsul.
 
-A selection nem módosít PR Item quantityt, unitot vagy Proposal lineage-et. Az
-MOQ, order multiple, conversion factor és purchase unit candidate információ,
-de nincs alkalmazva, konvertálva vagy kerekítve. Ezek, valamint safety stock és
-replenishment quantity a 0013 Replenishment Strategies döntési határai.
+## Mennyiségi és végrehajtási határok
 
-A 0012 nem approve-ol PR-t, nem generál Purchase Ordert vagy Goods Receiptet,
-és nem módosít StockBalance-t, StockMovementet vagy StockReservationt. A
-későbbi PO-generationnek a kiválasztott Suppliert és ItemSupplier source-okat
-újra kell validálnia; a selection időpontbeli döntés, nem örök garancia.
+A Supplier kiválasztása nem módosítja a PR Item mennyiségét, mértékegységét vagy
+Proposal eredetkapcsolatát. Az MOQ, order multiple, conversion factor és
+purchase unit itt csak tájékoztató jelöltadat. A rendszer ezeket nem alkalmazza,
+nem konvertál és nem kerekít. Ezek, valamint a safety stock és az utánpótlási
+mennyiség a [0013 Replenishment Strategies](0013-replenishment-strategies.md)
+döntési körébe tartoznak.
 
-## Recalculation és reselection
+A 0012 nem hagy jóvá PR-t, nem generál Purchase Ordert vagy Goods Receiptet, és
+nem módosít `StockBalance`, `StockMovement` vagy `StockReservation` adatot. A
+későbbi PO-generálásnak újra kell ellenőriznie a kiválasztott Suppliert és az
+`ItemSupplier` forrásokat. A választás egy adott időpontban érvényes döntés, nem
+örök garancia.
 
-A candidate lista minden olvasáskor az aktuális effective date és törzsadatok
-alapján újraszámított read result. Nincs candidate cache vagy külön
-`SupplierSelection` modell. A választott Supplier nem cserélhető automatikusan;
-reselection külön, auditálható lifecycle döntést igényelne, ezért V1-ben tiltott.
+## Újraszámítás és újraválasztás
+
+A jelöltlista minden olvasáskor az aktuális érvényességi nap és törzsadatok
+alapján újraszámított eredmény. Nincs jelöltlista-gyorsítótár és külön
+`SupplierSelection` modell. A kiválasztott Supplier nem cserélhető
+automatikusan. Az újraválasztás külön, auditálható életciklus-döntést igényelne,
+ezért V1-ben tiltott.
 
 ## Következmények és nyitott kérdések
 
-- A PR-header és a későbbi PO-header supplier contract konzisztens marad.
-- A common intersection bizonyítja a multi-item kompatibilitást.
-- A no-common-supplier PR nem oldható fel automatikusan; a split/reconsolidation
-  lifecycle későbbi döntést igényel.
-- A 0013-nak explicit módon el kell döntenie, hogy MOQ/order multiple miatt a
-  Draft PR Item, egy új replenishment artifact vagy a későbbi PO Item mennyisége
-  változhat-e. A 0012 ezt nem előlegezi meg.
-- Ár- és lead-time-alapú ranking csak stabil currency, unit normalization,
-  feasibility és policy contract után vezethető be.
+- A PR és a későbbi PO fejlécszintű Supplier-szabálya összhangban marad.
+- A közös metszet igazolja a többtételes PR beszállítói összeegyeztethetőségét.
+- A közös Supplier nélküli PR nem oldható fel automatikusan; a felosztás és az
+  újrakonszolidálás életciklusa későbbi döntést igényel.
+- A 0013 határozza meg, hogyan változhat a Draft PR Item mennyisége az MOQ és az
+  order multiple miatt. A 0012 ezt a döntést nem előlegezi meg.
+- Ár- vagy lead-time-alapú rangsorolás csak egységes currency-,
+  mértékegység-normalizálási, teljesíthetőségi és szabályrendszer után vezethető
+  be.
 
 ## Elutasított alternatívák
 
-- **Supply Proposal módosítása:** sértené az Approved Proposal immutable döntési
-  tartalmát, és a már létrejött PR lineage után túl korai artifactot írna át.
-- **PR Item supplier mező:** a jelenlegi supplier-headeres PR/PO modellel
-  ellentmondó állapotot hozna létre split contract nélkül.
-- **Automatikus preferred/priority/price selection:** dokumentálatlan üzleti
-  döntést hozna, és a mezők nem alkotnak egységes score contractot.
-- **Automatikus PR split:** a lineage, original document lifecycle és audit
-  szabályai még nincsenek specifikálva.
-- **Külön SupplierSelection tábla:** V1-ben duplikálná a természetes PR supplier
-  üzleti tényt indokolt planning lifecycle nélkül.
+- **Supply Proposal módosítása:** sértené az Approved Proposal változatlan
+  döntési tartalmát, és a PR eredetkapcsolatának létrejötte után egy korábbi
+  dokumentumot írna át.
+- **Supplier mező a PR Itemen:** a jelenlegi, fejlécszintű Supplierrel rendelkező
+  PR- és PO-modellel felosztási szabály nélkül ellentmondó állapotot hozna létre.
+- **Automatikus preferred-, priority- vagy áralapú kiválasztás:** nem
+  dokumentált üzleti döntést hozna, a mezők pedig nem alkotnak egységes
+  pontozási szabályt.
+- **Automatikus PR-felosztás:** az eredetkapcsolat, az eredeti dokumentum
+  életciklusa, a kódgenerálás és az audit szabályai még nincsenek meghatározva.
+- **Külön `SupplierSelection` tábla:** V1-ben indokolatlan tervezési életciklus
+  nélkül megkettőzné a PR természetes Supplier üzleti tényét.

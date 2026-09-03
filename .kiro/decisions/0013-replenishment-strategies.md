@@ -4,52 +4,65 @@
 - **Dátum:** 2026-08-16
 - **Kapcsolódó döntések:** [0007 Item Supplier](0007-item-supplier-procurement-source.md), [0011 Purchase Requisition Consolidation](0011-purchase-requisition-consolidation.md), [0012 Supplier Selection](0012-supplier-selection.md)
 
-## Cél és jelentés
+## Üzleti probléma
 
-A 0013 azt számítja ki, hogy egy már kiválasztott procurement source
-supplier-specifikus mennyiségi feltételei mellett mennyit kell ténylegesen kérni.
-Nem dönt ellátási stratégiáról vagy Supplierről, nem számít újra nettó
-szükségletet, és nem hoz létre Purchase Ordert vagy készletváltozást.
+A tervezett beszerzési mennyiség nem mindig rendelhető meg változtatás nélkül.
+A kiválasztott beszállító előírhat legkisebb rendelési mennyiséget (`MOQ`) vagy
+rendelési többszöröst (`order_multiple`). A döntéshozónak még a jóváhagyás előtt
+látnia kell, hogy emiatt ténylegesen mennyit kell kérni, és mekkora többlet
+keletkezik a tervezett igényhez képest.
+
+A 0013 ezt a ténylegesen kért mennyiséget számítja ki a már kiválasztott
+beszerzési forrás Supplier-specifikus feltételei alapján. Nem dönt ellátási
+stratégiáról vagy Supplierről, nem számít újra nettó szükségletet, és nem hoz
+létre Purchase Ordert vagy készletváltozást.
 
 ```text
-approved Proposal source quantity
-→ Draft PR planned quantity
-+ selected ItemSupplier MOQ / order multiple
-→ Draft PR requested (replenishment) quantity
+Approved Proposal forrásmennyiség
+→ Draft PR tervezett mennyiség
++ a kiválasztott ItemSupplier MOQ / order multiple szabálya
+→ Draft PR ténylegesen kért utánpótlási mennyiség
 ```
 
-## Quantity ownership és lineage
+## A tervezett, kért és többletmennyiség jelentése
 
-A replenishment-adjusted mennyiség a `PurchaseRequisitionItem.quantity`
-mezőn él. A mező jelentése a számítás után requested/replenishment quantity.
-A külön `planned_quantity` a PR-be konszolidált planning mennyiség változatlan
-pillanatképe. Konszolidált tételnél authoritative eredete:
+A számítás után a `PurchaseRequisitionItem.quantity` tartalmazza a ténylegesen
+kért utánpótlási mennyiséget. A külön `planned_quantity` változatlan
+pillanatképként őrzi a PR-be konszolidált tervezési mennyiséget.
+
+A tervezett mennyiség és a beszerzendő mennyiség két külön üzleti tény. A
+modellben nincs `procurement_quantity` nevű mező: a beszerzendő mennyiséget a
+meglévő `PurchaseRequisitionItem.quantity` tárolja. Ez a technikai elnevezés nem
+változtat a két mennyiség üzleti különbségén.
+
+Konszolidált tételnél a mérvadó összefüggés:
 
 ```text
 planned_quantity = sum(PurchaseRequisitionItemProposalSource.quantity)
-quantity = replenishment-adjusted requested quantity
+quantity = a szabályokkal módosított, ténylegesen kért mennyiség
 replenishment_excess_quantity = quantity - planned_quantity
 ```
 
-A source sorok és az Approved `SupplyProposal.proposed_quantity` nem változnak.
-Az 0011 source-total invariant consolidation-time invariant marad; a későbbi
-állapotban a fenti háromtagú contract érvényes. A meglévő kézi és legacy PR
-tételek migrációkor `planned_quantity = quantity` kezdőértéket kapnak, az új
-kézi tételek pedig ugyanezt a snapshotot írják. Ha egy tételnek Proposal
-source-ai vannak, újraszámítás előtt azok exact összege kötelezően egyezik a
-`planned_quantity` értékkel.
+A forrássorok és az Approved `SupplyProposal.proposed_quantity` nem változnak.
+Az 0011 szerinti forrásösszeg-egyezés a konszolidálás időpontjára továbbra is
+érvényes. A későbbi állapotban a fenti háromtagú összefüggés írja le a
+mennyiségeket.
 
-Külön replenishment artifact V1-ben indokolatlan lenne, a Supply Proposal
-módosítása elvesztené a történeti planning döntést, a csak PO-kori alkalmazás
-pedig approval előtt elrejtené a várható többletet. A Draft PR Item a legkisebb
-olyan execution-előkészítő artifact, ahol a Supplier már ismert, de külső
-kötelezettség még nem jött létre.
+A meglévő kézi és örökölt PR-tételek migrációkor `planned_quantity = quantity`
+kezdőértéket kapnak. Az új kézi tételek ugyanezt a pillanatképet írják. Ha egy
+tételnek Proposal forrássorai vannak, újraszámítás előtt azok pontos összegének
+kötelezően egyeznie kell a `planned_quantity` értékkel.
 
-## V1 quantity policy
+V1-ben nincs külön utánpótlási dokumentum. A Supply Proposal módosítása
+elveszítené a történeti tervezési döntést, a szabályok kizárólag PO-készítéskori
+alkalmazása pedig a jóváhagyásig elrejtené a várható többletet. A Draft PR Item
+a legkorábbi végrehajtás-előkészítő dokumentum, amelynél a Supplier már ismert,
+de külső kötelezettség még nem jött létre.
 
-Az `ItemSupplier.minimum_order_quantity` és `order_multiple` mezőkből a
-stratégia determinisztikusan levezethető, ezért külön perzisztált strategy enum
-nincs:
+## V1 mennyiségi szabály
+
+A stratégia egyértelműen levezethető az `ItemSupplier.minimum_order_quantity`
+és `order_multiple` mezőből, ezért nincs külön tárolt strategy enum.
 
 | MOQ         | Order multiple | Strategy                 | Szabály                                                           |
 | ----------- | -------------- | ------------------------ | ----------------------------------------------------------------- |
@@ -58,104 +71,134 @@ nincs:
 | null vagy 0 | pozitív        | `order_multiple`         | `adjusted = roundUp(base, multiple)`                              |
 | pozitív     | pozitív        | `moq_and_order_multiple` | `candidate = max(base, MOQ)`, majd `roundUp(candidate, multiple)` |
 
-A kerekítés mindig felfelé történik egész számú többszörösre. A requested
-mennyiség soha nem lehet kisebb a planned mennyiségnél. Nulla planned demand
-eredménye nulla; az MOQ önmagában nem indít beszerzést. Negatív base quantity,
-negatív MOQ, nem pozitív order multiple vagy nem pozitív conversion factor
-domainhiba. A service a request-validációtól függetlenül fail-fast módon védi
-ezeket az invariánsokat.
+Az MOQ a legkisebb rendelhető mennyiség. Az order multiple azt jelenti, hogy a
+mennyiség csak a megadott érték egész számú többszöröse lehet. A kerekítés
+mindig felfelé történik, ezért a kért mennyiség soha nem lehet kisebb a
+tervezett mennyiségnél.
 
-Minden mennyiségi művelet integer thousandths reprezentációval történik.
-Float osztás és `ceil(float)` nincs. A támogatott mennyiségi pontosság három
-tizedes, összhangban a 0009–0011 contracttal.
+Példák ugyanabban az alap-mértékegységben:
 
-## Unit és conversion contract
+- Ha a tervezett mennyiség 70, az MOQ 100, és nincs order multiple, akkor a
+  kért mennyiség 100.
+- Ha a tervezett mennyiség 70, nincs MOQ, az order multiple pedig 24, akkor a
+  kért mennyiség 72.
+- Ha a tervezett mennyiség 70, az MOQ 100, az order multiple pedig 24, akkor a
+  rendszer először 100-at választ, majd felfelé kerekít 120-ra.
 
-A 0007 authoritative contractja szerint:
+Nulla tervezett igény eredménye nulla; az MOQ önmagában nem indít beszerzést.
+Negatív alapmennyiség, negatív MOQ, nem pozitív order multiple vagy nem pozitív
+conversion factor üzleti tartományhiba. A service ezeket a szabályokat a kérés
+validációjától függetlenül, azonnali hibával védi.
 
-- `planned_quantity`, MOQ és order multiple az Item base unitjában értendő;
+Minden mennyiségi művelet integer thousandths ábrázolással történik. Nincs
+lebegőpontos osztás vagy `ceil(float)`. A támogatott pontosság három tizedes,
+összhangban a 0009–0011 döntésekkel.
+
+## Mértékegység és conversion factor
+
+A 0007 mérvadó szabálya szerint:
+
+- a `planned_quantity`, az MOQ és az order multiple az Item alap-mértékegységében
+  értendő;
 - `1 purchase_unit = conversion_factor × Item base unit`;
-- a `purchase_unit` és `conversion_factor` a beszerzési csomagolás magyarázó
-  adata, de V1-ben nincs szükség konverzióra a quantity policy alkalmazásához.
+- a `purchase_unit` és a `conversion_factor` a beszerzési csomagolást írja le,
+  de V1-ben nincs szükség átváltásra a mennyiségi szabály alkalmazásához.
 
-Ezért a 0013 nem értelmezi az MOQ-t purchase unitként és nem végez implicit
-átváltást. Az üres purchase unit vagy nem pozitív conversion factor ettől még
-inkonzisztens procurement policy és blokkolja a számítást. Tört conversion
-factor sem okoz float számítást, mert a V1 eredmény base unitban marad.
+A 0013 ezért nem értelmezi az MOQ-t purchase unitként, és nem végez hallgatólagos
+átváltást. Az üres purchase unit vagy a nem pozitív conversion factor ettől még
+ellentmondásos beszerzési szabály, ezért blokkolja a számítást. A tört
+conversion factor sem vezet lebegőpontos számításhoz, mert a V1 eredménye az
+alap-mértékegységben marad.
 
-## Source resolution és effective date
+## A beszerzési forrás meghatározása
 
-A számítás előfeltétele egy supplier-resolved PR. Minden egyedi PR Itemhez
-pontosan egy, a header Supplierhez tartozó eligible `ItemSupplier` szükséges.
-Az `item_id + supplier_id` adatbázis unique contract miatt több rekord
-integritási hiba lenne; nulla eligible rekord domainhiba. A source-nak aktívnak,
-approvednak és az aktuális üzleti napon érvényesnek kell lennie, aktív Itemmel
-és aktív Supplierrel. Ez ugyanaz az effective-date jelentés, mint a 0012-ben:
-a művelet napja, nem `required_at` vagy `proposed_supply_at`.
+A számítás előfeltétele egy Supplierrel már rendelkező PR. Minden egyedi PR
+Itemhez pontosan egy olyan érvényes `ItemSupplier` szükséges, amely a fejléc
+Supplieréhez tartozik. Az `item_id + supplier_id` adatbázis-egyediség miatt több
+rekord integritási hiba, nulla érvényes rekord pedig üzleti tartományhiba.
 
-Supplierless PR esetén nincs automatikus preferred vagy más Supplier-választás.
-Multi-item PR minden sora a saját ItemSupplier policyjével számolódik; eltérő
-unitokból header quantity total nem készül.
+A forrásnak aktívnak, approvednak és az aktuális üzleti napon érvényesnek kell
+lennie, aktív Itemmel és aktív Supplierrel. Az érvényességi nap jelentése
+megegyezik a 0012 döntéssel: a művelet napja, nem a `required_at` vagy a
+`proposed_supply_at`.
 
-## Lifecycle, trigger és recalculation
+Supplier nélküli PR esetén nincs automatikus preferred vagy más
+Supplier-választás. Többtételes PR minden sora a saját `ItemSupplier` szabálya
+alapján számolódik. Az eltérő mértékegységű mennyiségekből nem készül
+fejlécszintű összeg.
 
-A V1 trigger külön, explicit `Calculate Replenishment` action. Supplier
-Selection nem kap rejtett quantity side effectet. A művelet csak Draft PR-en
-engedélyezett; Requested, Approved, Ordered és Cancelled állapotban tiltott.
+## Életciklus, indítás és újraszámítás
 
-Az egész PR egy tranzakcióban, PR row lock mellett számolódik. Előbb minden
-source és eredmény validálódik, majd minden tétel együtt perzisztálódik. Hiba
-esetén egyik tétel sem változik. Minden újraszámítás az immutable
-`planned_quantity` értékből indul, nem az előző `quantity` eredményből, ezért
-azonos inputra idempotens és policy-változáskor nincs drift.
+V1-ben a felhasználó külön `Calculate Replenishment` művelettel indítja a
+számítást. A Supplier Selectionnek nincs rejtett mennyiségi mellékhatása. A
+művelet csak Draft PR-en engedélyezett; Requested, Approved, Ordered és Cancelled
+állapotban tiltott.
 
-A jelenlegi Draft PR edit workflow csak notes mezőt módosít; quantity manual
-override nincs. V1 nem vezet be override-ot. Egy későbbi supplier-change vagy
-quantity-edit workflow-nak explicit staleness- és recalculation policy kell.
+Az egész PR számítása egyetlen tranzakcióban, a PR sorának zárolása mellett
+történik. A rendszer előbb minden forrást és eredményt ellenőriz, majd minden
+tételt együtt ment. Hiba esetén egyik tétel sem változik.
 
-A calculation időpontját `replenishment_calculated_at`, az aktuális eredményt,
-excesst, source ID-t, számításkori MOQ/order-multiple snapshotot és levezetett
-strategy labelt a PR Item tárolja. Ez pillanatkép: ItemSupplier-változás után elavulhat. Nincs bizonyíthatatlan
-`is_fresh` flag; a felhasználó explicit újraszámítással frissíti.
+Minden újraszámítás a változatlan `planned_quantity` értékből indul, nem az előző
+`quantity` eredményből. Emiatt azonos bemenet ugyanazt az eredményt adja, és a
+szabályok változásakor nem halmozódik kerekítési eltérés.
+
+A jelenlegi Draft PR-szerkesztési folyamat csak a notes mezőt módosítja;
+kézi quantity felülírás nincs. V1 nem vezet be ilyen felülírást. Egy későbbi
+Supplier-váltási vagy mennyiségszerkesztési folyamatnak külön szabályt kell adnia
+az elavulás és az újraszámítás kezelésére.
+
+A PR Item tárolja a számítás időpontját (`replenishment_calculated_at`), az
+aktuális eredményt és többletet, a forrás azonosítóját, a számításkori MOQ és
+order multiple pillanatképét, valamint a levezetett strategy címkét. Ez
+pillanatkép, ezért az `ItemSupplier` későbbi változásakor elavulhat. Nincs
+bizonyíthatatlan `is_fresh` jelző; a felhasználó kifejezett újraszámítással
+frissíti az eredményt.
 
 ## Audit
 
-A persisted quantity módosítása `purchase_requisition_replenishment_calculated`
-üzleti esemény. Egy batch event tartalmazza a PR azonosítóját, item countot,
-changed item countot és itemenként a planned, adjusted, excess, unit,
-ItemSupplier, strategy, MOQ és multiple adatot. Különböző unitok mennyiségeit
-nem aggregálja. Az audit ugyanabban a tranzakcióban készül, ezért audit hiba
-esetén a quantity változások is rollbackelnek.
+A tárolt mennyiség módosítása
+`purchase_requisition_replenishment_calculated` üzleti eseményt hoz létre. Egy
+kötegelt esemény tartalmazza a PR azonosítóját, a tételek számát, a megváltozott
+tételek számát, valamint tételenként a planned, adjusted, excess, unit,
+`ItemSupplier`, strategy, MOQ és multiple adatot. Az eltérő mértékegységű
+mennyiségeket nem összesíti.
 
-## Approval és Purchase Order boundary
+Az audit ugyanabban a tranzakcióban készül. Ha az audit írása hibát ad, a
+mennyiségi változtatások is visszagörgetődnek.
 
-A 0013 nem módosítja automatikusan a meglévő PR approval contractot. V1-ben az
-explicit calculation nincs kötelező approval guarddá téve, mert a repository
-kézi és legacy PR flow-t is tartalmaz; e folyamatok kötelező migrationje külön
-döntést igényel. Ha lefutott, a PR `quantity` mezője a későbbi PO generation
-authoritative requested mennyisége, de a 0013 maga nem approve-ol PR-t és nem
-generál PO-t.
+## Jóváhagyási és Purchase Order-határ
 
-A Supplier vagy ItemSupplier policy változása után a tárolt számítás stale
-lehet. A későbbi execution-readiness/PO-generation modulnak újra kell validálnia
-a source eligibilityt, a replenishment calculation meglétét és frissességét,
-valamint történeti supplier-policy snapshotot kell döntenie.
+A 0013 nem módosítja automatikusan a meglévő PR-jóváhagyási szabályt. V1-ben a
+kifejezett számítás nem kötelező jóváhagyási előfeltétel, mert a rendszer kézi
+és örökölt PR-folyamatokat is tartalmaz. E folyamatok kötelező migrációjához
+külön döntés szükséges.
+
+Ha a számítás lefutott, a PR `quantity` mezője a későbbi PO-generálás mérvadó,
+ténylegesen kért mennyisége. A 0013 azonban nem hagy jóvá PR-t, és nem generál
+PO-t.
+
+A Supplier vagy az `ItemSupplier` szabályának változása után a tárolt számítás
+elavulhat. A későbbi végrehajtási készenléti vagy PO-generálási modulnak újra
+kell ellenőriznie a forrás érvényességét, a számítás meglétét és frissességét,
+valamint döntenie kell a történeti Supplier-szabály pillanatképéről.
 
 ## Határok
 
-A 0013 nem módosítja a Material Requirementet, 0009 netting resultot, 0010
-pegeket, Supply Proposal quantityt vagy Proposal source quantityt. Nem hoz létre
-PR approvalt, Purchase Ordert, Goods Receiptet, StockBalance módosítást,
-StockMovementet vagy StockReservationt. Safety stock, reorder point, forecast,
-purchase-to-stock és teljes inventory policy engine nincs a V1 scope-ban.
+A 0013 nem módosítja a Material Requirementet, a 0009 netting eredményét, a
+0010 pegjeit, a Supply Proposal mennyiségét vagy a Proposal forrásmennyiséget.
+Nem hoz létre PR-jóváhagyást, Purchase Ordert, Goods Receiptet,
+`StockBalance`-módosítást, `StockMovement` vagy `StockReservation` rekordot.
+Safety stock, reorder point, forecast, purchase-to-stock és a teljes inventory
+policy engine nem része a V1-nek.
 
 ## Következmények
 
-- Approval előtt láthatóvá válik a supplier constraint miatti tényleges kérés
-  és a planninghez képesti többlet.
-- A Proposal lineage változatlan, a requested mennyiség mégis közvetlenül
-  továbbvihető a későbbi PO-ba.
-- A tárolt calculation pillanatkép stalenessét V1-ben timestamp és explicit
-  recalculation kezeli, nem dependency graph.
-- A következő külön döntés az execution readiness és Purchase Order creation
-  határa: kötelező freshness, source/policy snapshot, ár és approval guard.
+- A jóváhagyás előtt láthatóvá válik a Supplier feltételei miatti tényleges
+  kérés és a tervezéshez képesti többlet.
+- A Proposal eredetkapcsolata változatlan marad, miközben a kért mennyiség
+  közvetlenül továbbvihető a későbbi PO-ba.
+- A tárolt számítás elavulását V1-ben időbélyeg és kifejezett újraszámítás
+  kezeli, nem függőségi gráf.
+- A következő külön döntési terület a végrehajtási készenlét és a Purchase Order
+  létrehozásának határa: kötelező frissesség, forrás- és szabálypillanatkép, ár
+  és jóváhagyási előfeltétel.

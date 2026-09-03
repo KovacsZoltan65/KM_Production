@@ -72,8 +72,12 @@ return new class extends Migration
 
         Schema::create('supplier_acknowledgement_scope_items', function (Blueprint $table): void {
             $table->id();
-            $table->foreignId('supplier_acknowledgement_id')->constrained()->restrictOnDelete();
-            $table->foreignId('purchase_order_item_id')->constrained()->restrictOnDelete();
+            $table->foreignId('supplier_acknowledgement_id')
+                ->constrained(indexName: 'supplier_ack_scope_ack_fk')
+                ->restrictOnDelete();
+            $table->foreignId('purchase_order_item_id')
+                ->constrained(indexName: 'supplier_ack_scope_po_item_fk')
+                ->restrictOnDelete();
             $table->timestamps();
 
             $table->unique(['supplier_acknowledgement_id', 'purchase_order_item_id'], 'supplier_ack_scope_item_unique');
@@ -81,7 +85,9 @@ return new class extends Migration
 
         Schema::create('supplier_acknowledgement_items', function (Blueprint $table): void {
             $table->id();
-            $table->foreignId('supplier_acknowledgement_id')->constrained()->restrictOnDelete();
+            $table->foreignId('supplier_acknowledgement_id')
+                ->constrained(indexName: 'supplier_ack_item_ack_fk')
+                ->restrictOnDelete();
             $table->foreignId('purchase_order_item_id')->constrained()->restrictOnDelete();
             $table->string('line_status');
             $table->decimal('promised_quantity', 18, 3)->nullable();
