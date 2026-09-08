@@ -1,102 +1,82 @@
-# Purpose
+# Commit előtti ellenőrzőlista
 
-Mandatory checklist before committing work in KM_Production.
-Apply only the relevant items under the
-[project Definition of Done](../../docs/project-management/definition-of-done.md);
-record non-applicable or skipped checks with a reason.
+## Cél és hatály
 
-# Checklist
+Commit előtt ellenőrizd, hogy szándékosan kiválasztott, érthető és biztonságosan
+rögzíthető változást készítesz elő. A commit lehet köztes munkapont; önmagában
+nem jelenti a feladat befejezését. A készültséget és az ellenőrzési eredmények
+jelentését a [Definition of Done](../../docs/project-management/definition-of-done.md)
+határozza meg.
 
-## Architecture
+Az AI-agent commit- és push-jogosultságát az [AGENTS.md](../../AGENTS.md) és a
+[commitüzenet-konvenció](../../docs/project-management/commit-conventions.md)
+szabályozza: mindkét művelethez explicit felhasználói felhatalmazás kell.
+A lista kitöltése ezt nem helyettesíti.
 
-- [ ] Controller contains no business logic.
-- [ ] Service created where business workflow exists.
-- [ ] Repository used for query logic.
-- [ ] Policy exists for protected actions.
-- [ ] FormRequest exists for request validation.
-- [ ] Transactions added where required.
-- [ ] Activity logging added for important business actions.
+## A változás előkészítése
 
-## Database
+- [ ] A commit egy logikailag összetartozó változást rögzít a jóváhagyott feladatból.
+- [ ] Az alkalmazandó DoD-pontokat azonosítottam; a nem alkalmazandó részek
+      rövid `N/A` indoklást kaptak.
+- [ ] Az érintett réteghatárokat, jogosultságokat, validációt, tranzakciókat és
+      auditnaplót átnéztem. Készletmennyiség csak készletmozgással változik.
+- [ ] Adatbázis-változásnál a migráció, indexek, idegen kulcsok, törlés és
+      visszaállítás hatása ismert; nincs elrejtett adatvesztési kockázat.
+- [ ] Frontendváltozásnál a közös komponensek, PrimeVue, fordítások, betöltési,
+      üres és hibás állapotok ellenőrzöttek. A lapcím Inertia `<Head>` és a központi
+      címformázó segítségével készül; nincs második head-kezelő.
+- [ ] Az érintett dokumentáció, ADR, tudásanyag és eljárás frissült, vagy a
+      hiányzó rész és következő lépése látható.
 
-- [ ] Migration reviewed.
-- [ ] Foreign keys correct.
-- [ ] Indexes added where needed.
-- [ ] Soft deletes reviewed.
-- [ ] No destructive migration mistakes.
+## Ellenőrzések és nyitott követelmények
 
-## Frontend
+- [ ] A [rétegezett útmutató](../../docs/development/quality-gates.md) és az
+      [ellenőrzési lista](quality-gates.md) alapján kiválasztottam és elvégeztem a
+      változáshoz szükséges vizsgálatokat; a hiányzó futások tételesen szerepelnek.
+- [ ] Csak dokumentációt érintő munkánál a DoD szerinti formázást,
+      hivatkozásokat, szóhasználatot és whitespace-hibákat vizsgáltam; nem írtam elő
+      automatikusan alkalmazástesztet.
+- [ ] A szükséges tesztek a sikeres, hibás és jogosulatlan eseteket is vizsgálják.
+      Gyorsítótárazott adatforrás írásának változásánál a cache-mátrixot és a
+      `composer test:cache` eredményét ellenőriztem.
+- [ ] Az alkalmazandó Pint-, Larastan- és Composer-validálás eredménye rögzített.
+      Hiba nem lett PHPStan baseline-nal vagy általános elnémítással elfedve.
+- [ ] Az alkalmazandó `npm audit` és `npm audit --omit=dev` eredménye rögzített;
+      a meglévő nulla sérülékenységi követelmény teljesülése vagy hiánya látható.
+- [ ] A szükséges SQLite-, MySQL- és migrációs eredmények külön szerepelnek a
+      [backend-eljárás](../../docs/backend-quality-gate.md) szerint. SQLite nem
+      helyettesíti az alkalmazandó MySQL-ellenőrzést.
+- [ ] Minden alkalmazandó ellenőrzést a DoD szerinti `PASSED`, `FAILED`,
+      `BLOCKED` vagy `NOT RUN` eredménnyel jelentettem. Sikertelen futás, igazolt
+      környezeti akadály és elmaradt futás nem szerepel sikeres ellenőrzésként.
+- [ ] Minden nem sikeres ellenőrzéshez név, eredmény, parancs vagy eljárás, ok,
+      hatás, felelős és következő lépés tartozik. A kihagyás indoka nem teljesítés.
+- [ ] Köztes commitnál a nyitott követelmények a commit leírásából vagy a
+      hivatkozott feladatból visszakereshetők. A feladat állapota és az átadás nem
+      állít DoD szerinti készültséget, amíg alkalmazandó követelmény rendezetlen.
 
-- [ ] `npm audit` and `npm audit --omit=dev` both report zero vulnerabilities.
-- [ ] Page titles use Inertia's `<Head>` and the centralized title formatter; do not add a second head-manager plugin.
+## Staging és commitüzenet
 
-- [ ] Localization complete.
-- [ ] PrimeVue conventions followed.
-- [ ] Shared components reused.
-- [ ] Loading state implemented.
-- [ ] Empty state implemented.
-- [ ] Validation errors shown.
+- [ ] Csak a szándékolt fájlokat stage-eltem; idegen vagy korábban meglévő
+      módosítást nem vettem bele.
+- [ ] A stage-elt fájlneveket, statisztikát és teljes diffet külön átnéztem.
+- [ ] Nincs titok, helyi generált fájl, hibakereső kód, kikommentelt holt kód,
+      `TODO` vagy `FIXME` a rögzítendő változásban.
+- [ ] A stage-elt whitespace-ellenőrzés sikeres.
+- [ ] A commitüzenet követi a konvenciót, a tényleges változást írja le, és
+      csak valóban igazolt ellenőrzési eredményt állít.
+- [ ] AI-agentként rendelkezem az adott commitra vonatkozó felhatalmazással.
 
-## Permissions
+A staging átnézéséhez használd a commitkonvenció parancsait:
 
-- [ ] Permission created.
-- [ ] Policy updated.
-- [ ] Menu visibility reviewed.
-- [ ] Backend authorization enforced.
+```bash
+git status --short
+git diff --cached --name-status
+git diff --cached --stat
+git diff --cached --check
+git diff --cached
+```
 
-## Testing
-
-- [ ] Pest tests added.
-- [ ] Authorization tested.
-- [ ] Validation tested.
-- [ ] Happy path tested.
-- [ ] Failure path tested.
-- [ ] `composer test:backend:sqlite` passes.
-- [ ] `composer test:backend:mysql` passes on a dedicated guarded test database.
-- [ ] Cache-elt adatforrást módosító write műveletnél frissült a cache-mátrix és zöld a `composer test:cache`.
-- [ ] SQLite and MySQL migration round-trip plus seeder smoke passes; see [backend quality gate](../../docs/backend-quality-gate.md).
-
-## Code Quality
-
-- [ ] No TODO.
-- [ ] No FIXME.
-- [ ] No debug code.
-- [ ] No `dd()`.
-- [ ] No `dump()`.
-- [ ] No `console.log()`.
-- [ ] No commented dead code.
-- [ ] Pint passes.
-- [ ] PHPStan/Larastan passes.
-- [ ] `composer validate --strict` passes.
-- [ ] `vendor/bin/pint --test` passes.
-- [ ] `composer analyse` passes.
-- [ ] `git diff --check` passes.
-- [ ] A PHPStan/Larastan hibák valódi javítást kapnak; baseline vagy széles ignore nem adható hozzá.
-
-## Documentation
-
-- [ ] Documentation updated.
-- [ ] Playbook still valid.
-- [ ] ADR affected?
-- [ ] Knowledge affected?
-
-## Git
-
-- [ ] Commit message follows the [commit message convention](../../docs/project-management/commit-conventions.md).
-- [ ] Staging was targeted; staged names, statistics, whitespace, and full diff were reviewed.
-- [ ] No unrelated or previously existing changes are staged.
-- [ ] Commit claims only tests and checks that actually ran.
-
-# Common Mistakes
-
-- Committing before running focused tests.
-- Leaving debug statements.
-- Adding frontend labels without translations.
-- Forgetting backend authorization because the menu item is hidden.
-- Updating inventory without stock movement workflow.
-
-# Completion Criteria
-
-- Checklist is complete or any exception is explicitly documented.
-- Required tests and static checks have been run or skipped with reason.
-- No unrelated files are included.
+Az előkészített commit és a teljes feladat állapotát külön jelentsd. Egy
+`FAILED`, `BLOCKED` vagy `NOT RUN` ellenőrzés köztes commit után is nyitott
+marad; rendezését a DoD szerint kell igazolni.
