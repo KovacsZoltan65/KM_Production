@@ -1,31 +1,55 @@
-# Rétegezett quality-gate checklist
+# Rétegezett ellenőrzések listája
 
-## Fejlesztés közben
+## Az ellenőrzés kiválasztása
 
-- [ ] `php tools/quality-gate.php affected --dry-run --explain` helyesen sorolja be a változást.
-- [ ] Az érintett teszt vagy a fast gate lefutott.
-- [ ] Modul lezárásakor a megfelelő `module` gate lefutott.
-- [ ] Shared/core változásnál integration gate futott.
-- [ ] Nem ismétlődött ugyanaz a teljes suite ugyanabban az ellenőrzési körben.
+- [ ] A [Definition of Done](../../docs/project-management/definition-of-done.md)
+      alapján azonosítottam a változásra alkalmazandó követelményeket.
+- [ ] A [rétegezett ellenőrzések útmutatója](../../docs/development/quality-gates.md)
+      alapján választottam szintet: Affected/Fast, Module, Integration vagy Full.
+- [ ] Csak dokumentációt érintő munkánál a formázást, hivatkozásokat,
+      szóhasználatot és whitespace-hibákat ellenőrzöm. A merge önmagában nem
+      indokol teljes alkalmazástesztelést.
+- [ ] Több modult érintő közös alkalmazáskódnál megvizsgáltam az Integration
+      szükségességét; projekt-, teszt-, build- vagy ellenőrzési infrastruktúránál
+      a Full követelményét alkalmaztam.
+- [ ] Alkalmazás- vagy eszközváltozásnál átnéztem a
+      `php tools/quality-gate.php affected --dry-run --explain` tervét. Az eltérő
+      besorolást jelentettem; a tervezést nem tekintettem sikeres tesztfutásnak.
+- [ ] A szükséges, de a választott parancsból hiányzó ellenőrzéseket külön
+      felsoroltam. A `composer qa:full` korlátait és a dokumentált konfigurációs
+      eltéréseket figyelembe vettem.
 
-## Full gate indoka
+## Futtatás és eredmény
 
-Full gate szükséges, ha legalább egy igaz:
+- [ ] Lefuttattam a kiválasztott és külön szükséges ellenőrzéseket, vagy
+      tételesen rögzítettem, mi akadályozta a futást.
+- [ ] Az alkalmazandó MySQL-ellenőrzést dedikált, védett tesztadatbázison
+      végeztem; SQLite-eredménnyel nem helyettesítettem.
+- [ ] Minden alkalmazandó ellenőrzés eredményét a DoD szerinti `PASSED`,
+      `FAILED`, `BLOCKED` vagy `NOT RUN` értékkel jelentettem.
+- [ ] A futtató korai leállása után a végre nem hajtott lépések `NOT RUN`
+      eredményt kaptak; csak a ténylegesen sikeres lépéseket jelöltem `PASSED`-nek.
+- [ ] A tiltott sérülékenységet találó auditot `FAILED`-ként jelentettem.
+      `BLOCKED` eredményt csak igazolt külső vagy környezeti akadályhoz használtam.
+- [ ] Javítás után ellenőriztem a hibás és a javítás által érintett részeket,
+      valamint pótoltam a kimaradt kötelező lépéseket. A sikeres teljes
+      tesztcsomagokat nem ismételtem szükségtelenül.
 
-- a felhasználó kifejezetten kérte;
-- merge, release vagy main-branch ellenőrzés történik;
-- migration, dependency vagy tesztkonfiguráció változott;
-- shared/core refaktor kockázata túlmutat az integration gate-en;
-- célzott regresszió keresztmodul hibát jelez.
+## Csak az ellenőrző eszköz módosításakor
 
-Tisztán PHP-only belső módosításnál ne fusson automatikusan teljes frontend,
-coverage, build vagy Playwright. Egyszerű frontend modulmódosításnál ne fusson
-teljes backend suite bizonyított keresztmodul ok nélkül.
+- [ ] A futtató érintett unit tesztjei sikeresek.
+- [ ] Az érintett parancsok hibakódját és időtúllépés utáni leállását igazoltam.
+- [ ] A folyamatkezelést érintő változásnál igazoltam, hogy nem marad saját
+      PHP-, Node-, Playwright- vagy böngészőfolyamat a leállítás után.
+- [ ] A módosított mátrix, a kiválasztási tesztek és az útmutató összhangban vannak.
 
-## Lezárás
+## Átadás és lezárás
 
-- [ ] A runner saját unit tesztjei zöldek.
-- [ ] A process exit code és timeout behavior bizonyított.
-- [ ] Nincs visszamaradt saját PHP, Node, Playwright vagy böngésző processz.
-- [ ] A mátrix és a fejlesztői dokumentáció a tényleges fájlokat írja le.
-- [ ] A futtatott és kihagyott kapuk tényszerűen dokumentáltak.
+- [ ] A bizonyíték tartalmazza a parancsot vagy lépést, a környezetet és a
+      megfigyelt eredményt.
+- [ ] Minden `FAILED`, `BLOCKED` és `NOT RUN` ellenőrzésnél megadtam a nevét,
+      eredményét, okát, hatását, felelősét és következő lépését.
+- [ ] Az ellenőrzési eredményeket elkülönítettem a feladat állapotától.
+      Feloldatlan, alkalmazandó kötelező ellenőrzés mellett nem állítok teljes
+      készültséget, merge- vagy release-készséget; a leírt kivétel önmagában nem
+      elfogadás. A lezárást a DoD alapján értékeltem.

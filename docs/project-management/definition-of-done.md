@@ -1,331 +1,419 @@
 # KM_Production Definition of Done
 
-## Cél és hatókör
+## Cél és használat
 
-Ez a dokumentum a KM_Production feladatlezárásának elsődleges szabályzata.
-Minden emberi és AI-agent által végzett változtatásra alkalmazandó. A
-változtatás csak akkor `done`, ha a rá vonatkozó általános és
-változástípus-specifikus feltételek bizonyítottan teljesülnek.
+Ez a dokumentum mondja meg, mikor tekinthető késznek egy KM_Production-feladat.
+Minden emberi és AI-agent által végzett változtatásra alkalmazandó. Ez az
+elsődleges szabály az ellenőrzések szükségességére, az eredmények igazolására,
+az akadályok jelentésére és a lezárás feltételeire.
 
-A szabályzat szigorú, de arányos: nem kell minden feladatra minden tesztet
-futtatni. A szerző a módosított felület, az üzleti kockázat és a lehetséges
-hiba hatása alapján választ ellenőrzést, az irreleváns pontokat pedig röviden
-`N/A`-ként indokolja.
+A feladat akkor `done`, ha az elfogadási feltételei és minden rá vonatkozó
+kötelező követelmény igazoltan teljesült. A szerző feladata, hogy azonosítsa
+ezeket, elvégezze az ellenőrzéseket, és tényszerűen jelentse az eredményt.
 
-## Fogalmak és állapotok
+Használat:
 
-| Fogalom                   | Jelentés                                                                                                                                                 |
-| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Acceptance Criteria (AC)  | A backlogelem megfigyelhető, feladatspecifikus üzleti vagy technikai eredménye. Azt mondja meg, **mit** kell szállítani.                                 |
-| Definition of Ready (DoR) | A munka megkezdésének feltétele: érthető scope, AC, függőségek, kockázat és ellenőrzési igény. Nem lezárási kapu.                                        |
-| Definition of Done (DoD)  | A feladattípustól független minimum és a releváns szakági feltételek együttese. Azt mondja meg, **milyen minőségben és bizonyítékkal** kész az eredmény. |
-| Review-ready              | Az implementáció és az önellenőrzés elkészült, a diff és a bizonyíték átadható reviewernek; ismert eltérés nyíltan dokumentált.                          |
-| Merge-ready               | A review lezárult, nincs nyitott `BLOCKER` vagy `REQUIRED`, a releváns ellenőrzések sikeresek, a PR és a backlog naprakész.                              |
-| Release-ready             | A merge-kész változás egy konkrét verziójelölt részeként az üzemeltetési, migrációs, security, rollback és release-evidence kapukat is teljesíti.        |
+1. Határozd meg a jóváhagyott feladatot és a változás lehetséges hatását.
+2. Válaszd ki az alábbi általános és változástípus szerinti követelményeket.
+3. A [rétegezett ellenőrzések útmutatójából](../development/quality-gates.md)
+   válassz ellenőrzési szintet, és egészítsd ki a külön szükséges vizsgálatokkal.
+4. Rögzítsd a tényleges eredményeket. A hiányzó igazolásokat rendezd a lezárás előtt.
 
-A „code complete” csak azt jelenti, hogy az implementáció elkészült. Nem
-jelenti azt, hogy a feladat tesztelt, dokumentált, review-kész, merge-kész,
-release-kész vagy `done`.
+## Arányos ellenőrzés
 
-A backlogban kizárólag a
-[backlog-konvenciók](backlog-conventions.md) állapotai használhatók:
-`planned`, `ready`, `in-progress`, `blocked`, `review`, `done`, `cancelled`.
-A „részben kész” nem külön állapot: az ilyen munka `in-progress`, `review` vagy
-`blocked`, a hiányzó AC-val vagy DoD-ponttal és a következő lépéssel együtt.
+Minden olyan ellenőrzést el kell végezni, amely a változás kockázatára
+vonatkozik. A cél a megfelelő bizonyosság: a legnagyobb tesztcsomag futtatása
+önmagában nem teszi jobbá az ellenőrzést. Szélesebb műszaki hatáshoz szélesebb
+vizsgálat tartozik.
+
+Az alkalmazandó követelményeket a módosított működés, az érintett modulok és
+a lehetséges hiba következménye alapján válaszd ki. A valóban nem alkalmazandó
+pontot rövid `N/A` indoklással jelöld. Ez alkalmazhatósági döntés, nem egy
+kihagyott kötelező ellenőrzés eredménye.
+
+Csak dokumentációt érintő változásnál a formázás, a hivatkozások, a szóhasználat
+és a whitespace-hibák vizsgálata szükséges. Ez merge előtt is így van.
+Alkalmazásteszt akkor kell, ha alkalmazáskód vagy konfiguráció is változik,
+vagy más alkalmazandó szabály indokolja, például futtatható vagy generált
+viselkedést meghatározó dokumentáció esetén.
+
+Több modul együttműködését érintő közös alkalmazáskódhoz Integration szintű
+ellenőrzés tartozik. Projekt-, teszt-, build- és ellenőrzési infrastruktúra,
+függőségkezelés vagy globális keretrendszer-beállítás változása Full kockázatú.
+A részletes választási szabály és a futtató ismert eltérései a
+[rétegezett útmutatóban](../development/quality-gates.md) találhatók.
+
+A `composer qa:full` a teljes helyi rétegezett parancs. Nem foglal magában
+minden projektellenőrzést: az alkalmazandó MySQL-, további böngészős,
+helyesírási és dokumentációs vizsgálatok külön követelmények maradnak.
+
+## Ellenőrzési eredmények
+
+Egy ellenőrzés eredményét az alábbi négy értékkel kell jelenteni.
+
+| Eredmény  | Jelentés                                                                                | Példa                                                                          |
+| --------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| `PASSED`  | Az alkalmazandó ellenőrzés ténylegesen lefutott és sikeres volt.                        | A formázás ellenőrzése nem talált hibát.                                       |
+| `FAILED`  | Az alkalmazandó ellenőrzés lefutott és sikertelen eredményt adott.                      | Hibás teszt, statikus elemzési hiba vagy tiltott sérülékenységet találó audit. |
+| `BLOCKED` | Az ellenőrzés külső vagy környezeti előfeltétel hiánya miatt érdemben nem végezhető el. | Nem érhető el a szükséges MySQL tesztszerver.                                  |
+| `NOT RUN` | Az alkalmazandó ellenőrzés nem futott le.                                               | A futtató egy korábbi hibánál leállt, vagy az ellenőrzést nem indították el.   |
+
+A `BLOCKED` eredményhez azonosított környezeti akadály kell. A környezet
+előkészítésének elmaradása önmagában `NOT RUN`. Böngészőindítási hibánál
+előbb tisztázd az okot; a bizonyított környezeti indítási akadály `BLOCKED`.
+Egy nehezen javítható teszthiba ettől még `FAILED` marad.
+
+A lefutott, tiltott sérülékenységet vagy biztonsági figyelmeztetést találó
+függőségaudit `FAILED`, nem `BLOCKED`. Az audit érdemi elvégzését megakadályozó
+külső feltétel hiánya külön eset, és bizonyítást igényel.
+
+A tervezési futás (`--dry-run`) nem igazol `PASSED` ellenőrzéseket. Ha az
+összesített futtatás egy hibás parancsnál megáll, a sikeres korábbi lépések
+`PASSED`, a hibás lépés `FAILED`, a későbbiek `NOT RUN` eredményt kapnak.
+Igazolt környezeti akadálynál a sikertelen indítás technikai hibakódját is
+őrizd meg, és az érintett ellenőrzést az okkal együtt `BLOCKED`-ként jelentsd.
+
+## Az eredmény és a feladat állapota
+
+Az ellenőrzés eredménye nem a feladat állapota. Egy sikeres parancs nem
+bizonyítja az összes követelmény teljesülését. Alkalmazandó kötelező ellenőrzés
+`FAILED`, `BLOCKED` vagy `NOT RUN` eredménye mellett a munka nem nevezhető
+maradéktalanul késznek.
+
+Minden ilyen ellenőrzés jelentése tartalmazza:
+
+- az ellenőrzés nevét és eredményét;
+- az okot és a hiányzó igazolás hatását;
+- a javításért vagy feloldásért felelős személyt vagy szerepet;
+- a következő lépést és a feloldás feltételét.
+
+A kihagyás leírt oka nem teljesíti a követelményt. A feladat a hiány rendezéséig
+nem kész, kivéve, ha külön, kifejezetten felhatalmazott szabályozási döntés
+elfogadja a kockázatot. Ez a dokumentum nem ad ilyen felhatalmazást. Az esetleges
+döntést külön kell igazolni; a sikertelen vagy elmaradt futás eredménye ettől
+nem változik `PASSED`-re.
+
+A backlogban kizárólag a [backlog-konvenciók](backlog-conventions.md) állapotai
+használhatók: `planned`, `ready`, `in-progress`, `blocked`, `review`, `done`,
+`cancelled`. Ha az akadály miatt nincs érdemi továbblépés, a feladat `blocked`;
+egyébként `in-progress` vagy `review` lehet. A „részben kész” nem külön állapot.
+
+## Fogalmak
+
+- **Acceptance Criteria (AC):** a feladat megfigyelhető elfogadási feltételei;
+  megmondják, mit kell elkészíteni.
+- **Definition of Ready (DoR):** a munka indításának feltételei: érthető feladat,
+  elfogadási feltételek, függőségek, kockázat és ellenőrzési igény.
+- **Definition of Done (DoD):** az általános és alkalmazandó szakági
+  követelmények, amelyek alapján az eredmény késznek minősíthető.
+- **Review-ready:** a változás és az önellenőrzés átadható felülvizsgálatra;
+  az ismert hiányok tételesen szerepelnek.
+- **Merge-ready:** a felülvizsgálat lezárult, és az összes alkalmazandó
+  követelmény rendezett. A részletes feltételek lent találhatók.
+- **Release-ready:** a verziójelölt a merge feltételein túl a kiadás
+  üzemeltetési és biztonsági követelményeit is teljesíti.
+
+A „code complete” csak a megvalósítás elkészültét jelenti. Nem bizonyít
+ellenőrzést, dokumentáltságot, felülvizsgálatot vagy kiadhatóságot.
 
 ## Minden változtatás kötelező minimuma
 
-### Scope és elfogadási feltételek
+Az alábbi pontokat a változásra alkalmazandó körben kell teljesíteni.
 
-- A megvalósítás a jóváhagyott scope-ra korlátozódik; a scope-on kívüli
-  változás külön feladat vagy dokumentált döntés.
+### Feladat és elfogadási feltételek
+
+- A megvalósítás a jóváhagyott feladatra korlátozódik. A további változás külön
+  feladat vagy dokumentált döntés.
 - Minden AC teljesül, és megfigyelhető eredménnyel igazolt.
-- Nincs elhallgatott ismert hiba, regresszió, blocker vagy félbehagyott
-  követelmény.
+- Nincs elhallgatott hiba, regresszió, akadály vagy félbehagyott követelmény.
 
 ### Üzleti és architekturális helyesség
 
-- A releváns domain-, ADR-, architecture- és steering-szabályok teljesülnek.
-- A gyártási traceability, serial number, operation sequence verzió,
-  auditnapló, permission és stock movement invariánsok nem sérülnek.
+- A vonatkozó domain-, ADR-, architektúra- és steering-szabályok teljesülnek.
+- A gyártási nyomon követhetőség, a sorozatszámok, a műveleti sorrend verziói,
+  az auditnapló, a jogosultságok és a készletmozgások alapfeltételei nem sérülhetnek.
 - Alkalmazáskódnál megmarad a `Controller -> Service -> Repository -> Model`
   rétegzés; üzleti logika nem kerül controllerbe.
 
 ### Kód- és tartalomminőség
 
-- A diff fókuszált, érthető, és nem tartalmaz kapcsolódás nélküli módosítást,
-  debugkódot, titkot, lokális artifactot vagy indokolatlan dead code-ot.
-- A releváns formatter, statikus elemzés és whitespace-ellenőrzés sikeres.
-- A hiba elrejtése széles ignore-ral, baseline-nal vagy gyengített teszttel nem
-  elfogadható.
+- A diff érthető és a feladatra szorítkozik. Nincs benne idegen módosítás,
+  hibakereső kód, titok, helyi generált fájl vagy indokolatlanul megmaradt holt kód.
+- Az alkalmazandó formázási, statikus elemzési és whitespace-ellenőrzés sikeres.
+- Hiba nem fedhető el általános elnémítással, PHPStan baseline-nal vagy
+  gyengített teszttel.
 
 ### Tesztelés és regresszió
 
-- A legszűkebb, a változást ténylegesen bizonyító automatizált teszt lefut.
-- A megosztott vagy nagy kockázatú felülethez arányosan szélesebb regressziós
-  ellenőrzés tartozik.
-- Sikeres és fontos hibás/jogosulatlan út is ellenőrzött, ha van ilyen.
-- Manuális ellenőrzés csak akkor helyettesít automatizált tesztet, ha a teszt
-  nem ésszerűen automatizálható; a lépések és eredmények ekkor is rögzítettek.
+- Ha alkalmazásteszt szükséges, a legszűkebb, a változást igazoló automatizált
+  teszt lefut. Szélesebb hatásnál a kapcsolódó működés regresszióját is vizsgálni kell.
+- A sikeres és a fontos hibás vagy jogosulatlan esetek ellenőrzöttek.
+- Manuális vizsgálat csak akkor helyettesít automatizált tesztet, ha az nem
+  ésszerűen automatizálható. A lépések és eredmények ekkor is rögzítettek.
 
 ### Biztonság, adat és jogosultság
 
-- A bemenet, authorization, érzékeny adat, naplózás, fájlkezelés és dependency
-  hatása a módosítás mértékében felülvizsgált.
-- Jogosultságot érintő változásnál a tiltott közvetlen hozzáférés bizonyítottan
-  elutasított.
-- Adatváltozásnál az integritás, tranzakció, idempotencia és visszaállítás
-  hatása ismert.
+- A bemenetek, jogosultságok, érzékeny adatok, naplózás, fájlkezelés és
+  függőségek változással érintett részei felülvizsgáltak.
+- Jogosultságváltozásnál a tiltott közvetlen hozzáférés igazoltan elutasított.
+- Adatváltozásnál ismert az integritásra, tranzakciókra, az ismételt végrehajtás
+  biztonságára (idempotencia) és a visszaállításra gyakorolt hatás.
 
 ### Dokumentáció és lokalizáció
 
-- A felhasználói, üzemeltetési, architekturális és governance dokumentáció a
-  tényleges viselkedést írja le.
+- A dokumentáció a tényleges működést írja le. Az elfogadott szabálytól eltérő
+  megvalósítást kifejezetten eltérésként jelöli.
 - A módosított relatív hivatkozások célja létezik.
-- UI-szöveg közös Laravel JSON translation key-t használ; a magyar és angol
+- UI-szöveg közös Laravel JSON fordítási kulcsot használ; a magyar és angol
   fordítás együtt frissül.
-- A backlog, a végrehajtási terv és a release note csak tényszerűen frissül.
+- A backlog, a végrehajtási terv és a kiadási megjegyzések tényszerűek.
 
-### Git és review
+### Git és felülvizsgálat
 
-- A staging célzott, a teljes diff átnézett, a commit és a PR címe követi a
+- Staging esetén csak a feladathoz tartozó fájlok kerülnek bele; a teljes diff
+  átnézett. A commit és a PR címe követi a
   [commitüzenet-konvenciót](commit-conventions.md).
-- A PR a [PR-sablon](../../.github/pull_request_template.md) és a
-  [code review útmutató](code-review-guide.md) szerint tartalmaz scope-ot,
-  kockázatot, rollbacket és bizonyítékot.
+- PR készítésekor a [PR-sablon](../../.github/pull_request_template.md) és a
+  [code review útmutató](code-review-guide.md) szerint kell leírni a változást,
+  a kockázatot, a visszaállítást és a bizonyítékot.
 - Csak ténylegesen lefutott ellenőrzés jelölhető sikeresnek.
 
-## Ellenőrzési mátrix
+## Megvalósítás és futtatási hivatkozások
 
-Az alábbi parancsok a repository jelenlegi scriptjei vagy ténylegesen használt
-eszközei. A mátrix nem teszi őket minden változtatásra kötelezővé.
+Az alábbi parancsok meglévő projektscriptek vagy használt eszközök. A táblázat
+segít megtalálni a futtatási módot; nem teszi minden sorát minden feladatra
+kötelezővé. Az összesített parancsok kiválasztását a
+[rétegezett útmutató](../development/quality-gates.md) írja le.
 
-| Terület                           | Releváns ellenőrzés                                                                                                                   | Megjegyzés                                                                   |
-| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| Dokumentáció                      | `npx prettier --check <files>`; `git diff --check`                                                                                    | A módosított linkek külön ellenőrzendők; nincs dedikált link-check script.   |
-| Backend formázás/statikus elemzés | `vendor/bin/pint --test`; `composer analyse`; `composer validate --strict`                                                            | A `Backend Static Analysis` workflow-ban is futnak.                          |
-| Backend teszt                     | `composer test:backend:sqlite`; `composer test:backend:mysql`                                                                         | MySQL csak dedikált, guardolt tesztadatbázison.                              |
-| Cache regresszió                  | `composer test:cache`                                                                                                                 | Cache-elt adatforrást módosító write műveletnél.                             |
-| Migráció                          | `composer test:backend:migrations:sqlite`; `composer test:backend:migrations:mysql`                                                   | Előre, rollback és seeder hatás.                                             |
-| Frontend                          | `npm run test:frontend`; `npm run i18n:check`; `npm run build`                                                                        | A változás kockázatához igazítva.                                            |
-| E2E                               | `npm run test:e2e`; `npm run test:e2e:a11y`; `npm run test:e2e:keyboard`; `npm run test:e2e:cross-browser`; `npm run test:e2e:mobile` | Izolált E2E-környezetet és telepített böngészőket igényel.                   |
-| Dependency security               | `npm audit`; `npm audit --omit=dev`; `composer audit`                                                                                 | A Composer audit még nem CI-kapu (`CI-006`); az npm policy auditja `CI-007`. |
+| Terület                              | Parancs                                                                                                                               | Eljárás vagy korlát                                                                              |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| Dokumentáció                         | `npx prettier --check <files>`; `git diff --check`                                                                                    | A módosított fájlokat add meg. A linkeket külön ellenőrizd; nincs dedikált linkellenőrző script. |
+| Backend formázás és statikus elemzés | `vendor/bin/pint --test`; `composer analyse`; `composer validate --strict`                                                            | [Statikus elemzés](../static-analysis.md).                                                       |
+| Backend teszt                        | `composer test:backend:sqlite`; `composer test:backend:mysql`                                                                         | [Backend-eljárás](../backend-quality-gate.md); MySQL csak dedikált, védett tesztadatbázison.     |
+| Cache regresszió                     | `composer test:cache`                                                                                                                 | Gyorsítótárazott adatforrást módosító írásnál.                                                   |
+| Migráció                             | `composer test:backend:migrations:sqlite`; `composer test:backend:migrations:mysql`                                                   | Előre migrálás, visszaállítás és seeder-ellenőrzés.                                              |
+| Frontend                             | `npm run test:frontend`; `npm run i18n:check`; `npm run build`                                                                        | [Frontend-eljárás](../frontend-testing.md), a változás kockázata szerint.                        |
+| E2E                                  | `npm run test:e2e`; `npm run test:e2e:a11y`; `npm run test:e2e:keyboard`; `npm run test:e2e:cross-browser`; `npm run test:e2e:mobile` | [E2E-eljárás](../e2e-testing.md), izolált környezet és telepített böngészők.                     |
+| Függőségek biztonsága                | `npm audit`; `npm audit --omit=dev`; `composer audit`                                                                                 | Az audit megállapítását az alkalmazandó biztonsági szabály szerint értékeld.                     |
 
-A GitHub Actions jobok pull requestre futnak, de required státuszuk nem
-repository-fájlból igazolható. A tényleges jobneveket és a javasolt
-branch-protection mátrixot a [code review útmutató](code-review-guide.md)
-tartalmazza. A Vitest worker-stabilitását a `CI-001` bizonyította; a külön
-frontend unit, i18n és build checkek GitHub-hosted igazolását a `CI-002`
-lezárási auditja rögzíti. A MySQL- és E2E-kapu aktuális bizonyítása (`CI-003`,
-`CI-004`), valamint a required-check audit (`CI-005`) nyitott backlogmunka;
-ezek hiánya nem írható le sikeres ellenőrzésként.
+A GitHub Actions jobok pull requestre és `main` pushra futnak. A workflow
+létezése nem bizonyítja a GitHub required státuszt. A jobnevek és a javasolt
+branch-protection beállítások a [code review útmutatóban](code-review-guide.md)
+találhatók; az aktuális beállítás külön igazolást igényel.
 
-## Változástípus-specifikus feltételek
+### Korábbi bizonyíték és aktuális feladat
 
-Több típust érintő változásnál minden releváns rész alkalmazandó.
+A [backlog](backlog.md) a `CI-003` feladatot `done` állapotban tartja nyilván.
+A [MySQL-audit](../audits/backend-mysql-quality-gates-2026-07-28.md) rögzíti a
+helyi SQLite/MySQL, migrációs és GitHub Actions bizonyítékot. Ez korábbi futások
+eredménye, nem a mostani változás sikeres ellenőrzése.
+
+A további CI-feladatok állapotát a backlogból kell ellenőrizni. Korábbi
+méréseket és hibákat a dátumozott auditok őriznek; ezeket nem szabad aktuális
+sikerként vagy tartós szabályként átvenni.
+
+## Változástípus szerinti feltételek
+
+Több típust érintő változásnál minden alkalmazandó rész szükséges.
 
 ### 1. Dokumentáció
 
-- A tartalom a repository aktuális működésével és terminológiájával egyezik.
-- A módosított relatív linkek, címsorok, kódpéldák és parancsok ellenőrzöttek.
-- Formázás és `git diff --check` sikeres; alkalmazáskódteszt csak indokolt
-  beágyazott példa vagy generált viselkedés esetén kell.
+- A tartalom, a parancspéldák és a terminológia ellenőrzöttek; az ismert
+  szabály–megvalósítás eltérések egyértelműen jelöltek.
+- A módosított linkek, címsorok és kódpéldák helyesek.
+- A formázás és a `git diff --check` sikeres. Alkalmazásteszt csak az
+  [arányos ellenőrzés](#arányos-ellenőrzés) szabálya szerint szükséges, merge előtt is.
 
 ### 2. Backend
 
-- A réteghatárok, FormRequest, policy, tranzakció és activity log hatása
-  felülvizsgált.
-- A változást célzott Pest/feature teszt bizonyítja; kritikus közös felületnél
-  szélesebb backend suite fut.
-- Pint és Larastan sikeres a releváns változáshoz.
+- A réteghatárok, FormRequest, policy, tranzakció és activity log hatása felülvizsgált.
+- A változást célzott Pest/feature teszt igazolja; közös működésnél szélesebb
+  regressziós vizsgálat szükséges.
+- Pint és Larastan sikeres az alkalmazandó körben.
 
 ### 3. Frontend
 
-- Az Inertia prop-, Vue prop/event- és route-szerződés konzisztens.
-- Loading, empty, success, validation és error állapotok a releváns flow-ban
-  kezeltek.
-- Célzott Vitest, i18n-check és indokolt esetben production build futott;
-  felhasználói flow-nál reszponzív és billentyűzetes ellenőrzés történt.
+- Az Inertia prop-, Vue prop/event- és route-szerződés összhangban marad.
+- A betöltés, üres adat, siker, validációs hiba és egyéb hiba állapota kezelt
+  az érintett folyamatban.
+- Célzott Vitest, i18n-ellenőrzés és indokolt esetben production build futott.
+  Felhasználói folyamatnál reszponzív és billentyűzetes ellenőrzés is történt.
 
 ### 4. Adatbázis-migráció
 
-- Az előre irányú migráció, a meglévő adatok, indexek, constraint-ek,
-  zárolás és deployment-sorrend hatása dokumentált.
-- A rollback valódi adatvesztési és kompatibilitási hatása elemzett; egy
-  `down()` metódus létezése önmagában nem bizonyíték.
-- A releváns SQLite- és MySQL-migrációs kapu guardolt környezetben sikeres,
-  vagy a feladat nem lehet `done`.
+- A meglévő adatokra, indexekre, adatbázis-korlátokra, zárolásra és telepítési
+  sorrendre gyakorolt hatás dokumentált.
+- A visszaállítás adatvesztési és kompatibilitási hatása elemzett. Egy `down()`
+  metódus létezése önmagában nem bizonyíték.
+- Az alkalmazandó SQLite- és MySQL-migrációs ellenőrzés védett környezetben
+  sikeres. SQLite nem helyettesíti a szükséges MySQL-igazolást.
+- Elérhetetlen MySQL tesztinfrastruktúránál a MySQL-ellenőrzés `BLOCKED`, és a
+  feladat nem teljesen kész.
 
-### 5. Biztonság és authorization
+### 5. Biztonság és jogosultság
 
-- Engedélyezett, tiltott, eltérő szerepkörű és közvetlen route-hozzáférési eset
-  tesztelt.
-- A policy mellett backend authorization is érvényesül; menüelrejtés nem
-  biztonsági kontroll.
-- Érzékeny adat, log, cache, upload/download és audit trail hatása
-  felülvizsgált.
+- Engedélyezett, tiltott, eltérő szerepkörű és közvetlen route-hozzáférés tesztelt.
+- A policy mellett a backend jogosultság-ellenőrzése is érvényesül; egy menü
+  elrejtése nem hozzáférés-védelem.
+- Az érzékeny adat, napló, cache, feltöltés, letöltés és auditnyom hatása felülvizsgált.
 
 ### 6. Refaktor
 
-- A scope nem tartalmaz elrejtett feature-t vagy breaking change-et.
-- A refaktor előtti viselkedést teszt vagy összehasonlítható bizonyíték védi.
-- A publikus szerződés és a domain-invariánsok változatlansága igazolt.
+- A feladat nem tartalmaz elrejtett új funkciót vagy kompatibilitást törő változást.
+- A korábbi viselkedést teszt vagy összehasonlítható bizonyíték védi.
+- A publikus szerződések és domain-alapfeltételek változatlansága igazolt.
 
 ### 7. Teljesítmény
 
-- A kiindulási és a módosított állapot azonos módszerrel mért.
-- Az állítás query counttal, futási idővel, memória- vagy más releváns
-  mérőszámmal alátámasztott; puszta benyomás nem bizonyíték.
-- Az index-, cache-, nagy adathalmaz- és jogosultsági izolációs hatás elemzett.
+- A kiindulási és módosított állapot azonos módszerrel mért.
+- Az állítást lekérdezésszám, futási idő, memória vagy más mérőszám támasztja alá.
+- Az indexekre, cache-re, nagy adathalmazokra és jogosultsági elkülönítésre
+  gyakorolt hatás elemzett.
 
 ### 8. Lokalizáció
 
-- A felhasználói szöveg nem hardcoded, és a közös Laravel JSON kulcsot használja.
-- A magyar és angol kulcskészlet szinkronban van, az `npm run i18n:check`
-  sikeres.
-- Dinamikus helyettesítés, pluralizáció és UI-helyigény a releváns nézetben
-  ellenőrzött.
+- A felhasználói szöveg a közös Laravel JSON kulcsot használja.
+- A magyar és angol kulcskészlet egyezik; az `npm run i18n:check` sikeres.
+- A dinamikus helyettesítés, többes szám és UI-helyigény az érintett nézetben ellenőrzött.
 
-### 9. CI- vagy tesztinfrastruktúra
+### 9. Projekt-, CI-, teszt- vagy build-infrastruktúra
 
-- A módosított script, trigger, jobnév, környezet, timeout és artifact hatása
-  dokumentált.
-- Van sikeres és szándékosan hibás próba, amely bizonyítja, hogy a kapu valóban
-  blokkol.
-- Required check csak GitHub-beállítással igazoltan nevezhető requirednak; a
-  javaslat és a tényleges beállítás külön fogalom.
+- Az ellenőrzési infrastruktúra, tesztkonfiguráció, buildkonfiguráció és
+  globális keretrendszer-beállítás változása Full kockázatú.
+- A módosított script, indítási feltétel, jobnév, környezet, időkorlát és
+  kimeneti riport hatása dokumentált.
+- Az ellenőrző eszköz változásánál sikeres és szándékosan hibás próba igazolja
+  a helyes működést és a hibajelzést. Ez nem minden alkalmazásmódosítás feltétele.
+- Required check csak igazolt GitHub-beállítás alapján nevezhető requirednak.
 
-### 10. Dependency-frissítés
+### 10. Függőségfrissítés
 
-- A lockfile célzottan változik, a csomag oka, verzióhatása és licenc/security
-  kockázata ismert.
-- A releváns audit, teszt és build lefut; breaking vagy runtime-követelmény
-  dokumentált.
-- Audit finding nem hallgatható el; ownerrel, döntéssel és határidővel kezelt
-  kivétel nélkül a releváns magas kockázat blokkol.
+- A lockfile célzottan változik; a frissítés oka, verzióhatása, licenc- és
+  biztonsági kockázata ismert.
+- A Full mellett minden külön szükséges audit, teszt és build lefutott.
+  A kompatibilitási és futtatókörnyezeti változások dokumentáltak.
+- A tiltott sérülékenységet találó audit `FAILED`. A megállapítás nem
+  hallgatható el; a javítás felelőse és következő lépése rögzített.
+- Esetleges kockázatelfogadáshoz külön felhatalmazott döntés, felelős és
+  határidő kell; egy leírt kivétel önmagában nem elegendő.
 
 ## Review-ready
 
-A változtatás akkor review-ready, ha:
+A változtatás átadható felülvizsgálatra, ha a megvalósítás és az önellenőrzés
+elkészült, a teljes diff, az AC-k állapota, a kockázat és a visszaállítás leírt.
+Az ellenőrzések tényleges eredménye és környezete rendelkezésre áll; minden
+hiány a fenti jelentési szabály szerint szerepel. Nincs elhallgatott hiba.
 
-- az implementáció és a szerző önellenőrzése elkészült;
-- az AC-k állapota, a teljes diff, a kockázat és a rollback leírt;
-- a releváns ellenőrzések futottak, eredményük és környezetük rögzített;
-- minden kihagyott ellenőrzéshez indok és hatás tartozik;
-- nincs ismert, elhallgatott hiba.
-
-Környezeti okból nem futtatható releváns kapu mellett a backlogelem legfeljebb
-`review` állapotú. A review megkezdhető az eltérés vizsgálatára, de a feladat
-nem `done`.
+Hiányzó ellenőrzés mellett megkezdhető a hiány vizsgálata, de a feladat nem
+`done`. Környezeti akadály mellett a felülvizsgálatra átadott munka legfeljebb
+`review` állapotú lehet. Ha még érdemi javítás végezhető, `in-progress` marad;
+ha nincs érdemi továbblépés, `blocked`.
 
 ## Merge-ready
 
-A változtatás akkor merge-ready, ha a review-ready feltételeken túl:
+A review-ready feltételeken túl:
 
-- a teljes PR diff review-zott;
-- nincs nyitott `BLOCKER` vagy `REQUIRED`;
-- az új érdemi módosítások után a releváns review és ellenőrzés megismétlődött;
-- minden alkalmazandó DoD-pont és AC teljesült;
-- a PR-leírás, migráció, rollback, dokumentáció és backlog naprakész.
+- a teljes PR diff felülvizsgált;
+- nincs nyitott `BLOCKER` vagy `REQUIRED` megállapítás;
+- minden alkalmazandó AC és DoD-követelmény rendezett;
+- érdemi új módosítás után az érintett felülvizsgálat és ellenőrzés megismétlődött;
+- a PR-leírás, migrációs és visszaállítási tudnivalók, dokumentáció és backlog naprakész.
 
-A workflow jelenléte nem bizonyítja a GitHub required státuszt, és a merge-ready
-állapot nem azonos a release-ready állapottal.
+A merge önmagában nem teszi kötelezővé a `composer qa:full` futtatását.
+Dokumentációs változás alkalmazástesztek nélkül is lehet merge-ready, ha
+alkalmazásteszt nem vonatkozik rá. Nagy kockázatú infrastruktúra-változásnál
+Full és a parancsból hiányzó, külön szükséges ellenőrzések is kellenek.
+A merge-ready állapot még nem release-ready.
 
 ## Release-ready
 
-Egy verziójelölt akkor release-ready, ha minden benne lévő változás merge-ready,
-és ezen felül:
+A verziójelölt minden változása merge-ready, és ezen felül:
 
-- a [release-checklist](../../.kiro/checklists/release.md) releváns pontjai
-  teljesültek;
-- a migráció, permission, seeder, konfiguráció, queue/scheduler és storage hatás
-  ismert;
-- a deployment és a rollback lépései, felelőse és szükséges evidence-e
-  rendelkezésre áll;
-- nincs kezeletlen release-blocker vagy indokolatlanul kihagyott kapu.
+- a [release-checklist](../../.kiro/checklists/release.md) alkalmazandó pontjai teljesültek;
+- ismert a migráció, jogosultság, seeder, konfiguráció, queue/scheduler és
+  fájltárolás üzemeltetési hatása;
+- a telepítés és visszaállítás lépései, felelősei és igazolásai rendelkezésre állnak;
+- nincs feloldatlan kiadási akadály vagy rendezetlen kötelező ellenőrzés.
 
-A teljes, egységes release evidence-csomag kialakítása `CI-009`; addig a
-meglévő workflow- és checklist-eredményeket kell tételesen összegyűjteni.
+A sikertelen, akadályozott vagy elmaradt ellenőrzés dokumentálása nem teszi a
+változást kiadhatóvá. A „kivételek dokumentálva” megjegyzés nem automatikus
+elfogadás. A fenti lezárási szabály és a kiadás saját követelményei együtt érvényesek.
 
-## Bizonyítékalapú lezárás
+A kiadáshoz gyűjtsd össze tételesen a workflow-k és ellenőrzőlisták eredményeit.
+Az egységes kiadási bizonyítékcsomaghoz kapcsolódó munkát a backlog `CI-009`
+tétele követi.
 
-Elfogadható bizonyíték:
+## Bizonyíték rögzítése
+
+A szabály azt mondja meg, minek kell teljesülnie. A script és konfiguráció
+mutatja, mit hajt végre az eszköz. Az eljárás leírja az indítás lépéseit.
+A bizonyíték egy konkrét végrehajtás megfigyelt eredménye.
+
+Minden bizonyíték tartalmazza a parancsot vagy reprodukálható lépést, az
+időpontot vagy futásazonosítót, a releváns környezetet és a mérhető eredményt.
+A CI-link, riport, képernyőkép és napló kiegészítheti ezt, de nem helyettesíti
+az eredmény értelmezését. A korábbi auditokat változatlan történeti forrásként használd.
+
+Az alábbiak kitöltési minták, nem tényleges futási eredmények:
 
 ```text
+Ellenőrzés: fordítási kulcsok egyezése
 Parancs: npm run i18n:check
-Környezet: Windows, Node 24
-Eredmény: exit code 0; a magyar és angol kulcskészlet egyezik.
+Időpont / futásazonosító: <tényleges érték>
+Környezet: <operációs rendszer és Node-verzió>
+Eredmény: PASSED
+Megfigyelés: exit code 0; a magyar és angol kulcskészlet egyezik.
 ```
 
 ```text
-Manuális ellenőrzés: jogosultság nélküli felhasználó közvetlenül megnyitja
-az /admin/... route-ot.
-Eredmény: 403; az esemény nem módosított adatot.
+Ellenőrzés: közvetlen hozzáférés jogosultság nélkül
+Lépés: jogosultság nélküli felhasználó megnyitja az /admin/... route-ot.
+Időpont / környezet: <tényleges értékek>
+Eredmény: PASSED
+Megfigyelés: 403 válasz; adat nem módosult.
 ```
 
-Nem elfogadható:
+A „minden működik”, „a tesztek rendben vannak” vagy „production ready” állítás
+önmagában nem bizonyíték. Elmaradt vagy sikertelen ellenőrzésnél a név és az
+eredmény mellett az ok, hatás, felelős és következő lépés is kötelező.
 
-```text
-Minden működik.
-A tesztek rendben vannak.
-Biztonságos és production ready.
-```
+## Kivételek és AI-agent szabályok
 
-A bizonyíték legalább a parancsot vagy reprodukálható lépést, a releváns
-környezetet és a mérhető eredményt tartalmazza. A CI-link, artifact,
-képernyőkép vagy mérési riport kiegészítő bizonyíték lehet, de nem helyettesíti
-az eredmény értelmezését.
-
-## Kivételek, blokkolt és részleges munka
-
-- Kötelező DoD-pont csak dokumentált, feladatspecifikus `N/A` indokkal lehet
-  irreleváns; kényelmi ok nem kivétel.
-- Sikertelen vagy nem futtatott releváns kapuhoz ok, hatás, owner és következő
-  lépés tartozik. Ilyen feladat nem `done`.
-- Külső vagy környezeti akadálynál a tétel `blocked`, ha érdemi továbblépés nem
-  lehetséges; egyébként `in-progress` vagy `review`.
-- A blocker leírása megnevezi a konkrét akadályt és a feloldás feltételét.
-- Hotfixnél az arányosság változhat, de a kockázat, célzott ellenőrzés,
-  rollback és utánkövető feladat nem hagyható el.
-- Kivétel nem teheti elfogadhatóvá az adatvesztést, jogosultságmegkerülést,
+- Kényelmi okból kötelező követelmény nem jelölhető `N/A`-nak.
+- Hotfixnél az ellenőrzés arányossága változhat, de a kockázat, célzott
+  vizsgálat, visszaállítás és utánkövető feladat nem hagyható el.
+- Kivétel nem fogadhat el adatvesztést, jogosultságmegkerülést,
   titokkiszivárgást vagy hamis tesztbizonyítékot.
-
-## AI-agent szabályok
-
-Az AI-agent:
-
-- feladatkezdéskor azonosítja az AC-ket, a releváns DoD-típusokat és a várható
-  bizonyítékot;
-- nem bővíti önkényesen a scope-ot és nem módosít üzleti logikát explicit kérés
-  nélkül;
-- csak ténylegesen futtatott parancsot, ellenőrzött fájlt és megfigyelt
-  eredményt jelent;
-- nem jelöl `done` állapotot ismert blocker, sikertelen releváns kapu vagy
-  hiányzó bizonyíték mellett;
-- nem állít review-t, approvalt, required checket vagy production readiness-t
-  külső igazolás nélkül;
-- átadás előtt ellenőrzi a teljes diffet, a staginget, a titkokat, a backlogot
-  és a módosított hivatkozásokat;
-- commitot, push-t, PR-t, merge-et vagy repository-beállítást csak az adott
+- Az AI-agent a feladat elején azonosítja az AC-ket, az alkalmazandó
+  követelményeket és az elvárt igazolást.
+- Nem bővíti önkényesen a feladatot, és explicit kérés nélkül nem módosít üzleti logikát.
+- Csak ténylegesen futtatott parancsot, ellenőrzött fájlt és megfigyelt eredményt jelent.
+- Hiányzó igazolás mellett nem állít teljes készültséget. Felülvizsgálatot,
+  approvalt, required státuszt vagy kiadhatóságot nem állít külső igazolás nélkül.
+- Átadás előtt ellenőrzi a teljes diffet, a staginget, a titkokat, a
+  backlogállapotot és a módosított hivatkozásokat.
+- Commitot, push-t, PR-t, merge-et vagy repository-beállítást csak az adott
   műveletre vonatkozó felhatalmazással végez.
 
-## Újrahasználható DoD-checklist
+## Újrahasználható DoD-ellenőrzőlista
 
-- [ ] A scope és minden AC teljesült.
-- [ ] A releváns domain- és architektúraszabályok teljesültek.
-- [ ] A diff fókuszált; nincs titok, debugkód vagy kapcsolódás nélküli fájl.
-- [ ] A releváns változástípus-specifikus DoD-pontok teljesültek.
-- [ ] A célzott és kockázatarányos regressziós ellenőrzések sikeresek.
-- [ ] A statikus elemzés, formázás és build releváns része sikeres.
-- [ ] A security, authorization, adat- és rollback-hatás ellenőrzött.
+- [ ] A jóváhagyott feladat és minden AC teljesült.
+- [ ] A vonatkozó domain- és architektúraszabályok teljesültek.
+- [ ] A diff csak a feladathoz tartozik; nincs titok, hibakereső kód vagy idegen fájl.
+- [ ] Az alkalmazandó változástípus szerinti feltételek teljesültek.
+- [ ] A szükséges tesztek, statikus elemzés, formázás és build sikeresek.
+- [ ] A biztonsági, jogosultsági, adat- és visszaállítási hatás ellenőrzött.
 - [ ] A dokumentáció, lokalizáció és relatív hivatkozások naprakészek.
-- [ ] A bizonyíték parancsot/lépést, környezetet és mérhető eredményt tartalmaz.
-- [ ] A kihagyott pontok `N/A` indoka vagy eltérése dokumentált.
-- [ ] A teljes diff, staging, commit/PR cím és backlogállapot ellenőrzött.
-- [ ] Nincs nyitott blocker, `BLOCKER` vagy `REQUIRED`.
+- [ ] Az eredményekhez konkrét végrehajtási bizonyíték tartozik.
+- [ ] A nem alkalmazandó pontok `N/A` indoka rögzített; a hiányzó ellenőrzés
+      nem szerepel teljesített követelményként.
+- [ ] A teljes diff, az esetleges staging, commit/PR cím és backlogállapot ellenőrzött.
+- [ ] Nincs rendezetlen kötelező ellenőrzés, akadály, `BLOCKER` vagy `REQUIRED`.
 
 ## Kapcsolódó szabályok
 
+- [Rétegezett ellenőrzések](../development/quality-gates.md)
+- [Ellenőrzési lista](../../.kiro/checklists/quality-gates.md)
 - [Backlog-konvenciók](backlog-conventions.md)
 - [Commitüzenet-konvenció](commit-conventions.md)
 - [Code review útmutató](code-review-guide.md)
