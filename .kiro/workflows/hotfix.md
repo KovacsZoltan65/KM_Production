@@ -1,77 +1,106 @@
-# Purpose
+# Sürgős éles hibajavítás menete
 
-Define the urgent production fix workflow for KM_Production.
+A hotfix célja egy sürgős éles hiba gyors, szűk körű javítása, az adatbiztonság
+és a nyomon követhetőség megőrzésével. A sürgősség nem felhatalmazás, és nem
+jelent ellenőrzés nélküli munkát. A készültségre a
+[Definition of Done](../../docs/project-management/definition-of-done.md) (DoD),
+az ellenőrzések kiválasztására a [rétegezett útmutató](../../docs/development/quality-gates.md)
+vonatkozik.
 
-# When to Use
+## 1. Tisztázd a hibát és szűkítsd a javítást
 
-Use this workflow for urgent production issues where speed matters but safety and traceability still apply.
+Rögzítsd az incidens sürgősségét, az érintett felhasználókat, folyamatokat,
+adatokat és üzemi kockázatot. Gyűjts reprodukciót, naplókat vagy meglévő
+tesztbizonyítékot; olvasd el az érintett irányelveket és architekturális döntéseket.
+Csak az engedélyezett hibát javítsd, kapcsolódó takarítás nélkül.
 
-# Required Context
+Óvd a készlet-, gyártási, minőségi, sorozatszám- és audittörténetet.
+Készletmennyiséget csak készletmozgással változtass. Tartsd meg a jogosultsági
+ellenőrzéseket, validációt, tranzakciókat és eseménynaplózást, valamint a
+`Controller -> Service -> Repository -> Model` rétegezést.
 
-- `AGENTS.md`
-- Relevant steering and ADRs
-- Incident details
-- Affected logs, tests, or reproduction
-- Deployment and rollback constraints
+## 2. Rögzítsd a gyorsítás határait
 
-# Workflow Steps
+A szűkebb javítás, gyorsabb felülvizsgálati út, célzott ellenőrzés és gyorsított
+kiadás megengedhető. Az alkalmazandó DoD-követelmények, biztonsági ellenőrzések,
+felhatalmazás, visszaállítási terv, telepítés utáni ellenőrzés és pontos
+eredményközlés ettől még kötelezők.
 
-1. Confirm urgency and impact.
-   - Identify affected users, workflows, data, and operational risk.
+Ha a szokásos eljárást szándékosan rövidíted, rögzítsd:
 
-2. Minimize scope.
-   - Fix only the production issue.
-   - Avoid unrelated cleanup.
-   - Preserve existing behavior unless explicitly requested.
+- pontosan melyik lépés rövidül;
+- miért szükséges;
+- milyen kockázat marad;
+- ki és milyen felhatalmazással engedélyezi;
+- milyen utómunka szükséges, ki felel érte és mikorra.
 
-3. Prioritize safety.
-   - Protect data integrity.
-   - Protect inventory, production, quality, serial, and audit history.
+Ez az eljárás nem jelöl ki új jóváhagyói szerepkört. Ha a felhatalmazás nem
+ismert, külön, kifejezett, felhatalmazott döntés szükséges. A kockázat vagy az
+utómunka leírása önmagában nem engedély kötelező ellenőrzés elhagyására.
 
-4. Identify rollback strategy.
-   - Determine whether the fix can be reverted safely.
-   - Review migration or configuration impact.
+Az [AGENTS.md](../../AGENTS.md) szabályait kövesd: AI-ügynök csak kifejezett
+felhasználói felhatalmazással commitolhat, pusholhat, hozhat létre vagy
+módosíthat PR-t, végezhet merge-öt, hozhat létre kiadást, telepíthet vagy
+állíthat vissza éles rendszert. A sürgősség ezt nem pótolja.
 
-5. Make targeted fix.
-   - Follow `Controller -> Service -> Repository -> Model`.
-   - Preserve authorization, validation, transactions, and activity logging.
+## 3. Tervezd meg a visszaállítást és a célzott javítást
 
-6. Add targeted test if possible.
-   - Add the smallest useful regression test.
-   - If no test is possible, document why.
+Módosítás előtt tisztázd, hogyan állítható vissza biztonságosan az érintett
+működés. Vizsgáld meg a migrációs és konfigurációs hatást, a mentési igényt és
+a vissza nem fordítható adatváltozásokat. A
+[telepítési útmutató](../../docs/deployment.md) alapján legyen végrehajtható
+visszaállítási vagy eszkalációs terv, azután készítsd el a célzott javítást.
 
-7. Verify.
-   - Run focused tests.
-   - Perform manual verification when needed.
+## 4. Ellenőrizd a javítást a kockázat szerint
 
-8. Document risk.
-   - Note residual risk, skipped tests, and follow-up cleanup.
+A hotfix önmagában nem tesz minden projektellenőrzést kötelezővé. A rétegezett
+útmutató alapján például elszigetelt helyi hibánál célzott vagy modulszintű
+ellenőrzés lehet elegendő; közös alkalmazásműködésnél Integration, teszt-, build-,
+függőség- vagy globális infrastruktúra-változásnál Full szint szükséges lehet.
+A pontos besorolást az útmutató határozza meg, a `qa:full` nem minden projektellenőrzés.
 
-# Required Quality Gates
+Az alkalmazandó regressziós tesztet készítsd el és futtasd; szükség szerint
+kézi ellenőrzés is kell. A teszt szükségességét a DoD és a változás kockázata
+dönti el, nem a sürgősség. Ha szükséges ellenőrzés nem végezhető el, az okot
+és a tényleges eredményt rögzítsd; az indoklás nem helyettesíti az ellenőrzést.
 
-- [ ] Scope is minimal.
-- [ ] Rollback path reviewed.
-- [ ] Focused verification completed.
-- [ ] Residual risk documented.
+Adatbázis-változásnál határozd meg a MySQL-ellenőrzés alkalmazhatóságát.
+A szükséges MySQL-ellenőrzés külön követelmény: SQLite és helyi `qa:full` nem
+helyettesíti. Elérhetetlen szükséges MySQL tesztkörnyezetnél `BLOCKED` az eredmény,
+és a kiadási készültség nem igazolt.
 
-# Documentation Updates
+A DoD szerint a sikeresen lefutott ellenőrzés `PASSED`, a sikertelen `FAILED`,
+az azonosított külső vagy környezeti akadály miatt érdemben nem végezhető
+ellenőrzés `BLOCKED`, a le nem futott `NOT RUN`. Tiltott sérülékenységet találó
+audit `FAILED`, nem `BLOCKED`; elérhetetlen külső szolgáltatás valódi akadály
+lehet. A kötelező ellenőrzés `FAILED`, `BLOCKED` vagy `NOT RUN` eredménye mellett
+nincs teljes készültség, kivéve a DoD szerinti külön, kifejezett, felhatalmazott
+kockázatelfogadó döntést. Ez sem módosítja az eredményt `PASSED`-re.
 
-Update documentation only when the hotfix reveals a reusable rule, missing ADR, or changed operational procedure.
+## 5. Vizsgáltasd felül, készítsd elő és telepítsd
 
-# Final Report Format
+A gyorsított felülvizsgálat is teljesítse a
+[felülvizsgálati útmutató](../../docs/project-management/code-review-guide.md)
+alkalmazandó követelményeit. Kövesd a [kiadási folyamatot](release.md) és a
+[kiadási ellenőrzőlistát](../checklists/release.md): a merge-ready, release-ready
+és deployment-ready állapotot külön kell igazolni. Csak a szükséges
+felhatalmazással hajtsd végre a célkörnyezethez előkészített telepítést.
 
-- Summary
-- Production risk addressed
-- Created files
-- Modified files
-- Verification performed
-- Tests not run with reason
-- Rollback notes
-- Residual risk
+## 6. Ellenőrizd az éles eredményt és zárd le az incidenst
 
-# Common Failure Modes
+A telepítési útmutató szerint ellenőrizd az indulást, a szükséges állapotjelzéseket,
+a migrációkat, a javított funkciót, a közvetlen kritikus regressziókat és naplókat.
+Őrizd meg a visszaállítás lehetőségét az ellenőrzés lezárásáig a terv szerint.
+Hiba esetén állítsd meg a továbblépést, és alkalmazd a felhatalmazott
+visszaállítási vagy eszkalációs tervet. A technikailag befejezett telepítés
+sikertelen utóellenőrzéssel nem sikeres telepítés.
 
-- Expanding scope during an urgent fix.
-- Skipping rollback thinking.
-- Making database changes without deployment review.
-- Omitting residual risk from the final report.
+A jelentésben rögzítsd az incidens és a javítás összefoglalóját, a módosított és
+létrehozott fájlokat, a verziót és környezetet, a felhatalmazást, a futtatott
+ellenőrzéseket és bizonyítékaikat. A telepítés és az utóellenőrzés külön eredményt
+kapjon. A hiányzó vizsgálatoknál szerepeljen az ok, hatás, felelős és következő lépés;
+a rövidített eljárás, fennmaradó kockázat, visszaállítás és utómunka maradjon látható.
+
+Az incidens eredményét mindig dokumentáld. Az érintett működés dokumentációját a
+DoD szerint frissítsd; újrafelhasználható szabályt, hiányzó döntést vagy megváltozott
+üzemeltetési eljárást a megfelelő tartós dokumentumban is rögzíts.
