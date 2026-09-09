@@ -1,10 +1,43 @@
-# Backend quality gate
+# Backendellenőrzés SQLite és MySQL adatbázison
 
 ## Cél
 
-A backend quality gate ugyanazt a Laravel/Pest tesztcsomagot futtatja PHP 8.4 alatt SQLite és MySQL 8.4 adatbázismotoron. Az SQLite gyors, izolált visszajelzést ad, a MySQL pedig a productionhöz közeli strict SQL-, collation-, tranzakciós és séma-viselkedést ellenőrzi. Egyik motor sikere sem helyettesíti a másikat.
+Az SQLite gyors visszajelzést ad az alkalmazás működéséről, széles körű regressziós ellenőrzésre és megismételhető helyi tesztelésre használható. A termelési rendszer azonban MySQL-t használ. A sikeres SQLite-teszt ezért nem bizonyítja a MySQL saját SQL-, séma- vagy adatbázismotor-függő viselkedését. A két környezet eltérő kérdésekre ad választ.
 
-A blokkoló ellenőrzések négy, egymástól független GitHub Actions jobban futnak:
+Ez az útmutató a backend és az adatbázis ellenőrzésének eljárását írja le. A követelmények alkalmazhatóságát és a lezárást a [Definition of Done](project-management/definition-of-done.md), az ellenőrzési szintet a [rétegezett ellenőrzések](development/quality-gates.md), a tesztek tervezését a [tesztelési szabályok](../.kiro/steering/testing.md) határozzák meg.
+
+## Szabály: mit kell igazolni?
+
+Először a módosított működést, majd a kapcsolódó regressziós kockázatot ellenőrizd. SQLite elegendő lehet, ha a szükséges alkalmazástesztek lefedik ezt a hatást, és nincs alkalmazandó MySQL-követelmény. Nem kell minden kis változáshoz mindkét teljes tesztcsomagot lefuttatni.
+
+MySQL-vizsgálat kell, ha a változás helyessége a termelésben használt adatbázis viselkedésétől függ. Ilyen a MySQL-specifikus lekérdezés, a séma és migráció kompatibilitása, illetve az érintett adatbázis-korlátozás vagy index működése. A lent felsorolt motoreltérések segítik a döntést. Migrációváltozásnál a jelenlegi besorolás Full; a SQLite-migráció mellett a termelési MySQL-séma kompatibilitását külön is igazolni kell.
+
+Egy backendellenőrzés csak a ténylegesen lefutott lépéseket, az adott teszteseteket és környezetet igazolja. Nem bizonyít minden üzleti esetet, frontendműködést vagy teljes felhasználói folyamatot. A statikus elemzés külön korlátait a [saját útmutatója](static-analysis.md) írja le.
+
+A `composer qa:full` tartalmazza a teljes SQLite-tesztcsomagot és a SQLite-migrációt, de **nem tartalmaz MySQL-ellenőrzést**. A szükséges MySQL-vizsgálatot külön add hozzá. Egyik motor eredménye sem írható a másik javára.
+
+## Megvalósítás: parancsok és környezet
+
+A pontos parancsok forrása a [composer.json](../composer.json). Az adatbázist kiválasztó [indítóscript](../scripts/backend-test-environment.php) ugyanazt a Pest Unit és Feature tesztcsomagot indítja a [phpunit.xml](../phpunit.xml) alapján, SQLite vagy MySQL környezettel.
+
+| Parancs                                   | Tényleges tartalom                                                                                    |
+| ----------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `composer test`                           | Konfigurációs cache törlése, majd `artisan test`; nem az adatbázist védetten kiválasztó indítóscript. |
+| `composer test:backend:sqlite`            | Teljes Unit és Feature tesztcsomag, izolált SQLite `:memory:` adatbázissal.                           |
+| `composer test:backend:mysql`             | Ugyanez a tesztcsomag dedikált MySQL tesztadatbázison.                                                |
+| `composer test:backend:migrations:sqlite` | SQLite-migráció oda-vissza és az alapseeder ellenőrzése.                                              |
+| `composer test:backend:migrations:mysql`  | Ugyanez MySQL-en.                                                                                     |
+| `composer test:cache`                     | Célzott SQLite-futás: `tests/Feature/BusinessCacheInvalidationTest.php`.                              |
+| `composer quality:backend:sqlite`         | `composer validate --strict`, Pint, `composer analyse`, teljes SQLite-tesztcsomag és SQLite-migráció. |
+| `composer quality:backend:mysql`          | MySQL-tesztcsomag és MySQL-migráció; önmagában nem futtat statikus elemzést.                          |
+| `composer quality:backend:all`            | Előbb a SQLite-, majd a MySQL-összesített parancs.                                                    |
+| `composer test:backend:quality`           | A `quality:backend:all` aliasa.                                                                       |
+
+A `composer test` alapbeállítása a `phpunit.xml` szerint SQLite, de nem kényszeríti ki az indítóscript környezetét. Adatbázismotor szerinti igazoláshoz a védett `test:backend:*` parancsokat használd. Ezek teszt- és migrációs aliasai `@no_additional_args` beállításúak; célzott tesztútvonalhoz közvetlenül az indítóscriptet használd.
+
+A [tests/Pest.php](../tests/Pest.php) a Feature teszteket a közös [Tests\\TestCase](../tests/TestCase.php) osztályhoz rendeli. A PHPUnit bootstrapje a `vendor/autoload.php`; a Laravel alkalmazás indításakor a közös tesztosztály végzi a biztonsági ellenőrzést.
+
+A jelenlegi CI négy, egymástól független GitHub Actions jobot indít PHP 8.4-en, MySQL esetén MySQL 8.4 szolgáltatással:
 
 ```text
 Backend Static Analysis
@@ -13,11 +46,9 @@ Backend Tests / MySQL → kapcsolatpróba → teljes MySQL suite
 Database Migrations / MySQL → kapcsolatpróba → migration round-trip → alapseeder smoke
 ```
 
-Egyik job sem használ `needs` függőséget: minden kapu önállóan indul, és saját
-hibájával blokkol. Az SQLite migration round-trip az SQLite job része; a külön
-migrációs check kizárólag a productionhöz közeli MySQL 8.4 sémát ellenőrzi.
+Egyik job sem használ `needs` függőséget. Az SQLite oda-vissza migráció az SQLite job része; a külön migrációs job a MySQL-sémát ellenőrzi. A workflow megléte nem bizonyítja a GitHub required check beállításait.
 
-## Biztonsági guard
+### Biztonsági védelem
 
 Az `App\Support\Testing\TestEnvironmentGuard` a feature tesztek első alkalmazás-bootstrapje során, tehát a `RefreshDatabase` migrációi előtt ellenőrzi a tényleges Laravel-konfigurációt. A destruktív migration round-trip parancs ugyanazt a guardot közvetlenül a `migrate:fresh` előtt futtatja.
 
@@ -40,23 +71,28 @@ A guard ezen felül megköveteli:
 
 Hiba esetén magyar üzenettel, nem nulla exit code-dal áll le, nem ír ki jelszót és nem nyit adatbázis-kapcsolatot.
 
-## Környezeti fájlok
+### Környezeti fájlok
 
 A verziókezelt [.env.testing.example](../.env.testing.example) kizárólag tesztértékeket tartalmaz. Másold `.env.testing` néven, ha lokális felülírás kell; a valódi fájlt a `.gitignore` kizárja. Valódi adatbázis-, SMTP-, Redis-, S3- vagy API-credential nem kerülhet bele.
 
 A wrapper a MySQL kapcsolathoz kizárólag a `TEST_MYSQL_*` változókat olvassa, majd felülírja a Laravel `DB_*` értékeit. Így egy lokális `.env` fejlesztői kapcsolata nem szivároghat át a tesztfutásba.
 
-## Helyi futtatás
+## Eljárás: helyi futtatás
 
-SQLite teljes suite:
+Az alkalmazandó ellenőrzéseket válaszd ki; az alábbi példák nem minden változáshoz kötelező lépéssorok. A teljes SQLite-tesztcsomaghoz és a külön migrációvizsgálathoz:
 
 ```bash
-composer test:cache
 composer test:backend:sqlite
 composer test:backend:migrations:sqlite
 ```
 
-MySQL teljes suite Dockerrel:
+Célzott cache-regresszióhoz a `composer test:cache` használható; ez a teljes SQLite-csomag részhalmaza, ezért sikeres teljes futás után nem kell indok nélkül megismételni. Más célzott teszt például:
+
+```bash
+php scripts/backend-test-environment.php sqlite test tests/Feature/InventoryTest.php
+```
+
+MySQL teljes tesztcsomag és migráció Dockerrel, telepített függőségekkel és a szükséges PHP-adatbázis-bővítménnyel:
 
 ```bash
 docker compose -f compose.testing.yml up -d mysql-testing
@@ -91,7 +127,7 @@ TEST_MYSQL_PORT=3306 composer test:backend:migrations:mysql
 
 Ha a MySQL nem érhető el, a parancs hibával áll le; nem vált vissza SQLite-ra.
 
-## Összesített parancsok
+### Összesített parancsok
 
 ```bash
 composer quality:backend:sqlite
@@ -101,15 +137,19 @@ composer quality:backend:all
 
 A `quality:backend:all` nem hagyja ki csendben a MySQL-t. A `test:backend:quality` ennek aliasa. A MySQL service indítása szándékosan külön lépés, hogy egy hiányzó vagy hibás service ne adjon félrevezetően zöld eredményt.
 
-## Migráció és seeder smoke
+## Mit igazol a migrációvizsgálat?
 
-A két `test:backend:migrations:*` parancs egyetlen, már guardolt Laravel-processzben hajtja végre:
+Az alkalmazásteszt azt vizsgálja, hogy egy kérés vagy üzleti művelet a várt eredményt adja-e. A migrációvizsgálat azt, hogy a séma létrehozható, visszabontható és ismét felépíthető-e az adott motoron. Az adatbázismotor ellenőrzése pedig azt jelenti, hogy a releváns alkalmazás- és sémavizsgálatok ténylegesen azon a motoron futnak. Ezek nem helyettesítik egymást: a Feature teszt adatbázis-előkészítése nem teljes migrációs visszaállítási próba.
+
+A SQLite-változat az izolált tesztkörnyezet sémájának működését ellenőrzi; a MySQL-változat a termelési motorral való kompatibilitást. Az alkalmazandó MySQL-migrációt a SQLite-migráció sikere sem váltja ki.
+
+A két `test:backend:migrations:*` parancs a [DatabaseRoundTrip](../app/Console/Commands/DatabaseRoundTrip.php) műveletét indítja egyetlen, már ellenőrzött Laravel-folyamatban:
 
 ```text
 migrate:fresh → teljes rollback → migrate → InitialInstallationSeeder kétszer
 ```
 
-Az ismételt seeder futás bizonyítja az alap role-, permission- és adminfelhasználó-seedelés elvárt idempotenciáját. A parancs ellenőrzi a kötelező rekordok létrejöttét is. Teljes demo- vagy E2E-seedelés nem része ennek a smoke-nak.
+Az ismételt seeder futás az alap szerepkörök, jogosultságok és adminfelhasználó ismételt létrehozásának biztonságát vizsgálja. Konkrétan mindkét futás sikerét, majd a `super-admin` szerepkör, legalább egy jogosultság és az `admin@example.com` felhasználó létezését ellenőrzi. Ez korlátozott idempotencia-ellenőrzés, nem minden rekord változatlanságának bizonyítása. Teljes demo- vagy E2E-seedelés és meglévő termelési adatok megőrzésének próbája nem része ennek a vizsgálatnak.
 
 ## Adatbázismotorok eltérései
 
@@ -156,7 +196,20 @@ beállításával nem függenek `public/hot` vagy `public/build` artifacttól. A
 Inertia page-finder explicit a case-sensitive `resources/js/Pages` útvonalat
 használja, ezért ugyanazt ellenőrzi Windows és Linux alatt.
 
-Branch protection alatt mind a négy fenti checket required státuszra kell állítani. A workflow nem használ `continue-on-error` beállítást.
+A workflow nem használ `continue-on-error` beállítást. A required checkekre vonatkozó ajánlást és ellenőrzést a [code review útmutató](project-management/code-review-guide.md) kezeli; a tényleges GitHub-beállítás külön igazolást igényel. A CI jelenleg dokumentációs változásra is elindulhat, de ez nem teszi minden dokumentációs feladat helyi követelményévé az alkalmazásteszteket.
+
+## Bizonyíték: a futás eredménye és korlátai
+
+A [DoD](project-management/definition-of-done.md) szerint rögzítsd a parancsot, dátumot vagy futásazonosítót, környezetet, adatbázismotort és megfigyelt eredményt:
+
+- `PASSED`: az adott ellenőrzés ténylegesen lefutott és sikeres volt.
+- `FAILED`: az érdemi teszt vagy migrációvizsgálat lefutott és hibát talált.
+- `BLOCKED`: az alkalmazandó MySQL-vizsgálat igazoltan nem végezhető el, például a szükséges tesztszerver nem érhető el. A technikai hibakódot is őrizd meg; SQLite-sikerből nem lesz MySQL-siker.
+- `NOT RUN`: az ellenőrzést nem indították el, vagy egy korábbi hiba miatt már nem jutott rá sor. Az előkészítés puszta elmaradása nem igazolt környezeti akadály.
+
+Az összesített parancs korai leállása után csak a ténylegesen sikeres lépéseket jelöld `PASSED`-nek. Minden `FAILED`, `BLOCKED` és `NOT RUN` tételnél add meg az okot, hatást, felelőst és következő lépést. Alkalmazandó kötelező MySQL-ellenőrzés hiányában a feladat nem teljesen kész.
+
+A [2026-07-28-i MySQL-audit](audits/backend-mysql-quality-gates-2026-07-28.md) korábbi helyi és CI-futások bizonyítéka. Nem aktuális teszteredmény és nem minden feladatra kötelező futtatási lista.
 
 ## Hibakeresés és biztonságos leállítás
 
