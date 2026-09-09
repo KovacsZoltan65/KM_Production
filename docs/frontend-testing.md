@@ -1,183 +1,235 @@
 # Frontend automatizált tesztelés
 
-## Cél és eszközök
+## Mire való a frontendteszt?
 
-A frontend tesztrendszer a közös Vue-komponensek, az Inertia-hívási szerződések, a composable-ok, a kritikus oldalak és a fő felhasználói folyamatok regresszióit védi. A unit/component réteg Vitest 4-et, Vue Test Utils 2-t, jsdomot és a V8 coverage providert használ. A böngészős E2E, accessibility, keyboard, cross-browser és mobile smoke réteg Playwrighttal fut; részletek: [E2E testing](e2e-testing.md).
+A frontendteszt azt ellenőrzi, hogy a felület egy része a kapott adatokra és a
+felhasználó műveleteire a várt módon reagál-e. Például megjelenik-e a megfelelő
+gomb, elküldi-e a megerősített művelet adatait, vagy visszaáll-e az űrlap
+feldolgozás után. Így számos hiba gyorsan, teljes alkalmazásindítás
+nélkül észrevehető.
 
-## Audit és prioritások
+A projekt Vue-komponenseket, oldalakat, composable-okat és segédfüggvényeket
+vizsgál Vitest és Vue Test Utils segítségével. A tesztelt szerződés lehet
+bemeneti tulajdonság (prop), kibocsátott esemény (emit), megjelenítés,
+felhasználói művelet, űrlapállapot vagy egy helyettesített függőség meghívása.
+A valódi böngészős folyamatokat az [E2E-útmutató](e2e-testing.md) kezeli.
 
-Az induló audit 104 Vue-fájlt talált: 69 Inertia page és 33 közös komponens, továbbá 1 composable és 2 utility/constants fájl. Korábban nem volt frontend teszt vagy tesztkonfiguráció. A projektben nincs általános frontend permission guard; a tényleges szerződések oldalankénti jogosultság tulajdonságok (`canPlan`) és közös komponensállapotok (`readOnly`, `canEdit`, `canDelete`).
+A frontendteszt önmagában nem bizonyítja a backend üzleti szabályait, az
+adatbázis viselkedését, a szerver útvonalkezelését, a teljes böngészős folyamatot
+vagy a termelési telepítés helyességét. Az Inertia/backend adatszerződésből is
+csak a tesztadatban és elvárásokban megjelenített részt ellenőrzi. Egy helyes
+mock nem bizonyítja, hogy a valódi szerver ugyanazt küldi. A szerveroldali
+vizsgálatokat a [backendeljárás](backend-quality-gate.md) írja le.
 
-A leltár fő csoportjai:
+## Szabály: mit és milyen terjedelemben ellenőrizzünk?
 
-- közös CRUD: `AdminCrudPage`, `AdminCrudField`, page header, search, action és status komponensek;
-- select és form: `UnitSelect`, dokumentum-, anyagfelhasználási és minőségellenőrzési formok, dinamikus BOM/rendelés/terv szerkesztők;
-- táblázatok és szűrők: admin listák, kapacitás-, kockázat- és terheléstáblák, riport filter;
-- modalok: elsősorban page-be ágyazott PrimeVue dialogok és confirm műveletek;
-- badge-ek: admin, dokumentum-, gyártási-, rendelési-, terv-, kockázat- és trendállapotok;
-- layout és navigáció: `AdminLayout`, `GuestLayout`, locale switcherek;
-- dashboard/intelligence: metrikakártyák, ajánlások, kockázatok, trendek és diagram körüli UI;
-- composable/utility: `usePreferences`, route helper és mértékegység-konstansok;
-- kritikus folyamatok: gyártási feladat indítása/befejezése, anyagfelhasználás, minőségellenőrzés, dokumentumverzió, készletfoglalás, kapacitástervezés.
+A tartós teszttervezési elvárásokat a
+[tesztelési szabályok](../.kiro/steering/testing.md), az ellenőrzési szintet a
+[rétegezett útmutató](development/quality-gates.md), a készültséget a
+[Definition of Done](project-management/definition-of-done.md) határozza meg.
+Ez a dokumentum a frontend konkrét megvalósítását és futtatási eljárását adja.
 
-Első prioritást a sok oldalt kiszolgáló CRUD és form szerződések kaptak. Második prioritás a route helper és a nyelvpreferencia. Harmadik prioritásként célzott gyártási, minőségi, dokumentum-, kapacitás- és intelligence szerződések készültek. Az egyszerű, ismétlődő CRUD page-ek nem kaptak másolt oldalszintű teszteket.
+Először a módosított viselkedést teszteld, majd a kapcsolódó regressziós
+kockázatot. Kis, elkülönült komponensváltozáshoz elegendő lehet célzott teszt.
+Modul működésének lezárásakor a modul és kapcsolatai vizsgálata kell. Közös
+komponens vagy composable változásakor vizsgáld a használó oldalakat is;
+több modult vagy oldalak együttműködését érintő közös alkalmazásműködéshez
+Integration szint tartozik. A frontend teszt-, build- és konfigurációs
+infrastruktúra változása Full kockázatú. A célzott siker nem váltja ki az
+érintett nagyobb működés regressziós ellenőrzését.
 
-## Könyvtárszerkezet
+**GOVERNANCE / IMPLEMENTATION MISMATCH:** a
+[kiválasztó konfigurációja](../config/quality-gates.php) továbbra sem sorolja a
+`vitest.config.js` fájlt a `full_risk_patterns` közé. A kiválasztó ezért
+Integration szintre esik vissza, miközben a szabály Full szintet követel.
+Ilyen változásnál kifejezetten `composer qa:full` szükséges; a további ismert
+eltérések és a parancs korlátai a rétegezett útmutatóban találhatók.
+
+Csak dokumentációt érintő változás nem igényel automatikusan frontendtesztet,
+buildet vagy E2E-t. Ha a dokumentum futtatható viselkedést határoz meg, a DoD
+szerint kell értékelni a hatását.
+
+## Megvalósítás: Vitest és tesztkönyvtárak
+
+A [vitest.config.js](../vitest.config.js) önálló konfiguráció; a
+[vite.config.js](../vite.config.js) a build és a fejlesztői szerver beállítása.
+Nincs külön `vitest.config.ts`, és a Vitest-beállítás nem a Vite-fájlba van ágyazva.
+
+- Környezet: `jsdom`, `http://localhost/` URL-lel; ez nem valódi böngésző.
+- Előkészítés: [tests/frontend/setup/setup.js](../tests/frontend/setup/setup.js).
+- Tesztkiválasztás: `tests/frontend/**/*.test.js`. A `resources/js` alá tett
+  `.test.*` vagy `.spec.*` fájl nem része ennek a mintának; ott jelenleg nincs
+  ilyen teszt. A frontendteszteket az alábbi közös struktúrában tartsd.
+- Vue plugin és `@` → `resources/js` alias.
+- `pool: "forks"`, `maxWorkers: 2`, `clearMocks: true`, `restoreMocks: true`.
+  A fájlszintű párhuzamosítás és izoláció az alapértelmezés szerint aktív.
 
 ```text
 tests/frontend/
-  components/   komponens- és workflow-tesztek
-  composables/  composable tesztek
-  pages/        oldalszintű szerződéstesztek
-  utils/        tiszta helper tesztek
-  fixtures/     kisméretű, felülírható domain factory-k
-  helpers/      közös mount helper
-  mocks/        Inertia mock
-  setup/        közös jsdom/Vitest setup
+  components/   komponensek viselkedése
+  composables/  újrahasznált Vue-működés
+  pages/        oldalak adatszerződése és műveletei
+  utils/        tiszta segédfüggvények
+  fixtures/     kisméretű, felülírható tesztadatok
+  helpers/      közös komponens-előkészítés
+  mocks/        helyettesített Inertia-felület
+  setup/        közös jsdom/Vitest előkészítés
 ```
 
-Minden frontend teszt ebben a struktúrában kap helyet; komponens mellé helyezett második konvenciót ne használjunk.
+Az Integration és Full futtató a teljes frontend-, illetve lefedettségi lépést
+`--maxWorkers=1` kapcsolóval indítja; a célzott Fast és Module futás a konfigurált
+két workert használja. Ez végrehajtási beállítás, nem sikerigazolás. Az aktuális
+eszközverziók forrása a [package-lock.json](../package-lock.json).
 
-## Futtatás
+## Eljárás: parancsok
+
+A telepített npm-függőségekkel, a projekt gyökeréből futtass. A pontos scriptek
+forrása a [package.json](../package.json).
+
+| Parancs                          | Mit végez?                                                            |
+| -------------------------------- | --------------------------------------------------------------------- |
+| `npm test`                       | A `test:frontend` aliasa.                                             |
+| `npm run test:frontend`          | Egyszeri teljes Vitest-futás (`vitest run`).                          |
+| `npm run test:frontend:watch`    | Változásfigyelő Vitest fejlesztéshez.                                 |
+| `npm run test:frontend:coverage` | Teljes Vitest-futás V8-lefedettségi méréssel.                         |
+| `npm run build`                  | Vite build; nem tesztfutás.                                           |
+| `npm run format:check`           | A scriptben felsorolt források és konfigurációk Prettier-ellenőrzése. |
+| `npm run i18n:check`             | Fordítási kulcsok ellenőrzése.                                        |
+
+Nincs külön `format`, `test:unit` vagy `test:component` npm script. A
+`format:check` a `resources/js` JS/Vue-fájljait, a frontend- és E2E-tesztek,
+valamint a `scripts` JS-fájljait, a gyökérbeli `*.config.js` fájlokat és a
+`package.json` fájlt vizsgálja. Markdown nincs benne; dokumentációhoz a
+módosított fájlokra külön Prettier-ellenőrzés kell.
+
+Célzott futás egy meglévő tesztfájllal:
 
 ```bash
-npm test
-npm run test:frontend
-npm run test:frontend:watch
-npm run test:frontend:coverage
-npm audit
-npm audit --omit=dev
-npm run test:e2e
-npm run test:e2e:a11y
-npm run test:e2e:keyboard
-npm run test:e2e:cross-browser
-npm run test:e2e:mobile
+npm run test:frontend -- tests/frontend/components/DocumentUploadForm.test.js
 ```
 
-Az első két Vitest parancs egyszer fut és megfelelő exit kóddal leáll. A watch parancs fejlesztéshez használható. A két audit parancs a teljes, illetve kizárólag a production függőségi fát ellenőrzi, és sérülékenység esetén blokkolja a quality gate-et. A coverage szöveges, HTML- és JSON-summary riportot ír a `coverage/frontend` könyvtárba. Globális threshold szándékosan nincs: előbb a kritikus területek célzott lefedését kell bővíteni. Az E2E parancsok előtt szükség esetén `npm run test:e2e:install` és mindig buildelt asset szükséges; a `npm run test:e2e` ezt előkészíti.
+A teljes lefedettségi futás magában foglalja a teljes Vitest-csomagot; nem kell
+utána ugyanazt indok nélkül ismételni. A függőségaudit külön vizsgálat:
+`npm audit` a teljes, `npm audit --omit=dev` a termelési függőségi fát vizsgálja.
+Az alkalmazandó audit talált biztonsági hibáját a DoD szerint jelentsd;
+a tesztek sikere nem helyettesíti az auditot. A böngészős parancsokat az
+[E2E-eljárás](e2e-testing.md) tartalmazza.
 
-A Vitest fájlszintű párhuzamosítása és izolációja aktív, a `forks` pool
-legfeljebb két workert használ. Minden fork külön jsdom heapet tart fenn; a
-korlátozás a mért worker-timeout és memóriaigény alapján csökkenti az
-erőforrás-versenyt anélkül, hogy sorosítaná a suite-ot. A döntés és a
-reprodukciós mátrix a
-[frontend worker-stabilitási auditban](audits/frontend-worker-stability-2026-07-28.md)
-található.
+## Lefedettség: mit jelent a százalék?
 
-## Új teszt mintája
+A lefedettség azt mutatja, hogy a mért kód utasításai, elágazásai, függvényei
+és sorai közül melyeket érintette a futás. Segít megtalálni a nem vizsgált
+területeket és követni a tesztcsomag fejlődését. Nem bizonyítja az elvárások
+helyességét vagy minden üzleti eset ellenőrzését. A százalék önmagában nem
+DoD-teljesítés.
 
-```js
-import { shallowMount } from "@vue/test-utils";
-import { describe, expect, it } from "vitest";
-import MyComponent from "@/Components/MyComponent.vue";
+A konfigurált szolgáltató `v8`, a riportok `text`, `html` és `json-summary`
+formátumban készülnek, a `coverage/frontend` könyvtárba. A mérés hatóköre:
 
-describe("MyComponent", () => {
-    it("felhasználói műveletkor a dokumentált payloadot küldi", async () => {
-        const wrapper = shallowMount(MyComponent, {
-            props: { value: "draft" },
-        });
-
-        await wrapper.get("button").trigger("click");
-
-        expect(wrapper.emitted("confirm")).toEqual([[{ value: "draft" }]]);
-    });
-});
+```text
+resources/js/Components/**/*.vue
+resources/js/Composables/**/*.js
+resources/js/Utils/**/*.js
+resources/js/Layouts/AdminLayout.vue
+resources/js/Pages/Admin/Inventory/StockReservations/Index.vue
+resources/js/Pages/Admin/Documents/**/*.vue
 ```
 
-Az assertion a saját komponens publikus viselkedését vagy integrációs határát védje. PrimeVue, Vue és Inertia belső DOM-szerkezetét ne tesztelje.
+A kizárási lista `resources/js/app.js` és `resources/js/bootstrap.js`.
+A százalék tehát nem az összes frontendfájlra vonatkozik. Nincs konfigurált
+lefedettségi küszöb (`thresholds`); történeti százalékból ne alkoss kötelező
+célt. A változás által indokolt kritikus regressziót akkor is tesztelni kell,
+ha a mért összesített lefedettség magas.
 
-## Környezet és mockolás
+## Tesztadatok és helyettesített függőségek
 
-Az Inertia mock a router összes használt metódusát, a `usePage`, `useForm`, `Head` és `Link` felületet biztosítja. A teszt a route nevet közvetetten a determinisztikus alkalmazás-URL-lel és a router metódusával ellenőrzi. Valós backend route-feloldás vagy hálózat nem indul.
+A közös előkészítés az Inertia és a fordítási könyvtár helyettesítését adja.
+Az [Inertia mock](../tests/frontend/mocks/inertia.js) routermetódusokat,
+`usePage`, `useForm`, `Head` és `Link` felületet biztosít. A tesztek az átadott
+URL-t, HTTP-műveletet és adatokat vizsgálják; valódi backend útvonalfeloldás vagy
+hálózati kérés nem indul.
 
-A könnyű i18n mock alapértelmezetten a fordítási kulcsot adja vissza, így a kulcshasználat stabilan ellenőrizhető. Magyar felirat integrációs tesztjénél külön, lokális fordítási mockot vagy teszt-i18n példányt kell adni; a globális mockot nem szabad üzleti szövegtesztre használni.
+A fordítási mock alapértelmezetten a kulcsot adja vissza. Magyar feliratot
+vizsgáló teszthez helyi fordítási mock vagy teszt-i18n példány szükséges.
+A közös előkészítés a `matchMedia`, `ResizeObserver` és `IntersectionObserver`
+böngésző API-kat is helyettesíti, teszt előtt visszaállítja az Inertia mockot,
+üríti a böngészős tárolókat, és teszt után visszaállítja a valódi időzítőket.
 
-A `mountWithApp` helper valódi PrimeVue pluginnal mountol, és felülírható mockot/provide-ot támogat. A legtöbb szerződéstesztnél a kisebb `shallowMount` előnyös, explicit PrimeVue stubokkal. Globálisan csak a közös böngésző API-k (`matchMedia`, `ResizeObserver`, `IntersectionObserver`) és az általános integrációs határok vannak pótolva.
+A `mountWithApp` valódi PrimeVue pluginnal készíti elő a komponenst, és
+felülírható mockot vagy `provide` értéket fogad. Kis szerződésteszthez a
+`shallowMount` és kifejezett PrimeVue-helyettesítők használhatók. A saját
+komponens publikus működését vizsgáld, ne a PrimeVue, Vue vagy Inertia belső
+DOM-szerkezetét vagy nagy, törékeny pillanatképeket.
 
-A fixture factory-k kis, érvényes alapobjektumokat adnak, és minden mező felülírható. Ne másoljuk a teljes backend modellt; csak a vizsgált Vue-szerződéshez szükséges mezőket vegyük fel.
+A tesztadat legyen kicsi és érvényes, hívásonként új objektummal. Csak a
+vizsgált szerződés mezőit tartalmazza. Opcionális kapcsolatot konkrét `null`
+adattal is ellenőrizz; kötelező backendmezőt ne tegyél opcionálissá a teszt
+kedvéért. Értelmes elvárást ne gyengíts, tesztet ne törölj a hiba eltüntetésére.
+Előbb döntsd el, hogy a termékkód, a teszt vagy a környezet hibás; a téves tesztet
+javítsd, az indokolt regressziós lefedettséget pótold a tesztelési szabályok szerint.
 
-## CI
+### Példák a meglévő tesztekből
 
-A `.github/workflows/frontend.yml` pull requestnél és a `main` branch pushainál három jobot futtat:
+- Navigáció: üres, részleges és teljes jogosultságkészlet, `super-admin`, csak
+  látható gyermek mellett megjelenő csoportcím, pontos és alútvonal-egyezés.
+- Készletfoglalás: `inventory.release`, aktív állapot, megerősítés előtti
+  kérésmentesség, PATCH-adatok és feldolgozás alatti tiltás. A felület elrejtett
+  gombja önmagában nem bizonyít szerveroldali jogosultságvédelmet.
+- Dokumentumfeltöltés: `File` objektum, fájlcsere, üres kiválasztás,
+  `forceFormData`, feldolgozási állapot, kapott validációs hibák és sikeres reset.
+  jsdom alatt az input `files` értéke `Object.defineProperty` segítségével
+  állítható, majd `change` eseménnyel vizsgálható. Az Inertia belső
+  FormData-konverzióját nem kell lemásolni.
+- Dokumentumműveletek: `documents.update`, `documents.delete`,
+  `documents.download`, `documents.approve`, `documents.version`; törlés előtt
+  megerősítés, a megadott jogosultság szerinti megjelenítés.
+- Dashboard és diagram: a `0` megőrzése, üres és részleges rekord, számformázás,
+  a `buildStatusChart()` bemeneti normalizálása és kimenete. A saját adatátadást
+  és propváltozásra frissülést ellenőrizd, ne az SVG belső részleteit.
 
-- teljes és production npm audit, frontend unit, i18n és build;
-- Playwright Chromium E2E, accessibility és keyboard;
-- Playwright WebKit/Firefox cross-browser smoke és mobile Chromium smoke.
+## Megvalósítás: jelenlegi CI
 
-Az E2E jobok PHP 8.4-et, Composer függőségeket, Node 24-et, Playwright böngészőket, SQLite E2E adatbázist és production build asseteket használnak. A Playwright riportok és `test-results` artifactként feltöltésre kerülnek.
+A [Frontend workflow](../.github/workflows/frontend.yml) minden pull requestre
+és a `main` ágra történő pushra indul, dokumentációs útvonalszűrés nélkül.
+Hat külön jobja van:
 
-## Mit teszteljünk
+| Job neve                                    | Ellenőrzés                                                                |
+| ------------------------------------------- | ------------------------------------------------------------------------- |
+| `Frontend Unit Tests`                       | `npm run test:frontend`, lefedettségi mérés nélkül.                       |
+| `Frontend i18n Check`                       | `npm run i18n:check`.                                                     |
+| `Frontend Production Build`                 | `npm run build`.                                                          |
+| `Frontend Dependency Audit`                 | `npm audit` és `npm audit --omit=dev`.                                    |
+| `Playwright E2E`                            | A `chromium` projekt tesztjei.                                            |
+| `Playwright cross-browser and mobile smoke` | A `firefox`, `webkit`, `mobile-chromium` projektek korlátozott tesztköre. |
 
-Tesztelendő a prop/emit szerződés, üres és hibás adat, form reset és processing állapot, backend validációs hibák, route és HTTP-művelet, szűrés/lapozás, megerősítés, valamint jogosultságfüggő megjelenítés. Ne teszteljük a PrimeVue belső működését, a Laravel route-feloldást, backend üzleti logikát, CSS részleteket vagy nagy komponens-snapshotokat.
+A jobok Node 24-et és `npm ci` telepítést használnak. A két E2E-job PHP 8.4-et,
+Composer-függőségeket, Playwright-böngészőket, izolált SQLite adatbázist és külön
+buildet készít elő. Részletek az E2E-útmutatóban.
 
-## Playwright E2E réteg
+A frontend workflow nem futtat lefedettségi mérést vagy Prettiert. Sem ebben,
+sem a vizsgált [backend workflow-ban](../.github/workflows/backend-quality.yml)
+nincs `composer audit` lépés. Ez eltér a helyi `composer qa:full` tartalmától,
+amely lefedettséget, formázást és Composer-auditot is futtat. A CI-konfiguráció
+nem bizonyít sikeres futást vagy GitHub required check beállítást.
 
-A Playwright réteg már aktív. A részletes környezet, fixture, futtatási és ismert kockázati leírás a [docs/e2e-testing.md](e2e-testing.md) fájlban található.
+## Bizonyíték és korábbi mérések
 
-## Második tesztelési ütem
+Aktuális futásnál rögzítsd a parancsot, dátumot vagy futásazonosítót, környezetet,
+tesztkört és eredményt a DoD szerint. A tényleges siker `PASSED`, a talált
+hiba `FAILED`, igazolt környezeti akadály `BLOCKED`, el nem indított szükséges
+vizsgálat `NOT RUN`. Workerösszeomlást vagy időtúllépést előbb vizsgálj ki.
+A nem sikeres eredmények okát, hatását, felelősét és következő lépését is add meg.
 
-A második ütem a permission-alapú admin navigációt, a készletfoglalás feloldását, a dokumentumfeltöltést és dokumentumműveleteket, a dashboard komponenseket, valamint a saját diagram-adattranszformációkat fedi le. Az infrastruktúra és a könyvtárkonvenció nem változott; új párhuzamos mock- vagy mount-rendszer nem készült.
+A [2026-07-28-i frontend-audit](audits/frontend-quality-gates-2026-07-28.md)
+20 fájlt és futásonként 166 tesztet rögzített. A
+[2026-07-29-i E2E-audit](audits/playwright-e2e-quality-gate-2026-07-29.md)
+frontendmérése 190 sikeres tesztet, 80,80% utasítás-, 81,43% elágazás-, 65,37%
+függvény- és 80,69% sorlefedettséget jegyzett fel. Ezek az akkori kódra és
+környezetre vonatkozó adatok, nem mai tesztszámok vagy kötelező célértékek.
 
-### Layout és navigáció
-
-A navigáció permission-leképezése és szűrése a `resources/js/Utils/navigation.js` tiszta helperben található. A layout tesztelésénél:
-
-- a `usePage()` mock `auth.permissions` és `auth.roles` értékeit állítsuk be;
-- ellenőrizzük az üres, részleges és teljes permission készletet;
-- a `super-admin` szerepkört külön esettel védjük;
-- a csoportcímet csak látható gyermek mellett várjuk;
-- az aktív route tesztjénél pontos egyezést, alroute-ot, queryt és átfedő prefixet is használjunk;
-- a sidebar önálló görgetését DOM- és class-szerződéssel, ne pixelpozícióval ellenőrizzük.
-
-Példa permission-alapú page propsra:
-
-```js
-inertiaPage.props = makeAuthPageProps({
-    auth: {
-        permissions: ["inventory.view", "inventory.release"],
-        roles: [],
-    },
-});
-```
-
-### Készletfoglalás feloldása
-
-A reservation workflow tesztje az `inventory.release` permissiont, az aktív státuszt, a confirmation határt és az Inertia PATCH szerződést együtt védi. A confirmation mock `accept` callbackjének meghívása előtt nem indulhat kérés. Feldolgozás közben a rekord művelete loading/disabled állapotú, az `onFinish` után újra használható. Már feloldott, hibás státuszú vagy jogosultság nélkül kapott rekordnál a gomb nem jelenhet meg.
-
-### Dokumentumfeltöltés
-
-Fájlfeltöltési tesztben valódi böngésző `File` objektumot használjunk:
-
-```js
-const file = new File(["PDF"], "utasitas.pdf", {
-    type: "application/pdf",
-});
-```
-
-A file input `files` tulajdonsága jsdom alatt `Object.defineProperty` segítségével állítható, majd `change` eseményt kell kiváltani. A teszt a komponens formállapotát, a route-ot, a `forceFormData` opciót, a processing védelmet, a backend error bag megjelenítését és a sikeres resetet ellenőrzi. Az Inertia belső FormData-konverzióját nem teszteljük.
-
-A jelenlegi UI nem jelenít meg upload százalékot, ezért progress mock nincs globálisan bevezetve. Ha később megjelenik progress UI, a `useForm` mock tesztenként felülírható `progress: { percentage: 50 }` értékkel; globális időzített feltöltésszimuláció nem szükséges.
-
-A dokumentum actionök a megosztott `documents.update`, `documents.delete`, `documents.download`, `documents.approve` és `documents.version` permissionök alapján tesztelendők. Törlésnél a confirmation elfogadása előtt nem indulhat DELETE kérés.
-
-### Dashboard kártyák és táblák
-
-A kártyáknál a `0` külön regressziós eset: nem helyettesíthető üres szöveggel. A számformázás, kapacitási tónus és load severity tiszta helperből tesztelhető. A tábláknál a saját szerződés a kapott rekordlista, a formázott érték, az üres lista és a részleges rekord kezelése; a PrimeVue DataTable belső DOM-ja nem része a tesztnek.
-
-Az új fixture factory-k reservationt, dokumentumot, dokumentumverziót, auth page propsot, dashboard metrikát, gyártóegység-terhelést és chart pontot állítanak elő. Minden factory-hívás új, felülírható objektumot ad.
-
-### Diagram-adattranszformáció
-
-A projekt status donut diagramja saját SVG-t használ, külső chart library nincs. Emiatt canvas/chart-library mock bevezetése helyett a `buildStatusChart()` transzformáció került tiszta helperbe. A helper normalizálja a stringként kapott számokat és a hibás/null/negatív értékeket, kiszámítja a teljes összeget, a körszegmenseket, offseteket és stabil színeket.
-
-Tiszta helper kiemelése akkor indokolt, ha a komponens belsejében lévő transzformáció több elágazást tartalmaz, önálló input/output szerződése van, és a kiemelés nem változtatja meg a tulajdonságokat, emiteket vagy a normál adatra készülő diagramkonfigurációt. A wrapper komponensnél csak az empty state-et, a saját átadott adatot és a propváltozásra történő frissülést teszteljük.
-
-Ha később külső chart library kerül be, könnyű stubot használjunk, amely deklarálja a `data`, `options` és `type` tulajdonságokat. Canvas vagy SVG belső struktúrát továbbra se ellenőrizzünk.
-
-### Részleges backend adatok
-
-Opcionális nested relation esetén explicit `null` fixture-rel teszteljünk. Csak a dokumentáltan opcionális mezőket tegyük nullbiztossá; kötelező backend szerződést ne lazítsunk fel teszt kedvéért. Ismeretlen numerikus értékhez a közös dashboard helper `-` értéket ad, a chart count helper pedig biztonságos nullát.
-
-### További bővítési irányok
-
-A következő körben érdemes tovább bővíteni a procurement jóváhagyási műveleteket, a production planning edge case-eket, a quality formágakat és a fájlletöltési hibakezelést. Új E2E teszt csak determinisztikus `E2ETestSeeder` adattal és elkülönített fájlrendszerrel kerüljön be.
+A kétworkeres döntés előzménye a
+[2026-07-28-i worker-audit](audits/frontend-worker-stability-2026-07-28.md),
+az Integration/Full egyworkeres felülírásé a
+[2026-08-26-i stabilizálási audit](audits/project-stabilization-0015-5-2026-08-26.md).
+Az auditokat történeti forrásként kezeld; egy korábbi siker nem bizonyítja az
+aktuális változás helyességét.
