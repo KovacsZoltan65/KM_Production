@@ -81,7 +81,15 @@ class EmployeeSeeder extends Seeder
                 'professional_role_id' => $professionalRoleIds['WAREHOUSEMAN'],
                 'is_active' => true,
                 'hired_at' => '2026-07-06',
-            ],
+            ], [
+                'employee_number' => 'EMP-0008',
+                'name' => 'Németh Zsuzsanna',
+                'email' => 'nemeth.zsuzsanna@kmgepgyarto.test',
+                'phone' => '+36 30 555 6666',
+                'professional_role_id' => $professionalRoleIds['ASSEMBLER'],
+                'is_active' => true,
+                'hired_at' => '2026-07-06',
+            ]
         ];
 
         foreach ($employees as $employee) {

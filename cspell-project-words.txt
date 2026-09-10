@@ -1,10 +1,12 @@
 ajánlások
+Alapanyagokat
 anyagok
 Átfutási
 azonosítója
 azonosítóját
 backendből
 beállítandó
+Beérkező
 behelyettesített
 bejelentkezett
 beszállító
@@ -58,10 +60,13 @@ Megjelenítési
 megjelenített
 Megjelenített
 Megjeleníti
+Megmunkáló
 Megnyitja
 megosztott
 mentése
 modál
+összesítését
+Összeszerelő
 perzisztált
 phpdocs
 pozicionális
@@ -73,6 +78,7 @@ southeners
 spellright
 stockout
 szélességét
+tárolása
 terhelése
 toastként
 toastservice

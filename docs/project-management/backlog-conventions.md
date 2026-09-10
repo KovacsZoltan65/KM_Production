@@ -2,26 +2,36 @@
 
 ## Cél és hatókör
 
-Ez a dokumentum a `docs/project-management/backlog.md` kötelező szerkezeti és
-karbantartási szabályait rögzíti. A központi backlog a végrehajtható,
-jóváhagyott projektmunka elsődleges nyilvántartása. A specifikáció, ötletlista,
-Git-ág vagy commit önmagában nem igazolja, hogy egy feladat aktív vagy kész.
+Egy backlogelem egy megnevezett, ellenőrizhető eredményhez tartozó munkát ír le:
+miért szükséges, mi tartozik bele, mitől függ, és mi van még hátra. A
+[központi backlog](backlog.md) a jóváhagyott munka nyilvántartása, a
+[következő lépések](next-actions.md) a közeli teendőket emelik ki belőle.
+A specifikáció, ötletlista, Git-ág vagy commit önmagában nem igazolja, hogy
+egy feladat aktív vagy kész.
+
+Ez a dokumentum a bejegyzések szerkezetét és munkaállapotát szabályozza.
+A lezárás elsődleges szabálya a [Definition of Done](definition-of-done.md),
+az ellenőrzések kiválasztásáé a [rétegezett útmutató](../development/quality-gates.md).
+A felsorolás nem ad végrehajtási felhatalmazást; az AI-agentre az
+[AGENTS.md](../../AGENTS.md) szerinti engedélyezési szabályok érvényesek.
 
 ## ID-formátum
 
 Az ID stabil, újra nem használható, és a kategória előtagjából, valamint
 háromjegyű sorszámból áll:
 
-| Előtag | Kategória                     |
-| ------ | ----------------------------- |
-| `GOV`  | Projektvezetés és Git         |
-| `CI`   | CI és release                 |
-| `TEST` | Tesztelés és statikus elemzés |
-| `LC`   | Learning Center               |
-| `OCR`  | Document Intelligence és OCR  |
-| `MI`   | Manufacturing Intelligence    |
-| `OPS`  | Üzemeltetés                   |
-| `UX`   | UX és skálázhatóság           |
+| Előtag  | Kategória                                                                 |
+| ------- | ------------------------------------------------------------------------- |
+| `GOV`   | Projektvezetés és Git                                                     |
+| `CI`    | CI és release                                                             |
+| `TEST`  | Tesztelés és statikus elemzés                                             |
+| `AUD`   | Meglévő auditnaplózási tétel a Tesztelés és statikus elemzés kategóriában |
+| `CACHE` | Meglévő cache-tétel a Tesztelés és statikus elemzés kategóriában          |
+| `LC`    | Learning Center                                                           |
+| `OCR`   | Document Intelligence és OCR                                              |
+| `MI`    | Manufacturing Intelligence                                                |
+| `OPS`   | Üzemeltetés                                                               |
+| `UX`    | UX és skálázhatóság                                                       |
 
 Az ID cím- vagy kategóriaváltás után sem módosul. Törlés helyett a tétel
 `cancelled` állapotba kerül, indoklással.
@@ -61,21 +71,32 @@ nem hagyható el és nem tölthető ki homályos „később” értékkel.
 Prioritás módosításakor a backlog változásnaplójában vagy a kapcsolódó pull
 requestben rögzíteni kell az okot.
 
+A prioritás az ütemezési és üzleti fontosságot jelöli. Nem ellenőrzési
+eredmény, hibasúlyosság, készültség vagy merge-engedély.
+
 ## Állapotok
 
-| Állapot       | Belépési feltétel                                                          |
-| ------------- | -------------------------------------------------------------------------- |
-| `planned`     | Jóváhagyott irány, de hiányzik döntés, bontás vagy előfeltétel.            |
-| `ready`       | A scope, függőségek és elfogadási feltételek végrehajtásra készek.         |
-| `in-progress` | Van tényleges munkavégzés és kijelölt végrehajtó ág vagy issue.            |
-| `blocked`     | Konkrét, dokumentált blokkoló akadály áll fenn.                            |
-| `review`      | Az implementáció elkészült, de még nem teljesítette az összes ellenőrzést. |
-| `done`        | Az elfogadási és tesztelési feltételek bizonyítottan teljesültek.          |
-| `cancelled`   | A feladatot indokolt döntéssel elvetették vagy kiváltották.                |
+| Állapot       | Belépési feltétel                                                                    |
+| ------------- | ------------------------------------------------------------------------------------ |
+| `planned`     | Jóváhagyott irány, de hiányzik döntés, bontás vagy előfeltétel.                      |
+| `ready`       | A scope, függőségek és elfogadási feltételek végrehajtásra készek.                   |
+| `in-progress` | Van tényleges munkavégzés és kijelölt végrehajtó ág vagy issue.                      |
+| `blocked`     | Konkrét, dokumentált akadály miatt a munka érdemben nem folytatható.                 |
+| `review`      | A megvalósítás elkészült; ellenőrzés vagy felülvizsgálat még nyitott.                |
+| `done`        | Minden alkalmazandó elfogadási feltétel és DoD-követelmény rendezett, bizonyítékkal. |
+| `cancelled`   | A feladatot indokolt döntéssel elvetették vagy kiváltották.                          |
 
 Specifikáció vagy feature ág létezése nem jelent `in-progress` állapotot.
 Minden `blocked` tételnél meg kell nevezni a blokkoló okot és a feloldás
 feltételét. Az állapot legalább minden release-tervezéskor felülvizsgálandó.
+
+A `ready` végrehajtásra előkészített feladatot jelent, nem merge-ready állapotot.
+Az „implementált” leírás, nem új állapot: a kód vagy dokumentum létezése nem
+bizonyít teljes ellenőrzést, review-t, kiadhatóságot vagy telepítést.
+A `partially done` nem hivatalos állapot. Részleges munkánál a tényleges
+helyzethez illő meglévő állapotot használd, és külön írd le a hátralévő részt.
+Ellentmondó forrásnál nevezd meg a bizonytalanságot és a tisztázó lépést;
+állapotot ne változtass puszta feltételezésből.
 
 ## Célverziók
 
@@ -113,11 +134,14 @@ rekordszámmal, engedélyezési esettel vagy felhasználói folyamattal. Nem
 használható például a „stabilabb”, „jobb UX” vagy „AI fejlesztése” megfogalmazás
 mérőszám nélkül.
 
-Legalább egy feltételnek igazolnia kell:
+Az alkalmazandó feltételek együtt igazolják:
 
 1. a kívánt eredményt;
-2. egy fontos hibás vagy jogosulatlan eset kezelését;
-3. a releváns quality gate eredményét.
+2. a fontos hibás vagy jogosulatlan eset kezelését, ha a változás érinti;
+3. a kockázat szerint kiválasztott ellenőrzések eredményét.
+
+Dokumentációs munkára ne írj elő automatikusan alkalmazástesztet. Történeti
+tesztszám vagy lefedettségi százalék nem válik állandó elfogadási feltétellé.
 
 ## Feladatbontási szabályok
 
@@ -135,9 +159,15 @@ Legalább egy feltételnek igazolnia kell:
 
 ## Függőségek
 
-A függőség kizárólag létező backlog ID lehet. A `Nincs` érték azt jelenti, hogy
-a tétel önállóan kezdhető. Körkörös függőség nem engedélyezett. Külső blokkoló
-nem függőségként, hanem a `blocked` állapot indoklásában szerepel.
+A függőség létező backlog ID-ra hivatkozik; körkörös függőség nem engedélyezett.
+A `Nincs` nem igazolja a külső környezet elérhetőségét vagy a végrehajtási
+engedélyt. Az előfeltételeket a munka megkezdése előtt ellenőrizd.
+
+Külső akadálynál külön jegyezd fel, mi nem folytatható, mely előfeltétel
+hiányzik, mi a hatása, ki vagy mely szerep oldja fel, és mi a következő lépés.
+Jelezd, ha a megvalósítás egyébként elkészült. Pusztán hátralévő munka nem
+külső akadály. Ha más érdemi munka folytatható, egy akadályozott ellenőrzés
+mellett a feladat lehet `in-progress` vagy `review` is.
 
 ## Lezárási és Definition of Done szabály
 
@@ -147,21 +177,37 @@ minőségben és bizonyítékkal tekinthető késznek. Egy aktív tétel csak mi
 valamint a releváns általános és változástípus-specifikus DoD-pont
 teljesülésekor állítható `done` állapotba.
 
-Ha egy ellenőrzés környezeti okból nem futtatható, a tétel legfeljebb `review`
-állapotú lehet, dokumentált eltéréssel. A részleges munka `in-progress`,
-`review` vagy `blocked`; a hiányzó feltételt és a következő lépést rögzíteni
-kell.
+A DoD szerinti `PASSED`, `FAILED`, `BLOCKED`, `NOT RUN` ellenőrzési eredmények,
+nem backlogállapotok. A munkát megállító `blocked` és egy környezeti okból
+akadályozott vizsgálat `BLOCKED` eredménye nem automatikusan ugyanaz.
+A lefutott, tiltott sérülékenységet találó audit `FAILED`, nem `BLOCKED`;
+az azt rendező feladat ettől még lehet `in-progress`.
+
+A backlogban röviden szerepeljen az előrehaladás, a nyitott ellenőrzés, annak
+eredménye és a következő lépés; a részletes bizonyítékra hivatkozz. A nem sikeres
+ellenőrzések okát, hatását, felelősét és rendezését a DoD szerint kell megadni.
+Kötelező hiányt egy állapotcímke vagy leírt kivétel nem tesz teljesítetté.
+A kockázatelfogadás feltételeit kizárólag a DoD határozza meg.
 
 ## Dokumentációfrissítés
 
 - Új vagy módosított backlogelem esetén frissíteni kell a központi backlog
   összesítő tábláit.
-- A következő tíz végrehajtható feladat változásakor frissíteni kell a
-  `docs/project-management/next-actions.md` fájlt.
-- Mért projektállapot csak dátumozott auditban módosítható.
+- A kiemelt következő lépések változásakor frissíteni kell a
+  [next-actions.md](next-actions.md) fájlt. A lista nem második backlog és nem
+  jelenti, hogy minden felsorolt tétel előfeltétele teljesült.
+- Új mérést dátummal, környezettel és bizonyítékhivatkozással rögzíts; a régi
+  auditot ne írd át aktuális eredménnyé.
 - A backlogban kizárólag relatív projektútvonal használható.
 - A roadmap, specifikáció és backlog közötti ellentmondást nem szabad csendben
   feloldani; külön döntési vagy scope-záró tételt kell létrehozni.
+
+A dátumot `YYYY-MM-DD` alakban és jelentéssel add meg: például kiinduló
+állapot, célidőpont, eredmény, lezárás vagy dokumentum-felülvizsgálat.
+A célverzió nem határidő. Egy régi céldátum, siker vagy akadály nem a mai
+helyzet bizonyítéka. A lezárt tételeket őrizd meg az akkori eredményükkel;
+a későbbi változás igazolása külön szükséges. Az összesítő a rögzített
+állapotokat számolja, nem helyettesíti a lezárási bizonyíték ellenőrzését.
 
 ## GitHub issue-ra történő leképezés
 

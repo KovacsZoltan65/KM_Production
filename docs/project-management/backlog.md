@@ -2,22 +2,34 @@
 
 ## Dokumentumadatok
 
-- Baseline dátuma: 2026-07-27
+- Kiinduló leltár dátuma: 2026-07-27
+- Dokumentációs felülvizsgálat: 2026-09-09–2026-09-10; nem új teszt- vagy CI-mérés
 - Kanonikus backlog: ez a dokumentum
-- Konvenciók: `docs/project-management/backlog-conventions.md`
-- Aktuális sorrend: `docs/project-management/next-actions.md`
-- Auditforrás: `docs/audits/project-audit-2026-07-27.md`
+- Konvenciók: [backlog-conventions.md](backlog-conventions.md)
+- Kiemelt következő lépések: [next-actions.md](next-actions.md)
+- Kiinduló audit: [2026-07-27](../audits/project-audit-2026-07-27.md)
 - Frissítés: minden állapot-, prioritás-, scope- vagy célverzió-változáskor
 
 ## Backlog használata
 
 A backlog kizárólag jóváhagyott, konkrét és ellenőrizhető munkát tartalmaz.
 Specifikáció, Git-ág vagy jövőbeni ötlet önmagában nem aktív feladat. A már
-implementált MES-modulok a „Lezárt területek” szakaszban szerepelnek, nem
+implementált MES-modulok a „Korábban megvalósított területek” szakaszban szerepelnek, nem
 kerülnek vissza tervezett feature-ként.
 
-A mezők, állapotátmenetek és lezárási szabályok részletes definícióját a
-`docs/project-management/backlog-conventions.md` tartalmazza.
+A mezőket és munkaállapotokat a [konvenciók](backlog-conventions.md), a
+lezárást a [Definition of Done](definition-of-done.md) határozza meg.
+A megvalósítás, a munkaállapot és az ellenőrzés eredménye külön adat.
+Az „implementált” nem jelent `done`, merge-ready vagy release-ready állapotot.
+Commit vagy elfogadott ADR sem bizonyítja ezeket. A prioritás ütemezési
+fontosság, nem hibasúlyosság vagy ellenőrzési eredmény.
+
+A `PASSED`, `FAILED`, `BLOCKED`, `NOT RUN` eredményekhez a DoD szerinti
+bizonyíték kell. Egy régi sikertelen audit vagy hiányzó MySQL-környezet nem
+automatikusan mai hiba vagy akadály. A dátumozott eredmények az akkori
+változást igazolják. Ez a leltár nem állít új tesztfutást vagy aktuális
+GitHub-beállítást; az ellentmondó lezárási bizonyíték külön szerepel.
+A lista nem végrehajtási engedély: [AGENTS.md](../../AGENTS.md).
 
 ## Prioritások
 
@@ -45,14 +57,14 @@ A mezők, állapotátmenetek és lezárási szabályok részletes definíciójá
 | Kategória                     | Planned |  Ready | Review | Blocked |  Done | Összesen |
 | ----------------------------- | ------: | -----: | -----: | ------: | ----: | -------: |
 | Projektvezetés és Git         |       1 |      1 |      0 |       0 |     6 |        8 |
-| CI és release                 |       2 |      5 |      1 |       0 |     2 |       10 |
-| Tesztelés és statikus elemzés |       2 |      2 |      1 |       0 |     1 |        6 |
+| CI és release                 |       2 |      4 |      1 |       0 |     3 |       10 |
+| Tesztelés és statikus elemzés |       2 |      2 |      2 |       0 |     0 |        6 |
 | Learning Center               |      18 |      1 |      0 |       0 |     0 |       19 |
 | Document Intelligence és OCR  |      11 |      0 |      0 |       1 |     0 |       12 |
 | Manufacturing Intelligence    |       5 |      0 |      0 |       0 |     0 |        5 |
 | Üzemeltetés                   |       4 |      7 |      0 |       0 |     0 |       11 |
 | UX és skálázhatóság           |       0 |      0 |      0 |       0 |     0 |        0 |
-| **Összesen**                  |  **43** | **16** |  **2** |   **1** | **9** |   **71** |
+| **Összesen**                  |  **43** | **15** |  **3** |   **1** | **9** |   **71** |
 
 | Prioritás | Darabszám |
 | --------- | --------: |
@@ -71,13 +83,45 @@ A mezők, állapotátmenetek és lezárási szabályok részletes definíciójá
 | Manufacturing Intelligence v2 |               5 |
 | Future / Unscheduled          |               0 |
 
+Az összesítő a rögzített állapotokat számolja; nincs `in-progress` vagy
+`cancelled` tétel. A `CI-002` `done` címkéje és lezárási bizonyítéka
+ellentmondásos; a darabszám nem igazolja a készültségét.
+
 ## Aktív végrehajtási sorrend
 
-Az első tíz aktív feladat részletes sorrendje:
-`docs/project-management/next-actions.md`.
+A tíz kiemelt tétel következő lépése a [végrehajtási tervben](next-actions.md)
+található. Ez tervezési sorrend, nem minden tétel azonnali indíthatóságának igazolása.
 
 Röviden: `CI-002`, `CI-004`, `CI-005`, `GOV-005`, `CI-006`, `CI-007`,
 `CI-009`, `OPS-003`, `LC-001`, `OPS-001`.
+
+## MRP és beszerzés: megvalósítási kontextus
+
+A [Planning Engine tudásanyag](../../.kiro/knowledge/planning-engine.md) és az
+[ADR-index](../../.kiro/index.md) vezeti a beszerzési döntéssort. A 2026-09-09-i
+fájlvizsgálat alapján:
+
+- [0014](../../.kiro/decisions/0014-purchase-requisition-execution-readiness.md):
+  a PR aktuális készültségének értékelése implementált;
+  [service](../../app/Services/Admin/PurchaseRequisitionExecutionReadinessService.php)
+  és [teszt](../../tests/Feature/PurchaseRequisitionExecutionReadinessTest.php) létezik.
+- [0015](../../.kiro/decisions/0015-purchase-order-generation.md): a Draft PO
+  létrehozása a [PurchaseRequisitionService](../../app/Services/Admin/PurchaseRequisitionService.php)
+  része; [generálási tesztje](../../tests/Feature/PurchaseOrderGenerationTest.php)
+  is létezik. Nem új fejlesztésre váró generátor.
+- [0016](../../.kiro/decisions/0016-purchase-order-dispatch-supplier-acknowledgement.md):
+  az ADR fejléce még „implementációra vár”, de a `379be48` commit,
+  a [dispatch service](../../app/Services/Admin/PurchaseOrderDispatchService.php),
+  a [visszaigazolási service](../../app/Services/Admin/SupplierAcknowledgementService.php)
+  és a [teszt](../../tests/Feature/PurchaseOrderDispatchAcknowledgementTest.php)
+  meglévő megvalósítást mutat. Az ADR állapotjelzése elavult; javítása külön
+  dokumentációs munka, nem e migráció része.
+
+A fájlok létezése nem új teszteredmény vagy teljes DoD-igazolás. A PO
+létrehozása, továbbítása, a beszállító válasza és az áruátvétel külön üzleti
+lépés. Későbbi roadmap-elemet nem tekintünk késznek egy elfogadott ADR alapján.
+Ez a kontextus nem változtatja meg a prioritási sorrendet és nem hoz létre új
+backlogállapotot vagy feladatot.
 
 ## Backlog tételek
 
@@ -363,8 +407,18 @@ Röviden: `CI-002`, `CI-004`, `CI-005`, `GOV-005`, `CI-006`, `CI-007`,
   [30365414060](https://github.com/KovacsZoltan65/KM_Production/actions/runs/30365414060)
   futásában mindhárom céljob sikeres volt, de a külön megőrzött dependency
   audit `npm audit` lépése exit code 1-gyel hibázott, és a production audit
-  kimaradt. A feladat ezért a DoD szerint `review`; a lezárás feltétele a
+  kimaradt. Az akkori jelentés ezért `review` állapotot írt elő; a lezárás feltétele a
   `CI-007` alatt rendezett audit és egy zöld teljes frontend workflow.
+- **Lezárási eltérés, 2026-09-09:** A `8dae6ed` commit később `done`-ra
+  módosította az állapotmezőt, de a fenti eredmény és a korábbi next-actions
+  `review` megállapítása megmaradt. A vizsgált helyi források nem oldják fel
+  az ellentmondást. A rögzített címke megmarad; a DoD-készültség nem igazolt,
+  ezért lezárt előfeltételként sem kezelhető a tisztázásig.
+- **Következő lépés:** A feladat felelőse azonosítsa a lezáró változást és a
+  teljes CI-eredményt, majd egyeztesse az állapotot. A
+  [2026-07-28-i audit](../audits/frontend-quality-gates-2026-07-28.md) szerint
+  az akkori npm audit `FAILED`, a production audit `NOT RUN` volt; ezek nem
+  mai eredmények. A három külön céljob jelenleg is létezik.
 
 #### CI-003 — A teljes MySQL quality gate aktuális futtatása
 
@@ -372,9 +426,10 @@ Röviden: `CI-002`, `CI-004`, `CI-005`, `GOV-005`, `CI-006`, `CI-007`,
 - **Prioritás:** P1
 - **Kategória:** CI és release
 - **Célverzió:** v1.x Stabilizálás
-- **Összefoglaló:** A jelenlegi `main` teljes teszt- és migrációs igazolása MySQL
+- **Összefoglaló:** Az akkori változás teljes teszt- és migrációs igazolása MySQL
   8.4-en.
-- **Indoklás:** A gate implementált, de a baseline auditban nem futott.
+- **Indoklás:** A 2026-07-27-i auditkor a MySQL-futás még hiányzott;
+  a későbbi igazolás ezt rendezte.
 - **Scope:** Tesztsuite, migration round-trip, kétszeri seed és DB-setting
   bizonyíték.
 - **Scope-on kívül:** Fejlesztői vagy production adatbázis használata.
@@ -397,31 +452,44 @@ Röviden: `CI-002`, `CI-004`, `CI-005`, `GOV-005`, `CI-006`, `CI-007`,
   [30428224526](https://github.com/KovacsZoltan65/KM_Production/actions/runs/30428224526)
   futás mind a négy stabil backend jobja sikeres; a MySQL settings és JUnit
   artifactok létrejöttek.
+- **Bizonyíték és mai jelentés:** A
+  [MySQL-audit](../audits/backend-mysql-quality-gates-2026-07-28.md) rögzíti a
+  2026-07-29-i CI-sikert. A DoD már helyesen `done` tételként hivatkozik rá.
+  Ez nem a mai ág vagy egy későbbi változás MySQL-igazolása.
 
 #### CI-004 — A teljes Playwright E2E-kapu aktuális futtatása
 
-- **Állapot:** partially done
+- **Állapot:** review
 - **Prioritás:** P1
 - **Kategória:** CI és release
 - **Célverzió:** v1.x Stabilizálás
 - **Összefoglaló:** Chromium, accessibility, keyboard, Firefox/WebKit és mobile
   projektek teljes aktuális futtatása.
 - **Indoklás:** A kapu determinisztikus resetje, readiness-e, failure
-  artifactjai és kibővített feedback-lefedettsége helyben igazolt. A zöld
-  GitHub Actions futás commit/push/PR engedély hiányában még nem bizonyítható.
+  artifactjai és kibővített feedback-lefedettsége helyben igazolt. Az akkori
+  GitHub Actions futást a 2026-07-29-i audit engedély hiányában nem igazolta.
 - **Scope:** Izolált E2E előkészítés, build, minden projekt és artifact.
 - **Scope-on kívül:** Windows Firefox compositorhiba alkalmazáskóddal történő
   elfedése.
 - **Függőségek:** Nincs.
-- **Elfogadási feltételek:** Minden projekt zöld vagy a lokális Firefox-kivétel
-  Linux CI-bizonyítékkal dokumentált; nincs `test.only`/kihagyott kritikus teszt.
-- **Tesztelési követelmények:** `npm run test:e2e` és a dokumentált a11y,
-  keyboard, cross-browser, mobile parancsok.
+- **Elfogadási feltételek:** Minden konfigurált projekt szükséges tesztköre
+  igazolt, a helyi Firefox-korlát mellett Linux-bizonyíték is rendelkezésre áll.
+  Egy leírt kivétel nem lezárás; nincs `test.only` vagy kihagyott kritikus teszt.
+- **Tesztelési követelmények:** A [böngészős eljárás](../e2e-testing.md)
+  teljes projektköre. Az `npm run test:e2e` tartalmazza a konfigurált a11y,
+  keyboard és smoke teszteket; külön ismétlés csak indokolt esetben kell.
 - **Kapcsolódó fájlok és dokumentáció:** `playwright.config.js`, `package.json`,
   `docs/e2e-testing.md`,
   `docs/audits/playwright-e2e-quality-gate-2026-07-29.md`, `tests/e2e/`.
 - **Becsült méret:** M
 - **Kockázat:** Böngésző- és OS-függő eltérés hamis negatívot adhat.
+- **Előrehaladás és hiány:** A korábbi „partially done” nem hivatalos állapot;
+  a megvalósítás és hiányzó ellenőrzés miatt `review` használható. Az akkori
+  Windows Firefox-indítási akadály `BLOCKED`, az el nem indított CI-futás
+  `NOT RUN` volt. Ez nem bizonyít mai környezeti akadályt.
+- **Következő lépés:** A feladat felelőse keresse meg a változáshoz tartozó
+  Linux-futás bizonyítékát, vagy az engedélyezett eljárásban pótolja az
+  ellenőrzést. A hiány miatt a feladat nem DoD-kész; ez nem commit/push/PR-engedély.
 
 #### CI-005 — GitHub Actions quality gate és required check mátrix auditja
 
@@ -458,7 +526,8 @@ Röviden: `CI-002`, `CI-004`, `CI-005`, `GOV-005`, `CI-006`, `CI-007`,
 - **Scope-on kívül:** Automatikus major dependency upgrade.
 - **Függőségek:** Nincs.
 - **Elfogadási feltételek:** Audit exit code és riport rögzített; kritikus/magas
-  találat blokkol vagy dokumentált kivétellel rendelkezik; CI-döntés elkészült.
+  találat `FAILED`; rendezése vagy külön felhatalmazott kockázatelfogadása
+  a DoD szerint igazolt; CI-döntés elkészült.
 - **Tesztelési követelmények:** `composer audit` tiszta lockfile-on és a
   workflow-változás syntax/PR ellenőrzése, ha bekerül.
 - **Kapcsolódó fájlok és dokumentáció:** `composer.json`, `composer.lock`,
@@ -474,8 +543,9 @@ Röviden: `CI-002`, `CI-004`, `CI-005`, `GOV-005`, `CI-006`, `CI-007`,
 - **Célverzió:** v1.x Stabilizálás
 - **Összefoglaló:** A meglévő teljes és production npm audit policy-jának
   bizonyítása.
-- **Indoklás:** A workflow futtatja az auditokat, de kivétel- és triage-szabály
-  nincs központilag dokumentálva.
+- **Indoklás:** A workflow tartalmazza az auditokat. A DoD már szabályozza
+  az eredményt és a kivételkezelést; a találatok és a végrehajtás igazolása
+  továbbra is e tétel feladata.
 - **Scope:** Severity policy, dev/production különbség, kivétel lejárat.
 - **Scope-on kívül:** Kockázatos automatikus `npm audit fix --force`.
 - **Függőségek:** Nincs.
@@ -487,6 +557,12 @@ Röviden: `CI-002`, `CI-004`, `CI-005`, `GOV-005`, `CI-006`, `CI-007`,
   `.github/workflows/frontend.yml`, `docs/frontend-testing.md`.
 - **Becsült méret:** S
 - **Kockázat:** Dev dependency finding túl szigorú kezelése indokolatlan blokk.
+- **Történeti és aktuális rész:** A
+  [2026-08-26-i audit](../audits/project-stabilization-0015-5-2026-08-26.md)
+  célzott `nanoid`-javítást dokumentál. Ez nem bizonyítja, hogy minden mai
+  advisory rendezett, de régi találatot sem szabad változatlanul mai hibának
+  nevezni. Következő lépés a feladat felelőse számára a két aktuális audit és
+  a CI-eredmények külön kiértékelése; a talált tiltott advisory `FAILED`.
 
 #### CI-008 — Kritikus MES referencia-E2E bővítése
 
@@ -584,9 +660,15 @@ Röviden: `CI-002`, `CI-004`, `CI-005`, `GOV-005`, `CI-006`, `CI-007`,
 - **Becsült méret:** L
 - **Kockázat:** Régi activityk eltérő szerkezete, retention és személyes adatok
   megőrzési szabálya.
-- **Eredmény:** A központi és egyedi service-integráció, a dirty-only diff,
+- **Eredmény 2026-07-29:** A központi és egyedi service-integráció, a dirty-only diff,
   érzékenymező-szűrés, role-kapcsolati diff és tranzakciós rollback elkészült.
   A célzott SQLite/MySQL és a teljes SQLite 3/3, MySQL 2/2 quality gate zöld.
+- **Nyitott lezárási kérdés:** A korábbi next-actions `done` értéke eltért
+  az itt rögzített `review` állapottól. A
+  [dátumozott audit](../audits/record-state-activity-logging-2026-07-29.md)
+  sikeres helyi ellenőrzést, de nem hitelesített GitHub Actions-futást ír le.
+  A `review` megmarad; a feladat felelőse egyeztesse az alkalmazandó CI- és
+  felülvizsgálati bizonyítékot a DoD-val. A commit/push ténye nem lezárás.
 
 #### TEST-001 — PHPStan level 6 alkalmassági emelés
 
@@ -596,7 +678,8 @@ Röviden: `CI-002`, `CI-004`, `CI-005`, `GOV-005`, `CI-006`, `CI-007`,
 - **Célverzió:** v1.x Stabilizálás
 - **Összefoglaló:** Level 6 futtatása, hibák valódi javítása és baseline nélküli
   gate fenntartása.
-- **Indoklás:** A level 5 zöld; a következő dokumentált minőségi lépcső level 6.
+- **Indoklás:** A konfigurált szint 5; a korábbi siker történeti mérés.
+  A level 6 bevezetése külön tervezett feladat.
 - **Scope:** Hibakategória-leltár, típusjavítás és konfigurációemelés.
 - **Scope-on kívül:** Baseline generálása vagy üzleti viselkedés változtatása.
 - **Függőségek:** Nincs.
@@ -617,7 +700,9 @@ quality:backend:sqlite` és MySQL gate releváns része.
 - **Célverzió:** v1.x Stabilizálás
 - **Összefoglaló:** A jelenlegi célzott Vitest coverage mért és verziózott
   baseline-ja.
-- **Indoklás:** Coverage riport létezik, de nincs dokumentált kiindulási érték.
+- **Indoklás:** Dátumozott összesített coverage-érték már létezik a
+  [frontend-útmutatóban](../frontend-testing.md). Az e tétel szerinti
+  modulonkénti leltár és hiánylista lezárása nincs igazolva.
 - **Scope:** Statements/branches/functions/lines modulonként és kritikus
   területenként.
 - **Scope-on kívül:** Önkényes globális threshold az első mérés előtt.
@@ -625,7 +710,8 @@ quality:backend:sqlite` és MySQL gate releváns része.
 - **Elfogadási feltételek:** Sikeres coverage futás; JSON-summary archivált
   összesítése; kritikus lefedetlenségi lista backlogkapcsolattal.
 - **Tesztelési követelmények:** `npm run test:frontend:coverage` stabil
-  konfiguráción, változatlan 166 teszttel.
+  konfiguráción, az adott változat tesztkészletének rögzítésével. A 166-os
+  tesztszám történeti adat, nem állandó követelmény.
 - **Kapcsolódó fájlok és dokumentáció:** `vitest.config.js`, `package.json`,
   `docs/frontend-testing.md`.
 - **Becsült méret:** S
@@ -676,7 +762,6 @@ quality:backend:sqlite` és MySQL gate releváns része.
 #### CACHE-001 — Cache-invalidation mátrix készítése üzleti eseményenként
 
 - **Állapot:** review
-- **Feladatstátusz:** partially done
 - **Prioritás:** P1
 - **Kategória:** Tesztelés és statikus elemzés
 - **Célverzió:** v1.x Stabilizálás
@@ -702,6 +787,16 @@ quality:backend:sqlite` és MySQL gate releváns része.
 - **Becsült méret:** L
 - **Kockázat:** Hiányos eseménytérkép stale adatot, túl széles invalidálás
   indokolatlan újraszámítást okoz.
+- **Előrehaladás és történeti hiány, 2026-07-30:** A kód, mátrix és célzott
+  tesztek elkészültek. Az auditban a MySQL kapcsolat hiánya `BLOCKED`, a
+  Chromium hat hibája `FAILED`, a teljes Pint eltérése szintén `FAILED` volt.
+  Ezek külön eredmények, nem egyetlen „környezeti kapu”.
+- **Következő lépés:** A feladat felelőse egyeztesse a későbbi javításokat és
+  a cache-változásra alkalmazandó bizonyítékot. A
+  [2026-08-26-i audit](../audits/project-stabilization-0015-5-2026-08-26.md)
+  már WAMP MySQL-futtatást és E2E-javítást is dokumentál, ezért a régi port- és
+  böngészőhibák nem állíthatók mai akadályként. Ez önmagában nem zárja le a
+  cache-tétel teljes regresszióját; a hiányzó igazolást pótolni kell.
 
 ### Learning Center
 
@@ -1130,9 +1225,13 @@ quality:backend:sqlite` és MySQL gate releváns része.
 
 #### OCR-001 — Reprezentatív OCR POC-korpusz és mérési protokoll
 
-- **Állapot:** blocked — blokkoló ok: nincs jóváhagyott, anonimizált
-  reprezentatív dokumentumkorpusz; feloldás: domain owner biztosítja és
-  adatvédelmileg jóváhagyja a mintákat.
+- **Állapot:** blocked
+- **Rögzített külső akadály:** Nincs igazoltan jóváhagyott, anonimizált
+  reprezentatív korpusz. A mérési előkészítéshez a domain ownernek biztosítania
+  és adatvédelmileg jóváhagyatnia kell a mintákat; addig az OCR-mérés nem indulhat.
+  A jelen dokumentációs felülvizsgálat nem ellenőrizte a külső átadás állapotát;
+  a felelős következő lépése ennek megerősítése. Ez munkaállapot, nem automatikus
+  `BLOCKED` teszteredmény.
 - **Prioritás:** P1
 - **Kategória:** Document Intelligence és OCR
 - **Célverzió:** Document Intelligence v1.0
@@ -1766,9 +1865,10 @@ skálázhatósági hibát. A nagy listák lapozása, a sidebar görgetése, mobi
 tétel csak reprodukálható hiba, mérési eredmény vagy jóváhagyott scope alapján
 vehető fel; általános „UX javítás” nem backlogelem.
 
-## Lezárt területek
+## Korábban megvalósított területek
 
-Az alábbi területek jelentős funkcionális és tesztbizonyítékkal rendelkeznek.
+Az alábbi leltár korábbi funkcionális és tesztelési kontextust őriz. Nem
+aktuális teljes projektvalidáció vagy minden területre szóló DoD-igazolás.
 Nem kerülnek több száz külön `done` tételként a backlogba:
 
 - felhasználók, szakmai/authorization szerepkörök és permissionök;
