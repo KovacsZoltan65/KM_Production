@@ -8,18 +8,24 @@ KM_Production is a Laravel, Vue, Inertia, and MySQL Manufacturing Execution Syst
 
 ## Start Here
 
-Before significant work, read in this order:
+Before significant work, use this order to select relevant context. Read the
+applicable documents, not every file in each directory:
 
 1. [README.md](README.md)
 2. [.kiro/index.md](.kiro/index.md)
 3. Relevant files under [.kiro/steering/](.kiro/steering/)
 4. Relevant architecture decisions under [.kiro/decisions/](.kiro/decisions/)
 5. Relevant domain knowledge under [.kiro/knowledge/](.kiro/knowledge/)
-6. Relevant procedures under [.kiro/playbooks/](.kiro/playbooks/)
-7. Relevant quality gates under [.kiro/checklists/](.kiro/checklists/)
-8. [Layered Quality Gates](docs/development/quality-gates.md)
-9. Relevant workflows under [.kiro/workflows/](.kiro/workflows/)
-10. Relevant permanent memory under [.kiro/memory/](.kiro/memory/)
+6. The applicable [workflow](.kiro/index.md#workflows-and-maintenance),
+   [playbooks](.kiro/playbooks/) and [checklists](.kiro/checklists/)
+7. [Definition of Done](docs/project-management/definition-of-done.md) for
+   completion and [Layered Quality Gates](docs/development/quality-gates.md)
+   for validation scope
+8. Relevant lessons from [Memory](.kiro/memory/index.md)
+
+Then inspect the affected implementation, tests and configuration before
+performing the authorized task. For current work and priorities, follow the
+index's [planning navigation](.kiro/index.md#current-work-and-historical-evidence).
 
 ## Core Rules
 
@@ -31,6 +37,17 @@ Before significant work, read in this order:
 - Do not modify business logic unless explicitly requested.
 - Prefer links to deeper documentation over duplicating guidance here.
 
+The [Domain Constitution](.kiro/steering/domain-constitution.md), applicable
+[ADRs](.kiro/decisions/) and [Coding Style Guidance](.kiro/steering/coding-style.md)
+provide the detailed domain and implementation rules.
+
+A suspected bug does not authorize changing business rules. A feature request
+does not authorize inventing domain rules, and refactoring must preserve
+observable behavior. Use the applicable [workflow](.kiro/index.md#workflows-and-maintenance)
+to identify the decision boundary. If the required business decision is unclear
+or outside scope, report it before changing that behavior; continue independent,
+authorized work.
+
 ## Documentation System
 
 Project-specific rules, decisions, knowledge, playbooks, prompts, templates, checklists, workflows, and memory live under [.kiro/](.kiro/).
@@ -38,7 +55,22 @@ Project-specific rules, decisions, knowledge, playbooks, prompts, templates, che
 Reader-facing product documentation lives under [docs/](docs/).
 
 All project documentation must follow the language and readability rules in
-[Coding Style Guidance](.kiro/steering/coding-style.md).
+[Coding Style Guidance](.kiro/steering/coding-style.md#documentation-language-and-readability)
+and the applicable [Documentation Checklist](.kiro/checklists/documentation.md).
+
+## Authorization and Worktree Safety
+
+This file owns agent authorization boundaries, applied to the current user/task
+scope. A workflow, prompt, checklist or successful check does not expand that
+authorization. Commit, push, pull request creation or update, merge, release and
+deployment each require explicit user authorization.
+
+Inspect Git state before editing and preserve pre-existing changes and untracked
+files. Do not overwrite, delete, restore, stage or format unrelated work to obtain
+a clean state. Report overlapping target changes and preserve them; clarify an
+uncertain overlap before editing it. Destructive worktree cleanup requires a
+separate explicit request and authorization. The applicable
+[workflow](.kiro/index.md#workflows-and-maintenance) supplies the detailed procedure.
 
 ## Git and Commits
 
@@ -54,8 +86,11 @@ authorization. They must use the
 [pull request template](.github/pull_request_template.md), follow the
 [code review guide](docs/project-management/code-review-guide.md), report only
 checks that actually ran, and inspect the complete branch diff. Agents must not
-claim approval, merge with unresolved blockers, enable auto-merge, or change
-branch protection and required checks without explicit authorization.
+claim approval or merge with unresolved blockers. Enabling auto-merge or changing
+branch protection and required checks requires explicit authorization. Apply the
+[Before Commit](.kiro/checklists/before-commit.md) and
+[Before Merge](.kiro/checklists/before-merge.md) checklists when those actions
+are authorized.
 
 ## Definition of Done
 

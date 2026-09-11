@@ -64,6 +64,8 @@ Route::middleware(['auth', 'verified'])
         Route::get('code-generation/{type}', AdminCodeGenerationController::class)
             ->name('code-generation.show');
         Route::get('dashboard', AdminDashboardController::class)->name('dashboard');
+
+        // Kapacitás tervezés
         Route::prefix('capacity')
             ->name('capacity.')
             ->group(function (): void {
@@ -76,6 +78,8 @@ Route::middleware(['auth', 'verified'])
                 Route::get('simulate', [AdminCapacityController::class, 'simulate'])->name('simulate');
                 Route::post('simulate', [AdminCapacityController::class, 'runSimulation'])->name('simulate.run');
             });
+
+        // Jelentések
         Route::prefix('reports')
             ->name('reports.')
             ->group(function (): void {
@@ -86,6 +90,8 @@ Route::middleware(['auth', 'verified'])
                 Route::get('quality', [AdminReportsController::class, 'quality'])->name('quality');
                 Route::get('shop-floor', [AdminReportsController::class, 'shopFloor'])->name('shop-floor');
             });
+
+        // Gyártási intelligencia
         Route::prefix('intelligence')
             ->name('intelligence.')
             ->group(function (): void {
@@ -97,18 +103,28 @@ Route::middleware(['auth', 'verified'])
                 Route::get('risks', [AdminManufacturingIntelligenceController::class, 'risks'])->name('risks');
                 Route::get('recommendations', [AdminManufacturingIntelligenceController::class, 'recommendations'])->name('recommendations');
             });
+
+        // Felhasználók, jogosultságok és szerepkörök
         Route::resource('users', AdminUserController::class)->only(['index', 'store', 'update', 'destroy']);
         Route::resource('roles', AdminRoleController::class)->only(['index', 'store', 'update', 'destroy']);
         Route::resource('permissions', AdminPermissionController::class)->only(['index']);
+
         // Dolgozók
         Route::resource('employees', AdminEmployeeController::class)->only(['index', 'store', 'update', 'destroy']);
+
+        // Gyártási adatok
         Route::resource('factory-units', AdminFactoryUnitController::class)
             ->parameters(['factory-units' => 'factoryUnit'])
             ->only(['index', 'store', 'update', 'destroy']);
+
+        // Helyszinek
         Route::resource('locations', AdminLocationController::class)->only(['index', 'store', 'update', 'destroy']);
+        // Professzionális szerepek
         Route::resource('professional-roles', AdminProfessionalRoleController::class)
             ->parameters(['professional-roles' => 'professionalRole'])
             ->only(['index', 'store', 'update', 'destroy']);
+
+        // Anyagok
         Route::resource('items', AdminItemController::class)->only(['index', 'store', 'update', 'destroy']);
         Route::resource('item-suppliers', AdminItemSupplierController::class)
             ->parameters(['item-suppliers' => 'itemSupplier'])
@@ -120,22 +136,37 @@ Route::middleware(['auth', 'verified'])
         Route::resource('operation-sequences', AdminOperationSequenceController::class)
             ->parameters(['operation-sequences' => 'operationSequence'])
             ->only(['index', 'store', 'update', 'destroy']);
+
+        // Ügyfelek és beszállítók
         Route::resource('customers', AdminCustomerController::class)->only(['index', 'store', 'update', 'destroy']);
         Route::resource('suppliers', AdminSupplierController::class)->only(['index', 'store', 'update', 'destroy']);
+        
+        // Megrendelések és gyártási tervek
         Route::patch('customer-orders/{customerOrder}/confirm', [AdminCustomerOrderController::class, 'confirm'])
             ->name('customer-orders.confirm');
+        // Megrendelés visszavonása
         Route::patch('customer-orders/{customerOrder}/cancel', [AdminCustomerOrderController::class, 'cancel'])
             ->name('customer-orders.cancel');
+
+        // Megrendelés teljesítése
         Route::resource('customer-orders', AdminCustomerOrderController::class)
             ->parameters(['customer-orders' => 'customerOrder'])
             ->only(['index', 'show', 'store', 'update', 'destroy']);
+
+        // Gyártási terv jóváhagyása
         Route::patch('production-plans/{productionPlan}/approve', [AdminProductionPlanController::class, 'approve'])
             ->name('production-plans.approve');
+
+        // Gyártási terv visszavonása
         Route::post('production-plans/{productionPlan}/generate-production-orders', [AdminProductionPlanController::class, 'generateProductionOrders'])
             ->name('production-plans.generate-production-orders');
+
+        // Gyártási tervek
         Route::resource('production-plans', AdminProductionPlanController::class)
             ->parameters(['production-plans' => 'productionPlan'])
             ->only(['index', 'show', 'store', 'update', 'destroy']);
+
+        // Shop floor és gyártási feladatok
         Route::get('shop-floor', [AdminShopFloorController::class, 'index'])->name('shop-floor.index');
         Route::get('shop-floor/my-tasks', [AdminShopFloorController::class, 'myTasks'])->name('shop-floor.my-tasks');
         Route::post('production-tasks/generate-from-order', [AdminProductionTaskController::class, 'generateFromOrder'])
@@ -151,6 +182,8 @@ Route::middleware(['auth', 'verified'])
         Route::resource('production-tasks', AdminProductionTaskController::class)
             ->parameters(['production-tasks' => 'productionTask'])
             ->only(['index', 'show', 'store', 'update', 'destroy']);
+
+        // Készlet és anyagigények
         Route::prefix('inventory')
             ->name('inventory.')
             ->group(function (): void {
