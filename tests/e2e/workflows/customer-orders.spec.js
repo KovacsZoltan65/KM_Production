@@ -23,7 +23,12 @@ test("an authorized user can create and reopen a customer order", async ({
         "Customer",
         /E2E Customer/,
     );
-    await dialog.getByLabel("Requested delivery date").fill("2027-03-15");
+    const requestedDeliveryDate = dialog.getByLabel("Requested delivery date");
+    const visibleDatePanels = page.locator(".p-datepicker-panel:visible");
+    await requestedDeliveryDate.fill("2027-03-15");
+    await expect(visibleDatePanels).toHaveCount(1);
+    await requestedDeliveryDate.press("Escape");
+    await expect(visibleDatePanels).toHaveCount(0);
     await dialog.getByLabel("Notes").fill("E2E customer order UI workflow");
     await dialog.getByRole("button", { name: "Add item" }).click();
     await selectComboboxOptionMatching(page, dialog, "Item", /PRODUCT-AAA/);

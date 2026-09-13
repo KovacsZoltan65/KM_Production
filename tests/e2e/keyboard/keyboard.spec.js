@@ -87,7 +87,9 @@ test("confirmation dialogs are reachable and cancelable from the keyboard", asyn
     await loginThroughUi(page, e2eUsers.admin);
     await page.goto("/admin/inventory/stock-reservations");
 
-    const row = page.getByRole("row").filter({ hasText: "E2E-MAT-001" });
+    const row = page
+        .getByRole("row")
+        .filter({ hasText: "E2E-STOCK-RESERVATION-PARTIAL-REFRESH" });
     await row.getByRole("button", { name: "Release" }).focus();
     await page.keyboard.press("Enter");
     const dialog = page.getByRole("alertdialog", { name: "Confirm release" });
