@@ -21,6 +21,7 @@ class EmployeeSeeder extends Seeder
                 'SUPERVISOR',
                 'MAINTENANCE_TECHNICIAN',
                 'WAREHOUSEMAN',
+                'ASSEMBLER',
             ])
             ->pluck('id', 'code');
 
@@ -89,7 +90,7 @@ class EmployeeSeeder extends Seeder
                 'professional_role_id' => $professionalRoleIds['ASSEMBLER'],
                 'is_active' => true,
                 'hired_at' => '2026-07-06',
-            ]
+            ],
         ];
 
         foreach ($employees as $employee) {

@@ -53,7 +53,7 @@ class ProfessionalRolesSeeder extends Seeder
                 'name' => 'Összeszerelő',
                 'description' => 'Termékek összesítését végző dolgozó.',
                 'is_active' => true,
-            ]
+            ],
         ];
 
         foreach ($professionalRoles as $role) {
