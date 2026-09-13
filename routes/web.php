@@ -140,7 +140,7 @@ Route::middleware(['auth', 'verified'])
         // Ügyfelek és beszállítók
         Route::resource('customers', AdminCustomerController::class)->only(['index', 'store', 'update', 'destroy']);
         Route::resource('suppliers', AdminSupplierController::class)->only(['index', 'store', 'update', 'destroy']);
-        
+
         // Megrendelések és gyártási tervek
         Route::patch('customer-orders/{customerOrder}/confirm', [AdminCustomerOrderController::class, 'confirm'])
             ->name('customer-orders.confirm');

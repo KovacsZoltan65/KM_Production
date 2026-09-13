@@ -1,6 +1,6 @@
 # Purchase Order Dispatch / Supplier Acknowledgement
 
-- **Állapot:** Elfogadva, implementációra vár
+- **Állapot:** Elfogadva; a megvalósítás jelen van. Az aktuális validálás és készültség külön igazolandó.
 - **Dátum:** 2026-09-01
 - **Kapcsolódó döntések:** [0001 Stock Movements](0001-stock-movements.md), [0009 Material Requirement Netting](0009-material-requirement-netting.md), [0010 Requirement Pegging](0010-requirement-pegging.md), [0014 Purchase Requisition Execution Readiness](0014-purchase-requisition-execution-readiness.md), [0015 Purchase Order Generation](0015-purchase-order-generation.md)
 
