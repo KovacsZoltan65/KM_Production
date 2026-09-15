@@ -3,15 +3,26 @@
 namespace App\Enums;
 
 /**
- * A vevői rendeléstételek tervezési és gyártási életciklusának állapotait reprezentálja.
+ * Az AI-feldolgozási futások végrehajtási és felülvizsgálati
+ * állapotait határozza meg.
+ *
+ * Az állapot jelzi, hogy a feldolgozás várakozik, folyamatban van,
+ * sikeresen befejeződött, hibával leállt, vagy emberi felülvizsgálatot igényel.
  */
-enum CustomerOrderItemStatus: string
+enum AiProcessingRunStatus: string
 {
-    case Draft = 'draft';
-    case Planned = 'planned';
-    case WaitingForMaterial = 'waiting_for_material';
-    case ReadyForProduction = 'ready_for_production';
-    case InProduction = 'in_production';
+    /** A feldolgozás végrehajtásra vár. */
+    case Pending = 'pending';
+
+    /** A feldolgozás jelenleg folyamatban van. */
+    case Running = 'running';
+
+    /** A feldolgozás sikeresen befejeződött. */
     case Completed = 'completed';
-    case Cancelled = 'cancelled';
+
+    /** A feldolgozás hiba miatt nem fejeződött be sikeresen. */
+    case Failed = 'failed';
+
+    /** A feldolgozás eredménye emberi felülvizsgálatot igényel. */
+    case ReviewRequired = 'review_required';
 }
