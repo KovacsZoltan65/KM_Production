@@ -7,7 +7,6 @@ import DatePicker from "primevue/datepicker";
 import Select from "primevue/select";
 import Textarea from "primevue/textarea";
 import Password from "primevue/password";
-import IftaLabel from "primevue/iftalabel";
 
 import IconField from "primevue/iconfield";
 import InputIcon from "primevue/inputicon";
@@ -82,7 +81,24 @@ const optionItems = computed(() => {
 
 <template>
     <div class="min-w-0 space-y-2">
-        <IftaLabel :for="field.name" class="text-sm font-medium">
+        <component
+            :is="
+                ['select', 'multiselect', 'unit', 'checkbox'].includes(
+                    field.type,
+                )
+                    ? 'span'
+                    : 'label'
+            "
+            :id="`${field.name}-label`"
+            :for="
+                ['select', 'multiselect', 'unit', 'checkbox'].includes(
+                    field.type,
+                )
+                    ? undefined
+                    : field.name
+            "
+            class="relative block text-sm font-medium"
+        >
             {{ label }}
             <span
                 v-if="field.required"
@@ -91,7 +107,7 @@ const optionItems = computed(() => {
             >
                 *
             </span>
-        </IftaLabel>
+        </component>
 
         <div
             v-if="['text', 'email', 'number'].includes(field.type)"
@@ -201,6 +217,7 @@ const optionItems = computed(() => {
         <UnitSelect
             v-else-if="field.type === 'unit'"
             :id="field.name"
+            :aria-labelledby="`${field.name}-label`"
             v-model="model"
             :invalid="Boolean(error)"
             :disabled="Boolean(field.disabled)"
@@ -212,6 +229,7 @@ const optionItems = computed(() => {
         <Select
             v-else-if="field.type === 'select'"
             :id="field.name"
+            :aria-labelledby="`${field.name}-label`"
             v-model="model"
             :options="optionItems"
             option-label="label"
@@ -227,6 +245,7 @@ const optionItems = computed(() => {
         <MultiSelect
             v-else-if="field.type === 'multiselect'"
             :id="field.name"
+            :aria-labelledby="`${field.name}-label`"
             v-model="model"
             :options="optionItems"
             option-label="label"
@@ -239,7 +258,7 @@ const optionItems = computed(() => {
             class="w-full"
         />
 
-        <IftaLabel
+        <label
             v-else-if="field.type === 'checkbox'"
             :for="field.name"
             class="inline-flex cursor-pointer items-center gap-3"
@@ -259,7 +278,7 @@ const optionItems = computed(() => {
                 >&nbsp;
                 {{ checkboxLabel }}
             </span>
-        </IftaLabel>
+        </label>
 
         <p v-if="error" class="text-sm text-red-600">
             {{ error }}

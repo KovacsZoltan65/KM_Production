@@ -1,6 +1,7 @@
 import { defineComponent, nextTick } from "vue";
-import { shallowMount } from "@vue/test-utils";
+import { mount, shallowMount } from "@vue/test-utils";
 import { describe, expect, it } from "vitest";
+import PrimeVue from "primevue/config";
 import AdminCrudField from "@/Components/Admin/AdminCrudField.vue";
 
 const modelStub = (name, template, props = []) =>
@@ -67,12 +68,6 @@ const CheckboxStub = defineComponent({
     template:
         '<button data-control="checkbox" v-bind="$attrs" @click="$emit(\'update:modelValue\', !modelValue)" />',
 });
-const IftaLabelStub = defineComponent({
-    name: "IftaLabel",
-    inheritAttrs: false,
-    props: ["for"],
-    template: '<label :for="$props.for"><slot /></label>',
-});
 const IconFieldStub = defineComponent({
     name: "IconField",
     template: '<div data-control="icon-field"><slot /></div>',
@@ -92,7 +87,6 @@ const stubs = {
     Password: PasswordStub,
     DatePicker: DatePickerStub,
     Checkbox: CheckboxStub,
-    IftaLabel: IftaLabelStub,
     IconField: IconFieldStub,
     InputIcon: InputIconStub,
 };
@@ -203,7 +197,7 @@ describe("AdminCrudField", () => {
         };
         const wrapper = mountField(field, { modelValue: true });
         const checkbox = wrapper.findComponent(CheckboxStub);
-        const labels = wrapper.findAllComponents(IftaLabelStub);
+        const labels = wrapper.findAll("label");
 
         expect(checkbox.props()).toMatchObject({
             modelValue: true,
@@ -213,7 +207,7 @@ describe("AdminCrudField", () => {
             disabled: true,
         });
         expect(checkbox.attributes("aria-required")).toBe("true");
-        expect(labels.at(-1).props("for")).toBe("is_active");
+        expect(labels.at(-1).attributes("for")).toBe("is_active");
         expect(labels.at(-1).text()).toContain("Aktív");
 
         await checkbox.trigger("click");
@@ -308,4 +302,44 @@ describe("AdminCrudField", () => {
             { label: "approved", value: "approved" },
         ]);
     });
+});
+
+describe("AdminCrudField accessible labels with real PrimeVue controls", () => {
+    it.each([
+        "text",
+        "email",
+        "number",
+        "password",
+        "date",
+        "textarea",
+        "checkbox",
+    ])("%s has a native label associated with its input", (type) => {
+        const wrapper = mount(AdminCrudField, {
+            props: { field: { name: "value", label: "Érték", type } },
+            global: { plugins: [PrimeVue] },
+        });
+        const label = wrapper.get('label[for="value"]').element;
+        expect(label.control).not.toBeNull();
+        expect(label.control.id).toBe("value");
+        expect(label.control.labels).toContain(label);
+        wrapper.unmount();
+    });
+
+    it.each(["select", "multiselect", "unit"])(
+        "%s names its composite combobox from visible field text",
+        (type) => {
+            const wrapper = mount(AdminCrudField, {
+                props: {
+                    field: { name: "value", label: "Érték", type, options: [] },
+                },
+                global: { plugins: [PrimeVue] },
+            });
+            const combobox = wrapper.get('[role="combobox"]');
+            const labelId = combobox.attributes("aria-labelledby");
+            expect(labelId).toBeTruthy();
+            expect(wrapper.get('[id="' + labelId + '"]').text()).toBe("Érték");
+            expect(wrapper.find('label[for="value"]').exists()).toBe(false);
+            wrapper.unmount();
+        },
+    );
 });
