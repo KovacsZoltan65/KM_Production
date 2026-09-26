@@ -133,3 +133,7 @@ A modul-specifikáció a meglévő [Learning Center specifikáció](../learning-
 Új dokumentáció magyar, technikai azonosítók angolok a [projektkonvenciók](../../architecture/project-conventions.md) szerint. A meglévő angol README és steering fájlok örökölt eltérését ez a menet nem fordítja át.
 
 A [manufacturing AI steering](../../../.kiro/steering/manufacturing-ai.md) és a [document AI ADR](../../../.kiro/decisions/0005-document-ai.md) OCR/Python-központú mintát ír le, az általános AI guidance confidence-t is előír. Merlinre a feladat explicit confidence-tilalma érvényes; ebből nem következik a teljes régi AI/OCR guidance módosítása vagy egy új futtatási technológia kiválasztása. A későbbi integráció előtt a hatókört tisztázni kell.
+
+## Repository audit
+
+A megvalósult procurement alapot, a hiányzó domainfogalmakat és a feltételes implementációs tervet a [2026-09-26-i implementáció-előkészítő audit](../../audits/merlin-implementation-preparation-2026-09-26.md) rögzíti. Az audit BLOCKER-einek feloldása nélkül az implementáció nem indítható.
