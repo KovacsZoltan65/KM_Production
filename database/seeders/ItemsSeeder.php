@@ -59,6 +59,17 @@ class ItemsSeeder extends Seeder
                 'diameter' => '11.000',
                 'requires_serial_number' => false,
                 'is_active' => true,
+            ], [
+                'item_number' => 'PRD-0003',
+                'name' => 'Kémcső dugóval (11x70)',
+                'item_type' => 'finished_product',
+                'unit' => 'db',
+                'width' => null,
+                'length' => null,
+                'thickness' => null,
+                'diameter' => null,
+                'requires_serial_number' => false,
+                'is_active' => true,
             ],
         ];
 

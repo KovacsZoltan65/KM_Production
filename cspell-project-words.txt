@@ -159,6 +159,7 @@ tárolása
 teljesítése
 teljesítését
 terhelése
+tervezése
 tervezéstől
 toastként
 toastservice
@@ -173,3 +174,4 @@ végrehajtásának
 végrehajtáshoz
 visszaigazolásban
 visszaigazolások
+visszaigazolták

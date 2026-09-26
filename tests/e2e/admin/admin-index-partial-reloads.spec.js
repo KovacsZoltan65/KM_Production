@@ -380,9 +380,20 @@ for (const pageDefinition of pages) {
             await pageDefinition.configureFilter(page);
         } else {
             await page.getByPlaceholder("Search").fill(pageDefinition.search);
+            const searchResponse = page.waitForResponse((response) => {
+                const url = new URL(response.url());
+                return (
+                    response.request().method() === "GET" &&
+                    url.pathname === pageDefinition.path &&
+                    url.searchParams.get("search") === pageDefinition.search
+                );
+            });
             await page
                 .getByRole("button", { name: "Search", exact: true })
                 .click();
+            const response = await searchResponse;
+            expect(response.status()).toBe(200);
+            expect(await response.finished()).toBeNull();
             await expect(page).toHaveURL(
                 new RegExp(
                     `search=${encodeURIComponent(pageDefinition.search)}`,
@@ -448,6 +459,10 @@ for (const pageDefinition of pages) {
         }
 
         releaseRequest();
+        const response = await request.response();
+        expect(response).not.toBeNull();
+        expect(response.status()).toBe(200);
+        expect(await response.finished()).toBeNull();
         await expect(
             page.getByText(pageDefinition.updatedText, { exact: true }).first(),
         ).toBeVisible();

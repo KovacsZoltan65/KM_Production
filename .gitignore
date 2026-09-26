@@ -27,14 +27,13 @@ __pycache__/
 /playwright-report
 /test-results
 /tests/e2e/.auth
-/storage/framework/testing/e2e-public-hot.backup
-/storage/framework/testing/e2e-server.pid
+/storage/*.key
+/storage/pail
+/storage/framework/
 /public/build
 /public/fonts-manifest.dev.json
 /public/hot
 /public/storage
-/storage/*.key
-/storage/pail
 /vendor
 _ide_helper.php
 _ide_helper_models.php

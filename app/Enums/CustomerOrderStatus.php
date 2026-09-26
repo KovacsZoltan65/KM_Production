@@ -3,33 +3,38 @@
 namespace App\Enums;
 
 /**
- * A vevői rendeléstételek tervezési és gyártási életciklusának
- * állapotait határozza meg.
- *
- * Az állapot jelzi, hogy a rendeléstétel még előkészítés alatt áll,
- * megtervezték, anyagra vár, gyártásra kész, gyártás alatt áll,
- * befejeződött vagy megszakították.
+ * A vevői rendelések feldolgozási, gyártási és kiszállítási
+ * életciklusának állapotait határozza meg.
  */
-enum CustomerOrderItemStatus: string
+enum CustomerOrderStatus: string
 {
-    /** A rendeléstétel még előkészítés vagy módosítás alatt áll. */
+    /** A rendelés még előkészítés vagy módosítás alatt áll. */
     case Draft = 'draft';
 
-    /** A rendeléstétel gyártását megtervezték. */
-    case Planned = 'planned';
+    /** A rendelést visszaigazolták. */
+    case Confirmed = 'confirmed';
+
+    /** A rendelés anyagszükségletének tervezése folyamatban van. */
+    case MaterialPlanning = 'material_planning';
 
     /** A gyártás a szükséges anyag rendelkezésre állására vár. */
     case WaitingForMaterial = 'waiting_for_material';
 
-    /** A szükséges feltételek teljesülnek, a rendeléstétel gyártásra kész. */
+    /** A szükséges feltételek teljesülnek, a rendelés gyártásra kész. */
     case ReadyForProduction = 'ready_for_production';
 
-    /** A rendeléstétel gyártása folyamatban van. */
+    /** A rendelés gyártása folyamatban van. */
     case InProduction = 'in_production';
 
-    /** A rendeléstétel gyártása befejeződött. */
+    /** A rendelés minőségellenőrzés alatt áll. */
+    case QualityCheck = 'quality_check';
+
+    /** A rendelés kiszállításra kész. */
+    case ReadyToShip = 'ready_to_ship';
+
+    /** A rendelés befejeződött. */
     case Completed = 'completed';
 
-    /** A rendeléstételt törölték, ezért további feldolgozása nem szükséges. */
+    /** A rendelést törölték, ezért további feldolgozása nem szükséges. */
     case Cancelled = 'cancelled';
 }
