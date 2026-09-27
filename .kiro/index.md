@@ -73,3 +73,5 @@ Memory
 ## Reader-Facing Documentation
 
 Product documentation lives in [docs/](../docs/). Use it for human-readable guides, deployment notes, API notes, architecture overview, manufacturing overview, and product vision.
+
+- [Merlin / IMF / Nagy Könyv – implementáció előtti baseline](../docs/specifications/merlin/README.md).
