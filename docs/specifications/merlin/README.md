@@ -151,3 +151,8 @@ A `c6619c0` dokumentációját szelektíven vettük át: a koncepciót és a ké
 | Reuse                                             | Strict ItemSupplier eligibility és a publikus calculateQuantity újrahasználható; időzítési szabályhoz közös, tiszta extraction kell.               |
 | Kereskedelmi adatok                               | Reference price/currency létezik; az ár egységbázisa nem bizonyított, ezért becsült összérték nem vállalható.                                      |
 | Állapot                                           | Dokumentációs előkészítés; nincs production implementáció, dependency-változtatás vagy implementációindítási engedély.                             |
+
+## Audit és következő implementációs szelet
+
+- [Procurement input audit és readiness bizonyítékok](procurement-input-audit.md)
+- [SupplierOptionService input/output contract v0.1 és reuse map](supplier-options-contract-v0.1.md)
