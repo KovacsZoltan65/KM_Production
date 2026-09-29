@@ -8,6 +8,11 @@ use Illuminate\Support\Collection;
 
 class ItemRepository extends AbstractAdminRepository implements ItemRepositoryInterface
 {
+    public function findForSupplierOptions(int $itemId): ?Item
+    {
+        return Item::query()->find($itemId);
+    }
+
     protected string $modelClass = Item::class;
 
     protected array $with = ['activeItemSuppliers'];

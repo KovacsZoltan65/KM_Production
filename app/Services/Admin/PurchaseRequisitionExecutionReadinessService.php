@@ -11,6 +11,7 @@ use App\Models\PurchaseRequisitionItem;
 use App\Repositories\Contracts\ItemSupplierRepositoryInterface;
 use App\Repositories\Contracts\PurchaseRequisitionRepositoryInterface;
 use App\Support\Procurement\ExecutionReadinessReason;
+use App\Support\Procurement\ProcurementTiming;
 use App\Support\Procurement\PurchaseRequisitionExecutionReadinessResult;
 use App\Support\Procurement\PurchaseRequisitionItemExecutionReadinessResult;
 use Illuminate\Support\Carbon;
@@ -201,9 +202,10 @@ final class PurchaseRequisitionExecutionReadinessService
                 $this->addReason($warnings, $reason(ReasonCode::PriceMissing));
             }
 
-            $leadTimeLate = $requiredAt !== null
-                && $currentSource->lead_time_days !== null
-                && $businessDate->copy()->addDays($currentSource->lead_time_days)->gt($requiredAt);
+            $leadTimeLate = ProcurementTiming::isLate(
+                ProcurementTiming::expectedDate($businessDate, $currentSource->lead_time_days),
+                $requiredAt,
+            ) === true;
             $proposedSupplyLate = $requiredAt !== null
                 && $proposedSupplyAt !== null
                 && $proposedSupplyAt->gt($requiredAt);

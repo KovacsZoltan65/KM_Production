@@ -117,6 +117,16 @@ class ItemSupplierRepository extends AbstractAdminRepository implements ItemSupp
             ->values();
     }
 
+    public function knownSourcesForItem(int $itemId): Collection
+    {
+        return ItemSupplier::query()
+            ->with(['item', 'supplier' => fn ($query) => $query->withTrashed()])
+            ->where('item_id', $itemId)
+            ->orderBy('supplier_id')
+            ->orderBy('id')
+            ->get();
+    }
+
     public function eligibleForItemsAt(array $itemIds, Carbon $date): Collection
     {
         if ($itemIds === []) {

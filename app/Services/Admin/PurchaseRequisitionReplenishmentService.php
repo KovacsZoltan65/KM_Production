@@ -11,6 +11,7 @@ use App\Repositories\Contracts\ItemSupplierRepositoryInterface;
 use App\Repositories\Contracts\PurchaseRequisitionRepositoryInterface;
 use App\Services\AuditLogService;
 use App\Services\BusinessCacheInvalidator;
+use App\Support\Procurement\ProcurementDecimal;
 use App\Support\Procurement\ReplenishmentQuantityResult;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -135,22 +136,22 @@ final class PurchaseRequisitionReplenishmentService
         string $baseUnit,
         ItemSupplier $source,
     ): ReplenishmentQuantityResult {
-        $base = $this->toScaledInteger($baseRequiredQuantity, 3, 'base_required_quantity');
+        $base = ProcurementDecimal::toScaledInteger($baseRequiredQuantity, 3, 'base_required_quantity');
 
         if ($base < 0) {
             $this->fail('base_required_quantity', 'procurement.replenishment.validation.negative_base');
         }
 
-        if ($source->purchase_unit === '' || $this->toScaledInteger((string) $source->conversion_factor, 6, 'conversion_factor') <= 0) {
+        if ($source->purchase_unit === '' || ProcurementDecimal::toScaledInteger((string) $source->conversion_factor, 6, 'conversion_factor') <= 0) {
             $this->fail('items', 'procurement.replenishment.validation.invalid_policy');
         }
 
         $moq = $source->minimum_order_quantity === null
             ? null
-            : $this->toScaledInteger((string) $source->minimum_order_quantity, 3, 'minimum_order_quantity');
+            : ProcurementDecimal::toScaledInteger((string) $source->minimum_order_quantity, 3, 'minimum_order_quantity');
         $multiple = $source->order_multiple === null
             ? null
-            : $this->toScaledInteger((string) $source->order_multiple, 3, 'order_multiple');
+            : ProcurementDecimal::toScaledInteger((string) $source->order_multiple, 3, 'order_multiple');
 
         if (($moq !== null && $moq < 0) || ($multiple !== null && $multiple <= 0)) {
             $this->fail('items', 'procurement.replenishment.validation.invalid_policy');
@@ -180,12 +181,12 @@ final class PurchaseRequisitionReplenishmentService
         return new ReplenishmentQuantityResult(
             itemId: $source->item_id,
             itemSupplierId: $source->id,
-            baseRequiredQuantity: $this->fromThousandths($base),
-            adjustedQuantity: $this->fromThousandths($adjusted),
-            excessQuantity: $this->fromThousandths($adjusted - $base),
+            baseRequiredQuantity: ProcurementDecimal::fromThousandths($base),
+            adjustedQuantity: ProcurementDecimal::fromThousandths($adjusted),
+            excessQuantity: ProcurementDecimal::fromThousandths($adjusted - $base),
             baseUnit: $baseUnit,
-            minimumOrderQuantity: $moq === null ? null : $this->fromThousandths($moq),
-            orderMultiple: $multiple === null ? null : $this->fromThousandths($multiple),
+            minimumOrderQuantity: $moq === null ? null : ProcurementDecimal::fromThousandths($moq),
+            orderMultiple: $multiple === null ? null : ProcurementDecimal::fromThousandths($multiple),
             strategy: $strategy,
             purchaseUnit: $source->purchase_unit,
             conversionFactor: (string) $source->conversion_factor,
@@ -194,7 +195,7 @@ final class PurchaseRequisitionReplenishmentService
 
     private function assertPlannedLineage(PurchaseRequisitionItem $item): void
     {
-        $planned = $this->toScaledInteger((string) $item->planned_quantity, 3, 'planned_quantity');
+        $planned = ProcurementDecimal::toScaledInteger((string) $item->planned_quantity, 3, 'planned_quantity');
 
         if ($planned < 0) {
             $this->fail('items', 'procurement.replenishment.validation.negative_base');
@@ -205,39 +206,12 @@ final class PurchaseRequisitionReplenishmentService
         }
 
         $sourceTotal = $item->proposalSources->sum(
-            fn ($source): int => $this->toScaledInteger((string) $source->quantity, 3, 'source_quantity'),
+            fn ($source): int => ProcurementDecimal::toScaledInteger((string) $source->quantity, 3, 'source_quantity'),
         );
 
         if ($sourceTotal !== $planned) {
             $this->fail('items', 'procurement.replenishment.validation.source_mismatch');
         }
-    }
-
-    private function toScaledInteger(string $value, int $scale, string $field): int
-    {
-        $value = trim($value);
-        if (! preg_match('/^(-?)(\d+)(?:\.(\d+))?$/', $value, $matches)) {
-            $this->fail($field, 'procurement.replenishment.validation.invalid_quantity');
-        }
-
-        $fraction = $matches[3] ?? '';
-        if (strlen(ltrim($matches[2], '0')) > 18 - $scale) {
-            $this->fail($field, 'procurement.replenishment.validation.invalid_result');
-        }
-        if (strlen($fraction) > $scale && trim(substr($fraction, $scale), '0') !== '') {
-            $this->fail($field, 'procurement.replenishment.validation.invalid_precision');
-        }
-
-        $factor = 10 ** $scale;
-        $whole = (int) $matches[2];
-        $scaled = ($whole * $factor) + (int) str_pad(substr($fraction, 0, $scale), $scale, '0');
-
-        return $matches[1] === '-' ? -$scaled : $scaled;
-    }
-
-    private function fromThousandths(int $quantity): string
-    {
-        return sprintf('%d.%03d', intdiv($quantity, 1000), $quantity % 1000);
     }
 
     /** @param array<string, string|int> $replace */

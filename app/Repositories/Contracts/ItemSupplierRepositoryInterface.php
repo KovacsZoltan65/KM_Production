@@ -9,6 +9,9 @@ use Illuminate\Support\Collection;
 
 interface ItemSupplierRepositoryInterface extends AdminRepositoryInterface
 {
+    /** @return Collection<int, ItemSupplier> */
+    public function knownSourcesForItem(int $itemId): Collection;
+
     /**
      * @param  array<string, mixed>  $filters
      * @return LengthAwarePaginator<int, ItemSupplier>

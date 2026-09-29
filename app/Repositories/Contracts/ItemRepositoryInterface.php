@@ -7,6 +7,8 @@ use Illuminate\Support\Collection;
 
 interface ItemRepositoryInterface extends AdminRepositoryInterface
 {
+    public function findForSupplierOptions(int $itemId): ?Item;
+
     /**
      * Visszaadja a vevői rendeléshez választható cikkeket.
      *

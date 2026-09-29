@@ -880,5 +880,6 @@
     "planning.pegging.validation.invalid_allocation": "The pegging allocation is invalid.",
     "planning.validation.inactive_item": "An inactive item cannot be used for a new planning or procurement operation.",
     "planning.validation.inactive_supplier": "An inactive supplier cannot be used for a new procurement operation.",
-    "validation.locale.supported": "The selected language is not supported."
+    "validation.locale.supported": "The selected language is not supported.",
+    "procurement.supplier_options.validation.invalid_input": "Invalid procurement requirement field: :attribute."
 }
