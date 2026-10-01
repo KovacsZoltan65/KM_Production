@@ -179,6 +179,9 @@ return [
         ],
         'procurement' => [
             'backend' => [
+                'tests/Feature/SupplierOptionInputTest.php',
+                'tests/Feature/SupplierOptionReadSnapshotTest.php',
+                'tests/Feature/SupplierOptionServiceTest.php',
                 'tests/Feature/ProcurementManagementUiTest.php',
                 'tests/Feature/PurchaseOrderGenerationTest.php',
                 'tests/Feature/ProcurementTest.php',

@@ -9,6 +9,7 @@ use App\Support\Procurement\ProcurementTiming;
 use App\Support\Procurement\SupplierOptionQuery;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
+use Tests\Support\NonStrictProcurementRequirementCaller;
 
 function supplierOptionInput(array $overrides = []): ProcurementRequirementInput
 {
@@ -53,7 +54,7 @@ it('preserves zero maximum decimal null and past dates as immutable input', func
         expect($query->requirement)->toBe($input);
     }
     expect(supplierOptionInput(['requiredDate' => '2000-02-29'])->requiredDate)->toBe('2000-02-29');
-    expect(fn () => supplierOptionInput(['requiredQuantity' => 3.0]))->toThrow(TypeError::class);
+    expect(fn () => supplierOptionInput(['requiredQuantity' => 3.0]))->toThrow(ValidationException::class);
 });
 
 it('supports only the documented provenance pair and complete netting scope', function (): void {
@@ -78,6 +79,26 @@ it('supports only the documented provenance pair and complete netting scope', fu
     }
     expect(fn () => new ProcurementRequirementProvenance('supply_proposal', 0, 'proposal_planned', '2026-09-28T08:00:00Z'))->toThrow(ValidationException::class);
 });
+
+it('rejects non-string quantities from a non-strict caller before scalar conversion', function (mixed $quantity): void {
+    try {
+        NonStrictProcurementRequirementCaller::make($quantity);
+        $this->fail('Non-string quantity was accepted.');
+    } catch (ValidationException $exception) {
+        expect($exception->errors())->toHaveKey('required_quantity');
+    }
+})->with([
+    'fractional float' => [1.234],
+    'float losing precision on string conversion' => [1.2340000000000002],
+    'zero float' => [0.0],
+    'integer' => [3],
+    'boolean' => [true],
+    'null' => [null],
+]);
+
+it('preserves canonical decimal strings from a non-strict caller', function (string $quantity): void {
+    expect(NonStrictProcurementRequirementCaller::make($quantity)->requiredQuantity)->toBe($quantity);
+})->with(['0.000', '1.234', '999999999999999.999']);
 
 it('requires a valid observed timestamp with explicit timezone', function (string $timestamp): void {
     expect(fn () => new ProcurementRequirementProvenance('supply_proposal', 1, 'proposal_planned', $timestamp))->toThrow(ValidationException::class);

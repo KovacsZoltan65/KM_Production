@@ -97,6 +97,34 @@ it('maps a BOM Vue page to BOM and production modules', function () {
         ->and($selection->requiresBuild)->toBeTrue();
 });
 
+it('keeps supplier option regression tests in affected and module backend plans', function (): void {
+    $configuration = qualityGateConfiguration();
+    $selector = new AffectedSelector($configuration);
+    $planner = new GatePlanner(new ModuleMatrix($configuration));
+    $plans = [$planner->module('procurement'), $planner->module('mrp')];
+    foreach ([
+        'app/Services/Admin/SupplierOptionService.php',
+        'app/Support/Procurement/ProcurementRequirementInput.php',
+        'app/Support/Procurement/SupplierOptionReadSnapshot.php',
+    ] as $path) {
+        $plans[] = $planner->affected($selector->select([$path]));
+    }
+
+    foreach ($plans as $plan) {
+        $backend = collect($plan->commands)->first(
+            fn (GateCommand $command): bool => str_starts_with($command->id, 'backend-'),
+        );
+        expect($backend)->toBeInstanceOf(GateCommand::class);
+        foreach ([
+            'tests/Feature/SupplierOptionInputTest.php',
+            'tests/Feature/SupplierOptionReadSnapshotTest.php',
+            'tests/Feature/SupplierOptionServiceTest.php',
+        ] as $test) {
+            expect(array_count_values($backend->arguments)[$test] ?? 0)->toBe(1);
+        }
+    }
+});
+
 it('raises migrations to the full gate', function () {
     $selection = (new AffectedSelector(qualityGateConfiguration()))
         ->select(['database/migrations/2026_08_06_000000_example.php']);

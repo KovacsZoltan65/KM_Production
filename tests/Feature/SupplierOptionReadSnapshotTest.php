@@ -57,3 +57,87 @@ it('rejects caller-owned MySQL transactions without changing their isolation', f
     expect(fn () => app(SupplierOptionReadSnapshot::class)->evaluate(fn () => true))
         ->toThrow(SupplierOptionEvaluationException::class, 'SUPPLIER_OPTION_CALLER_TRANSACTION_UNVERIFIED');
 });
+
+it('rejects a reconnected PDO before reading and rolls back its transaction', function (string $reconnectAt): void {
+    // SQLite PDOs exercise Laravel's real transaction/reconnect lifecycle here.
+    // SET TRANSACTION is mocked; this is not proof of MySQL runtime isolation.
+    $originalPdo = new class($reconnectAt === 'begin') extends PDO
+    {
+        public function __construct(private readonly bool $loseConnection)
+        {
+            parent::__construct('sqlite::memory:');
+        }
+
+        public function beginTransaction(): bool
+        {
+            if ($this->loseConnection) {
+                throw new PDOException('MySQL server has gone away');
+            }
+
+            return parent::beginTransaction();
+        }
+    };
+    $replacementPdo = new PDO('sqlite::memory:');
+    $connection = Mockery::mock(MySqlConnection::class.'[statement]', [$originalPdo, '', '', ['driver' => 'mysql']]);
+    $reconnects = 0;
+    $connection->setReconnector(function (MySqlConnection $connection) use ($replacementPdo, &$reconnects): void {
+        $reconnects++;
+        $connection->setPdo($replacementPdo);
+    });
+    $connection->shouldReceive('statement')->once()
+        ->with('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ, READ ONLY')
+        ->andReturnUsing(function () use ($connection, $reconnectAt): bool {
+            if ($reconnectAt === 'policy') {
+                $connection->reconnect();
+            }
+
+            return true;
+        });
+    DB::shouldReceive('connection')->once()->andReturn($connection);
+    $reads = 0;
+
+    expect(fn () => app(SupplierOptionReadSnapshot::class)->evaluate(function () use (&$reads): void {
+        $reads++;
+    }))->toThrow(SupplierOptionEvaluationException::class, 'SUPPLIER_OPTION_CONNECTION_CHANGED');
+
+    expect($reconnects)->toBe(1)
+        ->and($reads)->toBe(0)
+        ->and($connection->transactionLevel())->toBe(0)
+        ->and($replacementPdo->inTransaction())->toBeFalse()
+        ->and($originalPdo->inTransaction())->toBeFalse();
+})->with(['policy', 'begin']);
+
+it('reads and commits when the MySQL policy PDO stays unchanged', function (): void {
+    $pdo = new PDO('sqlite::memory:');
+    $connection = Mockery::mock(MySqlConnection::class.'[statement]', [$pdo, '', '', ['driver' => 'mysql']]);
+    $connection->shouldReceive('statement')->once()
+        ->with('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ, READ ONLY')->andReturnTrue();
+    DB::shouldReceive('connection')->once()->andReturn($connection);
+
+    $result = app(SupplierOptionReadSnapshot::class)->evaluate(function () use ($pdo, $connection): string {
+        expect($pdo->inTransaction())->toBeTrue()->and($connection->transactionLevel())->toBe(1);
+
+        return 'read result';
+    });
+
+    expect($result)->toBe('read result')
+        ->and($connection->transactionLevel())->toBe(0)
+        ->and($pdo->inTransaction())->toBeFalse();
+});
+
+it('preserves a caller-owned PDO transaction that Laravel does not track', function (): void {
+    $pdo = new PDO('sqlite::memory:');
+    $connection = Mockery::mock(MySqlConnection::class.'[statement,transaction]', [$pdo, '', '', ['driver' => 'mysql']]);
+    $connection->shouldNotReceive('statement');
+    $connection->shouldNotReceive('transaction');
+    DB::shouldReceive('connection')->once()->andReturn($connection);
+    $pdo->beginTransaction();
+
+    try {
+        expect(fn () => app(SupplierOptionReadSnapshot::class)->evaluate(fn () => true))
+            ->toThrow(SupplierOptionEvaluationException::class, 'SUPPLIER_OPTION_CALLER_TRANSACTION_UNVERIFIED');
+        expect($pdo->inTransaction())->toBeTrue()->and($connection->transactionLevel())->toBe(0);
+    } finally {
+        $pdo->rollBack();
+    }
+});

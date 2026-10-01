@@ -18,6 +18,7 @@ final class SupplierOptionReadSnapshot
     {
         $connection = DB::connection();
         $driver = $connection->getDriverName();
+        $policyPdo = null;
 
         if ($driver === 'mysql') {
             // A caller-owned transaction may have a per-transaction isolation override.
@@ -25,6 +26,7 @@ final class SupplierOptionReadSnapshot
             if ($connection->transactionLevel() !== 0 || $connection->getPdo()->inTransaction()) {
                 throw new SupplierOptionEvaluationException('SUPPLIER_OPTION_CALLER_TRANSACTION_UNVERIFIED');
             }
+            $policyPdo = $connection->getPdo();
             $connection->statement('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ, READ ONLY');
         } elseif ($driver === 'sqlite') {
             $isolation = $connection->selectOne('PRAGMA read_uncommitted', [], false);
@@ -37,6 +39,14 @@ final class SupplierOptionReadSnapshot
 
         // MySQL/InnoDB consistent reads and SQLite's read transaction share one snapshot.
         // No retry: on failure the caller must obtain a fresh authoritative input if needed.
-        return $connection->transaction($read, 1);
+        return $connection->transaction(function () use ($connection, $policyPdo, $read): mixed {
+            // Laravel may reconnect while starting a transaction even with one attempt.
+            // The replacement PDO has not inherited our one-transaction policy.
+            if ($policyPdo !== null && $connection->getPdo() !== $policyPdo) {
+                throw new SupplierOptionEvaluationException('SUPPLIER_OPTION_CONNECTION_CHANGED');
+            }
+
+            return $read();
+        }, 1);
     }
 }
