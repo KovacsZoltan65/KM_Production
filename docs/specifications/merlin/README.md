@@ -156,3 +156,4 @@ A `c6619c0` dokumentációját szelektíven vettük át: a koncepciót és a ké
 
 - [Procurement input audit és readiness bizonyítékok](procurement-input-audit.md)
 - [SupplierOptionService input/output contract v0.1 és reuse map](supplier-options-contract-v0.1.md)
+- [Material Shortage Problem Case Foundation – lifecycle és evaluation](material-shortage-problem-case.md)
