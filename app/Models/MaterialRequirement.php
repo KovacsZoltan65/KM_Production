@@ -121,6 +121,12 @@ class MaterialRequirement extends Model
         return $this->hasMany(MaterialRequirementPeg::class);
     }
 
+    /** @return HasMany<ProblemCase, $this> */
+    public function problemCases(): HasMany
+    {
+        return $this->hasMany(ProblemCase::class);
+    }
+
     /**
      * @return array<string, string>
      */
