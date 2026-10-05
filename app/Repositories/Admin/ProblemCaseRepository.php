@@ -16,6 +16,16 @@ use Illuminate\Support\Facades\DB;
  */
 class ProblemCaseRepository implements ProblemCaseRepositoryInterface
 {
+    public function findForCurrentEvaluation(string $problemCaseId): ProblemCase
+    {
+        return ProblemCase::query()->with([
+            'materialRequirement.customerOrderItem' => fn ($query) => $query->withTrashed(),
+            'materialRequirement.customerOrderItem.customerOrder' => fn ($query) => $query->withTrashed(),
+            'materialRequirement.productionOrder' => fn ($query) => $query->withTrashed(),
+            'materialRequirement.bomItem',
+        ])->findOrFail($problemCaseId);
+    }
+
     public function createMaterialShortage(
         MaterialShortageDetectionSnapshot $snapshot,
         ProblemCaseEvaluationResult $initialEvaluation,

@@ -24,6 +24,7 @@ use LogicException;
  * @property ProblemCaseEvaluationResult $current_evaluation
  * @property Carbon $current_evaluated_at
  * @property array<string, mixed> $current_evaluation_evidence
+ * @property-read MaterialRequirement|null $materialRequirement
  */
 #[Fillable([
     'type', 'material_requirement_id', 'lifecycle', 'detection_snapshot',

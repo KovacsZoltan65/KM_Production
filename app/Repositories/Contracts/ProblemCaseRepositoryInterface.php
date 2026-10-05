@@ -8,6 +8,8 @@ use App\Support\Merlin\MaterialShortageDetectionSnapshot;
 
 interface ProblemCaseRepositoryInterface
 {
+    public function findForCurrentEvaluation(string $problemCaseId): ProblemCase;
+
     public function createMaterialShortage(
         MaterialShortageDetectionSnapshot $snapshot,
         ProblemCaseEvaluationResult $initialEvaluation,

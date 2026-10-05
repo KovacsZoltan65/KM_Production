@@ -1,14 +1,25 @@
 <?php
 
+use App\Enums\CustomerOrderItemStatus;
+use App\Enums\CustomerOrderStatus;
+use App\Enums\MaterialRequirementSourceValidity;
+use App\Enums\MaterialRequirementStatus;
 use App\Enums\ProblemCaseEvaluationResult;
 use App\Enums\ProblemCaseLifecycle;
 use App\Enums\ProblemCaseType;
+use App\Enums\ProductionOrderStatus;
+use App\Models\Bom;
 use App\Models\BomItem;
+use App\Models\CustomerOrderItem;
+use App\Models\Item;
 use App\Models\MaterialRequirement;
 use App\Models\ProblemCase;
 use App\Models\ProblemCaseEvaluation;
 use App\Models\ProductionOrder;
+use App\Models\StockBalance;
 use App\Repositories\Contracts\ProblemCaseRepositoryInterface;
+use App\Services\Admin\MaterialRequirementNettingService;
+use App\Services\Admin\MaterialShortageProblemCaseResolver;
 use App\Support\MaterialPlanning\MaterialRequirementNettingResult;
 use App\Support\Merlin\MaterialShortageDetectionSnapshot;
 use Carbon\CarbonImmutable;
@@ -278,3 +289,164 @@ it('round trips only the new migration without changing existing requirements', 
     $case = $repository->createMaterialShortage($snapshot, ProblemCaseEvaluationResult::Active);
     expect($case->evaluations()->count())->toBe(1);
 });
+
+/** @return array{MaterialRequirement, ProblemCase} */
+function currentShortageFixture(): array
+{
+    [$requirement, $snapshot, $repository] = problemCaseFixture();
+    $requirement->customerOrderItem->customerOrder->update(['status' => CustomerOrderStatus::Confirmed]);
+    $case = $repository->createMaterialShortage($snapshot, ProblemCaseEvaluationResult::Active);
+
+    return [$requirement, $case];
+}
+
+it('never converts an unavailable selected netting result into zero shortage', function (): void {
+    [, $case] = currentShortageFixture();
+    $netting = Mockery::mock(MaterialRequirementNettingService::class);
+    $netting->shouldReceive('calculate')->andReturn(collect());
+    app()->instance(MaterialRequirementNettingService::class, $netting);
+
+    $result = app(MaterialShortageProblemCaseResolver::class)->resolve($case->id);
+
+    expect($result->sourceValidity)->toBe(MaterialRequirementSourceValidity::Valid)
+        ->and($result->evaluation)->toBe(ProblemCaseEvaluationResult::Undetermined)
+        ->and($result->netRequirement())->toBeNull()
+        ->and($result->nettingAuthoritative())->toBeFalse()
+        ->and($result->invalidationCandidate())->toBeFalse()
+        ->and($result->reason)->toBe('selected_netting_result_unavailable');
+});
+
+it('resolves current shortage from authoritative netting without changing projection or history', function (string $stock, ProblemCaseEvaluationResult $expected, string $net): void {
+    [$requirement, $case] = currentShortageFixture();
+    $requirement->update(['missing_quantity' => '999.000']);
+    StockBalance::factory()->create(['item_id' => $requirement->required_item_id, 'quantity' => $stock]);
+    $before = $case->fresh()->getRawOriginal();
+    $history = $case->evaluations()->get()->toArray();
+
+    $result = app(MaterialShortageProblemCaseResolver::class)->resolve($case->id);
+    app(MaterialShortageProblemCaseResolver::class)->resolve($case->id);
+
+    expect($result->problemCaseId)->toBe($case->id)
+        ->and($result->materialRequirementId)->toBe($requirement->id)
+        ->and($result->sourceValidity)->toBe(MaterialRequirementSourceValidity::Valid)
+        ->and($result->evaluation)->toBe($expected)
+        ->and($result->netRequirement())->toBe($net)
+        ->and($result->nettingAuthoritative())->toBeTrue()
+        ->and($result->sourceValidityAuthoritative)->toBeTrue()
+        ->and($result->invalidationCandidate())->toBeFalse()
+        ->and($case->fresh()->getRawOriginal())->toBe($before)
+        ->and($case->evaluations()->get()->toArray())->toBe($history);
+})->with([
+    'positive current shortage' => ['4.000', ProblemCaseEvaluationResult::Active, '8.000'],
+    'fully covered current demand' => ['12.000', ProblemCaseEvaluationResult::Resolved, '0.000'],
+]);
+
+it('uses the full competing scope and excludes ineligible competing demand', function (bool $cancelled): void {
+    [$requirement, $case] = currentShortageFixture();
+    [$competitor] = currentShortageFixture();
+    $competitor->update([
+        'required_item_id' => $requirement->required_item_id,
+        'required_at' => '2026-10-09',
+    ]);
+    $competitor->bomItem->update(['item_id' => $requirement->required_item_id]);
+    if ($cancelled) {
+        $competitor->customerOrderItem->customerOrder->update(['status' => CustomerOrderStatus::Cancelled]);
+    }
+    StockBalance::factory()->create(['item_id' => $requirement->required_item_id, 'quantity' => '12.000']);
+
+    $result = app(MaterialShortageProblemCaseResolver::class)->resolve($case->id);
+
+    expect($result->evaluation)->toBe($cancelled ? ProblemCaseEvaluationResult::Resolved : ProblemCaseEvaluationResult::Active)
+        ->and($result->netRequirement())->toBe($cancelled ? '0.000' : '12.000');
+})->with([false, true]);
+
+it('returns proven invalid source separately from evaluation and preserves historical facts', function (string $invalid): void {
+    [$requirement, $case] = currentShortageFixture();
+    $item = $requirement->customerOrderItem;
+    $order = $item->customerOrder;
+    $production = $requirement->productionOrder;
+    match ($invalid) {
+        'draft with partial lineage' => [$order->update(['status' => CustomerOrderStatus::Draft]), $requirement->update(['bom_item_id' => null])],
+        'draft with contradictory lineage' => [$order->update(['status' => CustomerOrderStatus::Draft]), $requirement->bomItem->update(['item_id' => Item::factory()->create()->id])],
+        'completed CO' => $order->update(['status' => CustomerOrderStatus::Completed]),
+        'cancelled CO with executing production' => [$order->update(['status' => CustomerOrderStatus::Cancelled]), $production->update(['status' => ProductionOrderStatus::InProgress])],
+        'completed item' => $item->update(['status' => CustomerOrderItemStatus::Completed]),
+        'cancelled item' => $item->update(['status' => CustomerOrderItemStatus::Cancelled]),
+        'completed production' => $production->update(['status' => ProductionOrderStatus::Completed]),
+        'cancelled production with partial lineage' => [$production->update(['status' => ProductionOrderStatus::Cancelled]), $requirement->update(['bom_item_id' => null])],
+        'deleted requirement' => $requirement->delete(),
+        'deleted CO' => $order->delete(),
+        'deleted item' => $item->delete(),
+        'deleted production' => $production->delete(),
+        default => throw new InvalidArgumentException('Unknown source fixture.'),
+    };
+    $before = $case->fresh()->getRawOriginal();
+    $history = $case->evaluations()->get()->toArray();
+
+    $result = app(MaterialShortageProblemCaseResolver::class)->resolve($case->id);
+
+    expect($result->sourceValidity)->toBe(MaterialRequirementSourceValidity::Invalid)
+        ->and($result->sourceValidityAuthoritative)->toBeTrue()
+        ->and($result->invalidationCandidate())->toBeTrue()
+        ->and($result->evaluation)->toBeNull()
+        ->and($result->netRequirement())->toBeNull()
+        ->and($result->nettingAuthoritative())->toBeFalse()
+        ->and($result->legacyProductionLineage)->toBeFalse()
+        ->and($case->fresh()->getRawOriginal())->toBe($before)
+        ->and($case->evaluations()->get()->toArray())->toBe($history);
+})->with([
+    'draft with partial lineage', 'draft with contradictory lineage', 'completed CO',
+    'cancelled CO with executing production', 'completed item', 'cancelled item',
+    'completed production', 'cancelled production with partial lineage',
+    'deleted requirement', 'deleted CO', 'deleted item', 'deleted production',
+]);
+
+it('keeps unproven lineage undetermined instead of manufacturing a resolved result', function (string $lineage): void {
+    [$requirement, $case] = currentShortageFixture();
+    match ($lineage) {
+        'production only' => $requirement->update(['bom_item_id' => null]),
+        'BOM only' => $requirement->update(['production_order_id' => null]),
+        'contradictory item' => $requirement->bomItem->update(['item_id' => Item::factory()->create()->id]),
+        'contradictory BOM' => $requirement->bomItem->update(['bom_id' => Bom::factory()->create()->id]),
+        'contradictory customer item' => $requirement->productionOrder->update(['customer_order_item_id' => CustomerOrderItem::factory()->create()->id]),
+        default => throw new InvalidArgumentException('Unknown lineage fixture.'),
+    };
+    $before = $case->fresh()->getRawOriginal();
+
+    $result = app(MaterialShortageProblemCaseResolver::class)->resolve($case->id);
+
+    expect($result->sourceValidity)->toBe(MaterialRequirementSourceValidity::Undetermined)
+        ->and($result->sourceValidityAuthoritative)->toBeFalse()
+        ->and($result->evaluation)->toBe(ProblemCaseEvaluationResult::Undetermined)
+        ->and($result->netRequirement())->toBeNull()
+        ->and($result->nettingAuthoritative())->toBeFalse()
+        ->and($result->invalidationCandidate())->toBeFalse()
+        ->and($case->fresh()->getRawOriginal())->toBe($before)
+        ->and($case->evaluations()->count())->toBe(1);
+})->with(['production only', 'BOM only', 'contradictory item', 'contradictory BOM', 'contradictory customer item']);
+
+it('evaluates legacy absent lineage and ignores MR snapshot status', function (MaterialRequirementStatus $status, bool $legacy): void {
+    [$requirement, $case] = currentShortageFixture();
+    $requirement->update([
+        'status' => $status,
+        ...($legacy ? ['production_order_id' => null, 'bom_item_id' => null] : []),
+    ]);
+
+    $result = app(MaterialShortageProblemCaseResolver::class)->resolve($case->id);
+
+    expect($result->sourceValidity)->toBe(MaterialRequirementSourceValidity::Valid)
+        ->and($result->evaluation)->toBe(ProblemCaseEvaluationResult::Active)
+        ->and($result->netRequirement())->toBe('12.000')
+        ->and($result->nettingAuthoritative())->toBeTrue()
+        ->and($result->legacyProductionLineage)->toBe($legacy);
+})->with(MaterialRequirementStatus::cases())->with([false, true]);
+
+it('rejects current evaluation for historical case lifecycles without writes', function (ProblemCaseLifecycle $lifecycle): void {
+    [, $case] = currentShortageFixture();
+    $case->update(['lifecycle' => $lifecycle]);
+    $before = $case->fresh()->getRawOriginal();
+
+    expect(fn () => app(MaterialShortageProblemCaseResolver::class)->resolve($case->id))->toThrow(LogicException::class)
+        ->and($case->fresh()->getRawOriginal())->toBe($before)
+        ->and($case->evaluations()->count())->toBe(1);
+})->with([ProblemCaseLifecycle::Closed, ProblemCaseLifecycle::Invalidated]);
