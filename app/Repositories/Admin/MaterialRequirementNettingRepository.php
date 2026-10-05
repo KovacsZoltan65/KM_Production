@@ -15,6 +15,12 @@ use Illuminate\Support\Collection;
 
 class MaterialRequirementNettingRepository implements MaterialRequirementNettingRepositoryInterface
 {
+    public function loadDemandSources(Collection $requirements): void
+    {
+        (new \Illuminate\Database\Eloquent\Collection($requirements->all()))
+            ->load(['customerOrderItem.customerOrder', 'productionOrder', 'bomItem']);
+    }
+
     public function requirements(): Collection
     {
         return MaterialRequirement::query()

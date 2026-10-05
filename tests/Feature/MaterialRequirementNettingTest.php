@@ -1,5 +1,9 @@
 <?php
 
+use App\Enums\CustomerOrderItemStatus;
+use App\Enums\CustomerOrderStatus;
+use App\Enums\MaterialRequirementStatus;
+use App\Enums\ProductionOrderStatus;
 use App\Enums\PurchaseOrderItemStatus;
 use App\Enums\PurchaseOrderStatus;
 use App\Enums\PurchaseRequisitionStatus;
@@ -23,6 +27,102 @@ use Illuminate\Support\Facades\DB;
 
 uses(RefreshDatabase::class);
 
+it('allows every confirmed non-terminal customer lifecycle with a draft item', function (CustomerOrderStatus $status): void {
+    $item = Item::factory()->purchasedMaterial()->create();
+    $requirement = nettingRequirement($item, '5.000', '2026-08-10');
+    $requirement->customerOrderItem->update(['status' => CustomerOrderItemStatus::Draft]);
+    $requirement->customerOrderItem->customerOrder->update(['status' => $status]);
+
+    expect(nettingResults()->sole()->requirementId)->toBe($requirement->id);
+})->with([
+    CustomerOrderStatus::Confirmed, CustomerOrderStatus::MaterialPlanning,
+    CustomerOrderStatus::WaitingForMaterial, CustomerOrderStatus::ReadyForProduction,
+    CustomerOrderStatus::InProduction, CustomerOrderStatus::QualityCheck, CustomerOrderStatus::ReadyToShip,
+]);
+
+it('allows non-terminal item and production lifecycles', function (CustomerOrderItemStatus $itemStatus, ProductionOrderStatus $productionStatus): void {
+    $item = Item::factory()->purchasedMaterial()->create();
+    $requirement = nettingRequirement($item, '5.000', '2026-08-10');
+    $requirement->customerOrderItem->update(['status' => $itemStatus]);
+    $requirement->productionOrder->update(['status' => $productionStatus]);
+
+    expect(nettingResults()->sole()->requirementId)->toBe($requirement->id);
+})->with([
+    CustomerOrderItemStatus::Draft, CustomerOrderItemStatus::Planned,
+    CustomerOrderItemStatus::WaitingForMaterial, CustomerOrderItemStatus::ReadyForProduction,
+    CustomerOrderItemStatus::InProduction,
+])->with([
+    ProductionOrderStatus::Planned, ProductionOrderStatus::Released,
+    ProductionOrderStatus::InProgress, ProductionOrderStatus::WaitingForCheck,
+]);
+
+it('excludes invalid current demand before shared stock and incoming competition', function (string $invalidSource, bool $explicit): void {
+    $item = Item::factory()->purchasedMaterial()->create(['unit' => 'kg']);
+    $invalid = nettingRequirement($item, '5.000', '2026-08-09');
+    $valid = nettingRequirement($item, '5.000', '2026-08-10');
+    // Preload sources to prove the explicit path reads current parent lifecycle.
+    $invalid->load(['customerOrderItem.customerOrder', 'productionOrder', 'bomItem']);
+    $customerItem = $invalid->customerOrderItem;
+    $customerOrder = $customerItem->customerOrder;
+    $production = $invalid->productionOrder;
+
+    match ($invalidSource) {
+        'draft CO' => $customerOrder->update(['status' => CustomerOrderStatus::Draft]),
+        'completed CO' => $customerOrder->update(['status' => CustomerOrderStatus::Completed]),
+        'cancelled CO' => $customerOrder->update(['status' => CustomerOrderStatus::Cancelled]),
+        'completed item' => $customerItem->update(['status' => CustomerOrderItemStatus::Completed]),
+        'cancelled item' => $customerItem->update(['status' => CustomerOrderItemStatus::Cancelled]),
+        'completed production' => $production->update(['status' => ProductionOrderStatus::Completed]),
+        'cancelled production' => $production->update(['status' => ProductionOrderStatus::Cancelled]),
+        'deleted CO' => $customerOrder->delete(),
+        'deleted item' => $customerItem->delete(),
+        'deleted production' => $production->delete(),
+        'deleted requirement' => $invalid->delete(),
+        'production only' => $invalid->update(['bom_item_id' => null]),
+        'BOM item only' => $invalid->update(['production_order_id' => null]),
+        'contradictory customer item' => $production->update(['customer_order_item_id' => $valid->customer_order_item_id]),
+        'contradictory BOM' => $invalid->update(['bom_item_id' => $valid->bom_item_id]),
+        'contradictory required item' => $invalid->bomItem->update(['item_id' => Item::factory()->create()->id]),
+        default => throw new InvalidArgumentException('Unknown invalid demand fixture: '.$invalidSource),
+    };
+    nettingStock($item, '2.000');
+    nettingIncoming($item, '3.000', '0.000', '2026-08-09');
+
+    $results = nettingResults($explicit ? collect([$invalid, $valid]) : null);
+
+    expect($results)->toHaveCount(1)
+        ->and($results->sole()->requirementId)->toBe($valid->id)
+        ->and($results->sole()->onHandCoverage)->toBe('2.000')
+        ->and($results->sole()->incomingCoverage)->toBe('3.000')
+        ->and($results->sole()->netRequirement)->toBe('0.000');
+})->with([
+    'draft CO', 'completed CO', 'cancelled CO', 'completed item', 'cancelled item',
+    'completed production', 'cancelled production', 'deleted CO', 'deleted item',
+    'deleted production', 'deleted requirement', 'production only', 'BOM item only',
+    'contradictory customer item', 'contradictory BOM', 'contradictory required item',
+])->with(['full scope' => false, 'explicit collection' => true]);
+
+it('keeps completely absent legacy production lineage eligible', function (bool $explicit): void {
+    $item = Item::factory()->purchasedMaterial()->create();
+    $requirement = nettingRequirement($item, '5.000', '2026-08-10');
+    $requirement->update(['production_order_id' => null, 'bom_item_id' => null]);
+
+    $result = nettingResults($explicit ? collect([$requirement]) : null)->sole();
+
+    expect($result->requirementId)->toBe($requirement->id)
+        ->and($result->productionOrderId)->toBeNull()
+        ->and($result->bomItemId)->toBeNull()
+        ->and($result->netRequirement)->toBe('5.000');
+})->with([false, true]);
+
+it('does not use MaterialRequirement snapshot status as demand authority', function (MaterialRequirementStatus $status): void {
+    $item = Item::factory()->purchasedMaterial()->create();
+    $requirement = nettingRequirement($item, '5.000', '2026-08-10');
+    $requirement->update(['status' => $status]);
+
+    expect(nettingResults()->sole()->requirementId)->toBe($requirement->id);
+})->with(MaterialRequirementStatus::cases());
+
 function nettingRequirement(
     Item $item,
     string $quantity,
@@ -33,6 +133,7 @@ function nettingRequirement(
         ...($customerOrderItem === null ? [] : ['customer_order_item_id' => $customerOrderItem->id]),
         'planned_start_date' => $requiredAt,
     ]);
+    $productionOrder->customerOrderItem->customerOrder->update(['status' => CustomerOrderStatus::Confirmed]);
     $bomItem = BomItem::factory()->create([
         'bom_id' => $productionOrder->bom_id,
         'item_id' => $item->id,
@@ -370,7 +471,7 @@ it('keeps independent Item base-unit pools in one batch calculation', function (
         ->toBe(['1.000', '7.000', '0.000']);
 });
 
-it('uses a bounded four-query batch read as requirement volume grows', function (): void {
+it('uses a bounded eight-query batch read including demand sources as requirement volume grows', function (): void {
     $item = Item::factory()->purchasedMaterial()->create(['unit' => 'kg']);
 
     foreach (range(1, 20) as $day) {
@@ -387,5 +488,5 @@ it('uses a bounded four-query batch read as requirement volume grows', function 
     DB::disableQueryLog();
 
     expect($results)->toHaveCount(20)
-        ->and($queryCount)->toBe(4);
+        ->and($queryCount)->toBe(8);
 });

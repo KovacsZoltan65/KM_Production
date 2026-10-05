@@ -9,10 +9,14 @@ use Illuminate\Support\Collection;
 
 class MaterialRequirementNettingService
 {
-    public function __construct(private readonly MaterialRequirementNettingRepositoryInterface $repository) {}
+    public function __construct(
+        private readonly MaterialRequirementNettingRepositoryInterface $repository,
+        private readonly MaterialRequirementDemandEligibilityService $eligibility,
+    ) {}
 
     /**
      * Calculates requirement-level net quantities without persisting supply allocation.
+     * Explicit collections select competing current demand; ADR 0016 eligibility still applies.
      *
      * @param  Collection<int, MaterialRequirement>|null  $requirements
      * @return Collection<int, MaterialRequirementNettingResult>
@@ -20,7 +24,9 @@ class MaterialRequirementNettingService
     public function calculate(?Collection $requirements = null): Collection
     {
         $requirements ??= $this->repository->requirements();
+        $this->repository->loadDemandSources($requirements);
         $requirements = $requirements
+            ->filter(fn (MaterialRequirement $requirement): bool => $this->eligibility->isEligible($requirement))
             ->sort(function (MaterialRequirement $left, MaterialRequirement $right): int {
                 if ($left->required_item_id !== $right->required_item_id) {
                     return $left->required_item_id <=> $right->required_item_id;

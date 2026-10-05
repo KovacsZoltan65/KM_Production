@@ -10,6 +10,9 @@ interface MaterialRequirementNettingRepositoryInterface
     /** @return Collection<int, MaterialRequirement> */
     public function requirements(): Collection;
 
+    /** @param Collection<int, MaterialRequirement> $requirements */
+    public function loadDemandSources(Collection $requirements): void;
+
     /**
      * Returns free physical stock by Item in Item base unit.
      *

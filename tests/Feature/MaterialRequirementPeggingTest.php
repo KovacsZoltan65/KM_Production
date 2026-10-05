@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\CustomerOrderStatus;
 use App\Enums\PurchaseOrderItemStatus;
 use App\Enums\PurchaseOrderStatus;
 use App\Enums\StockReservationStatus;
@@ -41,6 +42,7 @@ it('creates the explicit persisted peg schema', function (): void {
 function pegRequirement(Item $item, string $quantity, ?string $requiredAt): MaterialRequirement
 {
     $order = ProductionOrder::factory()->create(['planned_start_date' => $requiredAt]);
+    $order->customerOrderItem->customerOrder->update(['status' => CustomerOrderStatus::Confirmed]);
     $bomItem = BomItem::factory()->create(['bom_id' => $order->bom_id, 'item_id' => $item->id, 'unit' => $item->unit]);
 
     return MaterialRequirement::factory()->create([
@@ -69,6 +71,23 @@ function pegIncoming(Item $item, string $ordered, string $received, ?string $dat
             : PurchaseOrderItemStatus::Ordered,
     ]);
 }
+
+it('removes stale pegs and excludes cancelled demand from the locked competing collection', function (): void {
+    $item = Item::factory()->purchasedMaterial()->create(['unit' => 'kg']);
+    $earlier = pegRequirement($item, '5.000', '2026-08-09');
+    $later = pegRequirement($item, '5.000', '2026-08-10');
+    StockBalance::factory()->create(['item_id' => $item->id, 'quantity' => '5.000']);
+    $pegging = app(MaterialRequirementPeggingService::class);
+
+    expect($pegging->recalculateForRequirement($earlier))->toHaveCount(1);
+    $earlier->customerOrderItem->customerOrder->update(['status' => CustomerOrderStatus::Cancelled]);
+
+    $pegs = $pegging->recalculateForRequirement($later);
+
+    expect($pegs)->toHaveCount(1)
+        ->and((string) $pegs->sole()->quantity)->toBe('5.000')
+        ->and(MaterialRequirementPeg::query()->where('material_requirement_id', $earlier->id)->count())->toBe(0);
+});
 
 it('persists exact stock and PO trace matching the 0009 kémcső coverage', function (): void {
     $item = Item::factory()->purchasedMaterial()->create(['unit' => 'kg']);
