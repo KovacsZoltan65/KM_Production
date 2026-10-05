@@ -4,6 +4,8 @@ Státusz: elfogadott koncepcionális döntések; nem implementált funkció. Dá
 
 A dokumentum a [Merlin baseline](README.md) első Problem Case-típusát és annak lifecycle/evaluation szemantikáját rögzíti. Nem végleges adatmodell, nem resolver- vagy toolterv. A procurement határhoz lásd a [SupplierOptionService szerződését](supplier-options-contract-v0.1.md).
 
+A demand eligibility és a case source validity részletes, közös MRP szabályát a későbbi [0016 Demand Eligibility ADR](../../../.kiro/decisions/0016-material-requirement-demand-eligibility.md) rögzíti. Ez elfogadott domain-döntés, még nem implementált policy; az alábbi koncepcionális baseline történeti repository-megállapításait nem írja át.
+
 ## Problem Case jelentése és azonossága
 
 Az első támogatott típus a **Material Shortage Problem Case**. Egy ilyen case pontosan egy konkrét `MaterialRequirement` problémáját reprezentálja.
@@ -60,13 +62,13 @@ Merlin nem találhat ki hiányzó üzleti információt, és nem helyettesíthet
 
 ## Lifecycle / evaluation viszony
 
-| Lifecycle | Evaluation | Jelentés |
-| --- | --- | --- |
-| OPEN | ACTIVE | Aktuálisan bizonyított probléma |
-| OPEN | RESOLVED | A probléma jelenleg már nem áll fenn |
-| OPEN | UNDETERMINED | Az aktuális állapot nem dönthető el megbízhatóan |
-| CLOSED | — | Lezárt, történeti Problem Case |
-| INVALIDATED | — | Az eredeti Problem Case már nem alkalmazható aktuális problémaként |
+| Lifecycle   | Evaluation   | Jelentés                                                           |
+| ----------- | ------------ | ------------------------------------------------------------------ |
+| OPEN        | ACTIVE       | Aktuálisan bizonyított probléma                                    |
+| OPEN        | RESOLVED     | A probléma jelenleg már nem áll fenn                               |
+| OPEN        | UNDETERMINED | Az aktuális állapot nem dönthető el megbízhatóan                   |
+| CLOSED      | —            | Lezárt, történeti Problem Case                                     |
+| INVALIDATED | —            | Az eredeti Problem Case már nem alkalmazható aktuális problémaként |
 
 A „—” azt jelzi, hogy a case nem kezelhető aktuális problémaként; nem előírás történeti evaluation adatok törlésére. A lifecycle transitionök részletes szabályai, az automatikus vagy manuális lezárás és az esetleges újranyitás nincsenek itt eldöntve.
 
@@ -88,11 +90,11 @@ Az authorization és a forrás lifecycle-validálása a backend felelőssége. A
 
 Három külön fogalmat kezelünk:
 
-| Fogalom | Jelentés | Megőrzési alapelv |
-| --- | --- | --- |
-| Detection Snapshot | Mit tudott a rendszer, milyen problémát, milyen üzleti adatok alapján, mekkora hiánnyal, mikor és milyen forrásból észlelt a case létrejöttekor? | Immutable |
-| Current Evaluation | Mi a probléma állapota most, az aktuális authoritative adatok alapján? | Újraszámított |
-| Evaluation History | Mely történetileg jelentős evaluationök bizonyítják a case alakulását? | Append-only |
+| Fogalom            | Jelentés                                                                                                                                         | Megőrzési alapelv |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------- |
+| Detection Snapshot | Mit tudott a rendszer, milyen problémát, milyen üzleti adatok alapján, mekkora hiánnyal, mikor és milyen forrásból észlelt a case létrejöttekor? | Immutable         |
+| Current Evaluation | Mi a probléma állapota most, az aktuális authoritative adatok alapján?                                                                           | Újraszámított     |
+| Evaluation History | Mely történetileg jelentős evaluationök bizonyítják a case alakulását?                                                                           | Append-only       |
 
 > A detection snapshot immutable. Az aktuális állapot újraszámított. Az evaluation history append-only.
 
