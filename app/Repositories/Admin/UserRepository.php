@@ -10,6 +10,11 @@ use Illuminate\Support\Facades\Hash;
 
 class UserRepository extends AbstractAdminRepository implements UserRepositoryInterface
 {
+    public function findForSupplierOptionsTool(int $userId): ?User
+    {
+        return User::query()->with(['permissions', 'roles.permissions'])->find($userId);
+    }
+
     protected string $modelClass = User::class;
 
     protected array $searchable = ['name', 'email'];

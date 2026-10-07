@@ -8,6 +8,7 @@ use App\Models\ItemSupplier;
 use App\Models\Supplier;
 use App\Repositories\Contracts\ItemRepositoryInterface;
 use App\Repositories\Contracts\ItemSupplierRepositoryInterface;
+use App\Services\Merlin\MaterialShortageSupplierOptionsRead;
 use App\Support\Procurement\ProcurementDecimal;
 use App\Support\Procurement\ProcurementInputValidation;
 use App\Support\Procurement\ProcurementRequirementInput;
@@ -38,48 +39,57 @@ final class SupplierOptionService
 
     public function evaluate(SupplierOptionQuery $query): SupplierOptionResult
     {
-        return $this->snapshot->evaluate(function () use ($query): SupplierOptionResult {
-            $input = $query->requirement;
-            $item = $this->items->findForSupplierOptions($input->itemId);
-            if ($item === null || $item->trashed() || $item->id !== $input->itemId
-                || $item->item_type !== ItemType::PurchasedMaterial) {
-                ProcurementInputValidation::fail('item_id');
-            }
-            if ($item->unit !== $input->unit) {
-                ProcurementInputValidation::fail('unit');
-            }
+        return $this->snapshot->evaluate(fn (): SupplierOptionResult => $this->evaluateQuery($query));
+    }
 
-            $known = $this->sources->knownSourcesForItem($item->id);
-            $eligible = $this->sources->eligibleForItemsAt([$item->id], Carbon::parse($input->evaluationDate));
-            $membership = array_fill_keys($eligible->pluck('id')->all(), true);
-            $knownIds = [];
-            $options = [];
-            foreach ($known as $source) {
-                if (isset($knownIds[$source->id])) {
-                    throw new SupplierOptionEvaluationException('SUPPLIER_OPTION_DUPLICATE_SOURCE');
-                }
-                $knownIds[$source->id] = true;
-                $this->assertSourceIntegrity($source, $item);
-                $options[] = $this->evaluateSource($input, $item, $source, isset($membership[$source->id]));
-            }
-            if (array_diff_key($membership, $knownIds) !== []) {
-                throw new SupplierOptionEvaluationException('SUPPLIER_OPTION_MEMBERSHIP_MISMATCH');
-            }
+    /** @internal Only the concrete, active material-shortage composition can supply this input. */
+    public function evaluateMaterialShortageObservation(MaterialShortageSupplierOptionsRead $observation): SupplierOptionResult
+    {
+        return $this->evaluateQuery($observation->supplierQuery());
+    }
 
-            return new SupplierOptionResult(
-                item: [
-                    'id' => $item->id,
-                    'item_number' => $item->item_number,
-                    'name' => $item->name,
-                    'item_type' => $item->item_type->value,
-                    'unit' => $item->unit,
-                    'is_active' => $item->is_active,
-                ],
-                requirement: $input,
-                evaluatedAt: now()->toIso8601String(),
-                options: $options,
-            );
-        });
+    private function evaluateQuery(SupplierOptionQuery $query): SupplierOptionResult
+    {
+        $input = $query->requirement;
+        $item = $this->items->findForSupplierOptions($input->itemId);
+        if ($item === null || $item->trashed() || $item->id !== $input->itemId
+            || $item->item_type !== ItemType::PurchasedMaterial) {
+            ProcurementInputValidation::fail('item_id');
+        }
+        if ($item->unit !== $input->unit) {
+            ProcurementInputValidation::fail('unit');
+        }
+
+        $known = $this->sources->knownSourcesForItem($item->id);
+        $eligible = $this->sources->eligibleForItemsAt([$item->id], Carbon::parse($input->evaluationDate));
+        $membership = array_fill_keys($eligible->pluck('id')->all(), true);
+        $knownIds = [];
+        $options = [];
+        foreach ($known as $source) {
+            if (isset($knownIds[$source->id])) {
+                throw new SupplierOptionEvaluationException('SUPPLIER_OPTION_DUPLICATE_SOURCE');
+            }
+            $knownIds[$source->id] = true;
+            $this->assertSourceIntegrity($source, $item);
+            $options[] = $this->evaluateSource($input, $item, $source, isset($membership[$source->id]));
+        }
+        if (array_diff_key($membership, $knownIds) !== []) {
+            throw new SupplierOptionEvaluationException('SUPPLIER_OPTION_MEMBERSHIP_MISMATCH');
+        }
+
+        return new SupplierOptionResult(
+            item: [
+                'id' => $item->id,
+                'item_number' => $item->item_number,
+                'name' => $item->name,
+                'item_type' => $item->item_type->value,
+                'unit' => $item->unit,
+                'is_active' => $item->is_active,
+            ],
+            requirement: $input,
+            evaluatedAt: now()->toIso8601String(),
+            options: $options,
+        );
     }
 
     private function assertSourceIntegrity(ItemSupplier $source, Item $item): void
