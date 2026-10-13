@@ -32,7 +32,8 @@ Controller → Service → Repository → Model. Nincs direkt model/Python datab
 | [AI telemetry](../../../app/Services/AI/AiProcessingTelemetryService.php)                                                                       | Duration/status és minimal summary minták                                           | Nem MerlinRun; numeric polymorphic link nem kész UUID case kapcsolat             |
 | [Audit service](../../../app/Services/AuditLogService.php), [queue config](../../../config/queue.php)                                           | Activity events és queue infrastruktúra                                             | Durable run/call evidence, ownership, cancellation és run recovery               |
 
-MerlinRun, investigation job, model loop és generic registry nincs implementálva.
+Slice 1A a MerlinRun sémát/modelt és a külön admission audit táblát implementálja.
+Trusted start, investigation job, model loop és generic registry nincs implementálva.
 Az [existing tool slice](supplier-options-tool-slice-1.md) szerződése megmarad.
 Egy explicit backend mapping elegendő; arbitrary class/method dispatch tilos.
 
@@ -243,28 +244,29 @@ workflow kell; a tool result/advice nem jogosít PR/PO creationre vagy business 
 ### 7.1. ACCEPTED — adatbázis-invariánsok
 
 A run az indulási állapot visszakereshető, actorhoz és case-hez kötött története.
-Az alábbi logikai mezőszerződés kötelező; az oszlopnevek, típusok és Laravel
-migrációs szintaxis pontosítása OPEN, kivéve az elfogadott `active_marker` és
-`problem_case_id` nevet és az alábbi indexet.
+Az alábbi logikai mezőszerződés kötelező. Az eredetileg OPEN oszlopneveket,
+típusokat és migrációs megoldást Slice 1A a 7.7. részben konkretizálja;
+ez nem fogad el további admission- vagy runtime-viselkedést.
 
-| Adat                 | Kötelező szerződés                                                                                                                                                                                    |
-| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Run identity         | UUID primary key; új vizsgálat új UUID                                                                                                                                                                |
-| Case binding         | Nem nullable `problem_case_id` UUID FK, létrehozás után változatlan                                                                                                                                   |
-| Starting evaluation  | Nem nullable FK/reference a `problem_case_evaluations.id` integer rekordra; ugyanahhoz a case-hez tartozzon, változatlan                                                                              |
-| Live initiator       | Nullable `users.id` FK; törléskor NULL-lá válhat                                                                                                                                                      |
-| Historical initiator | Nem nullable, immutable eredeti actor ID; audit és idempotencia minimuma, nem authorization                                                                                                           |
-| Lifecycle            | Nem nullable status: `pending`, `running`, `completed`, `failed`, `cancelled`; DB-szintű értékvalidáció; a nagybetűs lifecycle-nevek ezek fogalmi megfelelői                                          |
-| Stop reason          | Statustól külön mező; aktív runnál nincs terminális reason; terminális runnál kötelező, runtime mapping részben PROPOSED                                                                              |
-| Timestamps           | Creation kötelező; actual `started_at` nullable; terminal completion minden terminális állapotnál kötelező; cancellation request és cancellation completion időpontja elkülöníthető, nem actual start |
-| Configuration/result | Versioned, validált és méretkorlátos backend config/limits snapshot és structured result vagy védett reference; PENDING-nél még nincs final result; pontos séma és byte-limit OPEN                    |
-| Request identity     | Kliens idempotency UUID, canonical request identity és fingerprint, explicit kanonizálási/fingerprint verzióval; nem prompt vagy supplier payload                                                     |
+| Adat                 | Kötelező szerződés                                                                                                                                                                                     |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Run identity         | UUID primary key; új vizsgálat új UUID                                                                                                                                                                 |
+| Case binding         | Nem nullable `problem_case_id` UUID FK, létrehozás után változatlan                                                                                                                                    |
+| Starting evaluation  | Nem nullable FK/reference a `problem_case_evaluations.id` integer rekordra; ugyanahhoz a case-hez tartozzon, változatlan                                                                               |
+| Live initiator       | Nullable `users.id` FK; törléskor NULL-lá válhat                                                                                                                                                       |
+| Historical initiator | Nem nullable, immutable eredeti actor ID; audit és idempotencia minimuma, nem authorization                                                                                                            |
+| Lifecycle            | Nem nullable status: `pending`, `running`, `completed`, `failed`, `cancelled`; DB-szintű értékvalidáció; a nagybetűs lifecycle-nevek ezek fogalmi megfelelői                                           |
+| Stop reason          | Statustól külön mező; aktív runnál nincs terminális reason; terminális runnál kötelező, runtime mapping részben PROPOSED                                                                               |
+| Timestamps           | Creation kötelező; actual `started_at` nullable; terminal completion minden terminális állapotnál kötelező; cancellation request és cancellation completion időpontja elkülöníthető, nem actual start  |
+| Configuration/result | Versioned, validált és méretkorlátos backend config/limits snapshot és structured result vagy védett reference; PENDING-nél még nincs final result; storage limit a 7.7. részben, semantic schema OPEN |
+| Request identity     | Kliens idempotency UUID, canonical request identity és fingerprint, explicit kanonizálási/fingerprint verzióval; nem prompt vagy supplier payload                                                      |
 
 Aktív runnál a terminal completion timestamp NULL; actual start előtt
 `started_at` NULL. Cancellation request időpontja nullable, és nem jelenti
 önmagában a lezárást. CANCELLED állapotnál cancellation completion és terminal
-completion kötelező, azonos lezárási eseményt jelölnek. A pontos mezőnevek és
-DB/service transition enforcement OPEN; a timestamp-invariáns kötelező.
+completion kötelező, azonos lezárási eseményt jelölnek.
+Slice 1A a DB timestamp checkeket implementálja; a service transition enforcement
+OPEN, a timestamp-invariáns kötelező.
 
 Az egy aktív run szabályt nem helyettesítheti csak alkalmazásszintű előzetes
 lekérdezés. Elfogadott adatbázis-mechanizmus:
@@ -292,12 +294,11 @@ de ez nem bizonyítja új migráció vagy meglévő táblák tényleges motorjá
 
 A [history migráció](../../../database/migrations/2026_10_03_000001_create_problem_case_foundation.php)
 csak a history→case FK-t és `(problem_case_id, evaluated_at)` nem unique indexet
-tartalmazza. A run→history azonos-case integritás kötelező. PROPOSED megoldás a
+tartalmazza. A run→history azonos-case integritás kötelező. Eredetileg PROPOSED megoldás a
 parent `(problem_case_id, id)` composite unique index és a run megfelelő composite
-FK-ja; pontos FK/parent index, típus- és sorrendillesztés, delete/update action és
-Laravel syntax OPEN, mindkét driveren bizonyítandó. Run cleanup nem mutathat
-szülő üzleti history törlése felé. Nem állítunk igazolt migrációs portabilityt
-vagy konkurens működést.
+FK-ja. Slice 1A ezt a megoldást implementálja és célzottan teszteli a két
+driveren; részletei a 7.7. részben. Run cleanup nem mutathat szülő üzleti history
+törlése felé. A migration/index bizonyíték nem teljes admission konkurenciabizonyíték.
 
 ### 7.2. ACCEPTED — idempotencia és hozzáférés
 
@@ -340,7 +341,8 @@ User törlése nem törölheti kaszkáddal a megtartandó runt és idempotenciai
 Hiányzó live actor nem olvashat és nem indíthat/folytathat executiont; történeti
 ID alapján nem rekonstruálható authorization. Név/email vagy permission snapshot
 nem szükséges. Historical ID személyes adatként minimalizálandó, audit/idempotencia
-célú jogszerű megőrzéssel; pontos referential action és törlési folyamat OPEN.
+célú jogszerű megőrzéssel. Slice 1A referential actionje SET NULL;
+a teljes lawful törlési folyamat továbbra OPEN.
 
 ### 7.3. ACCEPTED — service-owned admission és korlátozott konzisztencia
 
@@ -434,8 +436,8 @@ bizonyíték: disabled/buffered konfiguráció és külön connection ezt gyeng�
 A meglévő numeric polymorphic activity subject nem helyettesít UUID run/case FK-t.
 Ha a meglévő út nem bizonyíthatóan alkalmas, kötelező minimális dedikált
 admission event persistence ugyanazon connectionön, runhoz kötve, a fenti
-mezőkkel, disabled/buffered application logtól függetlenül. PROPOSED külön
-run-owned event tábla; pontos tábla/rekord, FK és schema OPEN. Az opcionális
+mezőkkel, disabled/buffered application logtól függetlenül. A korábban PROPOSED
+run-owned tábla Slice 1A-ban implementált; schema/FK a 7.7. részben, writer OPEN. Az opcionális
 activity log csak kiegészítés. A shared log creation-alapú 365 napos cleanupja
 nem törölheti idő előtt a run terminal completionhez kötött required evidence-ét.
 Rejected attempt naplózása külön policy; rollbackolt admissionről nem írható
@@ -452,20 +454,23 @@ pending deadline, recovery implementation, stop reason pontos neve és időért�
 OPEN, az első persistence/start szeleten kívül. A 180 másodperc execution limit
 nem pending deadline vagy önmagában worker-halál bizonyíték.
 
-### 7.5. OPEN — implementációs részletek
+### 7.5. Implementációs részletek — feloldott és OPEN határok
 
-| Nyitott részlet               | Kötelező határ és feloldás                                                                                                                                       |
-| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Migration syntax              | Generated STORED column, DB status CHECK/értékvalidáció, unique index, explicit InnoDB, SQLite/MySQL kompatibilis DDL; valódi migration/rollback teszt szükséges |
-| History és egyéb FK           | Same-case history kötés, parent composite unique és composite FK pontos megoldása; delete/update action és típusillesztés; üzleti parent védelem                 |
-| Canonical request/fingerprint | Engedélyezett mezők, UUID normalization, determinisztikus serialization, hash és version upgrade; identity unique driveren azonos jelentéssel                    |
-| Durable audit                 | Pontos dedicated record/table vagy bizonyított existing path, connection és retention; kötelező audit nem opcionális                                             |
-| Transaction composition       | Ownership ellenőrzés, fresh auth current reads/domain snapshot sorrend, reconnect policy és SQLite IMMEDIATE integráció/busy kezelés                             |
-| Constraint classification     | Unique identity/active conflict elkülönítése FK/status/egyéb integrity hibától, rollback utáni authorized lookup                                                 |
-| User deletion                 | Nullable live FK NULL-ra állítása, historical ID típusa/immutability és race/deletion referential folyamat; adatminimalizálás                                    |
-| Terminal enforcement          | Atomic transitions, kötelező terminal timestamp/reason, immutable binding/result enforcement minden írási útvonalon                                              |
-| Cleanup/legal hold            | Terminal-alapú 365 nap, run-owned dependency sorrend és idempotency törlés, backup/reference handling; operatív lawful hold kezelés                              |
-| Worker/recovery               | Claim/ownership/lease/fencing, queue deadline, dispatch failure és recovery bizonyíték, audit, időértékek; későbbi szelet                                        |
+Slice 1A technikai feloldásai a 7.7. részben ellenőrizhetők; az alábbiak a
+fennmaradó szolgáltatási és üzemeltetési részleteket is elkülönítik.
+
+| Nyitott részlet               | Kötelező határ és feloldás                                                                                                                    |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| Migration syntax              | Slice 1A DDL és célzott kétmotoros round-trip implementált; deployment DDL-lock kezelése OPEN                                                 |
+| History és egyéb FK           | Slice 1A parent composite unique, same-case composite FK és RESTRICT implementált; üzleti parent védelem tesztelt                             |
+| Canonical request/fingerprint | Engedélyezett mezők, UUID normalization, determinisztikus serialization, hash és version upgrade; identity unique driveren azonos jelentéssel |
+| Durable audit                 | Slice 1A dedicated schema implementált; mandatory same-transaction writer, sanitization és retention workflow OPEN                            |
+| Transaction composition       | Ownership ellenőrzés, fresh auth current reads/domain snapshot sorrend, reconnect policy és SQLite IMMEDIATE integráció/busy kezelés          |
+| Constraint classification     | Unique identity/active conflict elkülönítése FK/status/egyéb integrity hibától, rollback utáni authorized lookup                              |
+| User deletion                 | Slice 1A nullable live FK SET NULL, historical bigint és model immutability implementált; lawful deletion és authorization race kezelés OPEN  |
+| Terminal enforcement          | Atomic transitions, kötelező terminal timestamp/reason, immutable binding/result enforcement minden írási útvonalon                           |
+| Cleanup/legal hold            | Terminal-alapú 365 nap, run-owned dependency sorrend és idempotency törlés, backup/reference handling; operatív lawful hold kezelés           |
+| Worker/recovery               | Claim/ownership/lease/fencing, queue deadline, dispatch failure és recovery bizonyíték, audit, időértékek; későbbi szelet                     |
 
 ### 7.6. PROPOSED — későbbi runtime döntések
 
@@ -509,6 +514,93 @@ Provider hívás és existing tool execution
 nem lehet nyitott caller-owned transactionben; a tool ezt jelenleg elutasítja.
 Queue dispatch explicit after-commit legyen; existing `after_commit: false`
 nem ad garanciát. Worker timeout és reservation interval összehangolandó.
+
+### 7.7. Implementált Slice 1A — database foundation
+
+**Implementációs baseline:** `feature/merlin-candidate` /
+`a543b375d043dd074735db21fc4192c468cc8c5b`, tiszta kiinduló worktree.
+Ez az első persistence/start szelet adatbázis-alapja; nem tartalmaz indítást,
+authorization szolgáltatást, audit writert, worker transitiont vagy providerhívást.
+
+- [Migráció](../../../database/migrations/2026_10_13_000001_create_merlin_run_foundation.php):
+  `merlin_runs` UUID PK; nem nullable case FK; `initiating_user_id` nullable
+  unsigned bigint FK `SET NULL` törléssel; immutable historical actorhoz szánt
+  `historical_actor_id`, amely nem user FK és nem authority. Nem NULL live actor
+  ID-jának egyezését a historical ID-val model creation guard védi; a trusted
+  actor bindinget a későbbi admission service-nek is ellenőriznie kell.
+- A history parent új `(problem_case_id, id)` unique indexe és a run
+  `(problem_case_id, starting_evaluation_id)` composite FK-ja azonos-case
+  integrityt biztosít. Case/history delete és update RESTRICT; run törlése nem
+  töröl üzleti historyt. A parent rekordok és algoritmus változatlanok.
+- A STORED `active_marker`, `merlin_runs_active_unique` és
+  `merlin_runs_idempotency_unique` a 7.1–7.2. invariánsokat DB-szinten védi.
+  Case-sensitive status CHECK az öt lowercase értéket engedi, casttól függetlenül.
+- `created_at`, `updated_at`, `started_at`, `completed_at`,
+  `cancellation_requested_at`, `cancelled_at` külön mezők. CHECK védi az
+  active/terminal completion és stop reason összhangját, PENDING start hiányát,
+  RUNNING/COMPLETED start meglétét és CANCELLED completion egyezését.
+  Stop reason szabad, legfeljebb 100 karakteres code; végleges runtime mapping OPEN.
+- `canonical_request` pontos JSON text, `request_schema_version`,
+  `request_fingerprint` 64 karakteres tároló és `fingerprint_version`;
+  `configuration`/`result` JSON text a hozzájuk tartozó schema versionnel.
+  A három JSON text maximum **65 535 byte** mezőnként, UTF-8 byteban ellenőrizve.
+  Ez persistence méretkorlát, nem provider output- vagy költségkeret.
+  Request/config version pozitív; nullable result és version együtt létezik,
+  result csak terminal runhoz tárolható. Kanonizálási/hash algoritmus és a teljes
+  config/advisory schema validation a későbbi szolgáltatás feladata, továbbra OPEN.
+- A portable CHECK API hiánya miatt a run CREATE explicit DDL-t használ,
+  izolált MySQL/SQLite típus-, collation- és byte-length expressionnel.
+  MySQL explicit InnoDB; parent engine inkompatibilitásra nincs FK-gyengítés.
+- `merlin_run_admission_audits` külön InnoDB run-owned tábla, `run_id` PK-val.
+  Mezői: case, historical actor és starting evaluation ID, event type,
+  schema version, event timestamp, sanitizált outcome, correlation UUID.
+  Composite FK a runhoz megakadályozza az eltérő provenance-t. Csak run törléskor
+  cascade; nem függ activity log enabled/buffered vagy cleanup beállításaitól.
+  Az audit fixture teszt kizárólag constraint-teszt, nem sikeres admission szimuláció.
+  A kötelező írás és history/run/audit atomic commit a következő szelet feladata;
+  a séma önmagában nem garantálja, hogy minden runhoz már létrejött audit.
+- [MerlinRun modell](../../../app/Models/MerlinRun.php) és
+  [status enum](../../../app/Enums/MerlinRunStatus.php): UUID-generálás,
+  typed status, JSON/integer/datetime castok, case/user/start-evaluation kapcsolatok.
+  Modell update guard védi admission identity/config és terminal outcome
+  immutabilityt; a user FK `SET NULL` database actionje továbbra működik.
+  Bulk/raw SQL megkerüli az Eloquent guardot. A
+  [MySQL CHECK/FK korlát](https://dev.mysql.com/doc/refman/8.4/en/create-table-check-constraints.html)
+  miatt a SET NULL FK oszlopára nem kerül CHECK; a live/historical actor egyezés
+  model/service határ. Transition topology, concurrency-safe
+  terminalization, fresh authorization, payload semantic validation és lawful
+  retention deletion service-owned határ; ezek még nem implementáltak.
+
+A [persistence tesztek](../../../tests/Feature/MerlinRunPersistenceTest.php)
+és [migration/contending MySQL tesztek](../../../tests/Feature/MerlinRunMigrationTest.php)
+valódi constraint-eket használnak. SQLite kompatibilitás és migration rollback
+külön bizonyíték; a processz-ütközésteszt kizárólag MySQL-en fut. Az utóbbi
+független PDO-processzel lock-waitet, majd commit után active/idempotency unique
+elutasítást ellenőriz, nem a későbbi resolver/admission transaction sorrendjét.
+MySQL-tesztek kizárólag ellenőrzött `km_production_testing` DB-n, `km_testing`
+fiókkal, a projekt guardján keresztül futnak; development/production DB nem cél.
+
+Deploy: a meglévő historyn supporting unique index készül, ezért DDL-lock és
+deployment-sorrend vizsgálandó. Down előbb auditot, majd run táblát és végül
+supporting indexet töröl; run/audit adatvesztő rollback, üzleti history megmarad.
+Nincs cleanup job, legal hold, worker lease, HTTP/read endpoint vagy új permission.
+
+Slice 1A célzott verification, Windows/PHP 8.4.15:
+
+```text
+php scripts/backend-test-environment.php sqlite test tests/Feature/MerlinRunPersistenceTest.php tests/Feature/MerlinRunMigrationTest.php tests/Feature/ProblemCaseFoundationTest.php --compact --stop-on-failure
+SQLite 3.49.2: exit 0; 93 passed, 422 assertions; 1 MySQL-only test skipped.
+
+TEST_MYSQL_PORT=3306 (PowerShell environment override)
+php scripts/backend-test-environment.php mysql test tests/Feature/MerlinRunPersistenceTest.php tests/Feature/MerlinRunMigrationTest.php --compact --stop-on-failure
+MySQL 8.4.7: exit 0; 41 passed, 101 assertions; migration rollback és processz-ütközés is.
+```
+
+A MySQL cél előzetesen ellenőrzött: loopback `127.0.0.1:3306`,
+`km_production_testing`, `km_testing@localhost`; grant kizárólag a dedikált
+tesztadatbázisra, sikeres projekt testing guard. A célzott Pint és PHPStan
+az öt új PHP-fájlon sikeres. Teljes quality gate és deployment migration nem
+futott: a feladat fókuszált persistence slice, nem release-ellenőrzés.
 
 ## 8. Implementációs szeletek
 
@@ -584,7 +676,7 @@ A [Problem Case foundation](problem-case-foundation-slice-1.md) és
 [resolver slice](material-shortage-resolver-slice-2.md) immutable detection,
 append-only history és read-only evaluation határa változatlan. Az induló
 evaluation megőrzésének korábbi követelménye megmarad; admission atomicity és
-same-case history linkage ACCEPTED, pontos FK implementation OPEN.
+same-case history linkage ACCEPTED, pontos FK implementation Slice 1A-ban tesztelt.
 A korábban nyitott authorization mapping V1 részét ADR 0017 oldja fel.
 
 A 3. koncepciómentés helyreállítási kontextus, nem normatív source of truth;
@@ -606,7 +698,8 @@ A baseline generic registry koncepciója nem kötelező V1 implementáció: a je
 single-tool scope nem igényel registry frameworköt. Nincs megállapított domain
 ellentmondás, új case transition vagy procurement business-rule változás.
 
-Ez a feladat documentation-only. Ellenőrzés: relatív linkek, terminology,
-ACCEPTED/PROPOSED/OPEN besorolás, célzott Prettier, `git diff --check`,
-`git status --short`, `git diff --stat`. Alkalmazásteszt, migration és full quality
-gate nem fut e specifikációs feladatban; runtime enforcement nincs igazolva.
+A szerződés eredeti véglegesítése documentation-only volt. Slice 1A már célzott
+schema/model implementáció: SQLite/MySQL persistence, migration round-trip és
+valós MySQL processz-ütközés teszt, Pint, célzott PHPStan, Prettier, relatív
+linkek és Git whitespace/status ellenőrzés tartozik hozzá. Teljes quality gate
+nem futott; trusted admission/runtime enforcement még nincs implementálva.

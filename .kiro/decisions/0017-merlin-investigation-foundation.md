@@ -4,14 +4,17 @@
 - **Dátum:** 2026-10-08
 - **Persistence/start szerződés véglegesítése:** 2026-10-13; `feature/merlin-candidate`, `cf589ac0817cd58b1d26b1267c6e72b8380ff627`, tiszta kiinduló worktree
 - **Ellenőrzött baseline:** `feature/merlin-candidate`, `45544b19017d1f31564cb3e66c5bc3f74d4071b8`, tiszta worktree
-- **Hatókör:** specifikáció; nincs runtime-, adatbázis-, permission- vagy alkalmazáskód-változás
+- **Hatókör:** V1 architekturális szerződés; Slice 1A séma/model implementációs határa a részletes specifikációban
 - **Részletes szerződés:** [Investigation Foundation V1](../../docs/specifications/merlin/investigation-foundation-v1.md)
 
 ## Kontextus
 
 A Problem Case persistence, a read-only current resolver és a
-`get_supplier_options` backend tool már implementált. MerlinRun, vizsgálati job,
+`get_supplier_options` backend tool már implementált. Vizsgálati job,
 model tool-calling ciklus és vizsgálati cancellation nincs implementálva.
+A Slice 1A már MerlinRun sémát/modelt és külön admission audit táblát ad;
+ez önmagában nem trusted start vagy végrehajtási authority. Az implementált
+DB-határt és bizonyítékait a részletes specifikáció 7.7. része rögzíti.
 A korábbi [Problem Case specifikáció](../../docs/specifications/merlin/material-shortage-problem-case.md)
 nyitott authorization mappingjét ez a döntés V1-re konkretizálja.
 
@@ -138,18 +141,21 @@ rögzíti a mezőinvariánsokat, sorrendet, hibakezelést és tesztkövetelmény
 
 A kötelező audit nem függhet opcionális vagy pufferelt alkalmazásnaplótól.
 Ha a meglévő infrastruktúra nem igazolja az azonos tranzakcióban történő tartós
-írást, minimális dedikált persistence szükséges. Pontos sémája OPEN.
-E döntések tervezési szerződések; migrációs portability és konkurens admission
-nincs végrehajtással igazolva.
+írást, minimális dedikált persistence szükséges. Slice 1A külön audit táblát
+implementál; a kötelező auditírás és admission atomicity a következő szelet feladata.
+E döntések tervezési szerződések. Slice 1A célzott SQLite/MySQL migration,
+constraint és MySQL index-ütközéstesztjei a sémát igazolják; a teljes trusted
+admission tranzakció és annak konkurens viselkedése még nincs implementálva.
 
 ## PROPOSED és OPEN — további technikai döntések
 
 PROPOSED marad a runtime revocation/case-change/limit outcome mapping,
 tool-audit correlation, finalization-time recheck és counter reservation.
 A belső admission outcome-nevek PROPOSED; API mapping nincs elfogadva.
-OPEN a pontos migráció/constraint/FK szintaxis, kanonizálás és fingerprint
-verziózás, durable auditrekord, SQLite transaction ownership/IMMEDIATE
-integráció, constraint-hiba osztályozás, user deletion referential megoldás,
+Slice 1A a migráció/constraint/FK megoldást, durable audit sémát és user FK
+`SET NULL` viselkedést konkretizálja a specifikáció szerint.
+OPEN a kanonizálás és fingerprint verziózás, audit writer, SQLite transaction
+ownership/IMMEDIATE integráció, constraint-hiba osztályozás, lawful actor deletion,
 terminal transition enforcement és retention cleanup/legal hold.
 Worker claim/lease, queue deadline, recovery implementation és időértékek a
 későbbi worker-szelethez tartoznak. Provider és provider-specifikus
