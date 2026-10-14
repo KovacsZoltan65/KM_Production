@@ -15,15 +15,29 @@ use Illuminate\Support\Collection;
 
 class MaterialRequirementNettingRepository implements MaterialRequirementNettingRepositoryInterface
 {
+    private ?string $connectionName = null;
+
+    public function __construct(?string $connectionName = null)
+    {
+        $this->connectionName = $connectionName;
+    }
+
     public function loadDemandSources(Collection $requirements): void
     {
+        if ($this->connectionName !== null) {
+            foreach ($requirements as $requirement) {
+                if ($requirement->getConnectionName() !== $this->connectionName) {
+                    throw new \LogicException('Admission demand sources must use the owned connection.');
+                }
+            }
+        }
         (new \Illuminate\Database\Eloquent\Collection($requirements->all()))
             ->load(['customerOrderItem.customerOrder', 'productionOrder', 'bomItem']);
     }
 
     public function requirements(): Collection
     {
-        return MaterialRequirement::query()
+        return MaterialRequirement::on($this->connectionName)
             ->orderBy('required_item_id')
             ->orderByRaw('CASE WHEN required_at IS NULL THEN 1 ELSE 0 END')
             ->orderBy('required_at')
@@ -47,14 +61,14 @@ class MaterialRequirementNettingRepository implements MaterialRequirementNetting
             return [];
         }
 
-        $balances = StockBalance::query()
+        $balances = StockBalance::on($this->connectionName)
             ->whereIn('item_id', $itemIds)
             ->where('quantity', '>', 0)
             ->orderBy('item_id')
             ->orderBy('id')
             ->get(['id', 'item_id', 'quantity']);
 
-        $reserved = StockReservation::query()
+        $reserved = StockReservation::on($this->connectionName)
             ->whereIn('item_id', $itemIds)
             ->where('status', StockReservationStatus::Active->value)
             ->where('reserved_quantity', '>', 0)
@@ -88,7 +102,7 @@ class MaterialRequirementNettingRepository implements MaterialRequirementNetting
             return [];
         }
 
-        return PurchaseOrderItem::query()
+        return PurchaseOrderItem::on($this->connectionName)
             ->join('purchase_orders', 'purchase_orders.id', '=', 'purchase_order_items.purchase_order_id')
             ->join('items', 'items.id', '=', 'purchase_order_items.item_id')
             ->whereIn('purchase_order_items.item_id', $itemIds)

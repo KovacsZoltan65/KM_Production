@@ -15,6 +15,15 @@ class UserRepository extends AbstractAdminRepository implements UserRepositoryIn
         return User::query()->with(['permissions', 'roles.permissions'])->find($userId);
     }
 
+    public function findForMerlinAdmission(int $userId, string $connectionName): ?User
+    {
+        return User::on($connectionName)->sharedLock()->with([
+            'permissions' => fn ($query) => $query->sharedLock(),
+            'roles' => fn ($query) => $query->sharedLock(),
+            'roles.permissions' => fn ($query) => $query->sharedLock(),
+        ])->find($userId);
+    }
+
     protected string $modelClass = User::class;
 
     protected array $searchable = ['name', 'email'];

@@ -16,9 +16,22 @@ use Illuminate\Support\Facades\DB;
  */
 class ProblemCaseRepository implements ProblemCaseRepositoryInterface
 {
+    private ?string $connectionName = null;
+
+    public function __construct(?string $connectionName = null)
+    {
+        $this->connectionName = $connectionName;
+    }
+
+    /** Primary row only; no eager loading may establish a snapshot before this lock. */
+    public function lockForAdmission(string $problemCaseId): ProblemCase
+    {
+        return ProblemCase::on($this->connectionName)->whereKey($problemCaseId)->lockForUpdate()->firstOrFail();
+    }
+
     public function findForCurrentEvaluation(string $problemCaseId): ProblemCase
     {
-        return ProblemCase::query()->with([
+        return ProblemCase::on($this->connectionName)->with([
             'materialRequirement.customerOrderItem' => fn ($query) => $query->withTrashed(),
             'materialRequirement.customerOrderItem.customerOrder' => fn ($query) => $query->withTrashed(),
             'materialRequirement.productionOrder' => fn ($query) => $query->withTrashed(),
@@ -31,10 +44,10 @@ class ProblemCaseRepository implements ProblemCaseRepositoryInterface
         ProblemCaseEvaluationResult $initialEvaluation,
     ): ProblemCase {
         // This transaction is a single aggregate persistence operation, not a domain workflow.
-        return DB::transaction(function () use ($snapshot, $initialEvaluation): ProblemCase {
+        return DB::connection($this->connectionName)->transaction(function () use ($snapshot, $initialEvaluation): ProblemCase {
             $evaluatedAt = $snapshot->detectedAt->utc();
 
-            $case = ProblemCase::query()->create([
+            $case = ProblemCase::on($this->connectionName)->create([
                 'type' => ProblemCaseType::MaterialShortage,
                 'material_requirement_id' => $snapshot->netting->requirementId,
                 'lifecycle' => ProblemCaseLifecycle::Open,
