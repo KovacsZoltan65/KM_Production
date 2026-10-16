@@ -22,18 +22,22 @@ Controller → Service → Repository → Model. Nincs direkt model/Python datab
 
 ### Ellenőrzött jelenlegi komponensek
 
-| Meglévő komponens                                                                                                                               | Újrahasználható határ                                                               | Még hiányzó képesség                                                             |
-| ----------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| [ProblemCase](../../../app/Models/ProblemCase.php), [repository](../../../app/Repositories/Admin/ProblemCaseRepository.php)                     | UUID case, immutable detection evidence, külön lifecycle/current projection/history | Authorized run start és investigation-history linkage                            |
-| [Current resolver](../../../app/Services/Admin/MaterialShortageProblemCaseResolver.php)                                                         | Current source validity és full competing-scope netting, read-only DTO              | Archival/finalization orchestration                                              |
-| [Supplier tool](../../../app/Services/Merlin/GetSupplierOptionsTool.php), [context](../../../app/Support/Merlin/SupplierOptionsToolContext.php) | Fresh actor, allowlist, bound UUID, fresh business gate, explicit projection        | Run/sequence correlation és supervised dispatch                                  |
-| [Supplier read composition](../../../app/Services/Merlin/MaterialShortageSupplierOptionsRead.php)                                               | Egy observation snapshot; az authority a hívás után megszűnik                       | Run-wide state guarantee nincs                                                   |
-| [Python engine](../../../app/Services/AI/PythonAiEngineService.php)                                                                             | JSON subprocess, timeout és safe failure envelope; classification stub/OCR          | Interactive structured model tool-calling, request correlation, usage accounting |
-| [AI telemetry](../../../app/Services/AI/AiProcessingTelemetryService.php)                                                                       | Duration/status és minimal summary minták                                           | Nem MerlinRun; numeric polymorphic link nem kész UUID case kapcsolat             |
-| [Audit service](../../../app/Services/AuditLogService.php), [queue config](../../../config/queue.php)                                           | Activity events és queue infrastruktúra                                             | Durable run/call evidence, ownership, cancellation és run recovery               |
+| Meglévő komponens                                                                                                                               | Újrahasználható határ                                                                                                                         | Még hiányzó képesség                                                             |
+| ----------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| [ProblemCase](../../../app/Models/ProblemCase.php), [repository](../../../app/Repositories/Admin/ProblemCaseRepository.php)                     | UUID case, immutable detection evidence, külön lifecycle/current projection/history; belső authorized run start és history linkage: 7.8. rész | HTTP/API belépési pont és worker orchestration                                   |
+| [Current resolver](../../../app/Services/Admin/MaterialShortageProblemCaseResolver.php)                                                         | Current source validity és full competing-scope netting, read-only DTO                                                                        | Archival/finalization orchestration                                              |
+| [Supplier tool](../../../app/Services/Merlin/GetSupplierOptionsTool.php), [context](../../../app/Support/Merlin/SupplierOptionsToolContext.php) | Fresh actor, allowlist, bound UUID, fresh business gate, explicit projection                                                                  | Run/sequence correlation és supervised dispatch                                  |
+| [Supplier read composition](../../../app/Services/Merlin/MaterialShortageSupplierOptionsRead.php)                                               | Egy observation snapshot; az authority a hívás után megszűnik                                                                                 | Run-wide state guarantee nincs                                                   |
+| [Python engine](../../../app/Services/AI/PythonAiEngineService.php)                                                                             | JSON subprocess, timeout és safe failure envelope; classification stub/OCR                                                                    | Interactive structured model tool-calling, request correlation, usage accounting |
+| [AI telemetry](../../../app/Services/AI/AiProcessingTelemetryService.php)                                                                       | Duration/status és minimal summary minták                                                                                                     | Nem MerlinRun; numeric polymorphic link nem kész UUID case kapcsolat             |
+| [Audit service](../../../app/Services/AuditLogService.php), [queue config](../../../config/queue.php)                                           | Activity events és queue infrastruktúra                                                                                                       | Durable run/call evidence, ownership, cancellation és run recovery               |
 
-Slice 1A a MerlinRun sémát/modelt és a külön admission audit táblát implementálja.
-Trusted start, investigation job, model loop és generic registry nincs implementálva.
+Slice 1A (MerlinRun séma/model és külön admission audit tábla) és Slice 1B.1
+(belső admission infrastruktúra) implementált és korábban célzottan ellenőrzött.
+Slice 1B.2 belső trusted admissionje implementált és célzottan tesztelt;
+a végső commit/review még függőben. Ez nem merge- vagy production-ready állítás.
+HTTP/API, worker/investigation job, provider execution, UI, retention és recovery
+nincs implementálva ebben a szeletben. Model loop és generic registry sincs.
 Az [existing tool slice](supplier-options-tool-slice-1.md) szerződése megmarad.
 Egy explicit backend mapping elegendő; arbitrary class/method dispatch tilos.
 
@@ -313,19 +317,24 @@ Ez a historical actor ID-ra épül, nem a később NULL-lá váló live user FK-
 Actor nem származhat caller/model által megadott ID-ból. A service validálja
 a kliens kulcsát és a case UUID-t, és tárolja a kanonikus request identityt és
 fingerprintet. Azonos fingerprint önmagában nem helyettesíti a kanonikus kérés
-egyezését; kanonizálás, engedélyezett request mezők, hash és verzióváltás OPEN.
+egyezését. A V1 kanonizálás és hash a 7.8. részben rögzített; verzióváltás OPEN.
 
-| Helyzet                                                                  | Belső PROPOSED typed outcome | Kötelező viselkedés                                                                       |
-| ------------------------------------------------------------------------ | ---------------------------- | ----------------------------------------------------------------------------------------- |
-| Aktuális permission hiányzik vagy nincs live actor                       | DENIED                       | Nincs replay disclosure vagy új admission                                                 |
-| Azonos identity, azonos kanonikus kérés                                  | REPLAYED                     | Ugyanaz a megtartott run; terminális run is replayelhető fresh read authorization mellett |
-| Azonos identity, eltérő kanonikus kérés                                  | CONFLICT                     | Nem írhatja át a régi requestet vagy runt                                                 |
-| Más kérés, már van PENDING/RUNNING run                                   | ACTIVE_RUN_EXISTS            | Nincs új run; más actor ownerét, identityjét és supplier evidence-ét nem fedi fel         |
-| Nincs identity/active ütközés, unsupported vagy jelenleg ineligible case | CASE_NOT_ELIGIBLE            | Nincs új starting history/run                                                             |
-| Eligible új kérés                                                        | CREATED                      | Atomikus starting history, PENDING run és audit                                           |
+| Helyzet                                                                  | Belső typed outcome (1B.1) | Kötelező viselkedés                                                                       |
+| ------------------------------------------------------------------------ | -------------------------- | ----------------------------------------------------------------------------------------- |
+| Aktuális permission hiányzik vagy nincs live actor                       | DENIED                     | Nincs replay disclosure vagy új admission                                                 |
+| Azonos identity, azonos kanonikus kérés                                  | REPLAYED                   | Ugyanaz a megtartott run; terminális run is replayelhető fresh read authorization mellett |
+| Azonos identity, eltérő kanonikus kérés                                  | CONFLICT                   | Nem írhatja át a régi requestet vagy runt                                                 |
+| Más kérés, már van PENDING/RUNNING run                                   | ACTIVE_RUN_EXISTS          | Nincs új run; más actor ownerét, identityjét és supplier evidence-ét nem fedi fel         |
+| Nincs identity/active ütközés, unsupported vagy jelenleg ineligible case | CASE_NOT_ELIGIBLE          | Nincs új starting history/run                                                             |
+| Eligible új kérés                                                        | CREATED                    | Atomikus starting history, PENDING run és audit                                           |
 
-Az outcome-nevek belső service-javaslatok; HTTP/API mapping és malformed/not-found
-bemenetek pontos besorolása OPEN. Infrastruktúrahiba nem domain siker vagy replay.
+Az ACCEPTED és implementált belső admission outcome-típusok: CREATED, REPLAYED,
+CONFLICT, ACTIVE_RUN_EXISTS, DENIED és CASE_NOT_ELIGIBLE. A HTTP/API response
+mapping és malformed/not-found bemenetek transport-szintű besorolása továbbra OPEN.
+A jelenlegi kétmezős V1 protokollal azonos identity tuple-höz eltérő, jól formált
+kanonikus kérés rendes bemenetből nem állítható elő; a CONFLICT típus ettől még
+az elfogadott belső szerződés része (7.8. rész).
+Infrastruktúrahiba nem domain siker vagy replay.
 Fresh actor és mindkét permission ellenőrzése minden replay előtt kötelező.
 Idempotencia a case current eligibility újraértékelése előtt oldódik fel:
 korábban elfogadott run replayje történeti hozzáférés, nem új investigation.
@@ -380,7 +389,7 @@ A MySQL REPEATABLE READ snapshotot az első ordinary consistent read alapozza
 meg, a locking read current read. Ezért a case-zár előtti resolver/auth eager
 read egy tranzakción belül elavult admission observationt okozhatna lock-várakozás
 után. A fresh auth kontrolllekérdezéseinek és a domain snapshot olvasásainak pontos
-repository compositionja OPEN; a fentiek sequencing követelmények, nem kész kód.
+repository compositionját Slice 1B.1/1B.2 implementálja a 7.8. rész szerint.
 A vizsgált Laravel transaction manager
 (`vendor/laravel/framework/src/Illuminate/Database/Concerns/ManagesTransactions.php`)
 begin során reconnectelhet, ezért a policy érvényességét nem adja pusztán az
@@ -400,12 +409,12 @@ transactiont elutasít, külön saját read observationt és auditot kezel.
 
 SQLite-nál nincs MySQL `FOR UPDATE` vagy azonos REPEATABLE READ szemantika.
 A write admission előtt biztonságos írói transaction mód és FK enforcement kell.
-PROPOSED az IMMEDIATE kezdés, hogy a write intent a domain olvasások előtt
+Slice 1B.1 saját connectionön IMMEDIATE kezdést használ, hogy a write intent a domain olvasások előtt
 megszerezhető legyen. A config jelenleg DEFERRED; a telepített Laravel
 SQLite connection (`vendor/laravel/framework/src/Illuminate/Database/SQLiteConnection.php`)
 PHP 8.4+ alatt konfigurált BEGIN módot használ. A pontos admission-specific
-beállítás, visszaállítás, transaction ownership, busy/locked hibakezelés és
-connection-integráció OPEN, nem változtatjuk meg globálisan a configot.
+beállítás, transaction ownership és connection-integráció implementált,
+a globális config változatlan. Busy/locked hiba propagálódik, nincs automatikus retry.
 Tesztekben a service saját top-level tranzakciója szükséges: külső teszttranzakció
 nem fedheti el caller-context denialt vagy commit/rollbackot. File-backed,
 független connection/process teszt kell a párhuzamos SQLite admissionhöz;
@@ -420,7 +429,8 @@ automatikus tool/model replay ekkor sincs. A unique-ütközés
 pontos constraint alapján osztályozandó; nem minden integrity error idempotency
 replay. Rollback után új, authorized ellenőrzéssel dönthető el identity conflict
 vagy active-run conflict. FK/status/audit hiba nem maszkolható ilyen outcome-ként.
-SQLSTATE/constraint-name és driver-specifikus besorolás OPEN.
+A két admission unique constraint driver-specifikus besorolása a 7.8. részben implementált;
+egyéb constraint-, deadlock- és timeout-hiba nem business outcome.
 
 ### 7.4. ACCEPTED — kötelező durable audit és recovery elv
 
@@ -437,7 +447,7 @@ A meglévő numeric polymorphic activity subject nem helyettesít UUID run/case 
 Ha a meglévő út nem bizonyíthatóan alkalmas, kötelező minimális dedikált
 admission event persistence ugyanazon connectionön, runhoz kötve, a fenti
 mezőkkel, disabled/buffered application logtól függetlenül. A korábban PROPOSED
-run-owned tábla Slice 1A-ban implementált; schema/FK a 7.7. részben, writer OPEN. Az opcionális
+run-owned tábla Slice 1A-ban implementált; schema/FK a 7.7., szinkron writer a 7.8. részben. Az opcionális
 activity log csak kiegészítés. A shared log creation-alapú 365 napos cleanupja
 nem törölheti idő előtt a run terminal completionhez kötött required evidence-ét.
 Rejected attempt naplózása külön policy; rollbackolt admissionről nem írható
@@ -459,18 +469,18 @@ nem pending deadline vagy önmagában worker-halál bizonyíték.
 Slice 1A technikai feloldásai a 7.7. részben ellenőrizhetők; az alábbiak a
 fennmaradó szolgáltatási és üzemeltetési részleteket is elkülönítik.
 
-| Nyitott részlet               | Kötelező határ és feloldás                                                                                                                    |
-| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| Migration syntax              | Slice 1A DDL és célzott kétmotoros round-trip implementált; deployment DDL-lock kezelése OPEN                                                 |
-| History és egyéb FK           | Slice 1A parent composite unique, same-case composite FK és RESTRICT implementált; üzleti parent védelem tesztelt                             |
-| Canonical request/fingerprint | Engedélyezett mezők, UUID normalization, determinisztikus serialization, hash és version upgrade; identity unique driveren azonos jelentéssel |
-| Durable audit                 | Slice 1A dedicated schema implementált; mandatory same-transaction writer, sanitization és retention workflow OPEN                            |
-| Transaction composition       | Ownership ellenőrzés, fresh auth current reads/domain snapshot sorrend, reconnect policy és SQLite IMMEDIATE integráció/busy kezelés          |
-| Constraint classification     | Unique identity/active conflict elkülönítése FK/status/egyéb integrity hibától, rollback utáni authorized lookup                              |
-| User deletion                 | Slice 1A nullable live FK SET NULL, historical bigint és model immutability implementált; lawful deletion és authorization race kezelés OPEN  |
-| Terminal enforcement          | Atomic transitions, kötelező terminal timestamp/reason, immutable binding/result enforcement minden írási útvonalon                           |
-| Cleanup/legal hold            | Terminal-alapú 365 nap, run-owned dependency sorrend és idempotency törlés, backup/reference handling; operatív lawful hold kezelés           |
-| Worker/recovery               | Claim/ownership/lease/fencing, queue deadline, dispatch failure és recovery bizonyíték, audit, időértékek; későbbi szelet                     |
+| Nyitott részlet               | Kötelező határ és feloldás                                                                                                                   |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| Migration syntax              | Slice 1A DDL és célzott kétmotoros round-trip implementált; deployment DDL-lock kezelése OPEN                                                |
+| History és egyéb FK           | Slice 1A parent composite unique, same-case composite FK és RESTRICT implementált; üzleti parent védelem tesztelt                            |
+| Canonical request/fingerprint | Slice 1B.1 fix V1 protocol implementált; future version upgrade OPEN                                                                         |
+| Durable audit                 | Slice 1B.2 same-transaction sanitized writer implementált; retention workflow OPEN                                                           |
+| Transaction composition       | Slice 1B.1/1B.2 owned connection, case-lock-first és current-read authorization; SQLite IMMEDIATE, nincs automatikus retry                   |
+| Constraint classification     | Slice 1B.2 csak active/idempotency unique collision után új autorizált read-only reconciliation; egyéb hiba propagálódik                     |
+| User deletion                 | Slice 1A nullable live FK SET NULL, historical bigint és model immutability implementált; lawful deletion és authorization race kezelés OPEN |
+| Terminal enforcement          | Atomic transitions, kötelező terminal timestamp/reason, immutable binding/result enforcement minden írási útvonalon                          |
+| Cleanup/legal hold            | Terminal-alapú 365 nap, run-owned dependency sorrend és idempotency törlés, backup/reference handling; operatív lawful hold kezelés          |
+| Worker/recovery               | Claim/ownership/lease/fencing, queue deadline, dispatch failure és recovery bizonyíték, audit, időértékek; későbbi szelet                    |
 
 ### 7.6. PROPOSED — későbbi runtime döntések
 
@@ -557,7 +567,8 @@ authorization szolgáltatást, audit writert, worker transitiont vagy providerh�
   Composite FK a runhoz megakadályozza az eltérő provenance-t. Csak run törléskor
   cascade; nem függ activity log enabled/buffered vagy cleanup beállításaitól.
   Az audit fixture teszt kizárólag constraint-teszt, nem sikeres admission szimuláció.
-  A kötelező írás és history/run/audit atomic commit a következő szelet feladata;
+  A kötelező írás és history/run/audit atomic commit Slice 1A-ban még nem volt
+  implementált; Slice 1B.2 ezt megvalósítja a 7.8. rész szerint;
   a séma önmagában nem garantálja, hogy minden runhoz már létrejött audit.
 - [MerlinRun modell](../../../app/Models/MerlinRun.php) és
   [status enum](../../../app/Enums/MerlinRunStatus.php): UUID-generálás,
@@ -602,28 +613,112 @@ tesztadatbázisra, sikeres projekt testing guard. A célzott Pint és PHPStan
 az öt új PHP-fájlon sikeres. Teljes quality gate és deployment migration nem
 futott: a feladat fókuszált persistence slice, nem release-ellenőrzés.
 
+### 7.8. Implementált Slice 1B.1/1B.2 — belső trusted admission
+
+A `StartMerlinInvestigationService::start(StartInvestigationRequest)` kizárólag
+a Laravel Auth guardból vesz actort. A friss user/permission lookup a meglévő
+Gate-konvenciót használja belépéskor, majd a saját tranzakció case-zára után
+locking readként ismétlődik. Nincs caller-controlled actor ID vagy új permission.
+
+V1 client input csak `problem_case_id` és `idempotency_key`, szigorú UUID
+ellenőrzéssel és lowercase normalizálással. A kanonikus bájtok pontosan
+`{"schema_version":1,"problem_case_id":"<canonical UUID>"}`; request/fingerprint
+version 1 és SHA-256. Actor/key/config nincs a payloadban. Mivel a case maga is
+az identity része, jól formált azonos V1 tuple eltérő V1 requestet nem kódolhat:
+a CONFLICT típus megmarad, de jelenlegi V1 inputtal nem állítható elő. Sérült
+canonical/hash/binding és nem támogatott tárolt verzió infrastruktúrahiba;
+jövőbeli version upgrade és annak conflict-szemantikája OPEN.
+
+Az owned connection első domain SQL-je a case-zár. Fresh authorization után
+identity replay, majd active-slot ellenőrzés, majd a meglévő authoritative
+resolver OPEN/VALID/ACTIVE/positive exact netting gate-je következik. A replay
+terminális runra is működik, nincs új history/run/audit vagy execution.
+
+A `MerlinRunRepository` csak starting historyt appendel
+`recorded_for=merlin_investigation_start` értékkel. Schema-1 evidence: resolver
+origin, source identity/validity/authority/reason és tényleges exact netting
+scalar observation; nincs supplier payload. A projection, lifecycle, detection
+snapshot és régi history változatlan. Ugyanazon tranzakcióban PENDING run és
+`merlin_run.admitted.v1` schema-1 durable audit készül, backend UUID correlationnel.
+Config schema 1: 8/4/180, `cost_ceiling.state=NOT_CONFIGURED`, paid execution false.
+
+MySQL next-transaction REPEATABLE READ/READ WRITE ugyanazon write PDO-n;
+SQLite saját file-backed IMMEDIATE connection, globális default/config változtatás
+nélkül. Izolált `:memory:` admission tiltott. Caller-owned transaction, reconnect
+és elveszett transaction/PDO identity elutasított; nincs automatikus retry.
+Csak a `merlin_runs_active_unique` / `merlin_runs_idempotency_unique` insert
+collision rollbackja után történik egy új fresh-authorized read-only reconciliation.
+FK/status/audit hiba, deadlock és timeout propagálódik. Commit/cleanup
+acknowledgement hibája `MERLIN_ADMISSION_COMMIT_UNCERTAIN`; későbbi autorizált
+idempotenciaellenőrzés szükséges, garantált success/rollback állítás nélkül.
+
+Célzott tesztek: `MerlinAdmissionContractTest`, `MerlinAdmissionInfrastructureTest`,
+`MerlinAdmissionServiceTest`, `MerlinAdmissionCollisionTest`. A MySQL admission
+tesztek külön folyamatokkal vizsgálják a same/different-key case-zár contentiont;
+az ack-loss próba kontrollált fault injection, nem valódi hálózati hibabizonyíték.
+A két konkurens tesztkérés felengedését egyedi, teszt-only MySQL advisory lock
+koordinálja, nyitva tartott STDIN-pipe nélkül. Ez tesztharness; az alkalmazás
+admissionje változatlanul case-sorzárat és az elfogadott unique indexeket használja.
+Az eredeti revocation próba a preflight után, connectionnyitás előtt vonja vissza
+a permissiont; neve ezt jelöli. Külön MySQL processzteszt tartott case-zár és
+ellenőrzött, legalább egy másodperce futó PK locking SELECT mellett revoke-ol,
+majd a zár felengedése után DENIED eredményt vár. Ez a friss authorization
+ellenőrzési határát vizsgálja, nem race-free revocation garancia.
+Valódi unique constraint hibával kényszerített reconciliation teszteli a replayt,
+a preflight/owned-boundary DENIED ágakat és más actor aktív runjának disclosure
+nélküli elutasítását. History/run FK, audit insert FK és audit előtti/utáni hiba
+esetén közös rollback, változatlan case projection/lifecycle/detection az elvárás.
+Sikeres commit után injektált kivétel nem actual connection loss during COMMIT;
+valódi hálózati connection loss COMMIT közben továbbra nincs tesztelve.
+Bizonytalan commit outcome után friss, autorizált idempotencia-reconciliation
+szükséges; ez külön infrastruktúraállapot, nem garantált rollback vagy siker.
+
+A recovery diagnosztika szerint az eredeti 25 másodperces markerhatáridő azelőtt
+járt le, hogy a child eljutott volna a marker kibocsátásáig. A reprodukált hibában
+a marker körülbelül 31.177 másodpercnél jelent meg. A külön markerhatáridő
+eltávolításra került; a meglévő 60 másodperces teljes process timeout megmaradt.
+A cleanup előbb terminálja a childot, és csak utána engedi fel a parent
+tranzakcióját. Korrelált markerek és korlátos diagnosztika került a harnessbe.
+A Windows startup latency mélyebb oka továbbra ismeretlen; a korai markerhatáridő
+hibája azonban már nem nyitott verifikációs BLOCKER.
+
+A korábban megerősített javítás utáni eredmények: izolált MySQL ellenőrzés
+2 PASS, 16 assertions; végső hét esetből álló MySQL ellenőrzés 7 PASS,
+76 assertions; érintett SQLite regresszió 34 PASS, 204 assertions és
+7 MySQL-specifikus skip. Ezek korábbi futási bizonyítékok, a jelen
+dokumentációs korrekció során nem futottak újra. Nem igazolnak teljes
+quality-gate sikert; a végső commit/review továbbra függőben.
+Ez belső service: HTTP mapping, worker-entry revalidation, claim/lease/recovery,
+provider/accounting, cancellation és retention végrehajtása későbbi scope.
+
 ## 8. Implementációs szeletek
 
-**Egyetlen ajánlott következő implementációs szelet: MerlinRun persistence és
-trusted investigation start**, a 7. rész ACCEPTED invariánsaival, az OPEN
-implementációs részletek célzott feloldásával és bizonyításával.
-E dokumentum létrehozása nem ad implementációs engedélyt.
+Az aktuális munka a már implementált és célzottan tesztelt belső trusted admission
+végső dokumentációs korrekciója és commit/review előkészítése. Slice 1B.2 nincs commitoltként vagy production-ready
+állapotúként megjelölve. A worker, HTTP/UI, provider, retention és recovery
+végrehajtása külön későbbi scope; az OPEN döntések változatlanok.
 
-| Szelet                                 | Scope és függőségek                                                                                                                                                                                   | Szükséges tesztek és DoD                                                                                                                                                               | Kizárások/döntések                                                                                                                                               |
-| -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Következő: persistence/start           | MerlinRun model/repository/migration, authorized start service, fresh resolver composition, linked history, bounded atomic admission, idempotency és durable audit; existing case/resolver/Gate reuse | Az alábbi checklist; SQLite feature/migration és valós MySQL migration/concurrency bizonyíték; project DoD                                                                             | OPEN implementation részletek feloldása; nincs worker orchestration, live provider, model loop, generic registry, IMF UI, Nagy Könyv vagy autonomous procurement |
-| Később: supervised backend execution   | Investigation job, claim/recovery, explicit single-tool dispatch, call correlation; fake model adapter                                                                                                | Revocation/case changes; malformed/unknown requests; 8/4/180 limits; cooperative cancellation/late response; duplicate worker/call és audit failure; bizonyított terminal immutability | Runtime mappings/claim/recovery előbb; nincs paid inference vagy business write                                                                                  |
-| Később: provider és validated advisory | Replaceable adapter a meglévő AI isolation határ egyeztetésével; enforceable cost policy, result validator/finalization                                                                               | Schema/correlation rejection; usage/deadline/budget; fabricated evidence; exact decimal/unknown semantics; protected historical read; nincs external call DB transactionben            | Provider/accounting OPEN feloldása; nincs ranking/selection/procurement                                                                                          |
-| Később: IMF és Nagy Könyv              | Protected result megjelenítés, majd külön learning integration                                                                                                                                        | UI/route authorization, i18n, error/pending/cancel states; history preservation; külön project DoD                                                                                     | Külön scope és engedély; V1 foundationből kizárva                                                                                                                |
+| Szelet                                                                       | Scope és függőségek                                                                                                     | Szükséges tesztek és DoD                                                                                                                                                               | Kizárások/döntések                                                              |
+| ---------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| Slice 1A: implementált, korábban tesztelt                                    | Database foundation: schema/model, generated active marker, same-case history FK, idempotency unique és audit tábla     | Korábbi célzott SQLite/MySQL persistence és migration ellenőrzések: 7.7. rész                                                                                                          | Nem admission vagy worker authority                                             |
+| Slice 1B.1: implementált, korábban tesztelt                                  | Request/config/outcome, saját transaction, case-lock-first boundary, connection-bound resolver és fresh actor           | Korábbi célzott contract/infrastructure SQLite/MySQL tesztek; aktuális admission regresszió                                                                                            | Nincs önálló start operation                                                    |
+| Slice 1B.2: implementált és célzottan tesztelt, végső commit/review függőben | Authorized idempotent belső start, linked history, PENDING run, mandatory atomic audit és collision reconciliation      | Korábbi célzott recovery SQLite/MySQL eredmények: 7.8. rész; Pint/PHPStan és dokumentációs ellenőrzések bizonyítékai a zárójelentésben                                                 | Nincs merge- vagy production-ready állítás; nincs HTTP/UI vagy worker           |
+| Később: HTTP és védett UI                                                    | Külön authorized backend belépési pontok és szükség szerinti megjelenítés                                               | HTTP mapping, közvetlen hozzáférési és disclosure tesztek, i18n                                                                                                                        | Ebben a recovery szeletben nincs route/controller/UI                            |
+| Később: retention és stale-run recovery                                      | Terminal-alapú cleanup/legal hold, bizonyított ownership/deadline alapján kontrollált FAILED lezárás                    | Külön concurrency, audit, late-response fencing és history-megőrzési ellenőrzések                                                                                                      | Worker lease/deadline/időértékek és lawful hold operatív kezelése OPEN          |
+| Később: supervised backend execution                                         | Investigation job, claim/recovery, explicit single-tool dispatch, call correlation; fake model adapter                  | Revocation/case changes; malformed/unknown requests; 8/4/180 limits; cooperative cancellation/late response; duplicate worker/call és audit failure; bizonyított terminal immutability | Runtime mappings/claim/recovery előbb; nincs paid inference vagy business write |
+| Később: provider és validated advisory                                       | Replaceable adapter a meglévő AI isolation határ egyeztetésével; enforceable cost policy, result validator/finalization | Schema/correlation rejection; usage/deadline/budget; fabricated evidence; exact decimal/unknown semantics; protected historical read; nincs external call DB transactionben            | Provider/accounting OPEN feloldása; nincs ranking/selection/procurement         |
+| Később: IMF és Nagy Könyv                                                    | Protected result megjelenítés, majd külön learning integration                                                          | UI/route authorization, i18n, error/pending/cancel states; history preservation; külön project DoD                                                                                     | Külön scope és engedély; V1 foundationből kizárva                               |
 
 A persistence/start nem tartalmaz model tool-calling loopot, generic tool registryt,
 live LLM/provider integrationt, IMF UI-t, Nagy Könyvet vagy autonomous actiont.
 Az admission/cancel/read szerződés szolgáltatás-szinten is backend-enforced;
 frontend visibility nem authorization.
 
-### Első szelet — jövőbeli elfogadási checklist
+### Persistence/start — elfogadási checklist
 
-Ezek implementációs és tesztkövetelmények, nem most elvégzett ellenőrzések.
+Ez az összesített követelménylista nem friss PASS-nyilvántartás. Az implementált
+részek és a későbbi read/runtime feladatok státuszát a fenti roadmap különíti el;
+a recovery tényleges ellenőrzési eredményeit a zárójelentés rögzíti.
 
 - [ ] MerlinRun migration/model/repository: UUID identity, immutable binding,
       lifecycle/stop reason, timestamps, bounded versioned config/result és request.
@@ -702,4 +797,5 @@ A szerződés eredeti véglegesítése documentation-only volt. Slice 1A már c�
 schema/model implementáció: SQLite/MySQL persistence, migration round-trip és
 valós MySQL processz-ütközés teszt, Pint, célzott PHPStan, Prettier, relatív
 linkek és Git whitespace/status ellenőrzés tartozik hozzá. Teljes quality gate
-nem futott; trusted admission/runtime enforcement még nincs implementálva.
+nem futott. A belső trusted admission Slice 1B.2-ben implementált a 7.8. rész
+szerint; runtime/worker enforcement továbbra nincs implementálva.

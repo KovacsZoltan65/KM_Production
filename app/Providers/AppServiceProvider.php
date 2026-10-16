@@ -44,6 +44,7 @@ use App\Repositories\Admin\ManufacturingIntelligenceRepository;
 use App\Repositories\Admin\MaterialRequirementNettingRepository;
 use App\Repositories\Admin\MaterialRequirementPegRepository;
 use App\Repositories\Admin\MaterialRequirementRepository;
+use App\Repositories\Admin\MerlinRunRepository;
 use App\Repositories\Admin\OperationSequenceRepository;
 use App\Repositories\Admin\OperationTypeRepository;
 use App\Repositories\Admin\PermissionRepository;
@@ -76,6 +77,7 @@ use App\Repositories\Contracts\ManufacturingIntelligenceRepositoryInterface;
 use App\Repositories\Contracts\MaterialRequirementNettingRepositoryInterface;
 use App\Repositories\Contracts\MaterialRequirementPegRepositoryInterface;
 use App\Repositories\Contracts\MaterialRequirementRepositoryInterface;
+use App\Repositories\Contracts\MerlinRunRepositoryInterface;
 use App\Repositories\Contracts\OperationSequenceRepositoryInterface;
 use App\Repositories\Contracts\OperationTypeRepositoryInterface;
 use App\Repositories\Contracts\PermissionRepositoryInterface;
@@ -93,6 +95,8 @@ use App\Repositories\Contracts\StockReservationRepositoryInterface;
 use App\Repositories\Contracts\SupplierAdminRepositoryInterface;
 use App\Repositories\Contracts\SupplyProposalRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
+use App\Services\Merlin\MerlinAdmissionAuditWriter;
+use App\Services\Merlin\MerlinAdmissionAuditWriterInterface;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Inertia\ExceptionResponse;
@@ -108,6 +112,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        $this->app->bind(MerlinRunRepositoryInterface::class, MerlinRunRepository::class);
+        $this->app->bind(MerlinAdmissionAuditWriterInterface::class, MerlinAdmissionAuditWriter::class);
         $this->app->bind(UserRepositoryInterface::class, UserRepository::class);
         $this->app->bind(RoleRepositoryInterface::class, RoleRepository::class);
         $this->app->bind(PermissionRepositoryInterface::class, PermissionRepository::class);

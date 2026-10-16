@@ -142,21 +142,24 @@ rögzíti a mezőinvariánsokat, sorrendet, hibakezelést és tesztkövetelmény
 A kötelező audit nem függhet opcionális vagy pufferelt alkalmazásnaplótól.
 Ha a meglévő infrastruktúra nem igazolja az azonos tranzakcióban történő tartós
 írást, minimális dedikált persistence szükséges. Slice 1A külön audit táblát
-implementál; a kötelező auditírás és admission atomicity a következő szelet feladata.
+implementál; Slice 1B.2 saját admission tranzakcióban kapcsolja össze a starting
+historyt, PENDING runt és szinkron auditírást.
 E döntések tervezési szerződések. Slice 1A célzott SQLite/MySQL migration,
 constraint és MySQL index-ütközéstesztjei a sémát igazolják; a teljes trusted
-admission tranzakció és annak konkurens viselkedése még nincs implementálva.
+admission implementációját és ellenőrzési határait a specifikáció 7.8. része rögzíti.
 
 ## PROPOSED és OPEN — további technikai döntések
 
 PROPOSED marad a runtime revocation/case-change/limit outcome mapping,
 tool-audit correlation, finalization-time recheck és counter reservation.
-A belső admission outcome-nevek PROPOSED; API mapping nincs elfogadva.
+A belső admission outcome-nevek Slice 1B.1-ben rögzítettek; API mapping nincs elfogadva.
 Slice 1A a migráció/constraint/FK megoldást, durable audit sémát és user FK
 `SET NULL` viselkedést konkretizálja a specifikáció szerint.
-OPEN a kanonizálás és fingerprint verziózás, audit writer, SQLite transaction
-ownership/IMMEDIATE integráció, constraint-hiba osztályozás, lawful actor deletion,
-terminal transition enforcement és retention cleanup/legal hold.
+Slice 1B.1 a V1 kanonizálást/fingerprintet, transaction ownershipot és saját
+SQLite IMMEDIATE connectiont, Slice 1B.2 a szinkron audit writert és a két
+admission unique constraint utáni autorizált reconciliationt implementálja.
+OPEN a request version upgrade, lawful actor deletion, runtime terminal
+transition enforcement és retention cleanup/legal hold.
 Worker claim/lease, queue deadline, recovery implementation és időértékek a
 későbbi worker-szelethez tartoznak. Provider és provider-specifikus
 költségszemantika továbbra is OPEN. A specifikáció külön jelöli e részleteket;
@@ -166,8 +169,8 @@ a helyreállítási koncepciómentés nem írhatja felül az ADR-t vagy a specif
 
 A saját eredményhez kötött hozzáférés adatminimalizálást ad, de V1-ben nem
 támogat közös investigation result megtekintést. Az egy aktív run/case korlát
-korlátozza a párhuzamos költséget; adatbázis-szintű enforcementje elfogadott,
-de végrehajtással még nem igazolt.
+korlátozza a párhuzamos költséget; adatbázis-szintű enforcementje elfogadott.
+A persistence/admission tesztek nem igazolják a későbbi worker-végrehajtást.
 A kooperatív cancellation nem ígér azonnali provider-megszakítást vagy nulla
 további díjat. A korlátos evidence nem teljes conversation replay.
 
@@ -185,7 +188,12 @@ confidence-tilalma megmarad; az OCR confidence guidance nem kerül át az advice
 Az [ADR 0016](0016-material-requirement-demand-eligibility.md) source validity
 és full competing-scope netting szabályai nem változnak.
 
-**Egyetlen ajánlott következő implementációs szelet:** MerlinRun persistence és
-trusted investigation start, az OPEN implementációs részletek feloldásával és
-SQLite/valós MySQL bizonyítékokkal; worker orchestration nélkül.
+Slice 1A (database foundation) és Slice 1B.1 (belső admission infrastruktúra)
+implementált és korábban célzottan tesztelt. Slice 1B.2 (authorized, idempotent
+admission) implementált; a recovery végső verification/review lezárása függőben.
+Ez nem commit-, merge- vagy production-ready állítás.
+
+Az aktuális lépés a meglévő 1B.2 ellenőrzése és review-ja. Worker, HTTP/UI,
+provider, retention cleanup és stale-run recovery külön későbbi munka;
+az OPEN döntések megmaradnak.
 Scope, tesztek, DoD és kizárások a [roadmapben](../../docs/specifications/merlin/investigation-foundation-v1.md#8-implementációs-szeletek).
