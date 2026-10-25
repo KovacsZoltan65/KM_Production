@@ -263,3 +263,6 @@ Total 0 (delta 0), reused 0 (delta 0), pack-reused 0 (from 0)
 To https://github.com/KovacsZoltan65/hajnalhej.git
    86c12da..e72cfea  Localization -> Localization
 ```
+
+feature/merlin-candidate ág folytatása:
+Folytassuk a Merlin TC-02 fejlesztését a felfüggesztési checkpoint alapján.
