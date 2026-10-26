@@ -11,6 +11,7 @@ use App\Support\QualityGate\ProcessExecutor;
 use App\Support\QualityGate\ProcessResult;
 use App\Support\QualityGate\SelectionResult;
 use App\Support\QualityGate\SystemProcessExecutor;
+use PHPUnit\Framework\Assert;
 
 function qualityGateConfiguration(): array
 {
@@ -193,20 +194,20 @@ it('references only existing module and integration test paths', function () {
     foreach ($configuration['modules'] as $module => $settings) {
         foreach (['backend', 'frontend', 'playwright'] as $kind) {
             foreach ($settings[$kind] as $path) {
-                expect(
-                    file_exists($root.DIRECTORY_SEPARATOR.str_replace('/', DIRECTORY_SEPARATOR, $path)),
+                Assert::assertFileExists(
+                    $root.DIRECTORY_SEPARATOR.str_replace('/', DIRECTORY_SEPARATOR, $path),
                     "Missing {$kind} path for {$module}: {$path}",
-                )->toBeTrue();
+                );
             }
         }
     }
 
     foreach (['backend', 'playwright'] as $kind) {
         foreach ($configuration['integration'][$kind] as $path) {
-            expect(
-                file_exists($root.DIRECTORY_SEPARATOR.str_replace('/', DIRECTORY_SEPARATOR, $path)),
+            Assert::assertFileExists(
+                $root.DIRECTORY_SEPARATOR.str_replace('/', DIRECTORY_SEPARATOR, $path),
                 "Missing integration {$kind} path: {$path}",
-            )->toBeTrue();
+            );
         }
     }
 });
