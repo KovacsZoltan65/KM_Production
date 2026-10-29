@@ -1,0 +1,348 @@
+{
+    "kind": "executed SQL prototypes, not application tests",
+    "utc": "2026-10-29T14:43:53+00:00",
+    "tests": [
+        {
+            "id": "mysql:FND02-nullable",
+            "status": "PASS",
+            "detail": "Multiple NULL accepted; duplicate non-NULL rejected"
+        },
+        {
+            "id": "mysql:FND02-sentinel",
+            "status": "PASS",
+            "detail": "Sentinel mapping and NULL-batch uniqueness enforced"
+        },
+        {
+            "id": "mysql:FND01-composite",
+            "status": "PASS",
+            "detail": "Composite mismatch/parent deletion rejected; raw claim deletion ALLOWED: needs restricted write route"
+        },
+        {
+            "id": "mysql:FND07-null-tuple-check",
+            "status": "PASS",
+            "detail": "Partial NULL bypass reproduced; explicit NULL branches reject it"
+        },
+        {
+            "id": "mysql:FND07-sentinel-fk",
+            "status": "PASS",
+            "detail": "Sentinel CHECK + real batch FK + RESTRICT coexist"
+        },
+        {
+            "id": "mysql:FND03-warranty",
+            "status": "PASS",
+            "detail": "Original/replacement evidence, item/rule and global order version enforced; membership still service guard"
+        },
+        {
+            "id": "mysql:FND04-REV02-attempt",
+            "status": "PASS",
+            "detail": "Repeated real shipments/events accepted; same attempt/movement/source occurrence rejected"
+        },
+        {
+            "id": "mysql:FND05-active-credit",
+            "status": "PASS",
+            "detail": "One active allocation per source; released history preserved; release permission/policy unproven"
+        },
+        {
+            "id": "mysql:scope-owner",
+            "status": "PASS",
+            "detail": "Three scopes and repair/legacy owner XOR; balance posting isolation remains service test"
+        },
+        {
+            "id": "mysql:REV01-trigger",
+            "status": "PASS",
+            "detail": "Disposable append-only triggers reject UPDATE/DELETE, correction INSERT accepted; privileges not deployed"
+        },
+        {
+            "id": "mysql:atomic-rollback",
+            "status": "PASS",
+            "detail": "Fault after fact insertion rolls back fact/audit prototype"
+        },
+        {
+            "id": "sqlite:FND02-nullable",
+            "status": "PASS",
+            "detail": "Multiple NULL accepted; duplicate non-NULL rejected"
+        },
+        {
+            "id": "sqlite:FND02-sentinel",
+            "status": "PASS",
+            "detail": "Sentinel mapping and NULL-batch uniqueness enforced"
+        },
+        {
+            "id": "sqlite:FND01-composite",
+            "status": "PASS",
+            "detail": "Composite mismatch/parent deletion rejected; raw claim deletion ALLOWED: needs restricted write route"
+        },
+        {
+            "id": "sqlite:FND07-null-tuple-check",
+            "status": "PASS",
+            "detail": "Partial NULL bypass reproduced; explicit NULL branches reject it"
+        },
+        {
+            "id": "sqlite:FND07-sentinel-fk",
+            "status": "PASS",
+            "detail": "Sentinel CHECK + real batch FK + RESTRICT coexist"
+        },
+        {
+            "id": "sqlite:FND03-warranty",
+            "status": "PASS",
+            "detail": "Original/replacement evidence, item/rule and global order version enforced; membership still service guard"
+        },
+        {
+            "id": "sqlite:FND04-REV02-attempt",
+            "status": "PASS",
+            "detail": "Repeated real shipments/events accepted; same attempt/movement/source occurrence rejected"
+        },
+        {
+            "id": "sqlite:FND05-active-credit",
+            "status": "PASS",
+            "detail": "One active allocation per source; released history preserved; release permission/policy unproven"
+        },
+        {
+            "id": "sqlite:scope-owner",
+            "status": "PASS",
+            "detail": "Three scopes and repair/legacy owner XOR; balance posting isolation remains service test"
+        },
+        {
+            "id": "sqlite:REV01-trigger",
+            "status": "PASS",
+            "detail": "Disposable append-only triggers reject UPDATE/DELETE, correction INSERT accepted; privileges not deployed"
+        },
+        {
+            "id": "sqlite:atomic-rollback",
+            "status": "PASS",
+            "detail": "Fault after fact insertion rolls back fact/audit prototype"
+        },
+        {
+            "id": "mysql:FND07-referential-actions",
+            "status": "PASS",
+            "detail": {
+                "RESTRICT": "accepted",
+                "NO ACTION": "accepted",
+                "CASCADE": {
+                    "rejected": 3823,
+                    "message": "Column 'parent' cannot be used in a check constraint 'rma3b_ba1fbd7cf5_action_2_chk_1': needed in a foreign key constraint 'rma3b_ba1fbd7cf5_action_2_ibfk_1' referential action."
+                },
+                "SET NULL": {
+                    "rejected": 3823,
+                    "message": "Column 'parent' cannot be used in a check constraint 'rma3b_ba1fbd7cf5_action_3_chk_1': needed in a foreign key constraint 'rma3b_ba1fbd7cf5_action_3_ibfk_1' referential action."
+                }
+            }
+        },
+        {
+            "id": "mysql:FND07-auto-increment-check",
+            "status": "PASS",
+            "detail": "CHECK on AUTO_INCREMENT rejected (3818)"
+        },
+        {
+            "id": "mysql:FND07-cycle-index-engine",
+            "status": "PASS",
+            "detail": {
+                "engine": "InnoDB",
+                "claim_indexes": ["PRIMARY", "member", "member_2"],
+                "cycle": "nullable insert then link; missing target rejected"
+            }
+        },
+        {
+            "id": "mysql:C1",
+            "status": "PASS",
+            "detail": {
+                "overlap_seconds": 1.02,
+                "mechanism": "UNIQUE + retry duplicate rejected",
+                "scope": "SQL mechanism only; no real domain movement/proof/policy assertions"
+            }
+        },
+        {
+            "id": "mysql:C2",
+            "status": "PASS",
+            "detail": {
+                "overlap_seconds": 1.01,
+                "mechanism": "UNIQUE + retry duplicate rejected",
+                "scope": "SQL mechanism only; no real domain movement/proof/policy assertions"
+            }
+        },
+        {
+            "id": "mysql:C3",
+            "status": "PASS",
+            "detail": {
+                "overlap_seconds": 2.005,
+                "mechanism": "UNIQUE + retry duplicate rejected",
+                "scope": "SQL mechanism only; no real domain movement/proof/policy assertions"
+            }
+        },
+        {
+            "id": "mysql:C4",
+            "status": "PASS",
+            "detail": {
+                "overlap_seconds": 2.007,
+                "mechanism": "UNIQUE + retry duplicate rejected",
+                "scope": "SQL mechanism only; no real domain movement/proof/policy assertions"
+            }
+        },
+        {
+            "id": "mysql:C5",
+            "status": "PASS",
+            "detail": {
+                "overlap_seconds": 1.002,
+                "mechanism": "parent row lock + retry current-state service prototype guard",
+                "scope": "SQL mechanism only; no real domain movement/proof/policy assertions"
+            }
+        },
+        {
+            "id": "mysql:C6",
+            "status": "PASS",
+            "detail": {
+                "overlap_seconds": 1.016,
+                "mechanism": "parent row lock + retry current-state service prototype guard",
+                "scope": "SQL mechanism only; no real domain movement/proof/policy assertions"
+            }
+        },
+        {
+            "id": "mysql:C7",
+            "status": "PASS",
+            "detail": {
+                "overlap_seconds": 2.002,
+                "mechanism": "parent row lock + retry current-state service prototype guard",
+                "scope": "SQL mechanism only; no real domain movement/proof/policy assertions"
+            }
+        },
+        {
+            "id": "mysql:C8",
+            "status": "PASS",
+            "detail": {
+                "overlap_seconds": 1.006,
+                "mechanism": "parent row lock + retry current-state service prototype guard",
+                "scope": "SQL mechanism only; no real domain movement/proof/policy assertions"
+            }
+        },
+        {
+            "id": "mysql:C9",
+            "status": "PASS",
+            "detail": {
+                "overlap_seconds": 2.003,
+                "mechanism": "parent row lock + retry current-state service prototype guard",
+                "scope": "SQL mechanism only; no real domain movement/proof/policy assertions"
+            }
+        },
+        {
+            "id": "mysql:C10",
+            "status": "PASS",
+            "detail": {
+                "overlap_seconds": 1.012,
+                "mechanism": "UNIQUE + retry duplicate rejected",
+                "scope": "SQL mechanism only; no real domain movement/proof/policy assertions"
+            }
+        }
+    ],
+    "audit": {
+        "duplicate_balances": {
+            "status": "EXECUTED",
+            "count": 0,
+            "sql": "SELECT COUNT(*) FROM (SELECT item_id,location_id,item_batch_id FROM stock_balances GROUP BY item_id,location_id,item_batch_id HAVING COUNT(*)>1) d"
+        },
+        "orphan_production_references": {
+            "status": "EXECUTED",
+            "count": 0,
+            "sql": "SELECT COUNT(*) FROM item_instances i LEFT JOIN production_orders p ON p.id=i.production_order_id WHERE i.production_order_id IS NOT NULL AND p.id IS NULL"
+        },
+        "missing_reservation_owners": {
+            "status": "EXECUTED",
+            "count": 0,
+            "sql": "SELECT COUNT(*) FROM stock_reservations WHERE customer_order_item_id IS NULL AND production_order_id IS NULL"
+        },
+        "invalid_reservation_quantities": {
+            "status": "EXECUTED",
+            "count": 0,
+            "sql": "SELECT COUNT(*) FROM stock_reservations WHERE reserved_quantity<=0"
+        },
+        "missing_serial_origin": {
+            "status": "EXECUTED",
+            "count": 0,
+            "sql": "SELECT COUNT(*) FROM item_instances WHERE serial_number IS NULL OR serial_number='' OR production_order_id IS NULL"
+        },
+        "invalid_procurement_sources": {
+            "status": "EXECUTED",
+            "count": 0,
+            "sql": "SELECT COUNT(*) FROM purchase_requisition_item_sources s LEFT JOIN material_requirements m ON m.id=s.material_requirement_id LEFT JOIN purchase_requisition_items p ON p.id=s.purchase_requisition_item_id WHERE m.id IS NULL OR p.id IS NULL"
+        },
+        "genealogy_self_edges": {
+            "status": "EXECUTED",
+            "count": 0,
+            "sql": "SELECT COUNT(*) FROM item_instance_relations WHERE parent_item_instance_id=child_item_instance_id"
+        },
+        "multiple_genealogy_parents": {
+            "status": "EXECUTED",
+            "count": 0,
+            "sql": "SELECT COUNT(*) FROM (SELECT child_item_instance_id FROM item_instance_relations GROUP BY child_item_instance_id HAVING COUNT(DISTINCT parent_item_instance_id)>1) d"
+        },
+        "negative_balances": {
+            "status": "EXECUTED",
+            "count": 0,
+            "sql": "SELECT COUNT(*) FROM stock_balances WHERE quantity<0"
+        }
+    },
+    "mysql": {
+        "version": "8.4.7",
+        "isolation_level": "REPEATABLE-READ",
+        "db": "km_production_testing",
+        "account": "km_testing@localhost",
+        "port": 3306,
+        "disposable_prefix": "rma3b_ba1fbd7cf5_"
+    },
+    "sqlite": {
+        "version": "3.53.4",
+        "foreign_keys": 1
+    },
+    "connections": {
+        "a": 469,
+        "b": 470
+    },
+    "audit_rows": {
+        "stock_balances": 0,
+        "stock_movements": 0,
+        "stock_reservations": 0,
+        "item_instances": 0,
+        "material_requirements": 0,
+        "purchase_requisition_item_sources": 0,
+        "item_instance_relations": 0
+    },
+    "audit_scope": "Dedicated test dataset only; no representative legacy certification. Movement reconciliation and full genealogy cycle/origin evidence require business evidence and separate snapshot.",
+    "cleanup": {
+        "rma3b_ba1fbd7cf5_race_10": "dropped",
+        "rma3b_ba1fbd7cf5_race_9": "dropped",
+        "rma3b_ba1fbd7cf5_race_8": "dropped",
+        "rma3b_ba1fbd7cf5_race_7": "dropped",
+        "rma3b_ba1fbd7cf5_race_6": "dropped",
+        "rma3b_ba1fbd7cf5_race_5": "dropped",
+        "rma3b_ba1fbd7cf5_race_4": "dropped",
+        "rma3b_ba1fbd7cf5_race_3": "dropped",
+        "rma3b_ba1fbd7cf5_race_2": "dropped",
+        "rma3b_ba1fbd7cf5_race_1": "dropped",
+        "rma3b_ba1fbd7cf5_cycle_b": "dropped",
+        "rma3b_ba1fbd7cf5_cycle_a": "dropped",
+        "rma3b_ba1fbd7cf5_action_1": "dropped",
+        "rma3b_ba1fbd7cf5_action_0": "dropped",
+        "rma3b_ba1fbd7cf5_action_parent": "dropped",
+        "rma3b_ba1fbd7cf5_atomic_log": "dropped",
+        "rma3b_ba1fbd7cf5_event": "dropped",
+        "rma3b_ba1fbd7cf5_scope_owner": "dropped",
+        "rma3b_ba1fbd7cf5_credit": "dropped",
+        "rma3b_ba1fbd7cf5_ownership": "dropped",
+        "rma3b_ba1fbd7cf5_release": "dropped",
+        "rma3b_ba1fbd7cf5_assessment": "dropped",
+        "rma3b_ba1fbd7cf5_rule": "dropped",
+        "rma3b_ba1fbd7cf5_evidence": "dropped",
+        "rma3b_ba1fbd7cf5_instance": "dropped",
+        "rma3b_ba1fbd7cf5_batch_fk": "dropped",
+        "rma3b_ba1fbd7cf5_batch_parent": "dropped",
+        "rma3b_ba1fbd7cf5_strict_tuple": "dropped",
+        "rma3b_ba1fbd7cf5_nullable_fk": "dropped",
+        "rma3b_ba1fbd7cf5_claim": "dropped",
+        "rma3b_ba1fbd7cf5_member": "dropped",
+        "rma3b_ba1fbd7cf5_balance": "dropped",
+        "rma3b_ba1fbd7cf5_nullable": "dropped"
+    },
+    "summary": {
+        "passed": 35,
+        "failed": 0
+    }
+}

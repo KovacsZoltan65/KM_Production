@@ -7,17 +7,24 @@ Accepted
 - Feladat: RMA-0002/A tervezet, RMA-0002/B felülvizsgálat, RMA-0002/C véglegesítés és elfogadás; előzmény: RMA-0001 domainaudit.
 - Létrehozás: 2026-10-27; felülvizsgálat és architekturális elfogadás: 2026-10-28.
 - Ellenőrzött branch: `feature/returns-repair-management`.
+- C1 Closure amendment-baseline (2026-10-29): `ea568deded91a1c256edbefdfbec7cf5be2ce096`; a korábbi audit-baseline alább történeti.
 - Ellenőrzött baseline: `9424578a03606b7218530ecac3f7ab417b4da726`.
 - Az RMA-0002/A kezdetén a munkafa tiszta volt; az RMA-0002/B és RMA-0002/C kezdetén kizárólag ez az untracked ADR szerepelt. A fájl helyben, változatlan sorszámmal véglegesítve.
 - A következő szabad ADR-szám `0006`; a `0020` szám használata nem indokolt.
 
 Ez elfogadott architekturális döntés, nem implementációs vagy éles működési
-bizonyíték. Az elfogadás alapja az RMA-0002/C felhasználói jóváhagyása: az
+bizonyíték. RMA-0003/C1 lezárás, 2026-10-29: a projektgazda elfogadta
+RMA-D6–D11 döntéseit és jóváhagyta AM-01–AM-04-et, az AM-02-G1–G4 kötelező
+integritási feltételekkel. Az amendment-történet és aktuális döntések a 3.2–3.4
+fejezetben követhetők; az ADR azonosítója és Accepted státusza megmarad. Az elfogadás alapja az RMA-0002/C felhasználói jóváhagyása: az
 RMA-BD-001–020 követelmények, az F1–F4 korrekciók és az alábbi D1–D5 döntések
 következetesen együtt érvényesek. Az architekturális határok és invariánsok
 kötelezőek; a konkrét táblák, mezők, permissionök és szolgáltatási szerződések
 részletes kialakítását a 14. fejezet implementációs kapui szerint kell igazolni.
 Alkalmazás, migráció, adatjavítás és számlázás nem része e véglegesítésnek.
+A 15.1 eredeti véglegesítési/mentési feltételei a 2026-10-28-i feladat történeti
+hatókörét írják le; a mostani closure feladat kizárólag dokumentációs, staging,
+commit, push és merge nélkül, az ADR/A/B/C1/C2 konzisztencia átvezetésével.
 
 ## 1. Kontextus és ellenőrzött kiinduló állapot
 
@@ -71,28 +78,28 @@ ajánlatokat, javítási próbálkozásokat és visszaadásokat.
 
 Az alábbi követelmények jóváhagyottak; a hivatkozott megvalósítási módok tervezetek.
 
-| Azonosító  | Jóváhagyott üzleti szabály                                                                                                                                                                                                                                                                                                                                                                                                                                | Tervezési hely            |
-| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- |
-| RMA-BD-001 | Több serial egy ügyben; termékenként önálló munkalap és életciklus.                                                                                                                                                                                                                                                                                                                                                                                       | 6.1, 7.1–7.3              |
-| RMA-BD-002 | Csak érvényes serialú saját gyártású késztermék és komponens; garanciális időszakban javítás vagy csere.                                                                                                                                                                                                                                                                                                                                                  | 5.2, 6.1, 7.5             |
-| RMA-BD-003 | Kezdetben jogosult belső dolgozó rögzít; bejelentő és tulajdonos külön szerep.                                                                                                                                                                                                                                                                                                                                                                            | 6.1, 9                    |
-| RMA-BD-004 | Egy serialhoz egy aktív RMA; új eset csak az előző ügy lezárása után; történet megmarad.                                                                                                                                                                                                                                                                                                                                                                  | 6.2, 10                   |
-| RMA-BD-005 | Manuális `warranty`, `non_warranty`, `pending_assessment`; jogosultság és indoklás.                                                                                                                                                                                                                                                                                                                                                                       | 6.4, 7.5, 9               |
-| RMA-BD-006 | Fizetős javítás csak jóváhagyott ajánlat alapján indulhat.                                                                                                                                                                                                                                                                                                                                                                                                | 7.3, 7.6                  |
-| RMA-BD-007 | A visszáru ügyféltulajdon; fizikai követés és normál készlettől elkülönítés.                                                                                                                                                                                                                                                                                                                                                                              | 8                         |
-| RMA-BD-008 | Nem javítható termék: csere, javítás nélküli visszaadás, engedélyezett selejt vagy függő döntés; selejthez dokumentált felhatalmazás.                                                                                                                                                                                                                                                                                                                     | 6.5, 7.2, 10              |
-| RMA-BD-009 | Sikertelen QC után új próbálkozás; korábbi műveletek és vizsgálatok változatlanok; nincs automatikus próbálkozási korlát.                                                                                                                                                                                                                                                                                                                                 | 6.3, 7.3                  |
-| RMA-BD-010 | Több dolgozó, műveletek, kezdés/befejezés, tényleges munkaidő és anyagok követése.                                                                                                                                                                                                                                                                                                                                                                        | 6.3                       |
-| RMA-BD-011 | Ügyzárás csak minden termék dokumentált végső rendelkezése után; javítási készültség önmagában elégtelen.                                                                                                                                                                                                                                                                                                                                                 | 7.1, 10                   |
-| RMA-BD-012 | Garanciakezdet igazolt átadás; cikkszintű konfigurálható időtartam; bizonyítékhiány függő; indokolt jogosult felülbírálás.                                                                                                                                                                                                                                                                                                                                | 6.4, 7.5                  |
-| RMA-BD-013 | Anyag-, munka- és járulékos díjas ajánlat, benyújtás, ügyféljóváhagyás, elutasítás, lejárat; számlázás nem kezdeti scope.                                                                                                                                                                                                                                                                                                                                 | 6.4, 7.6                  |
-| RMA-BD-014 | Ingyenes, fix vagy időalapú diagnosztika; díja az ajánlatba beszámítható.                                                                                                                                                                                                                                                                                                                                                                                 | 6.4, 7.6                  |
-| RMA-BD-015 | Teljes javítási történet a serialhoz kötve; új ügy nyitásakor előzmények kiemelve.                                                                                                                                                                                                                                                                                                                                                                        | 5.2, 6.1, 11              |
-| RMA-BD-016 | Átvétel ellenőrzi az ügytagságot, serialt, állapotot és korábbi átvételt; készletkövetés és audit keletkezik.                                                                                                                                                                                                                                                                                                                                             | 7.4, 10                   |
-| RMA-BD-017 | Visszáru nem eladható, normál gyártásra nem foglalható/fogyasztható, szabad készletbe nem számít; helye követett.                                                                                                                                                                                                                                                                                                                                         | 8, 11                     |
-| RMA-BD-018 | Javítási anyag normál készletből; cikk, mennyiség, batch/serial, munkalap és mozgás kapcsolata; hiányból beszerzési igény.                                                                                                                                                                                                                                                                                                                                | 6.3, 8.4                  |
-| RMA-BD-019 | Kiadáskor címzett, dátum, szállítási/átadási referencia, bizonyíték és végállapot; kiadás megszünteti a javítási őrzést.                                                                                                                                                                                                                                                                                                                                  | 6.5, 7.4, 10              |
-| RMA-BD-020 | Csere: külön foglalás, fizikai előkészítés és bizonyított átadás. Foglalás/előkészítés alatt vállalati tulajdon, más célra nem allokálható; végső kiadás egyszeri, tulajdonátszállás csak igazolt szerződéses feltétel szerint. Átadás előtti jogosult megszakítás csak hely-/állapot-/alkalmasság-ellenőrzés után oldhat foglalást; teljes történet megmarad, mesterséges korrekció nincs. Az eredeti visszáru végső rendelkezése függetlenül szükséges. | 6.5–6.6, 7.7, 8.2–8.3, 10 |
+| Azonosító  | Jóváhagyott üzleti szabály                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | Tervezési hely            |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- |
+| RMA-BD-001 | Több serial egy ügyben; termékenként önálló munkalap és életciklus.                                                                                                                                                                                                                                                                                                                                                                                                                         | 6.1, 7.1–7.3              |
+| RMA-BD-002 | Csak érvényes serialú saját gyártású késztermék és komponens; garanciális időszakban javítás vagy csere.                                                                                                                                                                                                                                                                                                                                                                                    | 5.2, 6.1, 7.5             |
+| RMA-BD-003 | Kezdetben jogosult belső dolgozó rögzít; bejelentő és tulajdonos külön szerep.                                                                                                                                                                                                                                                                                                                                                                                                              | 6.1, 9                    |
+| RMA-BD-004 | Egy serialhoz egy aktív RMA; új eset csak az előző ügy lezárása után; történet megmarad.                                                                                                                                                                                                                                                                                                                                                                                                    | 6.2, 10                   |
+| RMA-BD-005 | Manuális `warranty`, `non_warranty`, `pending_assessment`; jogosultság és indoklás.                                                                                                                                                                                                                                                                                                                                                                                                         | 6.4, 7.5, 9               |
+| RMA-BD-006 | Fizetős javítás csak jóváhagyott ajánlat alapján indulhat.                                                                                                                                                                                                                                                                                                                                                                                                                                  | 7.3, 7.6                  |
+| RMA-BD-007 | A visszáru ügyféltulajdon; fizikai követés és normál készlettől elkülönítés.                                                                                                                                                                                                                                                                                                                                                                                                                | 8                         |
+| RMA-BD-008 | Nem javítható termék: csere, javítás nélküli visszaadás, engedélyezett selejt vagy függő döntés; selejthez dokumentált felhatalmazás.                                                                                                                                                                                                                                                                                                                                                       | 6.5, 7.2, 10              |
+| RMA-BD-009 | Sikertelen QC után új próbálkozás; korábbi műveletek és vizsgálatok változatlanok; nincs automatikus próbálkozási korlát.                                                                                                                                                                                                                                                                                                                                                                   | 6.3, 7.3                  |
+| RMA-BD-010 | Több dolgozó, műveletek, kezdés/befejezés, tényleges munkaidő és anyagok követése.                                                                                                                                                                                                                                                                                                                                                                                                          | 6.3                       |
+| RMA-BD-011 | Ügyzárás csak minden termék dokumentált végső rendelkezése után; javítási készültség önmagában elégtelen.                                                                                                                                                                                                                                                                                                                                                                                   | 7.1, 10                   |
+| RMA-BD-012 | Garanciakezdet igazolt átadás; cikkszintű konfigurálható időtartam; bizonyítékhiány függő; indokolt jogosult felülbírálás.                                                                                                                                                                                                                                                                                                                                                                  | 6.4, 7.5                  |
+| RMA-BD-013 | Anyag-, munka- és járulékos díjas ajánlat, benyújtás, ügyféljóváhagyás, elutasítás, lejárat; számlázás nem kezdeti scope.                                                                                                                                                                                                                                                                                                                                                                   | 6.4, 7.6                  |
+| RMA-BD-014 | Ingyenes, fix vagy időalapú diagnosztika; díja az ajánlatba beszámítható.                                                                                                                                                                                                                                                                                                                                                                                                                   | 6.4, 7.6                  |
+| RMA-BD-015 | Teljes javítási történet a serialhoz kötve; új ügy nyitásakor előzmények kiemelve.                                                                                                                                                                                                                                                                                                                                                                                                          | 5.2, 6.1, 11              |
+| RMA-BD-016 | Átvétel ellenőrzi az ügytagságot, serialt, állapotot és korábbi átvételt; készletkövetés és audit keletkezik.                                                                                                                                                                                                                                                                                                                                                                               | 7.4, 10                   |
+| RMA-BD-017 | Visszáru nem eladható, normál gyártásra nem foglalható/fogyasztható, szabad készletbe nem számít; helye követett.                                                                                                                                                                                                                                                                                                                                                                           | 8, 11                     |
+| RMA-BD-018 | Javítási anyag normál készletből; cikk, mennyiség, batch/serial, munkalap és mozgás kapcsolata; hiányból beszerzési igény.                                                                                                                                                                                                                                                                                                                                                                  | 6.3, 8.4                  |
+| RMA-BD-019 | Kiadáskor címzett, dátum, szállítási/átadási referencia, bizonyíték és végállapot; kiadás megszünteti a javítási őrzést.                                                                                                                                                                                                                                                                                                                                                                    | 6.5, 7.4, 10              |
+| RMA-BD-020 | Csere: külön foglalás, fizikai előkészítés és bizonyított átadás. Foglalás/előkészítés alatt vállalati tulajdon, más célra nem allokálható; minden valódi fizikai shipment kiadása egyszeri (AM-01), tulajdonátszállás csak igazolt szerződéses feltétel szerint. Átadás előtti jogosult megszakítás csak hely-/állapot-/alkalmasság-ellenőrzés után oldhat foglalást; teljes történet megmarad, mesterséges korrekció nincs. Az eredeti visszáru végső rendelkezése függetlenül szükséges. | 6.5–6.6, 7.7, 8.2–8.3, 10 |
 
 ### 3.1. RMA-0002/C – elfogadott architekturális döntések
 
@@ -145,6 +152,126 @@ A D1–D5 feloldja a korábbi T01/T03/T04/T05/T07 architekturális elfogadási
 kérdéseit. A konkrét szerződéses és garanciaszabályok konfigurálása továbbra is
 az érintett működés bevezetési előfeltétele; az ADR elfogadása nem igazolja
 annak elkészültét vagy egy konkrét ügy jogi minősítését.
+
+### 3.2. RMA-0003/C1 – elfogadott üzleti döntések
+
+RMA-D6–D11 külön-külön **ACCEPTED**, a projektgazda C1-döntései alapján.
+Nem számozzák át az RMA-BD-001–020 és D1–D5 döntéseket.
+
+#### RMA-D6 – Diagnosztikai kredit foglalása
+
+A diagnosztikai díj önálló, igazolt identitású tény. A javítási ajánlat legfeljebb
+az igazolt, ugyanazon munkalaphoz tartozó díjat számíthatja be. Kreditet csak
+az approved ajánlat foglal; draft/submitted nem effektív foglalás. Ugyanaz
+a díjforrás nem számítható be kétszer; a díj-, ajánlat- és kredittörténet megmarad.
+Érvényesítés: 6.4, 7.6, 10–11.
+
+#### RMA-D7 – Diagnosztikai kredit felszabadítása
+
+Cancel vagy supersede nem törli a történetet és nem automatikus release.
+Release előtt ellenőrizni kell a tényleges végrehajtást és a pénzügyi rendezést.
+Unused, unsettled kredit csak jogosult, auditált tranzakcióval szabadítható fel.
+Settled kredithez az eredetire hivatkozó külön korrekciós eljárás szükséges;
+korábbi ajánlat és döntés immutable. Ismeretlen settlement nem igazolt unsettled.
+A settlement observation az RMA-döntés bizonyítéka, nem számlázási/fizetési vagy
+könyvelési alrendszer. Érvényesítés: 6.4, 7.6, 9–11.
+
+#### RMA-D8 – Sikertelen kézbesítés és fizikai visszaérkezés
+
+Failed delivery önálló esemény, nem készletnövekedés. Fizikai returnhez igazolt
+serialazonosság és dokumentált átvétel kell; minden visszaérkezett replacement
+kötelező karanténba kerül. Production, sales, repair-consume, unrelated reserve
+és normal availability kizárt. Identity, condition, ownership és korábbi shipment
+bizonyítékait ellenőrizni kell; további használathoz authorized disposition kell.
+Physical return önmagában nem ownership reversal. Érvényesítés: 3.3, 7.7, 8–11.
+
+#### RMA-D9 – Felhatalmazott újraküldés
+
+Ugyanazon replacement serial több valódi fizikai shipmentben szerepelhet.
+Mindegyik önálló immutable identity/proof és stabil üzleti occurrence mellett,
+egyszer könyvelhető. Redispatchhez igazolt physical return, identity, condition,
+ownership/disposition right, explicit authorization és megfelelően rendezett
+előző shipment kell. Minden shipment/delivery előzmény elérhető marad.
+Érvényesítés: 6.5–6.6, 7.7, 8.2–8.3, 10–11.
+
+#### RMA-D10 – Tulajdonjog visszafordítása
+
+Physical return nem okoz tulajdonváltozást. Reversalhez dokumentált jogi vagy
+szerződéses alap, jogosult actor és supporting evidence kell. A reversal új
+immutable esemény, kötelezően az eredeti ownership eventre hivatkozik;
+az eredeti tény és a korrekciós történet megmarad. Fizikai custody és jogi
+ownership külön rekonstruálható. Érvényesítés: 6.5, 7.7, 8.2, 9–11.
+
+#### RMA-D11 – Beszerzési fedezet felszabadítása
+
+RMA-demand cancellation nem procurement commitment cancellation. Demand-only igény
+kontrolláltan visszavonható; draft PR review-val igazítható, approved PR jogosult
+review-t igényel. Kiküldött vagy supplier-acknowledged PO nem törölhető vagy
+szüntethető meg csendben. Received goods tényleges receipt/ownership/inventory
+szabályok szerint maradnak követettek. Coverage release/reassignment/cancellation
+auditált üzleti művelet, procurement history és eredeti source rekordok megmaradnak.
+Az újraszámítás és coverage-változás sem generálhat dupla beszerzést.
+Érvényesítés: 8.4, 9–11 és 14.2.
+
+### 3.3. AM-01–AM-04 – jóváhagyott amendmentek és kötelező AM-02 feltételek
+
+AM-01–AM-04 státusza **APPROVED**; projektgazdai jóváhagyás: **2026-10-29**,
+az RMA-0003/C1 Closure feladatban. Az elfogadás architekturális, nem DDL- vagy
+tesztigazolás. A fizikai hely, jogi ownership és disposition/allocation független.
+
+- **AM-01:** a logikai replacement obligation különbözik a fizikai shipment
+  attempttől, physical returntől, delivery evidencetől és ownership transfertől.
+  Több valódi shipment engedett D9 szerint, mind saját immutable identity/movement
+  proof, stabil occurrence és idempotens posting mellett. Az eredeti termék
+  végső dispositionje független marad.
+- **AM-02:** minden replacement return kétlépcsős: physical intake karanténba,
+  majd indokolt esetben külön verified inventory admission. Unresolved ownership
+  nem gátolhatja a valódi intake rögzítését. Pending admission az existing external
+  könyvelési oldalon, ténylegesen belső helyen is követhető; nem negyedik scope.
+  A kivétel kizárólag az alábbi négy kötelező feltétellel alkalmazható.
+- **AM-03:** önálló verified diagnostic fee; credit csak approvalkor, egy effektív
+  allocation díjforrásonként. Unused/unsettled release jogosult auditált döntés;
+  settled külön correction. Quote és credit history immutable. Settlement
+  observation kizárólag RMA-bizonyíték, nem általános pénzügyi alrendszer.
+- **AM-04:** reversal új immutable tény az original ownership event és a
+  jogalap/proof megőrzésével. Demand, commitment és receipt önálló lifecycle;
+  coverage release/reassign auditált, a commitment és source history nem tűnik el.
+
+| Kötelező feltétel                                 | Elfogadott integritási szerződés                                                                                                                                                                                                  |
+| ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| AM-02-G1 – Physical evidence                      | Intake csak igazolt serial, valós hely, timestamp, source shipment és supporting evidence mellett; a tény és a karantén/helyprojekció egy tranzakció.                                                                             |
+| AM-02-G2 – No unauthorized company stock increase | Return-intake normal company balance-hatása 0. Company admission csak az alkalmazandó befogadási követelmények teljesülése után; ismeretlen ownership nem company tulajdonvélelem.                                                |
+| AM-02-G3 – Quarantine isolation                   | Karantén nem production-consumable, sales-allocatable, repair-material-consumable, unrelated reservation vagy normal available stock. Minden releváns writer és reader kötelezően kizárja, nem csak egy raktárhely vagy UI-szűrő. |
+| AM-02-G4 – No duplicate receipt                   | Intake és admission eltérő identity és idempotenciavédelem; admission nem második fizikai receipt. Return/shipment kapcsolat, serial és egyszeri projectionhatás védendő.                                                         |
+
+Az external -> external kivétel kizárólag kifejezetten engedélyezett
+mozgástípus–purpose–RMA return kontextusban érvényes. A jóváhagyott alapeset
+a bizonyított replacement return-intake, pending-admission/mandatory-quarantine
+céllal, normál balance-hatás nélkül. Általános transferre nem terjeszthető ki.
+Minden további típus/cél pontos engedélyezése és CHECK/permission szerződése C2-ben
+külön felsorolandó; az általános scrap/transfer enum önmagában nem felhatalmazás.
+A disposition/admission jogcím nem írja át a fizikai érkezés idejét és nem
+hozhat létre új példányt vagy fiktív tulajdonváltozást.
+
+### 3.4. Amendment-történet és megőrzött indoklás
+
+Az eredeti A/B készletstratégia összevetése, önálló repair-domain és eredeti
+gyártási traceability indokai változatlanok. A korábbi szóhasználatot az alábbi
+jóváhagyott kiterjesztések pontosítják; a régi indoklást nem töröltük.
+
+| Amendment | Jóváhagyás / forrás                                                     | Érintett ADR-fejezetek                      | Korábbi megfogalmazás és változtatás oka                                                                                                                                                                                                    |
+| --------- | ----------------------------------------------------------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| AM-01     | 2026-10-29; projektgazda kifejezett RMA-0003/C1 Closure jóváhagyása     | 3, 6.5–6.6, 7.1/7.7, 8.2–8.3, 10–11, 15.2   | A „cserefolyamat egyszeri kiadása” az idempotenciát védte, de kizárhatta a valódi újraküldést. Most shipmentenként egyszeri posting, logikai obligationtől külön.                                                                           |
+| AM-02     | 2026-10-29; projektgazda jóváhagyása AM-02-G1–G4 kötelező feltételeivel | 3.3, 6.5, 7.1/7.7, 8.2–8.3, 9–11, 14.2/15.2 | A közvetlen external->company return és a hiányos bizonyíték miatti általános átvételblokkolás helyett intake+karantén, majd verified admission. A régi on-site képlet pending admissionnel bővül; nincs új scope vagy automatikus készlet. |
+| AM-03     | 2026-10-29; projektgazda kifejezett jóváhagyása                         | 3.2–3.3, 6.4, 7.6, 9–11, 14.2               | A díjszabás/ajánlati sor nem önálló verified fee. Approval-only allocation és release review szükséges; a korábbi pénzügyi scope-kizárás az általános accountingra vonatkozik, nem az RMA-proof megfigyelésére.                             |
+| AM-04     | 2026-10-29; projektgazda kifejezett jóváhagyása                         | 3.2–3.3, 6.5, 7.7, 8.4, 9–11, 14.2          | A fizikai visszatérésből nem következhet jogi reversal; a demand törléséből nem következhet PO-cancel. Külön immutable ownership és coverage history védi mindkettőt.                                                                       |
+
+A korábbi 2026-10-28 Accepted baseline hash-e:
+`3704c2047110ed8030c2ac9cf6acef14dd3f7acde989aab165abe11369053bfc`.
+Részletes korábbi review: [RMA-0003/C1](../designs/rma-0003c1-business-decisions-integrity-gates.md).
+A következő fázis követelményei: [C2 előkészítési terv](../designs/rma-0003c2-detailed-schema-review-plan.md).
+A 25 táblás javaslat és a konkrét FK/trigger/grant/mezők továbbra is részletes
+tervezési tárgyak, nem az amendmenttel végrehajtott séma.
 
 ## 4. Architektúra-alternatívák
 
@@ -284,7 +411,9 @@ hatályossággal. A minősítés az alkalmazott beállítást megőrzi; később
 módosítás nem változtatja meg a történeti döntést. Az időtartam-konfiguráció
 verziójának tárolási módja a 14. fejezetben marad nyitott.
 
-Az aktuális garanciális döntést a legnagyobb zároltan kiosztott verzió adja.
+Az aktuális garanciális döntést az adott munkalap és tárgyalt serial
+szűrésében legnagyobb, zároltan kiosztott verzió adja; a global order-version
+egyedisége megmarad.
 A munkalap nem tárol második, önállóan szerkeszthető garanciastátuszt.
 D4 szerint csere nem indít automatikusan új időszakot: az eredeti és a
 cserepéldányhoz kapcsolt garanciadöntések, szabályverziók és átadási bizonyítékok
@@ -296,8 +425,17 @@ ajánlat további munkára használatát, de az addigi munka bizonyítéka megma
 
 Pénzügyi érték fix pontosságú decimális összeg vagy pénzegységben tárolt egész
 legyen, nem float. A végleges pontosság, kerekítés és nettó/bruttó kezelés még
-technikai specifikációt igényel. Számla, követelés és fizetettségi státusz nem
-része az induló modellnek.
+technikai specifikációt igényel. Számla, követelés és általános fizetettségi/elszámolási alrendszer nem
+része az induló modellnek. D7/AM-03 szerint konkrét kreditdöntéshez settlement
+observation és annak bizonyítéka szükséges; ez nem általános pénzügyi státuszmodell.
+
+D6/AM-03 szerint a verified diagnostic fee önálló, ajánlatverziótól független
+identitás. A részletes terv `repair_diagnostic_fees` és
+`repair_diagnostic_credit_allocations` táblákat javasol; a végleges oszlopok,
+same-order composite FK-k és active-source egyediség C2 tárgya.
+Draft/submitted quote csak becslést tárolhat, effektív kreditet approved foglal.
+A díjszabás, a verified fee, a business allocation és a settlement observation
+külön fogalom; egyik sem bizonyít automatikusan számlázást vagy rendezést.
 
 ### 6.5. Őrzés, kiadás, végső rendelkezés és történet
 
@@ -318,6 +456,15 @@ A `pending_decision` nem végső disposition. A végső típusok: `repaired_retu
 `returned_unrepaired`, `replaced`, `scrapped`; át nem vett, visszavont termékhez
 `cancelled_before_receipt`, dokumentált indokkal és bizonyítottan nulla őrzéssel.
 A beérkezés utáni megszakítás önmagában nem végső rendelkezés.
+
+AM-01/02/04 szerint a release a fizikai shipment identitása, a return intake
+és admission külön kapcsolt tény, a delivery/ownership pedig külön esemény.
+A részletes terv ezekhez release/delivery/ownership historyt és occurrence
+kulcsokat javasol. A korábbi logikai nullable handover mezők nem jelentik
+a release utólagos felülírásának engedélyét. Reversal kötelezően original-event
+és proof hivatkozással új immutable sor; a supersedes korrekció külön kapcsolat.
+Replacement karantén nem eredeti repair_custodies sor; tényleges helye közös
+movement/instance projekcióból és return evidence-ből rekonstruálható.
 
 ### 6.6. Cserefoglalás és előkészítés: meglévő infrastruktúra bővítése
 
@@ -348,8 +495,12 @@ származnak; helyváltozás a `StockMovement` `source` kapcsolatán a foglalásr
 hivatkozik. A történet és a mozgás `RESTRICT`-tel védett kapcsolat; foglalás
 hard delete-je tilos. Előkészítési státuszból nem következik tulajdonváltás.
 A fizikai kiadási rekord egyedi foglalás-FK-ja és egyedi mozgás-FK-ja biztosítja,
-hogy ugyanaz a cserefolyamat egyszer vezethető ki; a foglalás terminális oka
-`fulfilled_by_release` történeti esemény, nem javítási anyagfogyasztás.
+hogy ugyanaz a fizikai shipment egyszer vezethető ki. AM-01 szerint egy
+logikai cserekötelezettséghez több valódi shipment tartozhat; új attempthez
+új reservation kell, az előző fulfillment nem aktiválható újra. A foglalás
+terminális oka `fulfilled_by_release` történeti esemény, nem javítási anyagfogyasztás.
+Shipment identity, stabil üzleti occurrence és command/movement egyediség együtt
+védi a duplázást; új commandkulcs nem jelent új fizikai shipmentet.
 
 A helyek és foglalások újrafelhasználása csak az összes érintett fogyasztó
 átállítása után biztonságos. A meglévő normál fogyasztó nem von le minden
@@ -389,9 +540,11 @@ bizonyítékokat ugyanazon tranzakcióban ellenőrzi:
    serial/mennyiség/hely/hatókör szerint egyeznek és nem vonták vissza őket.
    Custody-projekció hiánya önmagában nem bizonyít végső kiadást.
 3. Az eredeti visszáruhoz nincs rendezetlen custody, mozgatás vagy átadás.
-4. Minden cserefoglalás vagy igazolt visszavonással lezárt, vagy egyszeri
-   fizikai kiadással teljesített. Nincs nyitott előkészítés, serialfoglalás,
-   úton lévő vagy bizonyíték nélküli átadás, függő tulajdonátszállási kötelezettség.
+4. Minden cserefoglalás vagy igazolt visszavonással lezárt, vagy az adott
+   shipment egyszeri fizikai kiadásával teljesített. A logikai kötelezettség
+   összes attemptje/returnje rendezett; nincs nyitott előkészítés, serialfoglalás,
+   karantén, pending-admission, úton lévő vagy bizonyíték nélküli átadás,
+   függő tulajdonátszállási kötelezettség.
 5. A címzett, kiadási/átadási dátum, referencia, végállapot és a szerződéses
    feltételek szerinti kötelező bizonyítékok érvényes dokumentumverziói léteznek.
 6. Nincs aktív javítási művelet, nyitott időszakasz, rendezetlen javítási
@@ -538,8 +691,18 @@ nem a későbbi javítást. A beszámítás külön, az eredeti díjra hivatkoz�
 `diagnostic_credit` ajánlati sor; egyszer alkalmazható, legfeljebb az igazolt
 beszámítható díjig. Ingyenes diagnosztikára nincs mesterséges jóváírás.
 
+D6/D7 szerint az approved quote foglalását source-order/fee zárolás és DB-egyediség
+védi; a credit nem haladhatja meg az igazolt fee-t, más munkalaphoz nem tartozhat.
+Új draft vagy supersede nem oldja a korábbi allocationt. Release előtt execution
+és settlement evidence ellenőrzött; unused/unsettled állapotban jogosult auditált
+release, settled állapotban külön correction szükséges. Unknown nem unsettled;
+hiányos proofnál nincs automatikus felszabadítás. Az előzményverzió és allokáció
+nem törölhető vagy írható át új felhasználás érdekében.
+
 ### 7.7. Cserepéldány foglalása, előkészítése, átadása
 
+AM-01 szerint az alábbi alapeset egy fizikai shipmentre vonatkozik; nem az
+összes valódi újraküldést tiltó, egyetlen logikai cserefolyamatra.
 `reserved -> prepared -> dispatched -> handed_over`; helyi átadásnál
 `prepared -> handed_over` egy atomikus kiadási paranccsal. A `reserved` és
 `prepared` nem kész csere. Mindkettőben vállalati tulajdon és aktív foglalás
@@ -552,7 +715,7 @@ marad; helye követett, más célra nem használható.
   belső transfer és a foglalás helyprojekciójának atomikus frissítése történik.
   Ugyanazon helyen előkészítés csak történeti esemény, mennyiségi mozgás nélkül.
 - Kiszállítás: kiadási és fuvarozói bizonyíték, címzett, dátum, referencia és
-  végállapot szükséges; egyszeri végső raktári kivezetés. Ha a címzetti átvétel
+  végállapot szükséges; shipmentenként egyszeri raktári kivezetés. Ha a címzetti átvétel
   még nem igazolt, `dispatched`, nyitott átadási kötelezettséggel. A foglalás
   ekkor csak a már kikönyvelt egység lekötéseként szűnik meg, nem szabadul fel
   készletként. Úton lévő serial új allokációja tiltott.
@@ -567,19 +730,37 @@ marad; helye követett, más célra nem használható.
 - Kiszállítás után, de igazolt átadás előtt jogosult megszakítási igény
   `cancellation_pending` lehet, de a fizikai kiadás nem törölhető vagy
   visszadátumozható. Visszahívás után csak igazolt valódi visszaérkezés,
-  szerződéses tulajdonellenőrzés és alkalmassági vizsgálat rendezheti a folyamatot;
-  tényleges inbound mozgás legfeljebb egyszer könyvelhető. Addig a serial úton
-  lévőként blokkolt. Lezárt átadás nem visszavonható előkészítésként.
+  kötelező karantén, szerződéses tulajdonellenőrzés és alkalmassági vizsgálat
+  rendezheti a folyamatot. Az intake és a későbbi admission külön egyedi esemény,
+  admission nem második fizikai receipt (AM-02-G4). A tényleges érkezésig transit,
+  utána a valós helyén quarantined/pending-admission; unresolved ownership nem
+  akadályozhatja az intake rögzítését. Lezárt átadás nem visszavonható előkészítésként.
 
 Hibás fuvarozói válasz vagy sikertelen átadás nem generál fiktív balance-növelést.
 Ha a szerződés alapján a tulajdon korábban átszállt, a visszahívás tulajdonosi
 rendezése külön, engedélyezett esemény; nem feltételezhető automatikus visszaszállás.
 A termék a feltételek rendezéséig nem szabad készlet.
 
-A `handed_over` a csere fizikai átadásának terminális eredménye, a `cancelled`
-a kiválasztás terminális eredménye; az eredeti visszáru egyikből sem kap
+A `handed_over` az adott shipment fizikai átadásának eredménye, a `cancelled`
+a kiválasztás terminális eredménye; későbbi igazolt return új tény, nem átírás; az eredeti visszáru egyikből sem kap
 végső rendelkezést automatikusan. A cserefolyamat csak a tulajdonosi és átadási
 kötelezettségek rendezésével lezárt a 7.1 szerinti ügyzáráshoz.
+
+AM-02 szerint a kötelező return út: failed delivery (önálló, balance0) ->
+physical intake+quarantine -> identity/condition/ownership/disposition-right
+ellenőrzés -> authorized disposition. Fizikai intake unresolved owner mellett
+is követett. Verified admission nem szükségszerű, nem második receipt és nem
+automatikus elérhetőség: karanténból további használat csak engedélyezett döntés
+után lehet. A tényleges hely, a jogi owner és az allocation állapot külön marad.
+
+D9/AM-01 szerint redispatch csak a korábbi shipment megfelelő rendezése,
+igazolt return, identity/condition/right és explicit authorization után lehetséges.
+Új, immutable shipment+occurrence+movement és új mennyiségi reservation kell;
+régi fulfillment nem nyitható újra. Igazolt custody-disposition-right esetén
+redispatch nem követel fiktív company ownershipt vagy reversalt; company balance
+ilyenkor nem csökken. A nem-company ág pontos purpose/FK/CHECK-je C2 feladata.
+Physical return önmagában D10 szerint nem reversal: dokumentált jogalappal,
+jogosult actorral és original-event FK-val új ownership esemény kell.
 
 ## 8. Készletstratégiák összehasonlítása
 
@@ -607,24 +788,29 @@ közben a normál vállalati készletben marad, aktív serialfoglalással és k�
 hellyel; nincs `company_stock -> customer_custody` előkészítési könyvelés.
 
 A mennyiségi hatókör és jogi tulajdon külön dimenzió. A `company_stock`,
-`customer_custody`, `external` a fizikai nyilvántartás oldalait jelöli; az
-`external` nem mondja meg a tulajdonost. Az úton lévő, de még vállalati tulajdonú
+`customer_custody`, `external` a készletkönyvelési oldalakat jelöli; az
+`external` nem mondja meg a tulajdonost. AM-02 szűk pending-admission kivételében
+external könyvelési oldalon belső karanténhelyen is lehet a példány; a fizikai
+helyet, a jogi tulajdont és a disposition/allocation állapotot külön követjük. Az úton lévő, de még vállalati tulajdonú
 cserepéldány külön kimutatható a kiadás és a hiányzó tulajdonátszállási esemény
 alapján, nem szabad készlet és nem ügyféltulajdonú repair-custody.
 
-| Üzleti esemény                                        | Forrás -> cél hatókör                                                                   | Vállalati helyi mennyiség / foglalás / tulajdon                                                                                                                                                                 |
-| ----------------------------------------------------- | --------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Eredeti RMA-átvétel                                   | `external -> customer_custody`                                                          | Normál balance 0; ügyféltulajdon megmarad.                                                                                                                                                                      |
-| Eredeti visszáru belső áthelyezése                    | `customer_custody -> customer_custody`                                                  | Normál balance 0; custody helye változik.                                                                                                                                                                       |
-| Eredeti visszaadás/engedélyezett selejt               | `customer_custody -> external` megfelelő jogcímen                                       | Normál balance 0; őrzés megszűnik, önmagában nem állít vállalati tulajdonszerzést.                                                                                                                              |
-| Javítási anyag fogyasztása                            | `company_stock -> external` fogyasztási jogcímen                                        | Normál balance negatív a tényleges mennyiséggel; saját anyag felhasználása.                                                                                                                                     |
-| Csere lefoglalása                                     | Nincs fizikai mozgás                                                                    | Balance 0 változás; aktív serialfoglalás +1, szabad mennyiség -1; vállalati tulajdon.                                                                                                                           |
-| Csere előkészítése másik belső helyre                 | `company_stock -> company_stock` valós transfer                                         | Forráshely -1, célhely +1, összesen 0; ugyanaz a foglalás követi, szabad mennyiség összesen nem nő; vállalati tulajdon.                                                                                         |
-| Csere előkészítése ugyanazon helyen                   | Nincs fizikai mozgás                                                                    | Balance és foglalás változatlan; történeti esemény, vállalati tulajdon.                                                                                                                                         |
-| Csere kiszállítása vagy azonnali helyi átadása        | `company_stock -> external` egyszeri végső kiadás                                       | Helyi balance -1, foglalás teljesítettként megszűnik: szabad mennyiség nem nő. Tulajdonváltozás csak szerződéses esemény alapján.                                                                               |
-| Kiszállított csere utólag igazolt átadása             | Nincs új mennyiségi mozgás                                                              | Balance 0 változás; kiadáshoz kötött bizonyíték. Tulajdonváltozás kizárólag az alkalmazandó policy szerint.                                                                                                     |
-| Előkészítés visszavonása kiadás előtt                 | Szükség esetén valós `company_stock -> company_stock` visszatransfer                    | Összes balance 0; foglalás -1 csak igazolt hely/állapot/alkalmasság után, ekkor szabad mennyiség +1.                                                                                                            |
-| Meghiúsult kiszállítás igazolt fizikai visszaérkezése | Valós `external -> company_stock` csak igazolt vállalati tulajdon és alkalmasság esetén | Balance +1 egyszer, az eredeti outboundhoz kötve; korábbi kiadás nem törlődik. Nem ellenőrzött vagy nem vállalati tulajdonú visszaérkezés elkülönített, nem szabad balance; külön rendezési workflow szükséges. |
+| Üzleti esemény                                            | Forrás -> cél hatókör                                                                | Vállalati helyi mennyiség / foglalás / tulajdon                                                                                                                 |
+| --------------------------------------------------------- | ------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Eredeti RMA-átvétel                                       | `external -> customer_custody`                                                       | Normál balance 0; ügyféltulajdon megmarad.                                                                                                                      |
+| Eredeti visszáru belső áthelyezése                        | `customer_custody -> customer_custody`                                               | Normál balance 0; custody helye változik.                                                                                                                       |
+| Eredeti visszaadás/engedélyezett selejt                   | `customer_custody -> external` megfelelő jogcímen                                    | Normál balance 0; őrzés megszűnik, önmagában nem állít vállalati tulajdonszerzést.                                                                              |
+| Javítási anyag fogyasztása                                | `company_stock -> external` fogyasztási jogcímen                                     | Normál balance negatív a tényleges mennyiséggel; saját anyag felhasználása.                                                                                     |
+| Csere lefoglalása                                         | Nincs fizikai mozgás                                                                 | Balance 0 változás; aktív serialfoglalás +1, szabad mennyiség -1; vállalati tulajdon.                                                                           |
+| Csere előkészítése másik belső helyre                     | `company_stock -> company_stock` valós transfer                                      | Forráshely -1, célhely +1, összesen 0; ugyanaz a foglalás követi, szabad mennyiség összesen nem nő; vállalati tulajdon.                                         |
+| Csere előkészítése ugyanazon helyen                       | Nincs fizikai mozgás                                                                 | Balance és foglalás változatlan; történeti esemény, vállalati tulajdon.                                                                                         |
+| Csere kiszállítása vagy azonnali helyi átadása            | `company_stock -> external` egyszeri kiadás az adott shipmentre                      | Helyi balance -1, foglalás teljesítettként megszűnik: szabad mennyiség nem nő. Tulajdonváltozás csak szerződéses esemény alapján.                               |
+| Kiszállított csere utólag igazolt átadása                 | Nincs új mennyiségi mozgás                                                           | Balance 0 változás; kiadáshoz kötött bizonyíték. Tulajdonváltozás kizárólag az alkalmazandó policy szerint.                                                     |
+| Előkészítés visszavonása kiadás előtt                     | Szükség esetén valós `company_stock -> company_stock` visszatransfer                 | Összes balance 0; foglalás -1 csak igazolt hely/állapot/alkalmasság után, ekkor szabad mennyiség +1.                                                            |
+| Replacement physical return-intake                        | Szűk engedélyezett external -> external intake, pending-admission/karantén céllal    | Normal balance 0, igazolt serial/hely/idő/source shipment/proof; minden return quarantined, ownership unresolved is lehet (AM-02-G1–G3).                        |
+| Verified company-stock admission                          | Ugyanazon returnhez external -> company_stock, teljesülő befogadási követelményekkel | Physical balance +1 egyszer; nem második fizikai receipt, karantén nem oldódik automatikusan. Authorized disposition kell a felhasználhatósághoz (AM-02-G2/G4). |
+| Igazolt nem-company admission / custody-rights redispatch | Igazolt custody könyvelési oldal; redispatchkor customer_custody -> external         | Normal balance 0; disposition right és D9 authorization, nincs automatikus ownership reversal vagy original custody-sor.                                        |
+| Karantén feloldása / végső rendelkezés                    | Valós jogcím és szükség szerint mozgás, nem fiktív receipt                           | Identity/condition/ownership-right/previous shipment és jogosultság ellenőrzött; unresolved állapot nem available.                                              |
 
 D5 szerint a fizikai kiadás, a fuvarozói átvétel, a címzetti átvétel és a jogi
 ownership-transfer eltérő időpontok lehetnek. Azonos időpont is csak igazolt
@@ -638,7 +824,8 @@ kiadás, korábbi/új tulajdonos, időpont, feltételverzió és bizonyíték hi
 Ez nem második fizikai készletmozgás.
 
 D1 szerint a három hatókör elfogadott: `company_stock`, `customer_custody`,
-`external`. D5 szerint ezek fizikai mozgási oldalak, a jogi tulajdonváltozás
+`external`. A fizikai mozgás és a könyvelési oldal AM-02 szerinti intake/admission
+különbségét explicit típusszerződés kezeli; a jogi tulajdonváltozás D5 szerint
 külön nyilvántartott esemény. A konkrét oszlopok, új mozgástípusok és a régi
 típusok mappingje a részletes implementációs terv része.
 A régi mozgásokat ellenőrzött mappinggel kell besorolni; ismeretlen típus
@@ -651,18 +838,23 @@ csak valós mozgás magyarázhat; előkészítési vagy jogi státusz nem helyet
 
 1. Egy serialhoz legfeljebb egy aktuális custody-sor tartozhat; minden
    példányszintű mozgatás ugyanazt az `ItemInstance` sort zárolja.
-2. Átvétel nem növel normál egyenleget és nem hoz létre új példányt.
-3. Serialos vállalati készletből csak igazolt, korábban kivezetett termék
-   érkezhet vissza. Ha a régi aggregált egyenlegből a kivezetés nem bizonyítható,
-   az átvételi könyvelés blokkol és külön egyeztetést igényel; nem készül
-   automatikus „kiegyenlítő” korrekció.
+2. Original átvétel és replacement return-intake nem növel normál egyenleget,
+   nem hoz létre új példányt. Későbbi igazolt company admission egyszer növelhet
+   normál physical balance-t, de nem ismételheti meg a fizikai receiptet.
+3. Company-stock admission csak igazolt korábbi kivezetés és befogadási
+   feltételek alapján lehet. Hiányos aggregált outbound/origin vagy ownership
+   esetén admission és felhasználás blokkolt, de a tényleges, serialazonosított
+   fizikai return-intake AM-02-G1 szerint rögzítendő, karanténban. Nincs
+   automatikus „kiegyenlítő” korrekció vagy vélelmezett company tulajdon.
 4. A vállalati mozgási és fogyasztási parancsok elutasítják a custodyban lévő
    serialt; mennyiségi aggregátumból nem lehet egyedi tulajdont kitalálni.
-5. `physical_on_site = company_stock_on_site + customer_custody_on_site` csak külön,
-   tulajdonos szerint feliratozott fizikai riportban jelenhet meg. Szabad készlet,
-   MRP, értékelés és értékesítési rendelkezésreállás nem használhatja ezt az összeget.
-6. A csere egyszer lép ki a helyi vállalati készletből a tényleges kiadáskor,
-   nem előkészítéskor; későbbi átadási igazolás vagy ownership-esemény nem von
+5. `physical_on_site = company_stock_on_site + customer_custody_on_site + pending_admission_on_site`
+   egymást kizáró példánybesorolással, külön feliratozott fizikai riportban
+   jelenhet meg. A pending intake tulajdona lehet unresolved; az összeget
+   szabad készlet, MRP, értékelés vagy sales-availability nem használhatja.
+   Quarantine physical mennyiség nem available és nem vonható le kétszer.
+6. Egy company-stock shipment egyszer lép ki a helyi vállalati készletből a
+   tényleges kiadáskor, nem előkészítéskor; későbbi átadási igazolás vagy ownership-esemény nem von
    le újabb mennyiséget. Az úton lévő példány és a foglalás feloldási oka
    megakadályozza a visszaallokálást. Az eredeti termék nem válik automatikusan
    vállalati tulajdonná; visszaadása/selejtje függetlenül bizonyított.
@@ -689,6 +881,20 @@ kitöltve, tulajdonos+cikk szerint megfelelő egyediséggel. A beszerzési
 `purchase_requisition_item_sources` így továbbra is valódi anyagigényhez köt.
 Az igénylést a javítási anyagbecslésből kell számítani, nem a gyártási BOM
 szolgáltatását meghívni. Azonos hiány újraszámítása nem generálhat dupla beszerzést.
+
+D11/AM-04 alapján a demand, a procurement commitment és a goods receipt önálló
+életciklus. Demand-only withdraw kontrollált; draft PR review-val módosítható,
+approved PR jogosult review-t igényel. Kiküldött vagy supplier-ack PO nem
+törölhető/cancelled csendben RMA-cancel miatt. Coverage release/reassign auditált,
+forrástörténet megmarad; received supply csak valós receipt, ownership és
+inventory tény szerint kezelhető. A source rekord törlése nem regenerálási guard.
+
+A részletes terv `procurement_coverage_events` ledgerrel javasolja a részleges
+coverage, demand revision, commitment és receipt közötti history megőrzését.
+C2-ben source/commitment zár alatti conservation és delta-only generálás,
+stable generation identity, részreceipt és reassignment specifikáció kell.
+A received stockot nem szabad open coverage-ként még egyszer nettósítani.
+A PR-line direct requirement pointer nem második demand a sources mellett.
 
 ## 9. Biztonság és auditkövetelmények
 
@@ -730,6 +936,12 @@ visszavonást, kiszállítást, igazolt átadást, tulajdonátszállást, selejt
 az `attribute_changes`, üzleti kontextus a `properties`; csak szükséges személyes
 adat kerülhet logba. Az állapottörténet nem másolja a teljes auditpayloadot.
 
+D7/D8/D9/D10/D11 szerinti credit release, karanténfeloldás, redispatch, ownership
+reversal és coverage release/reassign külön jogosult, indokolt és auditált művelet.
+A konkrét permission-azonosítók, DB-jogok és retention C2-s szerződések,
+nem már seedelt vagy kikényszerített képességek. AM-02-G3 minden inventory
+writerre/readerre érvényes, a super-admin üzleti guardokat sem kerülhet meg.
+
 ## 10. Tranzakció, idempotencia és konkurenciavédelem
 
 Minden üzleti parancsnál az állapotot a tranzakción belüli zárolás után kell
@@ -741,24 +953,27 @@ A javasolt tartós parancsregiszter `repair_commands`: egyedi
 Ez technikai deduplikációs rekord, nem új workflow. Ugyanaz a kulcs+payload
 ugyanazt az eredményt adja; eltérő payload ugyanazon kulccsal konfliktus.
 A fizikai kiadás, átadási bizonyíték és ownership-esemény külön parancs;
-egy kiadáshoz egy teljesülési/tulajdonosi trigger csak egyszer könyvelhető,
-egyedi `(repair_release_id, event_type, contractual_trigger)` eseménykulccsal.
+ugyanaz a shipment/delivery/ownership üzleti occurrence csak egyszer könyvelhető,
+stabil forrásazonosítóval és payload-egyezéssel. Egy szerződéses trigger szövege
+nem eseményazonosság: valódi későbbi transfer/reversal külön identitású lehet.
+A command, a fizikai shipment, a return-intake és admission saját deduplikációt
+kap. Az ownership reversal eredeti-event kapcsolata és egyedisége külön védendő.
 A sikeres regisztráció és üzleti írás közös tranzakció; rollbacknél nincs sikeres
 parancsrekord. Másik kulccsal ismételt átvételt a domain és egyediség tiltja.
 
-| Parancs                                              | Zárolás és atomikus írások                                                                                                                                                                                    | Rollback / ismétlés                                                                                                        |
-| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| RMA létrehozása / termékfelvétel                     | Ügy, növekvő ID szerinti példányzárak; eredet, tagság, munkalap, claim, történet, audit, command; aktív cserefoglalás és függő kiadás kizárása                                                                | Egy termék hibája az egész beküldést visszagörgeti.                                                                        |
-| Eredeti visszáru átvétele                            | Ügy, példány, munkalap; tagság/serial/állapot/korábbi receipt; mozgás, custody, helyprojekció, történet, audit                                                                                                | Nincs részleges vagy dupla átvétel.                                                                                        |
-| Anyagfogyasztás                                      | Ügy, munkalap, anyagserialok, minden érintett foglalás és balance; saját igény és más lekötések ellenőrzése; anyag, mozgás, részfoglalás, projekció, audit                                                    | Aktív cserefoglalásból fogyasztás tiltott; hiba esetén nincs részfogyasztás.                                               |
-| Vizsgálat/QC vagy tervváltoztatás                    | Ügy, munkalap, aktuális próbálkozás/műveletek, quote-verzió; inspection vagy superseding terv és előzmények, keretvizsgálat, állapot, audit                                                                   | Elkezdett történet nem módosul; jóváhagyásra váró scope-ból új munka nem indul.                                            |
-| Csere lefoglalása                                    | Ügy, eredeti és cserepéldány, munkalap, aktív foglalások, balance; jogosultság, origin, hely és nettó készlet; egyedi serialfoglalás, serialpár, történet, audit                                              | Egy példány két ügynek vagy más célnak nem foglalható; nincs balance-csökkentés.                                           |
-| Csere előkészítése / kiadás előtti visszavonása      | Ugyanazok a zárak; fizikai hely/állapot/alkalmasság; szükség esetén valós belső transfer és foglaláshely-váltás; preparation/cancellation történet                                                            | Összmennyiség 0 változás; hiba esetén nincs feloldott vagy gazdátlan foglalás.                                             |
-| Eredeti vagy csere fizikai kiadása                   | Ügy, serialok, munkalap, custody vagy cserefoglalás/balance; szükséges QC/engedély/policy és kiadási bizonyíték; release és egyszeri mozgás; eredeti custody megszűnése vagy cserefoglalás teljesítése, audit | Csere balance -1 csak itt; hiányos bizonyíték esetén nincs kivezetés. Helyi azonnali átadás igazolása ugyanitt rögzíthető. |
-| Kiszállítás utáni igazolt átadás / tulajdonátszállás | Ügy, serial, munkalap, release és feltételverzió; ellenőrzött bizonyíték, esemény-egyediség, történet, audit                                                                                                  | Nincs második készletcsökkentés. Ha a trigger már kiadáskor teljesült, nem rögzíthető még egyszer.                         |
-| Kiszállított csere megszakítása                      | Ügy, serial, munkalap, eredeti release/foglalás; visszahívás és fizikai/ownership-bizonyíték; csak tényleges visszaérkezéshez egyedi inbound, ellenőrzés és rendezett cancellation                            | Távoli API-hiba nem készletkorrekció. Fizikai és tulajdonosi rendezés nélkül a folyamat függő és a serial blokkolt.        |
-| Selejt / végső rendelkezés                           | Ügy, eredeti serial, munkalap, custody, összes cserefoglalás és release; felhatalmazás, mozgások és mindkét serial sorsának bizonyítéka; disposition, audit                                                   | `replaced` nem fedheti el az eredeti visszáru nyitott sorsát; selejtmozgás-hibánál nincs lezárt őrzés.                     |
-| Ügyzárás                                             | Ügy, tagságok, serialok, munkalapok, foglalások és kiadások; a 7.1 összes kapcsolt bizonyítéka, majd státusz, claim-feloldás, történet, audit                                                                 | Nincs részleges zárás; proof/custody/reservation/authorization/QC hiányakor rollback.                                      |
+| Parancs                                              | Zárolás és atomikus írások                                                                                                                                                                                    | Rollback / ismétlés                                                                                                                                                                   |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| RMA létrehozása / termékfelvétel                     | Ügy, növekvő ID szerinti példányzárak; eredet, tagság, munkalap, claim, történet, audit, command; aktív cserefoglalás és függő kiadás kizárása                                                                | Egy termék hibája az egész beküldést visszagörgeti.                                                                                                                                   |
+| Eredeti visszáru átvétele                            | Ügy, példány, munkalap; tagság/serial/állapot/korábbi receipt; mozgás, custody, helyprojekció, történet, audit                                                                                                | Nincs részleges vagy dupla átvétel.                                                                                                                                                   |
+| Anyagfogyasztás                                      | Ügy, munkalap, anyagserialok, minden érintett foglalás és balance; saját igény és más lekötések ellenőrzése; anyag, mozgás, részfoglalás, projekció, audit                                                    | Aktív cserefoglalásból fogyasztás tiltott; hiba esetén nincs részfogyasztás.                                                                                                          |
+| Vizsgálat/QC vagy tervváltoztatás                    | Ügy, munkalap, aktuális próbálkozás/műveletek, quote-verzió; inspection vagy superseding terv és előzmények, keretvizsgálat, állapot, audit                                                                   | Elkezdett történet nem módosul; jóváhagyásra váró scope-ból új munka nem indul.                                                                                                       |
+| Csere lefoglalása                                    | Ügy, eredeti és cserepéldány, munkalap, aktív foglalások, balance; jogosultság, origin, hely és nettó készlet; egyedi serialfoglalás, serialpár, történet, audit                                              | Egy példány két ügynek vagy más célnak nem foglalható; nincs balance-csökkentés.                                                                                                      |
+| Csere előkészítése / kiadás előtti visszavonása      | Ugyanazok a zárak; fizikai hely/állapot/alkalmasság; szükség esetén valós belső transfer és foglaláshely-váltás; preparation/cancellation történet                                                            | Összmennyiség 0 változás; hiba esetén nincs feloldott vagy gazdátlan foglalás.                                                                                                        |
+| Eredeti vagy csere fizikai kiadása                   | Ügy, serialok, munkalap, custody vagy cserefoglalás/balance; szükséges QC/engedély/policy és kiadási bizonyíték; release és egyszeri mozgás; eredeti custody megszűnése vagy cserefoglalás teljesítése, audit | Company-stock shipment balance -1 csak itt; custody-rights shipment normal balance 0; hiányos bizonyíték esetén nincs kivezetés. Helyi azonnali átadás igazolása ugyanitt rögzíthető. |
+| Kiszállítás utáni igazolt átadás / tulajdonátszállás | Ügy, serial, munkalap, release és feltételverzió; ellenőrzött bizonyíték, esemény-egyediség, történet, audit                                                                                                  | Nincs második készletcsökkentés. Ha a trigger már kiadáskor teljesült, nem rögzíthető még egyszer.                                                                                    |
+| Kiszállított csere megszakítása / return             | Ügy, serial, order, shipment, stabil intake/admission identity; physical intake+karantén majd külön proofos admission/disposition, AM-02-G1–G4 szerint                                                        | Nincs távoli hiba miatti stocknövelés; intake nem admission, return nem reversal, korábbi outbound nem törlődik.                                                                      |
+| Selejt / végső rendelkezés                           | Ügy, eredeti serial, munkalap, custody, összes cserefoglalás és release; felhatalmazás, mozgások és mindkét serial sorsának bizonyítéka; disposition, audit                                                   | `replaced` nem fedheti el az eredeti visszáru nyitott sorsát; selejtmozgás-hibánál nincs lezárt őrzés.                                                                                |
+| Ügyzárás                                             | Ügy, tagságok, serialok, munkalapok, foglalások és kiadások; a 7.1 összes kapcsolt bizonyítéka, majd státusz, claim-feloldás, történet, audit                                                                 | Nincs részleges zárás; proof/custody/reservation/authorization/QC hiányakor rollback.                                                                                                 |
 
 Az ügyzárással versenyző termékfelvétel, átvétel, új művelet és anyagfoglalás
 valamint a csere előkészítése, visszavonása és kiadása ugyanazt az ügysorzárat is kéri. Így a lezáró ellenőrzés alatt nem keletkezhet
@@ -822,7 +1037,7 @@ Az F1–F4 és RMA-BD-020 külön regressziós esetei:
 - Előkészítés visszavonásakor ellenőrzési hiba után a foglalás él és az ügy
   nyitott; siker után valós hely, history és egyszeri feloldás. Kiszállított,
   de át nem adott termék visszahívása nem teremt készletet visszaérkezés nélkül.
-- Kiszállítás balance -1, későbbi átadási proof és ownership-esemény balance 0;
+- Company-stock shipment balance -1 egyszer, későbbi proof/ownership balance 0;
   új kulccsal ismételt kiadás, duplikált webhook és trigger sem duplázhat.
   Ismeretlen szerződéses policy kiadást tilt; preparation nem ownership-esemény.
 - Zárás elutasított, ha csak a státuszok teljesek, de egy mozgás, eredeti
@@ -845,6 +1060,15 @@ Az RMA későbbi bevezetésekor a quality-gate modulmátrix frissítendő. A
 ellenőrzés, shared inventory/policy/route változásnál integration, migrációnál
 full és külön MySQL-kapu szükséges. UI esetén Vitest, HU/EN i18n és célzott E2E
 is kell. Ez az ADR nem állítja e tesztek létezését vagy sikeres futását.
+
+RMA-D6–D11 és AM-01–04 további kötelező tesztterületek: approval-only credit,
+fee-cap/same-order/dupla allocation, execution/settlement release-review;
+intake proof AM-02-G1, balance0 AM-02-G2, minden consumer quarantine exclusion
+AM-02-G3, külön intake/admission idempotencia AM-02-G4; valódi redispatch és
+dupla shipment tiltás; reversal original/proof/permission; demand cancel vs
+PR/PO/partial receipt, coverage conservation és újraszámítási idempotencia.
+Ezek még követelmények, nem lefutott ellenőrzések. A B történeti SQL-eredményei
+nem bizonyítják az új C1/C2 teljes sémát vagy workflowt.
 
 ## 12. Következmények, kockázatok és kezelésük
 
@@ -883,7 +1107,8 @@ egyenlegmódosítást, serialregenerálást, eredeti műveletsorátírást vagy 
 Az F1–F4 korrekciókat az RMA-0002/C véglegesítés változatlan invariánsokkal
 megőrzi. D1–D5-tel együtt az architektúra elfogadott; ez nem implementációs
 vagy konkrét jogi minősítésre vonatkozó jóváhagyás. A kritikus bevezetési
-előfeltételeket a 14. fejezet rögzíti.
+előfeltételeket a 14. fejezet rögzíti. AM-01 az F1 egyszeri postingját fizikai
+shipmentenként pontosítja, F2/F3/F4 invariánsait nem oldja fel.
 
 ## 13. Megvalósítási fázisok
 
@@ -911,8 +1136,9 @@ elkészítése nem felhatalmazás ezek végrehajtására.
 
 ## 14. Lezárt architekturális kérdések és nyitott implementációs kapuk
 
-Az RMA-BD-001–020 és D1–D5 elfogadott. Nem maradt elfogadást blokkoló
-architekturális ellentmondás. Az alábbi implementációs feltételek nem jelentenek
+Az RMA-BD-001–020, D1–D5 és RMA-D6–D11 elfogadott; AM-01–AM-04 projektgazdai
+jóváhagyása 2026-10-29-én lezárta a C1 architekturális egyeztetést, AM-02-G1–G4
+kötelező feltételeivel. Nem maradt függő amendment-jóváhagyás. Az alábbi implementációs feltételek nem jelentenek
 kész működést, és nem gyengíthetik az elfogadott invariánsokat.
 
 ### 14.1. Az RMA-0002/C keretében lezárt kérdések
@@ -947,6 +1173,23 @@ nem helyettesíti teljesítésüket. Különösen T01/T02/T08/T09/T10 nélkül n
 engedhető el bizonyítékos garanciális/átadási kontroll. A konkrét jogszabályi
 és szerződéses szabályokat nem ez az ADR találja ki.
 
+### 14.2.1. RMA-0003/C1 lezárás utáni technikai kapuk
+
+D6–D11 és AM-01–04 nem nyitott üzleti/amendment-jóváhagyási pont többé.
+G1: DESIGN RESOLVED / IMPLEMENTATION UNVERIFIED; G2: IMPACT MAPPED / ROLLOUT BLOCKED;
+G3: LIFECYCLE SPECIFIED / DDL UNVERIFIED. C1: ACCEPTED WITH CONDITIONS.
+AM-02-G1–G4 teljes bizonyítása az érintett séma és rollout előfeltétele.
+A T01/T04/T06/T07/T08/T09/T10/T12 implementációs részletei ezek szerint
+pontosítandók; a régi táblázat nem újra megnyitott döntéslista.
+
+Nyitott: teljes 25-táblás és existing-change leltár; claim acquire/finalizer/grant
+DDL és negatív jogosultsági bizonyíték; occurrence/return/admission/reversal
+kulcsok; fee-credit és coverage ledger; G2 minden fogyasztója, cache és közös
+zársorrend; reprezentatív legacy audit, stock baseline, migration/mixed-version/
+rollback és környezeti ellenőrzések. A
+[C2 előkészítési terv](../designs/rma-0003c2-detailed-schema-review-plan.md)
+csak a következő munka terve, nem elvégzett C2 vagy implementáció.
+
 ### 14.3. Dokumentált későbbi bővítések
 
 T13: ügyfélportál, automatikus garanciális döntéstámogatás és számlázás külön
@@ -956,7 +1199,7 @@ Egyik bővítés sem helyettesítheti a belső bizonyítékos ügyfélapprovalt.
 
 ## 15. Elfogadási feltételek
 
-### 15.1. E dokumentációs feladat átadása
+### 15.1. Az RMA-0002/C dokumentációs feladat átadása (történeti)
 
 - A meglévő ADR helyben, változatlan `0006` sorszámmal véglegesített;
   magyar nyelvű, státusza az RMA-0002/C döntései alapján `Accepted`.
@@ -1000,8 +1243,9 @@ Egyik bővítés sem helyettesítheti a belső bizonyítékos ügyfélapprovalt.
 - Csere, javítás nélküli visszaadás és selejt végrehajtása dokumentált; selejt
   csak felhatalmazással. Kiadás a kötelező átadási adatokkal őrzést zár.
 - Csere foglalása és előkészítése nem customer-custody és nem tulajdonátszállás;
-  vállalati tulajdon marad, minden más allokáció tiltott. Fizikai release egyszer
+  vállalati tulajdon marad, minden más allokáció tiltott. Minden company-stock shipment fizikai release-e egyszer
   csökkenti a készletet; későbbi handover/ownership igazolás nem von le újra.
+  Több valódi shipment csak D9/AM-01 guardokkal és rendezett előző úttal lehetséges.
 - Jogosult visszavonás csak ellenőrzött hely/állapot/alkalmasság után old foglalást;
   sikertelen kiszállítás nem okoz fiktív korrekciót vagy gazdátlan preparationt.
 - Eredeti és csere serial külön történet, kapcsolt csereesemény és garanciális
@@ -1015,6 +1259,20 @@ Egyik bővítés sem helyettesítheti a belső bizonyítékos ügyfélapprovalt.
   MySQL-versenyhelyzetben is megmarad az egyediség és a készletintegritás.
 - E kritériumok tényleges teljesítése csak az implementáció és a kapcsolódó
   tesztbizonyíték után állítható; az architektúra elfogadása egyiket sem minősíti késznek.
+
+### 15.3. Az RMA-0003/C1 Closure dokumentációs átadása
+
+Az ADR Accepted identitása, RMA-BD-001–020, D1–D5 és F1–F4 megmarad;
+RMA-D6–D11, AM-01–AM-04 és AM-02-G1–G4 explicit szerepel. A korábbi
+shipment/return/availability megfogalmazások amendment-történettel pontosítottak.
+C1 ACCEPTED WITH CONDITIONS, G1 implementation és G3 DDL még nem igazolt,
+G2 rollout blokkolt. C2-WP1–WP7 kizárólag előkészítési terv.
+
+Módosítások kizárólag az ADR/A/B/C1 dokumentáció és az új C2 előkészítési terv;
+a B verification artifactok változatlanok. Formázás, relatív hivatkozások,
+döntéslefedettség, actual-file whitespace, git diff --check és végső Git-státusz
+ellenőrzendő. Nincs staging, commit, push, merge, alkalmazásimplementáció,
+migráció, DB-írás, új executable vagy dependency-változás.
 
 ## Kapcsolódó projektkonvenciók
 
