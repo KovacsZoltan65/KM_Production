@@ -13,6 +13,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('item_instances', function (Blueprint $table): void {
+            $table->engine = 'InnoDB';
+            $table->charset = 'utf8mb4';
+            $table->collation = 'utf8mb4_unicode_ci';
+            $table->comment('A sorozatszámmal azonosított cikkpéldányok helye, állapota és gyártási kapcsolata.');
+
             $table->id();
             $table->foreignId('item_id')->constrained()->restrictOnDelete();
             $table->string('serial_number')->unique();

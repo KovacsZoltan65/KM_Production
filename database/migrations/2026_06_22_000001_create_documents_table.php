@@ -13,6 +13,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('documents', function (Blueprint $table): void {
+            $table->engine = 'InnoDB';
+            $table->charset = 'utf8mb4';
+            $table->collation = 'utf8mb4_unicode_ci';
+            $table->comment('Az üzleti rekordokhoz csatolt dokumentumok fájl-, verzió- és jóváhagyási adatai.');
+
             $table->id();
             $table->morphs('documentable');
             $table->string('document_type')->default(DocumentType::Other->value)->index();

@@ -13,6 +13,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('quality_checks', function (Blueprint $table): void {
+            $table->engine = 'InnoDB';
+            $table->charset = 'utf8mb4';
+            $table->collation = 'utf8mb4_unicode_ci';
+            $table->comment('A gyártási feladatok minőségellenőrzési eredményei és ellenőri adatai.');
+
             $table->id();
             $table->foreignId('production_task_id')->constrained()->cascadeOnDelete();
             $table->foreignId('checked_by')->constrained('employees')->restrictOnDelete();

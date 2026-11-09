@@ -12,6 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('item_instance_relations', function (Blueprint $table): void {
+            $table->engine = 'InnoDB';
+            $table->charset = 'utf8mb4';
+            $table->collation = 'utf8mb4_unicode_ci';
+            $table->comment('A szülő és beépített gyermek cikkpéldányok kapcsolatai és mennyiségei.');
+
             $table->id();
             $table->foreignId('parent_item_instance_id')->constrained('item_instances')->cascadeOnDelete();
             $table->foreignId('child_item_instance_id')->constrained('item_instances')->restrictOnDelete();

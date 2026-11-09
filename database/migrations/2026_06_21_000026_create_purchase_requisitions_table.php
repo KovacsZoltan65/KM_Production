@@ -13,6 +13,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('purchase_requisitions', function (Blueprint $table): void {
+            $table->engine = 'InnoDB';
+            $table->charset = 'utf8mb4';
+            $table->collation = 'utf8mb4_unicode_ci';
+            $table->comment('A beszerzési igénylések fejlécadatai és igénylési állapota.');
+
             $table->id();
             $table->string('requisition_number')->unique();
             $table->string('status')->default(PurchaseRequisitionStatus::Draft->value)->index();

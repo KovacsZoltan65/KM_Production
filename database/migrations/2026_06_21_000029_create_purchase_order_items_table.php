@@ -13,6 +13,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('purchase_order_items', function (Blueprint $table): void {
+            $table->engine = 'InnoDB';
+            $table->charset = 'utf8mb4';
+            $table->collation = 'utf8mb4_unicode_ci';
+            $table->comment('A beszállítói megrendelések cikkei, rendelt és átvett mennyiségei.');
+
             $table->id();
             $table->foreignId('purchase_order_id')->constrained()->cascadeOnDelete();
             $table->foreignId('purchase_requisition_item_id')->nullable()->constrained()->nullOnDelete();

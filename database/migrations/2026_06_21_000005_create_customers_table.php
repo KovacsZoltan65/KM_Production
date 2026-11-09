@@ -12,6 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('customers', function (Blueprint $table): void {
+            $table->engine = 'InnoDB';
+            $table->charset = 'utf8mb4';
+            $table->collation = 'utf8mb4_unicode_ci';
+            $table->comment('A vevők törzsadatai, elérhetőségei és számlázási, szállítási címei.');
+
             $table->id();
             $table->string('code')->unique();
             $table->string('name')->index();

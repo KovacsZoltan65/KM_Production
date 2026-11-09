@@ -13,6 +13,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('locations', function (Blueprint $table): void {
+            $table->engine = 'InnoDB';
+            $table->charset = 'utf8mb4';
+            $table->collation = 'utf8mb4_unicode_ci';
+            $table->comment('A raktári és gyártási helyek törzsadatai és gyártóegységhez rendelése.');
+
             $table->id();
             $table->foreignId('factory_unit_id')->nullable()->constrained()->nullOnDelete();
             $table->string('code')->unique();

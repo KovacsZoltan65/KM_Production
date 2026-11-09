@@ -29,6 +29,15 @@ Before significant work, read in this order:
 - Preserve manufacturing traceability, serial numbers, operation sequence versions, audit logs, and permissions.
 - Use shared Laravel JSON translation keys for backend and frontend text.
 - Do not modify business logic unless explicitly requested.
+- Every new table-creating migration must begin each `Schema::create()` callback,
+  before column definitions, with `$table->engine = 'InnoDB';`,
+  `$table->charset = 'utf8mb4';`, `$table->collation = 'utf8mb4_unicode_ci';`,
+  and `$table->comment('...');` in this order, exactly once each. Replace the stub's
+  `TODO: A tábla pontos magyar nyelvű leírása.` comment placeholder with a short,
+  precise Hungarian description of the table's actual role. Project create stubs
+  live in `stubs/migration.create.stub` (Laravel) and
+  `app/Stubs/migration/create.stub` (Prettus); do not add these settings to
+  `Schema::table()` callbacks or table-altering stubs.
 - Prefer links to deeper documentation over duplicating guidance here.
 
 ## Documentation System

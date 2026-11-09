@@ -12,6 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('employees', function (Blueprint $table): void {
+            $table->engine = 'InnoDB';
+            $table->charset = 'utf8mb4';
+            $table->collation = 'utf8mb4_unicode_ci';
+            $table->comment('A munkavállalók törzsadatai, szakmai munkakörei és felhasználói kapcsolatai.');
+
             $table->id();
             $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('professional_role_id')->nullable()->constrained()->nullOnDelete();

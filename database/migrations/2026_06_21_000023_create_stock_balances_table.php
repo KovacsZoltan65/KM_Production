@@ -12,6 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('stock_balances', function (Blueprint $table): void {
+            $table->engine = 'InnoDB';
+            $table->charset = 'utf8mb4';
+            $table->collation = 'utf8mb4_unicode_ci';
+            $table->comment('A cikkek hely és készlettétel szerinti aktuális készletegyenlegei.');
+
             $table->id();
             $table->foreignId('item_id')->constrained()->restrictOnDelete();
             $table->foreignId('location_id')->constrained()->restrictOnDelete();

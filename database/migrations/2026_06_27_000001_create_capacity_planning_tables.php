@@ -12,6 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('factory_unit_calendars', function (Blueprint $table): void {
+            $table->engine = 'InnoDB';
+            $table->charset = 'utf8mb4';
+            $table->collation = 'utf8mb4_unicode_ci';
+            $table->comment('A gyártóegységek heti munkarendje, munkaidősávjai és szünetei.');
+
             $table->id();
             $table->foreignId('factory_unit_id')->constrained()->cascadeOnDelete();
             $table->unsignedTinyInteger('weekday')->index();
@@ -25,6 +30,11 @@ return new class extends Migration
         });
 
         Schema::create('employee_work_calendars', function (Blueprint $table): void {
+            $table->engine = 'InnoDB';
+            $table->charset = 'utf8mb4';
+            $table->collation = 'utf8mb4_unicode_ci';
+            $table->comment('A munkavállalók heti munkaidősávjai és szünetei.');
+
             $table->id();
             $table->foreignId('employee_id')->constrained()->cascadeOnDelete();
             $table->unsignedTinyInteger('weekday')->index();
@@ -37,6 +47,11 @@ return new class extends Migration
         });
 
         Schema::create('capacity_reservations', function (Blueprint $table): void {
+            $table->engine = 'InnoDB';
+            $table->charset = 'utf8mb4';
+            $table->collation = 'utf8mb4_unicode_ci';
+            $table->comment('A gyártási feladatok időzített gyártóegység- és munkavállalói kapacitásfoglalásai.');
+
             $table->id();
             $table->foreignId('production_task_id')->constrained()->cascadeOnDelete();
             $table->foreignId('factory_unit_id')->constrained()->restrictOnDelete();

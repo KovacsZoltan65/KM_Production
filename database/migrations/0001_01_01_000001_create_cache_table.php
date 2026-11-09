@@ -12,12 +12,22 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('cache', function (Blueprint $table) {
+            $table->engine = 'InnoDB';
+            $table->charset = 'utf8mb4';
+            $table->collation = 'utf8mb4_unicode_ci';
+            $table->comment('Az alkalmazás adatbázisban tárolt gyorsítótár-bejegyzései.');
+
             $table->string('key')->primary();
             $table->mediumText('value');
             $table->bigInteger('expiration')->index();
         });
 
         Schema::create('cache_locks', function (Blueprint $table) {
+            $table->engine = 'InnoDB';
+            $table->charset = 'utf8mb4';
+            $table->collation = 'utf8mb4_unicode_ci';
+            $table->comment('A párhuzamos műveleteket összehangoló gyorsítótár-zárolások.');
+
             $table->string('key')->primary();
             $table->string('owner');
             $table->bigInteger('expiration')->index();

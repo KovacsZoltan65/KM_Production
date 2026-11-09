@@ -10,6 +10,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('ai_processing_runs', function (Blueprint $table): void {
+            $table->engine = 'InnoDB';
+            $table->charset = 'utf8mb4';
+            $table->collation = 'utf8mb4_unicode_ci';
+            $table->comment('Az AI-feldolgozások futási állapota, motoradatai, eredményösszesítése és hibái.');
+
             $table->id();
             $table->nullableMorphs('processable', 'ai_processing_runs_processable_index');
             $table->string('task');

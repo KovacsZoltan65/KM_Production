@@ -12,6 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('goods_receipt_items', function (Blueprint $table): void {
+            $table->engine = 'InnoDB';
+            $table->charset = 'utf8mb4';
+            $table->collation = 'utf8mb4_unicode_ci';
+            $table->comment('Az árubevételezések cikkei, készlettételei, tárolási helyei és mennyiségei.');
+
             $table->id();
             $table->foreignId('goods_receipt_id')->constrained()->cascadeOnDelete();
             $table->foreignId('purchase_order_item_id')->nullable()->constrained()->nullOnDelete();

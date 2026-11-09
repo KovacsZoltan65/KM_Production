@@ -13,6 +13,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('production_plans', function (Blueprint $table): void {
+            $table->engine = 'InnoDB';
+            $table->charset = 'utf8mb4';
+            $table->collation = 'utf8mb4_unicode_ci';
+            $table->comment('A vevői rendelésekhez kapcsolódó gyártási tervek és jóváhagyási adataik.');
+
             $table->id();
             $table->foreignId('customer_order_id')->constrained()->restrictOnDelete();
             $table->string('plan_number')->unique();

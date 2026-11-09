@@ -13,6 +13,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('stock_reservations', function (Blueprint $table): void {
+            $table->engine = 'InnoDB';
+            $table->charset = 'utf8mb4';
+            $table->collation = 'utf8mb4_unicode_ci';
+            $table->comment('A vevői rendeléstételekhez és gyártási rendelésekhez kapcsolódó készletfoglalások.');
+
             $table->id();
             $table->foreignId('item_id')->constrained()->restrictOnDelete();
             $table->foreignId('location_id')->nullable()->constrained()->nullOnDelete();

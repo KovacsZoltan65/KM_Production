@@ -9,6 +9,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('activity_log', function (Blueprint $table) {
+            $table->engine = 'InnoDB';
+            $table->charset = 'utf8mb4';
+            $table->collation = 'utf8mb4_unicode_ci';
+            $table->comment('Az alkalmazás eseményeinek auditnaplója az érintett rekordokkal és végrehajtókkal.');
+
             $table->id();
             $table->string('log_name')->nullable()->index();
             $table->text('description');

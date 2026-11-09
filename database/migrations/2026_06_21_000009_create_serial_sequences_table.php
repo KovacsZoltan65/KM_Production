@@ -12,6 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('serial_sequences', function (Blueprint $table): void {
+            $table->engine = 'InnoDB';
+            $table->charset = 'utf8mb4';
+            $table->collation = 'utf8mb4_unicode_ci';
+            $table->comment('A sorozatszámok kiadásához használt előtag és év szerinti számlálók.');
+
             $table->id();
             $table->string('prefix')->index();
             $table->unsignedSmallInteger('year')->index();
