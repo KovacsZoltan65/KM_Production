@@ -13,6 +13,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('items', function (Blueprint $table): void {
+            $table->engine = 'InnoDB';
+            $table->charset = 'utf8mb4';
+            $table->collation = 'utf8mb4_unicode_ci';
+            $table->comment('Az anyagok, alkatrészek és termékek cikktörzse és műszaki alapadatai.');
+
             $table->id();
             $table->string('item_number')->unique();
             $table->string('name');

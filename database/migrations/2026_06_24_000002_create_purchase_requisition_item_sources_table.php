@@ -9,6 +9,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('purchase_requisition_item_sources', function (Blueprint $table): void {
+            $table->engine = 'InnoDB';
+            $table->charset = 'utf8mb4';
+            $table->collation = 'utf8mb4_unicode_ci';
+            $table->comment('A beszerzési igényléstételek forrásául szolgáló anyagszükségletek és hozzárendelt mennyiségeik.');
+
             $table->id();
             $table->unsignedBigInteger('purchase_requisition_item_id');
             $table->unsignedBigInteger('material_requirement_id');

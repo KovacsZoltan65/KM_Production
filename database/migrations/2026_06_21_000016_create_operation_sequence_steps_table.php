@@ -12,6 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('operation_sequence_steps', function (Blueprint $table): void {
+            $table->engine = 'InnoDB';
+            $table->charset = 'utf8mb4';
+            $table->collation = 'utf8mb4_unicode_ci';
+            $table->comment('A műveletsorok rendezett lépései, erőforrás- és minőségellenőrzési előírásai.');
+
             $table->id();
             $table->foreignId('operation_sequence_id')->constrained()->cascadeOnDelete();
             $table->unsignedInteger('step_order')->index();

@@ -13,6 +13,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('stock_movements', function (Blueprint $table): void {
+            $table->engine = 'InnoDB';
+            $table->charset = 'utf8mb4';
+            $table->collation = 'utf8mb4_unicode_ci';
+            $table->comment('A készletváltozások mozgásnaplója, forrásai és végrehajtási adatai.');
+
             $table->id();
             $table->foreignId('item_id')->constrained()->restrictOnDelete();
             $table->foreignId('item_batch_id')->nullable()->constrained()->nullOnDelete();

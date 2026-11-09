@@ -12,6 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('production_task_materials', function (Blueprint $table): void {
+            $table->engine = 'InnoDB';
+            $table->charset = 'utf8mb4';
+            $table->collation = 'utf8mb4_unicode_ci';
+            $table->comment('A gyártási feladatokhoz tervezett és ténylegesen felhasznált anyagmennyiségek.');
+
             $table->id();
             $table->foreignId('production_task_id')->constrained()->cascadeOnDelete();
             $table->foreignId('item_id')->constrained()->restrictOnDelete();
