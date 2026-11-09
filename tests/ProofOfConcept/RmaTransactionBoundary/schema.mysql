@@ -1,0 +1,77 @@
+-- Disposable PoC ONLY. Each statement is separated by the literal marker below.
+-- No application schema, COMMIT, ROLLBACK, session authorization flag or dynamic SQL.
+CREATE TABLE poc_commands (
+    command_key VARCHAR(64) CHARACTER SET ascii COLLATE ascii_bin PRIMARY KEY,
+    payload_hash CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    actor_id INT NOT NULL,
+    amount INT NOT NULL CHECK (amount > 0),
+    fault VARCHAR(32) NOT NULL
+) ENGINE=InnoDB
+-- @statement
+CREATE TABLE poc_business (
+    command_key VARCHAR(64) CHARACTER SET ascii COLLATE ascii_bin PRIMARY KEY,
+    amount INT NOT NULL CHECK (amount > 0),
+    FOREIGN KEY (command_key) REFERENCES poc_commands(command_key)
+) ENGINE=InnoDB
+-- @statement
+CREATE TABLE poc_evidence (
+    command_key VARCHAR(64) CHARACTER SET ascii COLLATE ascii_bin PRIMARY KEY,
+    actor_id INT NOT NULL,
+    payload_hash CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    FOREIGN KEY (command_key) REFERENCES poc_commands(command_key)
+) ENGINE=InnoDB
+-- @statement
+CREATE TABLE poc_mutex (id INT PRIMARY KEY, revision INT NOT NULL) ENGINE=InnoDB
+-- @statement
+INSERT INTO poc_mutex VALUES (1,0)
+-- @statement
+CREATE TABLE poc_caller_sentinel (id INT PRIMARY KEY, note VARCHAR(32) NOT NULL) ENGINE=InnoDB
+-- @statement
+CREATE DEFINER='poc_definer'@'127.0.0.1' TRIGGER poc_complete
+AFTER INSERT ON poc_commands FOR EACH ROW
+BEGIN
+    UPDATE poc_mutex SET revision=revision+1 WHERE id=1;
+    INSERT INTO poc_business VALUES (NEW.command_key,NEW.amount);
+    IF NEW.fault='after_business' THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='POC injected business fault';
+    END IF;
+    INSERT INTO poc_evidence VALUES (NEW.command_key,NEW.actor_id,NEW.payload_hash);
+    IF NEW.fault='after_evidence' THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='POC injected evidence fault';
+    END IF;
+END
+-- @statement
+CREATE DEFINER='poc_definer'@'127.0.0.1' PROCEDURE poc_post(
+    IN p_key VARCHAR(64), IN p_hash CHAR(64), IN p_actor INT,
+    IN p_amount INT, IN p_fault VARCHAR(32)
+)
+SQL SECURITY DEFINER
+BEGIN
+    DECLARE duplicate_key BOOLEAN DEFAULT FALSE;
+    DECLARE original_hash CHAR(64) DEFAULT NULL;
+    DECLARE original_actor INT DEFAULT NULL;
+    IF SUBSTRING_INDEX(SESSION_USER(),'@',1) <> 'poc_actor101' OR p_actor <> 101 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='POC actor denied';
+    END IF;
+    IF p_key IS NULL OR p_key NOT REGEXP '^[A-Za-z0-9_-]{1,64}$'
+        OR p_amount IS NULL OR p_amount <= 0
+        OR p_fault IS NULL OR p_fault NOT IN ('','after_business','after_evidence')
+        OR p_hash IS NULL OR BINARY p_hash <> BINARY SHA2(CONCAT(p_key,':',p_amount,':',p_actor,':',p_fault),256) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='POC payload denied';
+    END IF;
+    BEGIN
+        DECLARE CONTINUE HANDLER FOR 1062 SET duplicate_key=TRUE;
+        INSERT INTO poc_commands VALUES (p_key,p_hash,p_actor,p_amount,p_fault);
+    END;
+    IF duplicate_key THEN
+        SELECT payload_hash,actor_id INTO original_hash,original_actor
+        FROM poc_commands WHERE command_key=p_key FOR UPDATE;
+        IF original_hash IS NULL OR BINARY original_hash <> BINARY p_hash OR original_actor <> p_actor THEN
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='POC identity conflict';
+        END IF;
+    END IF;
+    SELECT c.command_key,c.payload_hash,c.actor_id,b.amount,e.payload_hash AS evidence_hash,
+        duplicate_key AS replayed
+    FROM poc_commands c JOIN poc_business b USING(command_key) JOIN poc_evidence e USING(command_key)
+    WHERE c.command_key=p_key;
+END
