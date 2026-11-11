@@ -57,8 +57,11 @@ npx playwright show-trace test-results/<test>/trace.zip
 ```
 
 Hiba esetén a `test-results/` tartalmazza a screenshotot, videót, trace-t, JUnit
-XML-t és `e2e-server.log` fájlt. A `playwright-report/` a HTML riport. Ezek
-gitignore-olt, kizárólag determinisztikus tesztadatot tartalmazó kimenetek.
+XML-t. A privát szervernapló a `storage/framework/testing/e2e-server.log`
+fájlban található. A `playwright-report/` a helyi HTML riport. CI-ben kizárólag
+a minimális JSON-összesítés publikálható; lásd a
+[CI-diagnosztika biztonsági szabályait](development/ci-diagnostics-security.md). A helyi, gitignore-olt nyers kimenetek érzékeny diagnosztikát is tartalmazhatnak;
+publikálásuk előtt külön felülvizsgálat szükséges.
 
 ## Izolációs modell
 

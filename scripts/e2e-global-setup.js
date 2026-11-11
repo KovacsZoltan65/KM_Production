@@ -20,7 +20,10 @@ const pidPath = resolve(
     "storage/framework/testing/e2e-server.pid",
 );
 const databasePath = resolve(projectRoot, "database/e2e.sqlite");
-const serverLogPath = resolve(projectRoot, "test-results/e2e-server.log");
+const serverLogPath = resolve(
+    projectRoot,
+    "storage/framework/testing/e2e-server.log",
+);
 const viteHotPath = resolve(projectRoot, "public/hot");
 const viteHotBackupPath = resolve(
     projectRoot,
@@ -98,7 +101,9 @@ function assertPreparedEnvironment() {
         /\bPending\b/i.test(migrationStatus.stdout)
     ) {
         throw new Error(
-            `E2E database readiness failed:\n${migrationStatus.stderr || migrationStatus.stdout || migrationStatus.error?.message}`,
+            process.env.CI
+                ? "E2E database readiness failed; raw diagnostics omitted."
+                : `E2E database readiness failed:\n${migrationStatus.stderr || migrationStatus.stdout || migrationStatus.error?.message}`,
         );
     }
 }
@@ -147,7 +152,9 @@ async function waitForServer() {
     }
 
     throw new Error(
-        `E2E server readiness timed out for ${baseURL}: ${lastError?.message || "unknown error"}. See test-results/e2e-server.log.`,
+        process.env.CI
+            ? "E2E server readiness timed out; raw diagnostics omitted."
+            : `E2E server readiness timed out for ${baseURL}: ${lastError?.message || "unknown error"}. See storage/framework/testing/e2e-server.log.`,
     );
 }
 
