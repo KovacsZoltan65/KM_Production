@@ -53,7 +53,7 @@ const AdminCrudFieldStub = defineComponent({
     props: ["modelValue", "field", "error", "options"],
     emits: ["update:modelValue"],
     template:
-        "<label :data-field='field.name'>{{ field.name }}<span v-if='error'>{{ error }}</span><slot name='action' /></label>",
+        "<label :data-field='field.name' :data-field-name='field.name'>{{ field.name }}<input :id='`test-control-${field.name}`' /><span v-if='error'>{{ error }}</span><slot name='action' /></label>",
 });
 const DataTableStub = defineComponent({
     name: "DataTable",
@@ -99,6 +99,27 @@ const mountPage = (overrides = {}, slots = {}) =>
     });
 
 describe("AdminCrudPage", () => {
+    it("focuses the invalid control inside its own form with generated IDs", async () => {
+        const wrapper = mountPage();
+        const outside = document.createElement("input");
+        outside.id = "name";
+        document.body.append(outside, wrapper.element);
+        try {
+            wrapper.vm.openCreate();
+            await nextTick();
+            wrapper.vm.focusFirstInvalidField({ name: "Required" });
+            await nextTick();
+            expect(document.activeElement).toBe(
+                wrapper.get("#test-control-name").element,
+            );
+            expect(document.activeElement).not.toBe(outside);
+        } finally {
+            const element = wrapper.element;
+            wrapper.unmount();
+            outside.remove();
+            element.remove();
+        }
+    });
     beforeEach(() => {
         serviceMocks.confirm.require.mockReset();
         serviceMocks.toast.add.mockReset();

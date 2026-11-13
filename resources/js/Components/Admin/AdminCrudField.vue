@@ -7,13 +7,12 @@ import DatePicker from "primevue/datepicker";
 import Select from "primevue/select";
 import Textarea from "primevue/textarea";
 import Password from "primevue/password";
-import IftaLabel from "primevue/iftalabel";
 
 import IconField from "primevue/iconfield";
 import InputIcon from "primevue/inputicon";
 
 import { trans } from "laravel-vue-i18n";
-import { computed } from "vue";
+import { computed, useId } from "vue";
 
 /**
  * Választható listaelem.
@@ -39,6 +38,8 @@ const props = defineProps({
 });
 
 const model = defineModel({ default: null });
+const inputId = `crud-field-${useId()}`;
+const labelId = `${inputId}-label`;
 
 const label = computed(() =>
     props.field.labelKey ? trans(props.field.labelKey) : props.field.label,
@@ -81,8 +82,13 @@ const optionItems = computed(() => {
 </script>
 
 <template>
-    <div class="min-w-0 space-y-2">
-        <IftaLabel :for="field.name" class="text-sm font-medium">
+    <div class="min-w-0 space-y-2" :data-field-name="field.name">
+        <label
+            v-if="field.type !== 'checkbox'"
+            :id="labelId"
+            :for="inputId"
+            class="block text-sm font-medium"
+        >
             {{ label }}
             <span
                 v-if="field.required"
@@ -91,7 +97,7 @@ const optionItems = computed(() => {
             >
                 *
             </span>
-        </IftaLabel>
+        </label>
 
         <div
             v-if="['text', 'email', 'number'].includes(field.type)"
@@ -102,7 +108,7 @@ const optionItems = computed(() => {
                 <InputIcon :class="iconClass" />
 
                 <InputText
-                    :id="field.name"
+                    :id="inputId"
                     v-model="model"
                     :type="field.type"
                     :invalid="Boolean(error)"
@@ -119,7 +125,7 @@ const optionItems = computed(() => {
 
             <InputText
                 v-else
-                :id="field.name"
+                :id="inputId"
                 v-model="model"
                 :type="field.type"
                 :invalid="Boolean(error)"
@@ -143,7 +149,7 @@ const optionItems = computed(() => {
             data-test="field-control-row"
         >
             <Password
-                :input-id="field.name"
+                :input-id="inputId"
                 v-model="model"
                 :invalid="Boolean(error)"
                 :disabled="Boolean(field.disabled)"
@@ -166,7 +172,7 @@ const optionItems = computed(() => {
             data-test="field-control-row"
         >
             <DatePicker
-                :input-id="field.name"
+                :input-id="inputId"
                 v-model="model"
                 update-model-type="string"
                 date-format="yy-mm-dd"
@@ -188,7 +194,7 @@ const optionItems = computed(() => {
 
         <Textarea
             v-else-if="field.type === 'textarea'"
-            :id="field.name"
+            :id="inputId"
             v-model="model"
             :rows="field.rows || 3"
             :invalid="Boolean(error)"
@@ -200,7 +206,10 @@ const optionItems = computed(() => {
 
         <UnitSelect
             v-else-if="field.type === 'unit'"
-            :id="field.name"
+            :id="`${inputId}-container`"
+            :input-id="inputId"
+            :label-id="inputId"
+            :aria-labelledby="labelId"
             v-model="model"
             :invalid="Boolean(error)"
             :disabled="Boolean(field.disabled)"
@@ -211,7 +220,9 @@ const optionItems = computed(() => {
 
         <Select
             v-else-if="field.type === 'select'"
-            :id="field.name"
+            :input-id="inputId"
+            :label-id="inputId"
+            :aria-labelledby="labelId"
             v-model="model"
             :options="optionItems"
             option-label="label"
@@ -226,7 +237,8 @@ const optionItems = computed(() => {
 
         <MultiSelect
             v-else-if="field.type === 'multiselect'"
-            :id="field.name"
+            :input-id="inputId"
+            :aria-labelledby="labelId"
             v-model="model"
             :options="optionItems"
             option-label="label"
@@ -239,15 +251,14 @@ const optionItems = computed(() => {
             class="w-full"
         />
 
-        <IftaLabel
+        <div
             v-else-if="field.type === 'checkbox'"
-            :for="field.name"
             class="inline-flex cursor-pointer items-center gap-3"
         >
             <Checkbox
                 v-model="model"
                 :name="field.name"
-                :input-id="field.name"
+                :input-id="inputId"
                 :invalid="Boolean(error)"
                 :disabled="Boolean(field.disabled)"
                 :required="Boolean(field.required)"
@@ -255,11 +266,16 @@ const optionItems = computed(() => {
                 binary
             />
 
-            <span class="select-none"
-                >&nbsp;
+            <label :id="labelId" :for="inputId" class="select-none">
                 {{ checkboxLabel }}
-            </span>
-        </IftaLabel>
+                <span
+                    v-if="field.required"
+                    class="ml-0.5 text-red-500"
+                    aria-hidden="true"
+                    >*</span
+                >
+            </label>
+        </div>
 
         <p v-if="error" class="text-sm text-red-600">
             {{ error }}

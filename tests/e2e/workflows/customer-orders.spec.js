@@ -1,6 +1,10 @@
 import { test, expect } from "../helpers/test.js";
 import { loginThroughUi } from "../helpers/auth.js";
-import { selectComboboxOptionMatching } from "../helpers/forms.js";
+import {
+    fillDatePicker,
+    selectComboboxOptionMatching,
+} from "../helpers/forms.js";
+import { withPausedPost } from "../helpers/paused-request.js";
 import { e2eUsers } from "../fixtures/users.js";
 
 test("an authorized user can create and reopen a customer order", async ({
@@ -23,44 +27,29 @@ test("an authorized user can create and reopen a customer order", async ({
         "Customer",
         /E2E Customer/,
     );
-    await dialog.getByLabel("Requested delivery date").fill("2027-03-15");
+    await fillDatePicker(page, dialog, "Requested delivery date", "2027-03-15");
     await dialog.getByLabel("Notes").fill("E2E customer order UI workflow");
     await dialog.getByRole("button", { name: "Add item" }).click();
     await selectComboboxOptionMatching(page, dialog, "Item", /PRODUCT-AAA/);
     await dialog.getByLabel("Quantity").fill("5");
 
-    let continueRequest;
-    let requestIntercepted;
-    const intercepted = new Promise((resolve) => {
-        requestIntercepted = resolve;
-    });
-    const continueGate = new Promise((resolve) => {
-        continueRequest = resolve;
-    });
-
-    await page.route("**/admin/customer-orders", async (route) => {
-        if (route.request().method() !== "POST") {
-            await route.continue();
-            return;
-        }
-
-        requestIntercepted();
-        await continueGate;
-        await route.continue();
-    });
-
     const save = dialog.getByRole("button", { name: "Save" });
-    await save.click();
-    await intercepted;
-    await expect(save).toBeDisabled();
-    continueRequest();
-    await expect(dialog).toBeHidden({ timeout: 15_000 });
+    await withPausedPost(
+        page,
+        "**/admin/customer-orders",
+        async ({ waitForRequest, release }) => {
+            await save.click();
+            await waitForRequest();
+            await expect(save).toBeDisabled();
+            release();
+            await expect(dialog).toBeHidden({ timeout: 15_000 });
+        },
+    );
     await expect(
         page.locator(".p-toast-message-success").filter({
             hasText: "Customer order created.",
         }),
     ).toBeVisible();
-    await page.unroute("**/admin/customer-orders");
 
     const row = page
         .getByRole("row")
