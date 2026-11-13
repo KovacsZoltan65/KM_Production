@@ -1,4 +1,4 @@
-import { test } from "../helpers/test.js";
+import { test, expect } from "../helpers/test.js";
 import { loginThroughUi } from "../helpers/auth.js";
 import { expectNoSeriousAccessibilityViolations } from "../helpers/a11y.js";
 import { e2eUsers } from "../fixtures/users.js";
@@ -19,11 +19,23 @@ test("critical pages have no serious or critical axe violations", async ({
     await page.goto("/admin/customer-orders");
     await expectNoSeriousAccessibilityViolations(page, "customer orders table");
     await page.getByRole("button", { name: "Create order" }).click();
+    const customerDialog = page.getByRole("dialog", {
+        name: "Create customer order",
+    });
+    await expect(customerDialog).toBeVisible();
+    // Scan the rendered modal, rather than a partially transparent enter frame.
+    await expect(customerDialog).toHaveCSS("opacity", "1");
     await expectNoSeriousAccessibilityViolations(page, "customer order modal");
     await page.keyboard.press("Escape");
 
     await page.goto("/admin/documents");
     await page.getByRole("button", { name: "Upload Document" }).click();
+    const documentDialog = page.getByRole("dialog", {
+        name: "Upload Document",
+        exact: true,
+    });
+    await expect(documentDialog).toBeVisible();
+    await expect(documentDialog).toHaveCSS("opacity", "1");
     await expectNoSeriousAccessibilityViolations(page, "document upload modal");
     await page.keyboard.press("Escape");
 

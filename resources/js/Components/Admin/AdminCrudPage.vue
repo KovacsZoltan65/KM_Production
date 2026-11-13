@@ -91,6 +91,7 @@ const props = defineProps({
 const toast = useToast();
 const confirm = useConfirm();
 const dialogVisible = ref(false);
+const formElement = ref(null);
 const editingRecord = ref(null);
 const search = ref(props.filters.search || "");
 const perPage = ref(
@@ -388,7 +389,16 @@ const focusFirstInvalidField = (responseErrors) => {
         return;
     }
 
-    nextTick(() => document.getElementById(firstField)?.focus());
+    nextTick(() => {
+        const field = [
+            ...(formElement.value?.querySelectorAll("[data-field-name]") || []),
+        ].find((element) => element.dataset.fieldName === firstField);
+        field
+            ?.querySelector(
+                "input:not([type='hidden']), textarea, select, [role='combobox']",
+            )
+            ?.focus();
+    });
 };
 
 const resolveValue = (record, column) => {
@@ -480,7 +490,7 @@ const resolveColumnHeader = (column) =>
             :header="pageTitle"
             class="w-[min(42rem,calc(100vw-2rem))]"
         >
-            <form class="space-y-4" @submit.prevent="submit">
+            <form ref="formElement" class="space-y-4" @submit.prevent="submit">
                 <p
                     v-if="fields.some((field) => field.required)"
                     class="text-sm text-slate-500"
