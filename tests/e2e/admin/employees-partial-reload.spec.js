@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import { test, expect } from "../helpers/test.js";
 import { loginThroughUi } from "../helpers/auth.js";
 import { e2eUsers } from "../fixtures/users.js";
+import { resetE2EFixtures } from "../helpers/database.js";
 
 const projectRoot = resolve(
     fileURLToPath(new URL("../../..", import.meta.url)),
@@ -89,5 +90,29 @@ test("employees can be refreshed in place with a partial Inertia reload", async 
     await expect(refreshButton).toBeEnabled();
     expect(page.url()).toBe(filteredUrl);
     await expect(page.getByPlaceholder("Search")).toHaveValue("EMP-WELDER-001");
+    expect(browserErrors).toBeDefined();
+});
+
+test("fixture reset restores the inspector name after an employee rename", async ({
+    page,
+    e2eData,
+    browserErrors,
+}) => {
+    updateEmployeeName(e2eData.employeeId, "E2E Renamed Inspector");
+    const resetData = resetE2EFixtures();
+    expect(resetData.employeeId).toBe(e2eData.employeeId);
+
+    await loginThroughUi(page, e2eUsers.admin);
+    await page.goto("/admin/employees");
+    await page.getByPlaceholder("Search").fill("EMP-WELDER-001");
+    await page.getByRole("button", { name: "Search", exact: true }).click();
+    const row = page.getByRole("row").filter({ hasText: "EMP-WELDER-001" });
+    await expect(row).toHaveCount(1);
+    await expect(
+        row.getByRole("cell", { name: "Minta Hegesztő", exact: true }),
+    ).toBeVisible();
+    await expect(
+        page.getByText("E2E Renamed Inspector", { exact: true }),
+    ).toHaveCount(0);
     expect(browserErrors).toBeDefined();
 });

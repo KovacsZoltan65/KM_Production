@@ -45,19 +45,23 @@ test("admin navigation and modal interactions are keyboard reachable", async ({
         name: "Customer",
     });
     await expect(customerCombobox).toBeVisible();
-
-    for (let attempt = 0; attempt < 8; attempt += 1) {
-        if (
-            await customerCombobox.evaluate(
-                (element) => element === document.activeElement,
-            )
-        ) {
-            break;
-        }
-
-        await page.keyboard.press("Tab");
-    }
-
+    // PrimeVue moves focus after the dialog's enter transition completes.
+    const closeButton = dialog.getByRole("button", {
+        name: "Close",
+        exact: true,
+    });
+    await expect(closeButton).toBeFocused();
+    await page.keyboard.press("Tab");
+    await expect(customerCombobox).toBeFocused();
+    await page.keyboard.press("Shift+Tab");
+    await expect(closeButton).toBeFocused();
+    await page.keyboard.press("Shift+Tab");
+    await expect(
+        dialog.getByRole("button", { name: "Save", exact: true }),
+    ).toBeFocused();
+    await page.keyboard.press("Tab");
+    await expect(closeButton).toBeFocused();
+    await page.keyboard.press("Tab");
     await expect(customerCombobox).toBeFocused();
     const cancelButton = dialog.getByRole("button", { name: "Cancel" });
 
@@ -71,6 +75,11 @@ test("admin navigation and modal interactions are keyboard reachable", async ({
         }
 
         await page.keyboard.press("Tab");
+        expect(
+            await dialog.evaluate((element) =>
+                element.contains(document.activeElement),
+            ),
+        ).toBe(true);
     }
 
     await expect(cancelButton).toBeFocused();
@@ -87,7 +96,15 @@ test("confirmation dialogs are reachable and cancelable from the keyboard", asyn
     await loginThroughUi(page, e2eUsers.admin);
     await page.goto("/admin/inventory/stock-reservations");
 
-    const row = page.getByRole("row").filter({ hasText: "E2E-MAT-001" });
+    const row = page.getByRole("row").filter({
+        has: page.getByRole("cell", {
+            name: /^E2E-STOCK-RESERVATION-PARTIAL-REFRESH - /,
+        }),
+    });
+    await expect(row).toHaveCount(1);
+    await expect(
+        row.getByRole("cell", { name: "E2E-LOC", exact: true }),
+    ).toBeVisible();
     await row.getByRole("button", { name: "Release" }).focus();
     await page.keyboard.press("Enter");
     const dialog = page.getByRole("alertdialog", { name: "Confirm release" });

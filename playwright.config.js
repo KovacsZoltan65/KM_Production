@@ -1,4 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
+import { diagnosticPolicy } from "./scripts/ci-playwright-reporter.js";
 
 const baseURL = process.env.E2E_BASE_URL || "http://127.0.0.1:8001";
 const smokeMatch = /.*smoke\/(application|cross-browser)\.spec\.js/;
@@ -16,18 +17,18 @@ export default defineConfig({
     expect: {
         timeout: 7_500,
     },
-    reporter: [
-        [process.env.CI ? "line" : "list"],
-        ["html", { open: "never", outputFolder: "playwright-report" }],
-        ["junit", { outputFile: "test-results/playwright-junit.xml" }],
-    ],
+    reporter: process.env.CI
+        ? [["./scripts/ci-playwright-reporter.js"]]
+        : [
+              ["list"],
+              ["html", { open: "never", outputFolder: "playwright-report" }],
+              ["junit", { outputFile: "test-results/playwright-junit.xml" }],
+          ],
     outputDir: "test-results",
     use: {
         baseURL,
         timezoneId: "Europe/Budapest",
-        trace: "retain-on-failure",
-        screenshot: "only-on-failure",
-        video: "retain-on-failure",
+        ...diagnosticPolicy(Boolean(process.env.CI)),
     },
     projects: [
         {

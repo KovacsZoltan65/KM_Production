@@ -443,6 +443,7 @@ class E2ETestSeeder extends Seeder
         );
         $productionOrder = ProductionOrder::query()->where('order_number', 'PO-2026-000001')->firstOrFail();
         $employee = Employee::query()->where('employee_number', 'EMP-WELDER-001')->firstOrFail();
+        $employee->update(['name' => 'Minta Hegesztő']);
         $productionTask = ProductionTask::query()
             ->where('production_order_id', $productionOrder->id)
             ->firstOrFail();

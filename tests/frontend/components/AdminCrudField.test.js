@@ -67,12 +67,6 @@ const CheckboxStub = defineComponent({
     template:
         '<button data-control="checkbox" v-bind="$attrs" @click="$emit(\'update:modelValue\', !modelValue)" />',
 });
-const IftaLabelStub = defineComponent({
-    name: "IftaLabel",
-    inheritAttrs: false,
-    props: ["for"],
-    template: '<label :for="$props.for"><slot /></label>',
-});
 const IconFieldStub = defineComponent({
     name: "IconField",
     template: '<div data-control="icon-field"><slot /></div>',
@@ -92,7 +86,6 @@ const stubs = {
     Password: PasswordStub,
     DatePicker: DatePickerStub,
     Checkbox: CheckboxStub,
-    IftaLabel: IftaLabelStub,
     IconField: IconFieldStub,
     InputIcon: InputIconStub,
 };
@@ -164,7 +157,7 @@ describe("AdminCrudField", () => {
         const password = wrapper.findComponent(PasswordStub);
 
         expect(password.props()).toMatchObject({
-            inputId: "password",
+            inputId: wrapper.get("label").attributes("for"),
             modelValue: "secret",
             toggleMask: true,
             feedback: false,
@@ -182,7 +175,7 @@ describe("AdminCrudField", () => {
         const datePicker = wrapper.findComponent(DatePickerStub);
 
         expect(datePicker.props()).toMatchObject({
-            inputId: "hired_at",
+            inputId: wrapper.get("label").attributes("for"),
             modelValue: "2026-08-01",
             updateModelType: "string",
             dateFormat: "yy-mm-dd",
@@ -203,18 +196,18 @@ describe("AdminCrudField", () => {
         };
         const wrapper = mountField(field, { modelValue: true });
         const checkbox = wrapper.findComponent(CheckboxStub);
-        const labels = wrapper.findAllComponents(IftaLabelStub);
+        const labels = wrapper.findAll("label");
 
         expect(checkbox.props()).toMatchObject({
             modelValue: true,
-            inputId: "is_active",
+            inputId: labels[0].attributes("for"),
             binary: true,
             required: true,
             disabled: true,
         });
         expect(checkbox.attributes("aria-required")).toBe("true");
-        expect(labels.at(-1).props("for")).toBe("is_active");
-        expect(labels.at(-1).text()).toContain("Aktív");
+        expect(labels).toHaveLength(1);
+        expect(labels[0].text()).toContain("Aktív");
 
         await checkbox.trigger("click");
         expect(wrapper.emitted("update:modelValue")).toEqual([[false]]);

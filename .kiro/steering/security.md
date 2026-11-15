@@ -282,6 +282,10 @@ Additional rules:
 
 Logs must help debugging without leaking secrets.
 
+For CI annotations, published test reports, and browser diagnostics, follow
+[CI diagnostics security](../../docs/development/ci-diagnostics-security.md).
+Publish allowlisted metadata when arbitrary assertion data cannot be safely redacted.
+
 Do not log:
 
 - passwords

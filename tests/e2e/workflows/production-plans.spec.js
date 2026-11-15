@@ -1,6 +1,9 @@
 import { test, expect } from "../helpers/test.js";
 import { loginThroughUi } from "../helpers/auth.js";
-import { selectComboboxOptionMatching } from "../helpers/forms.js";
+import {
+    fillDatePicker,
+    selectComboboxOptionMatching,
+} from "../helpers/forms.js";
 import { e2eUsers } from "../fixtures/users.js";
 
 test("a production plan can be created from a seeded customer order", async ({
@@ -23,8 +26,8 @@ test("a production plan can be created from a seeded customer order", async ({
         "Customer order",
         /E2E-SO-0001/,
     );
-    await dialog.getByLabel("Planned start").fill("2027-04-01");
-    await dialog.getByLabel("Planned finish").fill("2027-04-10");
+    await fillDatePicker(page, dialog, "Planned start", "2027-04-01");
+    await fillDatePicker(page, dialog, "Planned finish", "2027-04-10");
     await dialog.getByLabel("Notes").fill("E2E production plan UI workflow");
     await dialog.getByRole("button", { name: "Save" }).click();
 

@@ -79,6 +79,7 @@ use App\Repositories\Contracts\StockMovementRepositoryInterface;
 use App\Repositories\Contracts\StockReservationRepositoryInterface;
 use App\Repositories\Contracts\SupplierAdminRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
+use App\Support\Testing\TestDiagnostics;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Inertia\ExceptionResponse;
@@ -94,6 +95,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        TestDiagnostics::configure($this->app['config']);
+
         $this->app->bind(UserRepositoryInterface::class, UserRepository::class);
         $this->app->bind(RoleRepositoryInterface::class, RoleRepository::class);
         $this->app->bind(PermissionRepositoryInterface::class, PermissionRepository::class);
