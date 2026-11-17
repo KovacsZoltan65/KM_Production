@@ -166,7 +166,7 @@ hash-ét: exact byte-digestje a független approval recordban van.
 | ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
 | `schema_version`               | Exact string `1.0`; unknown version és unknown mező tiltott                                                                      |
 | `manifest_id`, `poc_version`   | ASCII azonosító `[A-Za-z0-9._-]{1,80}`, explicit verzió; reuse más tartalommal tiltott                                           |
-| `created_at_utc`               | RFC3339 UTC `Z`, másodperc vagy legfeljebb 7 törtjegy; nem provenance önmagában                                                  |
+| `created_at_utc`               | Exact UTC `YYYY-MM-DDTHH:mm:ssZ`, csak egész másodperc; A1.1-T01 szerint, nem provenance önmagában                               |
 | `example_only`                 | Boolean; production verifier csak `false` értéket fogad el                                                                       |
 | `baseline_commit`              | 40 lowercase hex; dirty approved inputs külön exact inventoryval, nem HEAD-only proof                                            |
 | `profile_id`, `profile_sha256` | Approved immutable execution profile ID és raw-byte digest; profile tartalmazza a bináris/config/identity/VM/deadline szerződést |
@@ -175,6 +175,23 @@ hash-ét: exact byte-digestje a független approval recordban van.
 | `category`                     | Enum: `poc_code`, `schema`, `toolchain`, `dependency`, `configuration`, `documentation`; más érték STOP                          |
 | `size_bytes`, `sha256`         | Nemnegatív 64 bites integer; 64 lowercase hex; raw bytes, nincs newline/encoding-normalizálás                                    |
 | `provenance_ref`               | Approval/archive ID, nem credential/abszolút személyes path; az érvényességet külső record adja                                  |
+
+**A1.1-T01 — Timestamp Contract (Accepted, 2026-11-17).** A manifest timestamp
+formátuma kizárólag `YYYY-MM-DDTHH:mm:ssZ`: UTC, literális nagybetűs `T` és
+`Z`, pontosan egész másodperc; törtmásodperc és timezone offset nem engedett.
+Szigorú Gergely-naptári dátumellenőrzés szükséges, hibás dátum automatikus
+normalizálása nélkül. E konkrét konfliktusban a
+[C3-02.9-A §4](rma-0004-c3-02-9a-manifest-integrity-implementation-plan.md)
+timestamp-szerződése az irányadó; a C3-02.8 ennek megfelelően összehangolva.
+A döntés nem módosít történeti manifestet, evidence-t vagy végrehajtási eredményt.
+
+| Érték                       | Elvárt eredmény |
+| --------------------------- | --------------- |
+| `2026-11-17T12:00:00Z`      | VALID           |
+| `2026-11-17T12:00:00.123Z`  | INVALID         |
+| `2026-11-17T13:00:00+01:00` | INVALID         |
+| `2026-02-30T12:00:00Z`      | INVALID         |
+| `2026-11-17 12:00:00Z`      | INVALID         |
 
 A teljes bundle minden regular file-ja szerepel vagy `inputs`, vagy
 `historical_artifacts` alatt; a manifest maga az egyetlen külön pinned file.
