@@ -1,0 +1,121 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "urn:km-production:rma-poc:input-manifest:1.0",
+    "title": "RMA PoC input manifest 1.0 — data contract only",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "formatId",
+        "schemaVersion",
+        "manifestId",
+        "pocVersion",
+        "createdAt",
+        "exampleOnly",
+        "files",
+        "historicalArtifacts",
+        "verificationMetadata"
+    ],
+    "properties": {
+        "formatId": { "type": "string", "const": "rma-poc-inputs" },
+        "schemaVersion": { "type": "string", "const": "1.0" },
+        "manifestId": { "$ref": "#/$defs/identifier" },
+        "pocVersion": { "$ref": "#/$defs/identifier" },
+        "createdAt": {
+            "type": "string",
+            "pattern": "^(?!0000)[0-9]{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12][0-9]|3[01])T(?:[01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]Z(?![\\s\\S])",
+            "$comment": "PHP additionally enforces Gregorian month lengths and leap years without normalization."
+        },
+        "exampleOnly": { "type": "boolean", "const": false },
+        "files": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 100000,
+            "uniqueItems": true,
+            "items": { "$ref": "#/$defs/file" }
+        },
+        "historicalArtifacts": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 100000,
+            "uniqueItems": true,
+            "items": { "$ref": "#/$defs/history" }
+        },
+        "verificationMetadata": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "baselineCommit",
+                "profileId",
+                "profileSha256",
+                "provenanceRef"
+            ],
+            "properties": {
+                "baselineCommit": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{40}(?![\\s\\S])"
+                },
+                "profileId": { "$ref": "#/$defs/identifier" },
+                "profileSha256": { "$ref": "#/$defs/sha256" },
+                "provenanceRef": { "$ref": "#/$defs/identifier" }
+            }
+        }
+    },
+    "$defs": {
+        "identifier": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80,
+            "pattern": "^[A-Za-z0-9._-]+(?![\\s\\S])"
+        },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}(?![\\s\\S])" },
+        "sizeBytes": { "type": "integer", "minimum": 0, "maximum": 2147483648 },
+        "path": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 240,
+            "pattern": "^[A-Za-z0-9._-]+(?:/[A-Za-z0-9._-]+)*(?![\\s\\S])",
+            "not": {
+                "anyOf": [
+                    { "pattern": "(?:^|/)\\.{1,2}(?:/|$)" },
+                    { "pattern": "\\.(?:/|$)" },
+                    {
+                        "pattern": "(?:^|/)(?:[cC][oO][nN]|[pP][rR][nN]|[aA][uU][xX]|[nN][uU][lL]|[cC][oO][mM][1-9]|[lL][pP][tT][1-9])(?:\\.|/|$)"
+                    }
+                ]
+            }
+        },
+        "file": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path", "sizeBytes", "sha256", "category"],
+            "properties": {
+                "path": { "$ref": "#/$defs/path" },
+                "sizeBytes": { "$ref": "#/$defs/sizeBytes" },
+                "sha256": { "$ref": "#/$defs/sha256" },
+                "category": {
+                    "type": "string",
+                    "enum": [
+                        "poc_code",
+                        "schema",
+                        "toolchain",
+                        "dependency",
+                        "configuration",
+                        "documentation"
+                    ]
+                }
+            }
+        },
+        "history": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path", "sizeBytes", "sha256", "provenanceRef"],
+            "properties": {
+                "path": { "$ref": "#/$defs/path" },
+                "sizeBytes": { "$ref": "#/$defs/sizeBytes" },
+                "sha256": { "$ref": "#/$defs/sha256" },
+                "provenanceRef": { "$ref": "#/$defs/identifier" }
+            }
+        }
+    },
+    "$comment": "Ordering, cross-inventory uniqueness/case collisions, combined entry/byte limits and Gregorian dates are enforced by ManifestValidator. No file integrity, authenticity or execution authorization is established."
+}
