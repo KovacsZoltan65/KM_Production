@@ -107,14 +107,14 @@ A1.1 nem értékeli a nyers JSON byte-limit/depth/BOM/duplicate-object-key/
 canonical-key-order/final-LF szabályokat: már dekódolt adaton ezek részben
 elvesznek. A szigorú parser/canonicalizer külön későbbi pure pre-validation
 réteg, digest-ellenőrzés utáni parse-sorrenddel. Nem állítjuk a teljes tervezett
-`CanonicalJson` komponenst megvalósítottnak. A1.2 trust anchor, eredet/digest,
-manifest-ID reuse és profile compatibility külön kapu; native adapter/B2/C2
-nincs implementálva. A teljes verifier evaluation/observation szerződését
+`CanonicalJson` komponenst megvalósítottnak. A1.2 TD01 trust-anchor/raw-digest core az alábbi külön API-ban megvalósult;
+a decoded manifest/profile binding és global manifest-ID ledger későbbi kapu.
+Native adapter/B2/C2 nincs implementálva. A teljes verifier evaluation/observation szerződését
 ez az in-memory validation result nem helyettesíti.
 
 ## Focused tests
 
-A repository gyökeréből kizárólag az új standalone suite:
+A repository gyökeréből a standalone A1.1 + TD01 suite:
 
 ```powershell
 php -n tests/ProofOfConcept/RmaTransactionBoundary/integrity/tests/run-tests.php
@@ -133,3 +133,85 @@ integrity, filesystem safety, or authorization to execute the transaction PoC.**
 
 WP7-F01 és WP7-F02 OPEN. [Design és scope](../../../../.kiro/designs/rma-0004-c3-02-9a-manifest-integrity-implementation-plan.md),
 [timestamp decision](../../../../.kiro/designs/rma-0004-c3-02-8-execution-architecture-specification.md).
+
+## A1.2 TD01 — pure anchor és trusted digest core
+
+[Elfogadott architektúra](../../../../.kiro/designs/rma-0004-c3-02-9b-trusted-digest-verification-implementation-plan.md),
+TD01 külön implementációs engedéllyel. TD02–TD06 nincs implementálva.
+
+- `TrustContext`: immutable, minden constructor-paraméter kötelező:
+  `trustMode`, `selectionOrigin`, `selectionRef`, majd az expected exact kilenc
+  anchor mező (`anchorVersion`, `anchorId`, `manifestId`, `manifestSha256`,
+  `profileId`, `profileSha256`, `approvalRef`, `verifierReleaseId`, `status`).
+  A trusted caller ezeket a candidate/manifesttől független recordból adja.
+  Origin/ref explicit, nemüres és nem kizárólag whitespace; opaque caller reference,
+  nem vezetünk be rá új identifier/ASCII/hosszformátumot. A blank-check nem
+  normalizálja vagy írja át a reference-t. `OPERATOR_ATTESTED`-ben selectionRef az independent attestation ref;
+  a subsystem az attestation tényleges külső eredetét nem tudja bizonyítani.
+- `TrustAnchor`: readonly kilenc stringből álló data-only record; constructor
+  önmagában nem érvényességi vagy provenance proof.
+- `AnchorProvider(?TrustAnchor)`: előre injektált immutable selected record;
+  null explicit missing selection. Nincs keresés, callback, candidate selector,
+  environment/CWD/config fallback, store vagy anchor-generálás.
+- `AnchorValidator::validate(mixed): TrustAnchor|string`: exact stdClass decoded
+  boundary; null `ANCHOR_MISSING`; shape/type/unknown/ID/hash hiba `ANCHOR_INVALID`;
+  más string version `ANCHOR_VERSION_UNSUPPORTED`; REVOKED `ANCHOR_REVOKED`.
+  Minden mező kötelező; version1.0, ACTIVE, IDs1–80 ASCII `[A-Za-z0-9._-]`,
+  digests64 lowercase hex. Raw anchor string reject: nincs strict parsing vagy
+  elveszett duplicate-key információból utólagos proof. Ez TD02 feladata.
+- `TrustedDigestVerifier(AnchorProvider)::verify(mixed, mixed, string)`:
+  explicit context, candidate stdClass, eredeti binary bytes. Sorrend:
+  G01 mode/context/runtime → selected record megléte → candidate-validáció →
+  selected-record validáció → context/selected/candidate exact tuple-binding →
+  profile → verifier release → raw cap → SHA-256 → hash_equals → digest-result.
+  Általános tuple-hiba `ANCHOR_SELECTION_MISMATCH`, profile `PROFILE_MISMATCH`,
+  release `VERIFIER_RELEASE_MISMATCH`. A digest mezők bindingje is hash_equals.
+- `DigestComparisonResult`: immutable, private constructor; phaseVerdict
+  MATCH/MISMATCH/DENIED/INCONCLUSIVE, digestStatus MATCH/MISMATCH/`NOT_EVALUATED`,
+  nullable primaryFailureCode, bounded nulla/egy statikus stage/path/code/message
+  diagnostic. Nincs manifestVerdict vagy Manifest DTO. Korábbi gate failure-nél
+  az azonosítók/authenticity/digests null; összevetésnél kizárólag a validált és
+  bound selected recordból származó ID/ref/pin és az előállított actual digest.
+
+FIXTURE → authenticity SIMULATED. `OPERATOR_ATTESTED` → `OPERATOR_ATTESTED`,
+független operátori kiválasztás és explicit attestation ref mellett.
+DEPLOYMENT/`PROTECTED_DEPLOYMENT`/`EXTERNAL_ANCHOR` `CAPABILITY_UNAVAILABLE`,
+INCONCLUSIVE, nincs local fallback. Más invalid mode/context `CONFIG_INVALID`.
+A caller/verifier/context fölött rendelkező same-user támadó ellen nincs garancia.
+ACTIVE nem signature; revocation freshness/global ledger `NOT_EVALUATED`.
+
+**Eredeti raw cap:16777216 bájt**, `strlen` alapján, hash előtt;
+túlméret `MANIFEST_SIZE_EXCEEDED`. Nincs truncation, newline/NUL/UTF-8/BOM
+normalizálás vagy rewrite. Raw SHA-256 után `hash_equals(expected, actual)`;
+mismatch `MANIFEST_UNTRUSTED` hard stop. A digest-phase tudatosan elfogadhat
+bármilyen matching raw bytes-t, beleértve nem-JSON vagy üres stringet: ez nem
+A1.2 wire-domain acceptance, schema/canonical/decoded manifest binding nincs.
+A caller korábbi string-allokációját a pure API nem tudja megakadályozni.
+
+Minden publikus result fix, felül nem írható invariánsai:
+`scope=MANIFEST_ONLY`, `fileInventoryStatus=NOT_EVALUATED`,
+`filesystemIdentityStatus=NOT_EVALUATED`, `executionAuthorization=NOT_EVALUATED`,
+`canLaunchPoC=false`. MATCH nem teljes manifest verification és nem execution
+vagy deployment approval. Schema/canonical/decoded-binding státusz `NOT_EVALUATED`.
+
+Külön focused futások ugyanazzal a dependency nélküli runnerrel:
+
+```powershell
+php -n tests/ProofOfConcept/RmaTransactionBoundary/integrity/tests/run-tests.php --td01
+php -n tests/ProofOfConcept/RmaTransactionBoundary/integrity/tests/run-tests.php --a11
+```
+
+A default mindkét csoportot futtatja és külön darabszámot közöl; --td01 nem
+require-eli A1.1-et vagy annak schema-ját. A TD01 tesztfájl namespace-local hash
+és hash_equals megfigyelői a valódi PHP primitívekhez delegálnak, JSON hívásra
+trap működik. A cap+1 esetben tényleges hash call-count0 az assertion;
+size/digest boundary inputok synthetic in-memory bytes, nem valid manifestek.
+File-wrapper/autoload megfigyelés és token-alapú dependency ellenőrzés egészíti
+ki a próbákat; ez nem általános network/OS sandbox. A tesztcélú function shadowing
+kizárólag a standalone tesztfájlban van, nincs production hash-injection hook.
+PHP programhiba továbbterjed; a runner assertion/exception hibára nonzero-t ad.
+
+Nincs actual anchor/manifest/evidence/fixture output vagy filesystem reader.
+A1.1 változatlan. Protected trust/signing/revocation store, strict parser,
+canonicalizer, full manifest verifier/result, inventory/native/CLI/integration
+későbbi külön authorization. WP7-F01/F02 OPEN; transaction PoC NOT READY.
