@@ -17,7 +17,7 @@ $diagnostics = $result->toArray(); // ['valid' => bool, 'errors' => [...]]
 Az input JSON-objektumai `stdClass`, inventory-jai PHP listák. Associative array
 nem helyettesíti az objektumot: így az üres JSON object és array nem mosódik
 össze. A caller például `json_decode($json, false, flags: JSON_THROW_ON_ERROR)`
-eredményét adhatja át, de ez **nem** a későbbi strict JSON-parser pótlása.
+eredményét adhatja át, de ez **nem** a megvalósított TD02 restricted-domain Strict JSON Parser pótlása.
 A validator nem dekódol, nem normalizál és nem módosítja az inputot. Hibás
 adat strukturált error; programhiba nincs false-positive sikerre fordítva.
 
@@ -105,7 +105,7 @@ schema-ban csak teljesen egyforma objektumokat képes elutasítani.
 
 A1.1 nem értékeli a nyers JSON byte-limit/depth/BOM/duplicate-object-key/
 canonical-key-order/final-LF szabályokat: már dekódolt adaton ezek részben
-elvesznek. A szigorú parser/canonicalizer külön későbbi pure pre-validation
+elvesznek. A szigorú parser a TD02-ben elkészült; a canonicalizer külön későbbi pure
 réteg, digest-ellenőrzés utáni parse-sorrenddel. Nem állítjuk a teljes tervezett
 `CanonicalJson` komponenst megvalósítottnak. A1.2 TD01 trust-anchor/raw-digest core az alábbi külön API-ban megvalósult;
 a decoded manifest/profile binding és global manifest-ID ledger későbbi kapu.
@@ -114,7 +114,7 @@ ez az in-memory validation result nem helyettesíti.
 
 ## Focused tests
 
-A repository gyökeréből a standalone A1.1 + TD01 suite:
+A repository gyökeréből a standalone A1.1 + TD01 + TD02 suite:
 
 ```powershell
 php -n tests/ProofOfConcept/RmaTransactionBoundary/integrity/tests/run-tests.php
@@ -137,7 +137,7 @@ WP7-F01 és WP7-F02 OPEN. [Design és scope](../../../../.kiro/designs/rma-0004-
 ## A1.2 TD01 — pure anchor és trusted digest core
 
 [Elfogadott architektúra](../../../../.kiro/designs/rma-0004-c3-02-9b-trusted-digest-verification-implementation-plan.md),
-TD01 külön implementációs engedéllyel. TD02–TD06 nincs implementálva.
+TD01 és TD02 külön implementációs engedéllyel elkészült. TD03–TD06 nincs implementálva.
 
 - `TrustContext`: immutable, minden constructor-paraméter kötelező:
   `trustMode`, `selectionOrigin`, `selectionRef`, majd az expected exact kilenc
@@ -201,7 +201,7 @@ php -n tests/ProofOfConcept/RmaTransactionBoundary/integrity/tests/run-tests.php
 php -n tests/ProofOfConcept/RmaTransactionBoundary/integrity/tests/run-tests.php --a11
 ```
 
-A default mindkét csoportot futtatja és külön darabszámot közöl; --td01 nem
+A default az A1.1, TD01 és TD02 csoportot futtatja és külön darabszámot közöl; --td01 nem
 require-eli A1.1-et vagy annak schema-ját. A TD01 tesztfájl namespace-local hash
 és hash_equals megfigyelői a valódi PHP primitívekhez delegálnak, JSON hívásra
 trap működik. A cap+1 esetben tényleges hash call-count0 az assertion;
@@ -212,6 +212,117 @@ kizárólag a standalone tesztfájlban van, nincs production hash-injection hook
 PHP programhiba továbbterjed; a runner assertion/exception hibára nonzero-t ad.
 
 Nincs actual anchor/manifest/evidence/fixture output vagy filesystem reader.
-A1.1 változatlan. Protected trust/signing/revocation store, strict parser,
+A1.1 változatlan; a restricted-domain strict parser TD02-ben elkészült.
+Protected trust/signing/revocation store,
 canonicalizer, full manifest verifier/result, inventory/native/CLI/integration
 későbbi külön authorization. WP7-F01/F02 OPEN; transaction PoC NOT READY.
+
+## A1.2 TD02 — restricted strict JSON parser
+
+TD02 külön implementációs engedéllyel készült; TD03–TD06 továbbra nincs implementálva.
+Az elfogadott A1.2 terv és TD02-D01–D07 alapján standalone PHP 8.4+, 64-bit API:
+`StrictJsonTokenizer::parse(string $rawBytes): JsonParseResult`.
+
+`JsonParseResult` final readonly, privát konstruktorral. Siker: `valid=true`,
+teljes `value` (akár JSON null), `error=null`. Inputhiba: `valid=false`,
+`value=null`, egy `code/offset/message` error. Nincs partial graph vagy hibalista.
+Runtime/programhiba továbbterjed; kizárólag saját input-failure signal fogható el.
+Nem támogatott integer width fix `RuntimeException`, parse előtt; PHP 8.4 alatti
+runtime szintén kivétel. A graph `stdClass` része nem mélyen immutable.
+
+Konstrukció: `parse(raw)` → `JsonParseResult::fromParsing(final parser, raw)` →
+`evaluate(raw)` egyszer → privát resultkonstrukció. Az evaluate adatai nem
+fogadhatók el publikus success factory bemeneteként; nincs `success(value)`,
+`fromArray` vagy hydration API. A `__unserialize()` mindig kivétel. Ez nem
+arbitrary same-process PHP/Reflection elleni garancia és nem authenticity proof.
+
+A parser explicit stackkel, eredeti binary stringen, normalization/repair,
+`json_decode`, float fallback és canonicalization nélkül dolgozik. Exact
+stdClass/list/int/string/bool/null reprezentáció. Objectenként külön, prefixed
+seen-set ellenőrzi a decoded, case-sensitive kulcsokat overwrite előtt.
+Escaped-ekvivalens kulcs duplicate; más objectben azonos kulcs megengedett.
+
+UTF-8/BOM/surrogate hiba `ENCODING_INVALID`; helyes non-ASCII decoded karakter
+`JSON_NON_ASCII`. Grammar/escape/raw control hiba `JSON_INVALID`. Decoded key
+csak printable ASCII (`JSON_KEY_INVALID`); escaped ASCII control értékben
+megengedett, a key-szabály nem terjed át minden stringre. Field/path/timestamp
+szabályok továbbra A1.1-ben maradnak.
+
+Szám: csak `0` vagy `[1-9][0-9]*`, maximum `9223372036854775807`, lexikai
+overflow guard cast előtt. JSON-valid negatív/fraction/exponent forma
+`JSON_NUMBER_INVALID`; overflow `JSON_INTEGER_OVERFLOW`. Hibás grammar vagy
+tokenhatár előbb `JSON_INVALID`; hosszú numeric token nem kap teljes másolatot.
+
+| Resource                          |       Maximum |
+| --------------------------------- | ------------: |
+| Eredeti raw input                 | 16777216 byte |
+| Container depth, root=1           |            16 |
+| Decoded value / key               | 240 / 20 byte |
+| Member egy objectben              |             9 |
+| Globális array-element            |        100000 |
+| Globális container                |        100004 |
+| Globális scalar value, key nélkül |        400010 |
+| Globális object member            |        400013 |
+
+Guard a túllépő append/push/insertion előtt; állapot és globális számlálók
+hívásonként frissek. Depth: `JSON_DEPTH_EXCEEDED`; raw size:
+`MANIFEST_SIZE_EXCEEDED`; más resource: `JSON_COMPLEXITY_LIMIT`.
+Ezek strukturális korlátok, nem bizonyított PHP-memory igények.
+
+Offset 0-alapú raw byte-index; EOF=strlen(raw). UTF-8/escape: szekvencia vagy
+backslash kezdete; duplicate: második key nyitó quote; tiltott number/overflow:
+tokenkezdő; depth: tiltott opening token; decoded hossz: első túlcsorduló egység
+raw kezdete; member/element: következő tiltott elem kezdete; trailing data:
+első nem-whitespace; raw oversize:16777216. Precedence: runtime → raw size →
+balról jobbra scan/pre-allocation guards → grammar/encoding → token-domain →
+duplicate/number minősítés → root utáni whitespace. Az előbb aktiválódó
+resource guard megelőzhet későbbi tokenhibát. Diagnosztika statikus, nincs raw
+fragment, arbitrary key vagy abszolút path.
+
+A tesztek a globális limiteket is elérik általános restricted JSON graphokkal:
+100000 elemű root listában 100000 object, alapból négy member/object;
+az első három object member-száma 9/9/7 és három value üres array. Így
+E=100000, C=100004, S=400010, M=400013. A további member/scalar/container
+külön túllépési tesztet kap; nincs production-limit gyengítés. A valid manifest
+graphja és a general restricted parser-boundary graph külön tesztkategória.
+
+Futtatás repository gyökérből, alkalmazás/bootstrap nélkül:
+
+```powershell
+php -n tests/ProofOfConcept/RmaTransactionBoundary/integrity/tests/run-tests.php --td02
+php -n tests/ProofOfConcept/RmaTransactionBoundary/integrity/tests/run-tests.php --a11
+php -n tests/ProofOfConcept/RmaTransactionBoundary/integrity/tests/run-tests.php --td01
+php -n tests/ProofOfConcept/RmaTransactionBoundary/integrity/tests/run-tests.php --all
+php -n tests/ProofOfConcept/RmaTransactionBoundary/integrity/tests/run-tests.php --td02-memory
+```
+
+Default: mindhárom csoport, explicit suite selection. Exit0 success, exit1
+teszthiba, exit2 unsupported runtime, exit64 usage. Opcionális, már telepített
+Xdebug develop módban valódi function monitor ellenőrzi mindkét parserbelépés
+egyszeri evaluation/scan hívását, oversize-nál scan0-t; A1.1 ensure és
+expected-error assertion-száma is megfigyelhető a kódjának módosítása nélkül.
+Xdebug nélkül ezek a megfigyelő esetek nem regisztrálódnak; a normál suite
+nem állítja, hogy monitorbizonyítékot szolgáltatott.
+
+Memóriaharness: hat synthetic in-memory scenario, mindegyik három külön
+`PHP_BINARY -n -d memory_limit=512M` subprocessben, 30s/scenario timeouttal.
+Az allowlistelt belső `--td02-memory-case=ID` mód pipe-on ad egy JSON rekordot:
+PHP/verzió/width/limit, scenario, raw size, peak used/allocated, parser-result.
+A parent exit/timeout/stderr/ismételhetőség alapján dönt; fatal/OOM/missing
+record nem elfogadható failure. Nincs shell, fixture/output/cache file.
+Az 512MiB tesztbudget, nem általános memóriaígéret; a limitek nem emelhetők
+automatikusan. Peak a fixture építését és valid esetben az élő parsed graphon
+végzett változatlan A1.1 validációt is tartalmazza, nem csak a parser saját
+allokációját és nem teljes OS RSS-t mér.
+
+`wire-max`: a terv WD03 receptje, pontosan16777216 byte. `byte-heavy`:
+40000 file +1 history, 240-byte pathok. `object-heavy`:1 file +99999 history;
+`array-heavy`:99999 file +1 history, rövid unique sorted pathok.
+Ezek kézzel rögzített synthetic JSON-receptek, nem TD03 serializer.
+`invalid-stress`:16MiB integer token → overflow; `defensive-limit`:16MiB
+quoted ASCII value → decoded hosszlimit. A mérési eredmények a feladat
+átadási jelentésében szerepelnek, nem történeti evidence átírásával.
+
+Nincs TD01 módosítás, anchor acquisition/selection/provenance, új anchor16KiB
+cap, digest/calculated pin, canonical equality, orchestration vagy execution
+authorization. WP7-F01/F02 OPEN; transaction PoC NOT READY.
