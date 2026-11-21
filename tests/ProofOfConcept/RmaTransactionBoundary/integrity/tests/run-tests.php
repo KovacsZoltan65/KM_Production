@@ -2,15 +2,18 @@
 
 declare(strict_types=1);
 
+use RmaTransactionBoundaryPoc\Integrity\Tests\CanonicalJsonTest;
 use RmaTransactionBoundaryPoc\Integrity\Tests\ManifestValidationTest;
 use RmaTransactionBoundaryPoc\Integrity\Tests\StrictJsonTest;
 use RmaTransactionBoundaryPoc\Integrity\Tests\TrustVerificationTest;
 
 $suite = $argv[1] ?? '--all';
 $memoryCase = str_starts_with($suite, '--td02-memory-case=') ? substr($suite, strlen('--td02-memory-case=')) : null;
-if (count($argv) > 2 || (! in_array($suite, ['--all', '--a11', '--td01', '--td02', '--td02-memory'], true)
-    && ! in_array($memoryCase, ['wire-max', 'byte-heavy', 'object-heavy', 'array-heavy', 'invalid-stress', 'defensive-limit'], true))) {
-    fwrite(STDERR, 'Usage: php -n integrity/tests/run-tests.php [--all|--a11|--td01|--td02|--td02-memory|--td02-memory-case=ID]'.PHP_EOL);
+$td03MemoryCase = str_starts_with($suite, '--td03-memory-case=') ? substr($suite, strlen('--td03-memory-case=')) : null;
+if (count($argv) > 2 || (! in_array($suite, ['--all', '--a11', '--td01', '--td02', '--td02-memory', '--td03', '--td03-memory'], true)
+    && ! in_array($memoryCase, ['wire-max', 'byte-heavy', 'object-heavy', 'array-heavy', 'invalid-stress', 'defensive-limit'], true)
+    && ! in_array($td03MemoryCase, ['small', 'multi', 'ascii-heavy', 'inventory-heavy', 'wire-max', 'noncanonical-large'], true))) {
+    fwrite(STDERR, 'Usage: php -n integrity/tests/run-tests.php [--all|--a11|--td01|--td02|--td03|--td02-memory|--td02-memory-case=ID|--td03-memory|--td03-memory-case=ID]'.PHP_EOL);
     exit(64);
 }
 if (PHP_VERSION_ID < 80400 || PHP_INT_SIZE !== 8) {
@@ -23,7 +26,7 @@ set_error_handler(static function (int $severity, string $message, string $file,
 });
 
 $groups = [];
-if (in_array($suite, ['--all', '--a11', '--td02-memory'], true) || $memoryCase !== null) {
+if (in_array($suite, ['--all', '--a11', '--td02-memory', '--td03', '--td03-memory'], true) || $memoryCase !== null || $td03MemoryCase !== null) {
     require dirname(__DIR__).'/src/Manifest.php';
     require dirname(__DIR__).'/src/ValidationResult.php';
     require dirname(__DIR__).'/src/ManifestValidator.php';
@@ -44,10 +47,12 @@ if (in_array($suite, ['--all', '--td01'], true)) {
     require __DIR__.'/TrustVerificationTest.php';
     $groups['TD01'] = TrustVerificationTest::cases();
 }
-if (in_array($suite, ['--all', '--td02', '--td02-memory'], true) || $memoryCase !== null) {
+if (in_array($suite, ['--all', '--td02', '--td02-memory', '--td03', '--td03-memory'], true) || $memoryCase !== null || $td03MemoryCase !== null) {
     require dirname(__DIR__).'/src/JsonParseResult.php';
     require dirname(__DIR__).'/src/StrictJsonTokenizer.php';
-    require __DIR__.'/StrictJsonTest.php';
+    if (in_array($suite, ['--all', '--td02', '--td02-memory'], true) || $memoryCase !== null) {
+        require __DIR__.'/StrictJsonTest.php';
+    }
     if ($memoryCase !== null) {
         echo json_encode(StrictJsonTest::memoryCase($memoryCase), JSON_THROW_ON_ERROR).PHP_EOL;
         exit(0);
@@ -55,7 +60,21 @@ if (in_array($suite, ['--all', '--td02', '--td02-memory'], true) || $memoryCase 
     if ($suite === '--td02-memory') {
         exit(StrictJsonTest::memorySuite(__FILE__));
     }
-    $groups['TD02'] = StrictJsonTest::cases();
+    if (in_array($suite, ['--all', '--td02'], true)) {
+        $groups['TD02'] = StrictJsonTest::cases();
+    }
+}
+if (in_array($suite, ['--all', '--td03', '--td03-memory'], true) || $td03MemoryCase !== null) {
+    require dirname(__DIR__).'/src/CanonicalJson.php';
+    require __DIR__.'/CanonicalJsonTest.php';
+    if ($td03MemoryCase !== null) {
+        echo json_encode(CanonicalJsonTest::memoryCase($td03MemoryCase), JSON_THROW_ON_ERROR).PHP_EOL;
+        exit(0);
+    }
+    if ($suite === '--td03-memory') {
+        exit(CanonicalJsonTest::memorySuite(__FILE__));
+    }
+    $groups['TD03'] = CanonicalJsonTest::cases();
 }
 
 $failed = 0;
@@ -97,6 +116,9 @@ if (isset($groups['TD01'])) {
 }
 if (isset($groups['TD02'])) {
     echo 'TD02: '.StrictJsonTest::$assertions.' assertions.'.PHP_EOL;
+}
+if (isset($groups['TD03'])) {
+    echo 'TD03: '.CanonicalJsonTest::$assertions.' behavioral assertions.'.PHP_EOL;
 }
 restore_error_handler();
 echo $total.' tests; '.($total - $failed).' passed; '.$failed.' failed.'.PHP_EOL;

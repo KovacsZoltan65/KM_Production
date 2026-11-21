@@ -105,16 +105,16 @@ schema-ban csak teljesen egyforma objektumokat képes elutasítani.
 
 A1.1 nem értékeli a nyers JSON byte-limit/depth/BOM/duplicate-object-key/
 canonical-key-order/final-LF szabályokat: már dekódolt adaton ezek részben
-elvesznek. A szigorú parser a TD02-ben elkészült; a canonicalizer külön későbbi pure
-réteg, digest-ellenőrzés utáni parse-sorrenddel. Nem állítjuk a teljes tervezett
-`CanonicalJson` komponenst megvalósítottnak. A1.2 TD01 trust-anchor/raw-digest core az alábbi külön API-ban megvalósult;
+elvesznek. A szigorú parser TD02-ben, a pure `CanonicalJson` komponens TD03-ban
+elkészült. A digest-ellenőrzés utáni parse és az A1.1 utáni canonical comparison
+összekötése a későbbi TD04 feladata. A1.2 TD01 trust-anchor/raw-digest core az alábbi külön API-ban megvalósult;
 a decoded manifest/profile binding és global manifest-ID ledger későbbi kapu.
 Native adapter/B2/C2 nincs implementálva. A teljes verifier evaluation/observation szerződését
 ez az in-memory validation result nem helyettesíti.
 
 ## Focused tests
 
-A repository gyökeréből a standalone A1.1 + TD01 + TD02 suite:
+A repository gyökeréből a standalone A1.1 + TD01 + TD02 + TD03 suite:
 
 ```powershell
 php -n tests/ProofOfConcept/RmaTransactionBoundary/integrity/tests/run-tests.php
@@ -137,7 +137,7 @@ WP7-F01 és WP7-F02 OPEN. [Design és scope](../../../../.kiro/designs/rma-0004-
 ## A1.2 TD01 — pure anchor és trusted digest core
 
 [Elfogadott architektúra](../../../../.kiro/designs/rma-0004-c3-02-9b-trusted-digest-verification-implementation-plan.md),
-TD01 és TD02 külön implementációs engedéllyel elkészült. TD03–TD06 nincs implementálva.
+TD01, TD02 és TD03 külön implementációs engedéllyel elkészült. TD04–TD06 nincs implementálva.
 
 - `TrustContext`: immutable, minden constructor-paraméter kötelező:
   `trustMode`, `selectionOrigin`, `selectionRef`, majd az expected exact kilenc
@@ -201,7 +201,7 @@ php -n tests/ProofOfConcept/RmaTransactionBoundary/integrity/tests/run-tests.php
 php -n tests/ProofOfConcept/RmaTransactionBoundary/integrity/tests/run-tests.php --a11
 ```
 
-A default az A1.1, TD01 és TD02 csoportot futtatja és külön darabszámot közöl; --td01 nem
+A default az A1.1, TD01, TD02 és TD03 csoportot futtatja és külön darabszámot közöl; --td01 nem
 require-eli A1.1-et vagy annak schema-ját. A TD01 tesztfájl namespace-local hash
 és hash_equals megfigyelői a valódi PHP primitívekhez delegálnak, JSON hívásra
 trap működik. A cap+1 esetben tényleges hash call-count0 az assertion;
@@ -212,14 +212,14 @@ kizárólag a standalone tesztfájlban van, nincs production hash-injection hook
 PHP programhiba továbbterjed; a runner assertion/exception hibára nonzero-t ad.
 
 Nincs actual anchor/manifest/evidence/fixture output vagy filesystem reader.
-A1.1 változatlan; a restricted-domain strict parser TD02-ben elkészült.
+A1.1 változatlan; a restricted-domain strict parser TD02-ben, a canonicalizer TD03-ban elkészült.
 Protected trust/signing/revocation store,
-canonicalizer, full manifest verifier/result, inventory/native/CLI/integration
+full manifest verifier/result, inventory/native/CLI/integration
 későbbi külön authorization. WP7-F01/F02 OPEN; transaction PoC NOT READY.
 
 ## A1.2 TD02 — restricted strict JSON parser
 
-TD02 külön implementációs engedéllyel készült; TD03–TD06 továbbra nincs implementálva.
+TD02 külön implementációs engedéllyel készült; TD03 canonicalizer külön alább, TD04–TD06 nincs implementálva.
 Az elfogadott A1.2 terv és TD02-D01–D07 alapján standalone PHP 8.4+, 64-bit API:
 `StrictJsonTokenizer::parse(string $rawBytes): JsonParseResult`.
 
@@ -296,7 +296,7 @@ php -n tests/ProofOfConcept/RmaTransactionBoundary/integrity/tests/run-tests.php
 php -n tests/ProofOfConcept/RmaTransactionBoundary/integrity/tests/run-tests.php --td02-memory
 ```
 
-Default: mindhárom csoport, explicit suite selection. Exit0 success, exit1
+Default: mind a négy csoport, explicit suite selection. Exit0 success, exit1
 teszthiba, exit2 unsupported runtime, exit64 usage. Opcionális, már telepített
 Xdebug develop módban valódi function monitor ellenőrzi mindkét parserbelépés
 egyszeri evaluation/scan hívását, oversize-nál scan0-t; A1.1 ensure és
@@ -326,3 +326,62 @@ quoted ASCII value → decoded hosszlimit. A mérési eredmények a feladat
 Nincs TD01 módosítás, anchor acquisition/selection/provenance, új anchor16KiB
 cap, digest/calculated pin, canonical equality, orchestration vagy execution
 authorization. WP7-F01/F02 OPEN; transaction PoC NOT READY.
+
+## A1.2 TD03 — pure canonical JSON
+
+`CanonicalJson::serialize(Manifest $validatedManifest): string` és
+`CanonicalJson::isCanonical(Manifest $validatedManifest, string $rawBytes): bool`.
+Final, stateless C08; PHP 8.4+, 64-bit. A caller kötelező preconditionje a sikeres
+A1.1-validációból származó immutable Manifest snapshot. A publikus Manifest típus
+nem validációs bizonyíték; TD03 nem hív validátort, nem fogad mutable TD02 gráfot,
+nem vezet be capabilityt vagy provenance tokent. A representation/type guardok
+nem ismétlik meg az A1.1 schema/path szabályait. D01=A ezt a trusted-caller
+szerződést rögzíti; tetszőleges kézzel konstruált DTO-ra nincs schema-garancia.
+
+Exact v1: minden object ascending ASCII key-order, listák eredeti sorrendben;
+quote/backslash escaped, slash literal, rövid b/t/n/f/r escape-ek, egyéb control
+lowercase `\u00xx`, printable ASCII literal. Nincs Unicode-normalizálás vagy
+float coercion; integer plain decimal, boolean lowercase. Pontosan egy final LF,
+BOM/indent/CRLF nélkül. Az izolált escape-helper tesztjei nem bővítik a valid
+manifest-domain-t. Unsupported representation fix kivételt ad, nincs partial
+siker; más programhiba továbbterjed.
+
+Az összehasonlítás length + exact byte equality, trim/reparse/hash/repair nélkül.
+A caller ugyanazt az eredeti raw snapshotot adja, amelyet TD01 és TD02 használt;
+TD03 ezt az eredetet nem bizonyítja. A false későbbi TD04 mappingje
+`MANIFEST_NONCANONICAL`, nem mostani orchestration. Canonical equality nem digest,
+schema, authenticity, file inventory, filesystem identity vagy execution proof.
+
+A fixed-shape serializer bounded appendekkel dolgozik, nem általános recursive
+JSON encoder. Eredeti raw cap16777216; ez nem canonical-output cap. A teljes
+A1.1-valid canonical domain levezetett maximuma44584955 bájt final LF-fel.
+Ennek guardja nem runtime memóriaigazolás. A teljes maximum manifestet nem
+futtatjuk a representative wire-domain mérések helyett.
+
+```powershell
+php -n tests/ProofOfConcept/RmaTransactionBoundary/integrity/tests/run-tests.php --td03
+php -n tests/ProofOfConcept/RmaTransactionBoundary/integrity/tests/run-tests.php --all
+php -n tests/ProofOfConcept/RmaTransactionBoundary/integrity/tests/run-tests.php --td03-memory
+```
+
+Default és `--all`: A1.1, TD01/R01, TD02, TD03. A `--td03` csak saját suite-ot
+futtat, a parser és A1.1 input-előkészítési függőségeivel, TD01 nélkül.
+Golden expected byte-literalok, hardcoded byte count és SHA-256 oracles külön
+Python standard-library reference-ből készültek; nem a tesztelt serializerből.
+GB01 small, GB02 multi-entry, GB03 string/size boundary, GB04 private escape-table,
+GB05 leap-day; a korábbi gate-ek hibái nem canonical mismatchként szerepelnek.
+
+D02=A memóriaacceptance: hat saját scenario (small, multi, ascii-heavy,
+inventory-heavy, wire-max, noncanonical-large), mindegyik három külön
+`PHP_BINARY -n -d memory_limit=512M` childban, processzindítás előtti monoton
+kezdőponttal, 30s deadline-nal és validáció utáni friss acceptance-ellenőrzéssel.
+A parent exit/stderr/complete metrics/expected byte count+SHA/equality és
+ismételhetőség alapján dönt; fatal/OOM/timeout/hiányos rekord nem PASS.
+Peak used/allocated a fixture, TD02/A1.1 előkészítés, serializer, comparison és
+immutability megfigyelés terhelését is tartalmazza; nem teljes OS RSS.
+512MiB mérési budget, nem általános memóriaígéret. Nincs automatikus emelés,
+shell, fixture/evidence output vagy repository-artifact.
+
+TD04–TD06 nincs implementálva; TD01/TD02/A1.1 változatlan. Nincs teljes trusted
+digest orchestration, acquisition, canonical rewrite vagy launch authorization.
+WP7-F01/F02 OPEN; transaction PoC NOT READY.
