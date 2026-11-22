@@ -4,16 +4,20 @@ declare(strict_types=1);
 
 use RmaTransactionBoundaryPoc\Integrity\Tests\CanonicalJsonTest;
 use RmaTransactionBoundaryPoc\Integrity\Tests\ManifestValidationTest;
+use RmaTransactionBoundaryPoc\Integrity\Tests\ManifestVerificationTest;
 use RmaTransactionBoundaryPoc\Integrity\Tests\StrictJsonTest;
 use RmaTransactionBoundaryPoc\Integrity\Tests\TrustVerificationTest;
 
 $suite = $argv[1] ?? '--all';
 $memoryCase = str_starts_with($suite, '--td02-memory-case=') ? substr($suite, strlen('--td02-memory-case=')) : null;
 $td03MemoryCase = str_starts_with($suite, '--td03-memory-case=') ? substr($suite, strlen('--td03-memory-case=')) : null;
-if (count($argv) > 2 || (! in_array($suite, ['--all', '--a11', '--td01', '--td02', '--td02-memory', '--td03', '--td03-memory'], true)
+$td04MemoryCase = str_starts_with($suite, '--td04-memory-case=') ? substr($suite, strlen('--td04-memory-case=')) : null;
+$td04 = in_array($suite, ['--all', '--td04', '--td04-observe', '--td04-memory', '--td04-r1'], true) || $td04MemoryCase !== null;
+if (count($argv) > 2 || (! in_array($suite, ['--all', '--a11', '--td01', '--td02', '--td02-memory', '--td03', '--td03-memory', '--td04', '--td04-observe', '--td04-memory', '--td04-r1'], true)
     && ! in_array($memoryCase, ['wire-max', 'byte-heavy', 'object-heavy', 'array-heavy', 'invalid-stress', 'defensive-limit'], true)
-    && ! in_array($td03MemoryCase, ['small', 'multi', 'ascii-heavy', 'inventory-heavy', 'wire-max', 'noncanonical-large'], true))) {
-    fwrite(STDERR, 'Usage: php -n integrity/tests/run-tests.php [--all|--a11|--td01|--td02|--td03|--td02-memory|--td02-memory-case=ID|--td03-memory|--td03-memory-case=ID]'.PHP_EOL);
+    && ! in_array($td03MemoryCase, ['small', 'multi', 'ascii-heavy', 'inventory-heavy', 'wire-max', 'noncanonical-large'], true)
+    && ! in_array($td04MemoryCase, ['small', 'multi', 'byte-heavy', 'entry-heavy', 'wire-max', 'noncanonical-large', 'r1'], true))) {
+    fwrite(STDERR, 'Usage: php -n integrity/tests/run-tests.php [--all|--a11|--td01|--td02|--td03|--td04|--td02-memory|--td02-memory-case=ID|--td03-memory|--td03-memory-case=ID|--td04-observe|--td04-memory|--td04-r1|--td04-memory-case=ID]'.PHP_EOL);
     exit(64);
 }
 if (PHP_VERSION_ID < 80400 || PHP_INT_SIZE !== 8) {
@@ -26,7 +30,7 @@ set_error_handler(static function (int $severity, string $message, string $file,
 });
 
 $groups = [];
-if (in_array($suite, ['--all', '--a11', '--td02-memory', '--td03', '--td03-memory'], true) || $memoryCase !== null || $td03MemoryCase !== null) {
+if ($td04 || in_array($suite, ['--all', '--a11', '--td02-memory', '--td03', '--td03-memory'], true) || $memoryCase !== null || $td03MemoryCase !== null) {
     require dirname(__DIR__).'/src/Manifest.php';
     require dirname(__DIR__).'/src/ValidationResult.php';
     require dirname(__DIR__).'/src/ManifestValidator.php';
@@ -37,7 +41,7 @@ if (in_array($suite, ['--all', '--a11', '--td02-memory', '--td03', '--td03-memor
         $groups['A1.1'] = ManifestValidationTest::cases($schema);
     }
 }
-if (in_array($suite, ['--all', '--td01'], true)) {
+if ($td04 || in_array($suite, ['--all', '--td01'], true)) {
     require dirname(__DIR__).'/src/TrustAnchor.php';
     require dirname(__DIR__).'/src/TrustContext.php';
     require dirname(__DIR__).'/src/AnchorProvider.php';
@@ -45,9 +49,11 @@ if (in_array($suite, ['--all', '--td01'], true)) {
     require dirname(__DIR__).'/src/DigestComparisonResult.php';
     require dirname(__DIR__).'/src/TrustedDigestVerifier.php';
     require __DIR__.'/TrustVerificationTest.php';
-    $groups['TD01'] = TrustVerificationTest::cases();
+    if (in_array($suite, ['--all', '--td01'], true)) {
+        $groups['TD01'] = TrustVerificationTest::cases();
+    }
 }
-if (in_array($suite, ['--all', '--td02', '--td02-memory', '--td03', '--td03-memory'], true) || $memoryCase !== null || $td03MemoryCase !== null) {
+if ($td04 || in_array($suite, ['--all', '--td02', '--td02-memory', '--td03', '--td03-memory'], true) || $memoryCase !== null || $td03MemoryCase !== null) {
     require dirname(__DIR__).'/src/JsonParseResult.php';
     require dirname(__DIR__).'/src/StrictJsonTokenizer.php';
     if (in_array($suite, ['--all', '--td02', '--td02-memory'], true) || $memoryCase !== null) {
@@ -75,6 +81,23 @@ if (in_array($suite, ['--all', '--td03', '--td03-memory'], true) || $td03MemoryC
         exit(CanonicalJsonTest::memorySuite(__FILE__));
     }
     $groups['TD03'] = CanonicalJsonTest::cases();
+}
+if ($td04) {
+    require_once dirname(__DIR__).'/src/CanonicalJson.php';
+    require dirname(__DIR__).'/src/ManifestDigestVerifier.php';
+    require dirname(__DIR__).'/src/ManifestVerificationResult.php';
+    require __DIR__.'/ManifestVerificationTest.php';
+    if ($td04MemoryCase !== null) {
+        echo json_encode(ManifestVerificationTest::memoryCase($td04MemoryCase), JSON_THROW_ON_ERROR).PHP_EOL;
+        exit(0);
+    }
+    if ($suite === '--td04-memory' || $suite === '--td04-r1') {
+        exit(ManifestVerificationTest::memorySuite(__FILE__, $suite === '--td04-r1'));
+    }
+    if ($suite === '--td04-observe') {
+        exit(ManifestVerificationTest::observe());
+    }
+    $groups['TD04'] = ManifestVerificationTest::cases();
 }
 
 $failed = 0;
@@ -119,6 +142,9 @@ if (isset($groups['TD02'])) {
 }
 if (isset($groups['TD03'])) {
     echo 'TD03: '.CanonicalJsonTest::$assertions.' behavioral assertions.'.PHP_EOL;
+}
+if (isset($groups['TD04'])) {
+    echo 'TD04: '.ManifestVerificationTest::$assertions.' assertions; '.ManifestVerificationTest::$resultsChecked.' results checked for scope invariants.'.PHP_EOL;
 }
 restore_error_handler();
 echo $total.' tests; '.($total - $failed).' passed; '.$failed.' failed.'.PHP_EOL;

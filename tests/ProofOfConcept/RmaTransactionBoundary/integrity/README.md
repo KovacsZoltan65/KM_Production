@@ -107,14 +107,14 @@ A1.1 nem értékeli a nyers JSON byte-limit/depth/BOM/duplicate-object-key/
 canonical-key-order/final-LF szabályokat: már dekódolt adaton ezek részben
 elvesznek. A szigorú parser TD02-ben, a pure `CanonicalJson` komponens TD03-ban
 elkészült. A digest-ellenőrzés utáni parse és az A1.1 utáni canonical comparison
-összekötése a későbbi TD04 feladata. A1.2 TD01 trust-anchor/raw-digest core az alábbi külön API-ban megvalósult;
-a decoded manifest/profile binding és global manifest-ID ledger későbbi kapu.
+összekötése TD04-ben elkészült (külön alább). A1.2 TD01 trust-anchor/raw-digest core az alábbi külön API-ban megvalósult;
+A decoded manifest/profile binding TD04-ben elkészült; a global manifest-ID ledger későbbi kapu.
 Native adapter/B2/C2 nincs implementálva. A teljes verifier evaluation/observation szerződését
 ez az in-memory validation result nem helyettesíti.
 
 ## Focused tests
 
-A repository gyökeréből a standalone A1.1 + TD01 + TD02 + TD03 suite:
+A repository gyökeréből a standalone A1.1 + TD01 + TD02 + TD03 + TD04 suite:
 
 ```powershell
 php -n tests/ProofOfConcept/RmaTransactionBoundary/integrity/tests/run-tests.php
@@ -137,7 +137,7 @@ WP7-F01 és WP7-F02 OPEN. [Design és scope](../../../../.kiro/designs/rma-0004-
 ## A1.2 TD01 — pure anchor és trusted digest core
 
 [Elfogadott architektúra](../../../../.kiro/designs/rma-0004-c3-02-9b-trusted-digest-verification-implementation-plan.md),
-TD01, TD02 és TD03 külön implementációs engedéllyel elkészült. TD04–TD06 nincs implementálva.
+TD01–TD04 külön implementációs engedéllyel elkészült. TD05–TD06 nincs implementálva.
 
 - `TrustContext`: immutable, minden constructor-paraméter kötelező:
   `trustMode`, `selectionOrigin`, `selectionRef`, majd az expected exact kilenc
@@ -201,7 +201,7 @@ php -n tests/ProofOfConcept/RmaTransactionBoundary/integrity/tests/run-tests.php
 php -n tests/ProofOfConcept/RmaTransactionBoundary/integrity/tests/run-tests.php --a11
 ```
 
-A default az A1.1, TD01, TD02 és TD03 csoportot futtatja és külön darabszámot közöl; --td01 nem
+A default az A1.1, TD01, TD02, TD03 és TD04 csoportot futtatja és külön darabszámot közöl; --td01 nem
 require-eli A1.1-et vagy annak schema-ját. A TD01 tesztfájl namespace-local hash
 és hash_equals megfigyelői a valódi PHP primitívekhez delegálnak, JSON hívásra
 trap működik. A cap+1 esetben tényleges hash call-count0 az assertion;
@@ -214,12 +214,12 @@ PHP programhiba továbbterjed; a runner assertion/exception hibára nonzero-t ad
 Nincs actual anchor/manifest/evidence/fixture output vagy filesystem reader.
 A1.1 változatlan; a restricted-domain strict parser TD02-ben, a canonicalizer TD03-ban elkészült.
 Protected trust/signing/revocation store,
-full manifest verifier/result, inventory/native/CLI/integration
+teljes A1 file/native verifier/result, inventory/native/CLI/integration
 későbbi külön authorization. WP7-F01/F02 OPEN; transaction PoC NOT READY.
 
 ## A1.2 TD02 — restricted strict JSON parser
 
-TD02 külön implementációs engedéllyel készült; TD03 canonicalizer külön alább, TD04–TD06 nincs implementálva.
+TD02 külön implementációs engedéllyel készült; TD03 canonicalizer és TD04 orchestration külön alább, TD05–TD06 nincs implementálva.
 Az elfogadott A1.2 terv és TD02-D01–D07 alapján standalone PHP 8.4+, 64-bit API:
 `StrictJsonTokenizer::parse(string $rawBytes): JsonParseResult`.
 
@@ -296,7 +296,7 @@ php -n tests/ProofOfConcept/RmaTransactionBoundary/integrity/tests/run-tests.php
 php -n tests/ProofOfConcept/RmaTransactionBoundary/integrity/tests/run-tests.php --td02-memory
 ```
 
-Default: mind a négy csoport, explicit suite selection. Exit0 success, exit1
+Default: mind az öt csoport, explicit suite selection. Exit0 success, exit1
 teszthiba, exit2 unsupported runtime, exit64 usage. Opcionális, már telepített
 Xdebug develop módban valódi function monitor ellenőrzi mindkét parserbelépés
 egyszeri evaluation/scan hívását, oversize-nál scan0-t; A1.1 ensure és
@@ -348,8 +348,8 @@ siker; más programhiba továbbterjed.
 
 Az összehasonlítás length + exact byte equality, trim/reparse/hash/repair nélkül.
 A caller ugyanazt az eredeti raw snapshotot adja, amelyet TD01 és TD02 használt;
-TD03 ezt az eredetet nem bizonyítja. A false későbbi TD04 mappingje
-`MANIFEST_NONCANONICAL`, nem mostani orchestration. Canonical equality nem digest,
+TD03 ezt az eredetet nem bizonyítja. A false TD04 mappingje
+`MANIFEST_NONCANONICAL`; a TD03 maga nem orchestrator. Canonical equality nem digest,
 schema, authenticity, file inventory, filesystem identity vagy execution proof.
 
 A fixed-shape serializer bounded appendekkel dolgozik, nem általános recursive
@@ -364,7 +364,7 @@ php -n tests/ProofOfConcept/RmaTransactionBoundary/integrity/tests/run-tests.php
 php -n tests/ProofOfConcept/RmaTransactionBoundary/integrity/tests/run-tests.php --td03-memory
 ```
 
-Default és `--all`: A1.1, TD01/R01, TD02, TD03. A `--td03` csak saját suite-ot
+Default és `--all`: A1.1, TD01/R01, TD02, TD03, TD04. A `--td03` csak saját suite-ot
 futtat, a parser és A1.1 input-előkészítési függőségeivel, TD01 nélkül.
 Golden expected byte-literalok, hardcoded byte count és SHA-256 oracles külön
 Python standard-library reference-ből készültek; nem a tesztelt serializerből.
@@ -382,6 +382,120 @@ immutability megfigyelés terhelését is tartalmazza; nem teljes OS RSS.
 512MiB mérési budget, nem általános memóriaígéret. Nincs automatikus emelés,
 shell, fixture/evidence output vagy repository-artifact.
 
-TD04–TD06 nincs implementálva; TD01/TD02/A1.1 változatlan. Nincs teljes trusted
-digest orchestration, acquisition, canonical rewrite vagy launch authorization.
+TD05–TD06 nincs implementálva; TD01/TD02/A1.1 változatlan. A TD04 manifest-only
+orchestration külön alább; nincs acquisition, canonical rewrite vagy launch authorization.
 WP7-F01/F02 OPEN; transaction PoC NOT READY.
+
+## A1.2 TD04 — manifest-only verification orchestration
+
+`new ManifestDigestVerifier(AnchorProvider $anchors)` és
+`verify(mixed $context, mixed $candidateAnchor, string $rawBytes): ManifestVerificationResult`.
+A fixed provider és az immutable context independent selectionje változatlan;
+decoded candidate a TD01 boundaryja. Raw anchor stringet nem decode-olunk
+hallgatólagosan, raw delivery strict parsingja külön caller/delivery feladat.
+
+G01 runtime/context/mode → G02 selected/candidate anchor/profile/release binding
+→ G03 original raw cap → G04 TD01 SHA-256 comparison → G05 TD02 strict parse
+→ G06 egy A1.1 validate → G07 egy TD03 isCanonical → G08 decoded manifest/profile
+binding → G09 immutable manifest-only result. G01 PHP 8.4+, 64-bit és SHA-256
+capability preflight; G01–G04 security döntéseit a meglévő TD01 végzi.
+Az első hibánál stop: későbbi státuszok NOT_EVALUATED. A schema/path hiba
+megelőzi a noncanonical hibát, az pedig a decoded binding hibáját.
+
+Ugyanaz az eredeti binary string megy a digest/parser/comparison API-knak;
+nincs normalizálás, második acquisition, pinjavítás vagy külön serialize hívás.
+Csak az A1.1 sikeres immutable snapshotja jut TD03-hoz. A parser mutable gráfja
+nem validációs bizonyíték és nem kerül a publikus resultba.
+
+`ManifestVerificationResult` final readonly, private konstruktorral.
+A `fromVerification(final verifier, context, candidate, raw)` factory ténylegesen
+futtatja az orchestrationt; nincs caller-supplied success/facts factory.
+Az internal evaluate facts nem visszatölthető capability. Unserialization tiltott;
+ez nem arbitrary Reflection/same-process kódfuttatás elleni sandbox.
+`manifestVerdict` az architecture mező, `verdict` annak azonos readonly aliasa:
+VERIFIED/DENIED/INCONCLUSIVE csak MANIFEST_ONLY scope-ra. Nincs teljes inputVerdict.
+Failure esetén manifest=null, success esetén a tényleges A1.1 DTO érhető el.
+
+Minden resultban fix: scope=MANIFEST_ONLY, fileInventoryStatus=NOT_EVALUATED,
+filesystemIdentityStatus=NOT_EVALUATED, executionAuthorization=NOT_EVALUATED,
+canLaunchPoC=false; anchorHistoryStatus=NOT_EVALUATED. Nincs raw payload,
+mutable parsed gráf, runtime timestamp vagy OS error a resultban.
+Canonical equality önmagában nem authenticity/provenance vagy execution approval.
+
+G06 primaryFailureCode=MANIFEST_SCHEMA_INVALID, az eredeti legfeljebb100 A1.1
+code/path/message változatlan, stage=V06_V07, pontos diagnosticsTruncated átvitel.
+Nincs101. summary error. Más gate egy statikus diagnosticot ad. Parser code/message
+megmarad; a wrapper `$` pathot használ, külön parser-offset mezőt nem exportál.
+Programhiba exception továbbterjed; INTERNAL_ERROR mapping későbbi külső boundary.
+
+Raw cap16777216, TD02 depth16/value240/key20/per-object9 és globális
+element100000/container100004/scalar400010/member400013 változatlan.
+A1.1 inventory100000/file2GiB/total8GiB/diagnostics100 és TD03 output44584955
+változatlan. Raw cap nem canonical-output cap. A wrapper nem tart request-state-et;
+a parsergráfot validálás után elengedi, a canonical outputot csak isCanonical építi.
+
+```powershell
+php -n -d memory_limit=512M tests/ProofOfConcept/RmaTransactionBoundary/integrity/tests/run-tests.php --td04
+php -n -d memory_limit=512M tests/ProofOfConcept/RmaTransactionBoundary/integrity/tests/run-tests.php --all
+php -n tests/ProofOfConcept/RmaTransactionBoundary/integrity/tests/run-tests.php --td04-memory
+php -n tests/ProofOfConcept/RmaTransactionBoundary/integrity/tests/run-tests.php --td04-r1
+```
+
+Default/--all öt csoport; --td04 csak saját cases-t futtat. A TD01 tesztfájl
+observer-függvényeit setupként használja, nem deklarálja újra őket. A TD04
+test-only preg_match observer alapból a PHP primitívhez delegál. Lifecycle
+fault-injection csak A1.1 regexhívásban okoz controlled failure-t: ugyanazon
+verifier/provider/pin/raw mellett valid→truncated→valid→below-budget→valid.
+Ez szintetikus validator fault, nem több eltérő raw input elfogadása egy fix pinhez.
+
+`--td04-observe` külön Xdebug develop módban futtatandó, a telepített zend_extension
+explicit betöltésével. Actual parse/validate/isCanonical/serialize call-countot
+közöl; Xdebug hiányában nem állít megfigyelési PASS-t. A memóriafutások `-n`
+childjai külön vannak a megfigyeléstől, nem használnak Xdebugot.
+
+TD04-D01=A: small/multi/byte-heavy/entry-heavy/wire-max/noncanonical-large,
+mindegyik3 külön512M gyermek,30s deadline a proc_open előtti monoton kezdőponttól
+a rekordvalidáció utáni friss ellenőrzésig. Actual size/digest/result/peak used és
+allocated, exit/stderr és ismételhetőség vizsgált; első failure-nél megáll.
+Nincs automatikus retry/budget-emelés. Külön R1:99999 üres file-object +1 üres
+history-object,128M child;100 diagnostic, truncated=true, manifest=null szükséges.
+Fixture byte count és digest pinned reference, nem tesztelt serializer output.
+Peak a fixture/context/TD02/A1.1/TD03/result teljes terhelését tartalmazza,
+nem OS RSS és nem a teljes44584955-bájtos decoded-domain runtime bizonyítása.
+
+Szerzői ellenőrzés (2026-11-21, PHP8.4.27,64-bit): TD04 56/56,801 assertions,
+69 result scope-ellenőrzés; A1.1 203/203, TD01/R01 226/226 (7033 assertions),
+TD02 115/115 (4612), TD03 43/43 (238), combined --all 643/643,0 failed.
+A combined runner négy assertion-számlálójának összege12684; az A1.1 ebben a
+`-n` futásban nem ad assertion-számlálót, így ez nem az öt suite teljes assertion-száma.
+A négy módosított/új PHP syntax check, célzott Pint és README Prettier sikeres.
+Nem futott Laravel/SQL/VM/native teszt: standalone pure scope, nincs ilyen változás.
+
+Külön Xdebug3.5.3 develop megfigyelés, --td04-observe (parse/validate/isCanonical/serialize):
+digest mismatch0/0/0/0, parser failure1/0/0/0, schema failure1/1/0/0,
+success1/1/1/1. Ez actual method monitor, nem forrásszövegből számolt hívásszám.
+További stdin-only preflight negatívok: valódi PHP8.3.28, illetve PHP8.4.27 alatt
+külön letiltott hash vagy hash_equals: mind CAPABILITY_UNAVAILABLE/INCONCLUSIVE,
+digest NOT_EVALUATED, manifest=null. Külön32-bit binary próba nem futott.
+
+TD04-D01 actual18/18 PASS, mind512M, exit0,stderr üres,timeout=false:
+
+| Scenario           | Raw bytes | Három wall-clock futás (s) | Peak used (byte) | Peak allocated (byte) |
+| ------------------ | --------: | -------------------------- | ---------------: | --------------------: |
+| small              |       646 | 0.180 / 0.166 / 0.348      |          1765424 |               2097152 |
+| multi              |      1050 | 0.212 / 0.212 / 0.212      |          1765424 |               2097152 |
+| byte-heavy         |  14761136 | 17.302 / 10.249 / 10.088   |         86223864 |             111149056 |
+| entry-heavy        |  13700372 | 10.175 / 11.731 / 10.838   |        152566408 |             165675008 |
+| wire-max           |  16777216 | 10.914 / 10.531 / 10.679   |         88271056 |             117440512 |
+| noncanonical-large |  14761137 | 9.432 / 9.618 / 10.456     |         86223880 |             111149056 |
+
+Peak érték mindhárom ismétlésben azonos volt. Az első öt scenario VERIFIED,
+noncanonical-large DENIED/MANIFEST_NONCANONICAL az elvárt sikeres tesztkimenet.
+Külön --td04-r1:128M, raw300379 bájt,0.647s,peak used11817472,
+peak allocated12582912,exit0,stderr üres,100 errors,truncated=true,manifest=null,
+DENIED/MANIFEST_SCHEMA_INVALID; PASS. Nincs budget-emelés vagy rejtett retry.
+Ezek helyi szerzői mérési eredmények; nem production kapacitásígéret, és nem
+független review vagy projektgazdai acceptance. A teljes canonical maximum manifest
+nem futott. A végrehajtás nem módosított történeti evidenciát és nem indított PoC-t.
+
+**TD05–TD06 NOT IMPLEMENTED. WP7-F01/F02 OPEN. TRANSACTION PoC NOT READY.**
