@@ -114,14 +114,15 @@ ez az in-memory validation result nem helyettesíti.
 
 ## Focused tests
 
-A repository gyökeréből a standalone A1.1 + TD01 + TD02 + TD03 + TD04 suite:
+A repository gyökeréből a standalone A1.1 + TD01 + TD02 + TD03 + TD04 + TD05 suite:
 
 ```powershell
-php -n tests/ProofOfConcept/RmaTransactionBoundary/integrity/tests/run-tests.php
+php -n -d memory_limit=512M tests/ProofOfConcept/RmaTransactionBoundary/integrity/tests/run-tests.php
 ```
 
-A runner csak saját source-ait és schema-ját olvassa, JSON-payloadokat memóriában
-épít; nincs actual executable manifest, fixture directory, evidence output,
+A pure csoportok saját source-okat és schema-t olvasnak, JSON-payloadokat memóriában
+építenek. A TD05 külön engedélyezett saját temporary payload/control fixture-öket
+használ, explicit ownership registryvel és tételes cleanup-pal. Nincs actual executable manifest vagy evidence output,
 Laravel/Pest/application bootstrap vagy PoC/PDO/SQL. PHP warning is teszthiba.
 Az I/O-tilalmat a pure validator hívása körül file-wrapper trap vizsgálja;
 scope-ellenőrzés és input-immutability teszt egészíti ki. Ez nem malicious
@@ -137,7 +138,7 @@ WP7-F01 és WP7-F02 OPEN. [Design és scope](../../../../.kiro/designs/rma-0004-
 ## A1.2 TD01 — pure anchor és trusted digest core
 
 [Elfogadott architektúra](../../../../.kiro/designs/rma-0004-c3-02-9b-trusted-digest-verification-implementation-plan.md),
-TD01–TD04 külön implementációs engedéllyel elkészült. TD05–TD06 nincs implementálva.
+TD01–TD05 külön implementációs engedéllyel elkészült. TD06 nincs implementálva.
 
 - `TrustContext`: immutable, minden constructor-paraméter kötelező:
   `trustMode`, `selectionOrigin`, `selectionRef`, majd az expected exact kilenc
@@ -201,7 +202,7 @@ php -n tests/ProofOfConcept/RmaTransactionBoundary/integrity/tests/run-tests.php
 php -n tests/ProofOfConcept/RmaTransactionBoundary/integrity/tests/run-tests.php --a11
 ```
 
-A default az A1.1, TD01, TD02, TD03 és TD04 csoportot futtatja és külön darabszámot közöl; --td01 nem
+A default az A1.1, TD01, TD02, TD03, TD04 és TD05 csoportot futtatja és külön darabszámot közöl; --td01 nem
 require-eli A1.1-et vagy annak schema-ját. A TD01 tesztfájl namespace-local hash
 és hash_equals megfigyelői a valódi PHP primitívekhez delegálnak, JSON hívásra
 trap működik. A cap+1 esetben tényleges hash call-count0 az assertion;
@@ -219,7 +220,7 @@ későbbi külön authorization. WP7-F01/F02 OPEN; transaction PoC NOT READY.
 
 ## A1.2 TD02 — restricted strict JSON parser
 
-TD02 külön implementációs engedéllyel készült; TD03 canonicalizer és TD04 orchestration külön alább, TD05–TD06 nincs implementálva.
+TD02 külön implementációs engedéllyel készült; TD03 canonicalizer, TD04 orchestration és TD05 acquisition külön alább; TD06 nincs implementálva.
 Az elfogadott A1.2 terv és TD02-D01–D07 alapján standalone PHP 8.4+, 64-bit API:
 `StrictJsonTokenizer::parse(string $rawBytes): JsonParseResult`.
 
@@ -292,11 +293,11 @@ Futtatás repository gyökérből, alkalmazás/bootstrap nélkül:
 php -n tests/ProofOfConcept/RmaTransactionBoundary/integrity/tests/run-tests.php --td02
 php -n tests/ProofOfConcept/RmaTransactionBoundary/integrity/tests/run-tests.php --a11
 php -n tests/ProofOfConcept/RmaTransactionBoundary/integrity/tests/run-tests.php --td01
-php -n tests/ProofOfConcept/RmaTransactionBoundary/integrity/tests/run-tests.php --all
+php -n -d memory_limit=512M tests/ProofOfConcept/RmaTransactionBoundary/integrity/tests/run-tests.php --all
 php -n tests/ProofOfConcept/RmaTransactionBoundary/integrity/tests/run-tests.php --td02-memory
 ```
 
-Default: mind az öt csoport, explicit suite selection. Exit0 success, exit1
+Default: mind a hat csoport, explicit suite selection. Exit0 success, exit1
 teszthiba, exit2 unsupported runtime, exit64 usage. Opcionális, már telepített
 Xdebug develop módban valódi function monitor ellenőrzi mindkét parserbelépés
 egyszeri evaluation/scan hívását, oversize-nál scan0-t; A1.1 ensure és
@@ -360,11 +361,11 @@ futtatjuk a representative wire-domain mérések helyett.
 
 ```powershell
 php -n tests/ProofOfConcept/RmaTransactionBoundary/integrity/tests/run-tests.php --td03
-php -n tests/ProofOfConcept/RmaTransactionBoundary/integrity/tests/run-tests.php --all
+php -n -d memory_limit=512M tests/ProofOfConcept/RmaTransactionBoundary/integrity/tests/run-tests.php --all
 php -n tests/ProofOfConcept/RmaTransactionBoundary/integrity/tests/run-tests.php --td03-memory
 ```
 
-Default és `--all`: A1.1, TD01/R01, TD02, TD03, TD04. A `--td03` csak saját suite-ot
+Default és `--all`: A1.1, TD01/R01, TD02, TD03, TD04, TD05. A `--td03` csak saját suite-ot
 futtat, a parser és A1.1 input-előkészítési függőségeivel, TD01 nélkül.
 Golden expected byte-literalok, hardcoded byte count és SHA-256 oracles külön
 Python standard-library reference-ből készültek; nem a tesztelt serializerből.
@@ -382,8 +383,8 @@ immutability megfigyelés terhelését is tartalmazza; nem teljes OS RSS.
 512MiB mérési budget, nem általános memóriaígéret. Nincs automatikus emelés,
 shell, fixture/evidence output vagy repository-artifact.
 
-TD05–TD06 nincs implementálva; TD01/TD02/A1.1 változatlan. A TD04 manifest-only
-orchestration külön alább; nincs acquisition, canonical rewrite vagy launch authorization.
+TD06 nincs implementálva; TD01/TD02/A1.1 változatlan. A TD04 manifest-only
+orchestration és TD05 acquisition külön alább; nincs canonical rewrite vagy launch authorization.
 WP7-F01/F02 OPEN; transaction PoC NOT READY.
 
 ## A1.2 TD04 — manifest-only verification orchestration
@@ -441,7 +442,7 @@ php -n tests/ProofOfConcept/RmaTransactionBoundary/integrity/tests/run-tests.php
 php -n tests/ProofOfConcept/RmaTransactionBoundary/integrity/tests/run-tests.php --td04-r1
 ```
 
-Default/--all öt csoport; --td04 csak saját cases-t futtat. A TD01 tesztfájl
+Default/--all hat csoport; --td04 csak saját cases-t futtat. A TD01 tesztfájl
 observer-függvényeit setupként használja, nem deklarálja újra őket. A TD04
 test-only preg_match observer alapból a PHP primitívhez delegál. Lifecycle
 fault-injection csak A1.1 regexhívásban okoz controlled failure-t: ugyanazon
@@ -498,4 +499,110 @@ Ezek helyi szerzői mérési eredmények; nem production kapacitásígéret, és
 független review vagy projektgazdai acceptance. A teljes canonical maximum manifest
 nem futott. A végrehajtás nem módosított történeti evidenciát és nem indított PoC-t.
 
-**TD05–TD06 NOT IMPLEMENTED. WP7-F01/F02 OPEN. TRANSACTION PoC NOT READY.**
+**TD06 NOT IMPLEMENTED. WP7-F01/F02 OPEN. TRANSACTION PoC NOT READY.**
+
+## A1.2 TD05 — bounded manifest acquisition
+
+Külön G03 acquisition, nem teljes file-backed verifier:
+
+```php
+$source = new LocalManifestByteSource($approvedAbsoluteRoot, $absoluteSourcePath);
+$snapshot = (new ManifestSnapshotReader)->read($source, 'CONTENT_ONLY');
+```
+
+Ez API-példa, nem G01/G02 preflightot helyettesítő integráció. A teljes
+file-backed orchestration külön feladat: a szükséges context/anchor preflight
+megelőzi a manifest readet. A TD04 változatlan, már megszerzett stringet fogad.
+TD05 nem hív TD01–TD04-et, nem hash-el, parse-ol, validate-el vagy canonicalizál.
+Nincs hash_file, input-reopen, source switching, fallback vagy inventory-bejárás.
+
+`ManifestByteSource`: trusted adapter/test interface, open, expectedLength,
+bounded read, eof, advisory stat és close. A helyi final adapter explicit
+fully qualified local root/pathot kér; component-aware lexical és resolved
+containment, pozitív link- és regular-file ellenőrzés után egyszer `rb` open.
+URL/wrapper/provider/UNC/device/ADS, relative/CWD/env discovery és dot-segment
+fallback tiltott. A config absolute path nem a manifest relative-path grammarja.
+Metadata a megnyitott handle-ről jön; nincs path-reopen a beolvasás után.
+PHP realpath/lstat/fstat/is_link nem általános Windows identity/reparse/ADS/hardlink
+proof: az eredmény kizárólag `CONTENT_ONLY`, nincs same-user attacker elleni garancia.
+
+Fix raw cap16777216 byte; legfeljebb16777217 byte read a túlméret felismeréséhez.
+Egy kérés maximum65536 byte és a megmaradó cap+1 allowance minimuma.
+Rövid chunk folytatódik, üres read csak established EOF-nál fogadható el.
+Declared expectedLength külön transport-adat; local fstat size nem válik azzá.
+Null expectedLength mellett EOF lezárhatja az acquisitiont, de nem igazolja a digestet.
+Nincs chunk-array/implode vagy raw-normalizálás. A synchronous API nem ígér
+általános blocking-time határt, atomi fájlrendszer-snapshotot vagy verify/use védelmet.
+
+`ManifestSnapshot` final readonly, private konstruktor. `fromReading` csak a
+konkrét final reader tényleges futásából készít eredményt; nincs supplied-success
+factory, unserialization tiltott. Injected source önmagában nem local provenance.
+Success: acquired=true, rawBytes eredeti binary string, byteCount pontos,
+errorCode=null, verdict=null, errors üres. Ez nem VERIFIED manifest-verdict.
+Failure: acquired=false, rawBytes/byteCount=null, egy statikus G03 diagnostic.
+Minden ágon assurance=CONTENT_ONLY, executionAuthorization=NOT_EVALUATED,
+canLaunchPoC=false. Unsupported requestnél a CONTENT_ONLY címke a típus
+maximumát jelzi, nem sikeres downgrade-ot. Nincs manifest/authenticity result.
+
+| Condition                                                                      | errorCode                   | verdict      |
+| ------------------------------------------------------------------------------ | --------------------------- | ------------ |
+| Invalid explicit source/config, negative declared length                       | CONFIG_INVALID              | DENIED       |
+| Unsupported assurance/runtime/I/O capability                                   | CAPABILITY_UNAVAILABLE      | INCONCLUSIVE |
+| Open/read/stat failure, zero progress, declared-length mismatch, close failure | IO_READ_FAILED              | INCONCLUSIVE |
+| Advisory stat drift — **TD05-D01=A**                                           | IO_READ_FAILED              | INCONCLUSIVE |
+| Raw cap exceeded                                                               | MANIFEST_SIZE_EXCEEDED      | DENIED       |
+| Positively detected forbidden link                                             | REPARSE_FOUND               | DENIED       |
+| Adapter-established path violation / genuine change                            | PATH_INVALID / FILE_CHANGED | DENIED       |
+
+Advisory drift nem native FILE_CHANGED. Az első established acquisition failure
+megmarad cleanup failure mellett. Minden successfully opened handle close-olva;
+programhiba exception továbbterjed, csak a dedikált acquisition signalból lesz
+ordinary failure. A helyi adapter kizárólag saját checked I/O warningját nyomja el,
+majd visszaállítja a hívó error handlerét. Stable diagnosticban nincs payload,
+absolute path, OS exception text vagy timestamp. A result nem process exit code.
+
+```powershell
+php -n tests/ProofOfConcept/RmaTransactionBoundary/integrity/tests/run-tests.php --td05
+php -n -d memory_limit=512M tests/ProofOfConcept/RmaTransactionBoundary/integrity/tests/run-tests.php --all
+```
+
+A TD05 tesztek saját random, exclusive temporary parentben külön payload/control
+rootokat használnak. Csak regisztrált fájlok és könyvtárak törölhetők; előzetes
+identity/content ellenőrzés, eltérésnél retained path és failure, nem broad recursive
+cleanup. Saját symlink csak ordinary-user capability esetén készül, és kizárólag
+maga a regisztrált link unlinkelhető; targetje változatlan. Unsupported actual
+symlink coverage külön megjegyzés, nem native PASS. Nincs ACL/elevated retry.
+Size/reopen/close negatív kontrollok külön PHP gyermekben, kizárólag memóriában
+módosított readerrel futnak; a várt assertion-failure exit1. Repository source-ot
+nem írnak át. Disabled fopen/fread/fstat childok a valódi runtime-ot használják.
+
+A TD04-D01 512M/30s/18-run acceptance protokoll nem TD05 resource contract.
+Nincs új process-memory/time budget vagy silent emelés. A byte/read korlátokat
+injected és actual saját regular-file boundary tesztek mérik. A teljes native
+identity és file-backed integration acceptance későbbi scope.
+
+Szerzői ellenőrzés (2026-11-22, PHP8.4.27,64-bit): focused TD05 **37/37 PASS,
+1099 assertions**,4 saját fixture-pár cleanup; size/reopen/close in-memory mutant
+childok mind expected exit1, a parent suite exit0. Valóban disabled fopen/fread/fstat
+childok CAPABILITY_UNAVAILABLE/INCONCLUSIVE eredménnyel exit0-t adtak.
+Actual symlink creation standard joggal unavailable: nem állítunk actual link vagy
+native proof PASS-t; injected REPARSE_FOUND ág tesztelt. Fixture-artifact nem maradt.
+
+Külön A1.1 203/203, TD01 226/226 (7033 assertions), TD02 115/115 (4612),
+TD03 43/43 (238), TD04 57/57 (820). Combined `--all` az előzőleg használt
+`memory_limit=512M` mellett **681/681 PASS,0 failed**; a közölt assertion-számlálók
+összege13802, az A1.1 itt nem számlált assertionjei nélkül. Az első default128M
+combined próba a meglévő TD03 canonical tesztben, a külön TD04 próba az A1.1
+validatorban OOM-mal exit255-t adott; ezeket nem tekintjük passing/controlled-failure
+evidence-nek. A dokumentált integrált parancs512M, a régi source-ok változatlanok.
+
+A focused TD05 futás default128M mellett külön shutdown observerrel1.938s,
+parent peak used38513952 byte, peak allocated58720256 byte volt. Ez a teljes
+focused harness/fixture/child-wait futás megfigyelése; nem csak a readeré, nem OS RSS,
+nem tartalmazza a childok peakjét, és nem új elfogadott time/memory budget.
+A byte-cap tesztek legfeljebb16777217 acquired byte-ot és65536-os requestet igazoltak.
+Az öt érintett PHP syntax check, targeted Pint és README Prettier sikeres.
+Laravel/SQL/VM/native és a régi18 resource-scenario/R1 benchmark nem futott:
+külön standalone acquisition scope, nincs ilyen új integrációs változás.
+
+**TD06 NOT IMPLEMENTED. WP7-F01/F02 OPEN. TRANSACTION PoC NOT READY.**
