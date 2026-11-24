@@ -1,5 +1,8 @@
 # A1.1 — Manifest schema és pure validation
 
+TD06 implementáció és actual ellenőrzés: [Integration contract](INTEGRATION.md)
+és a dokumentum végén a TD06 fejezet. Független review-ra vár.
+
 Standalone PHP 8.4+, 64-bit. Nincs Laravel/vendor bootstrap, dependency,
 adatbázis, network, process vagy fájlrendszer-művelet a validálásban.
 Az egyetlen entrypoint `ManifestValidator::validate(mixed): ValidationResult`.
@@ -138,7 +141,7 @@ WP7-F01 és WP7-F02 OPEN. [Design és scope](../../../../.kiro/designs/rma-0004-
 ## A1.2 TD01 — pure anchor és trusted digest core
 
 [Elfogadott architektúra](../../../../.kiro/designs/rma-0004-c3-02-9b-trusted-digest-verification-implementation-plan.md),
-TD01–TD05 külön implementációs engedéllyel elkészült. TD06 nincs implementálva.
+TD01–TD05 külön implementációs engedéllyel elkészült. TD06 szűk contract/consumer-proof implementációja alább szerepel; független review-ra vár.
 
 - `TrustContext`: immutable, minden constructor-paraméter kötelező:
   `trustMode`, `selectionOrigin`, `selectionRef`, majd az expected exact kilenc
@@ -220,7 +223,7 @@ későbbi külön authorization. WP7-F01/F02 OPEN; transaction PoC NOT READY.
 
 ## A1.2 TD02 — restricted strict JSON parser
 
-TD02 külön implementációs engedéllyel készült; TD03 canonicalizer, TD04 orchestration és TD05 acquisition külön alább; TD06 nincs implementálva.
+TD02 külön implementációs engedéllyel készült; TD03 canonicalizer, TD04 orchestration és TD05 acquisition külön alább; TD06 szűk contract/consumer-proof implementációja alább szerepel; független review-ra vár.
 Az elfogadott A1.2 terv és TD02-D01–D07 alapján standalone PHP 8.4+, 64-bit API:
 `StrictJsonTokenizer::parse(string $rawBytes): JsonParseResult`.
 
@@ -383,7 +386,7 @@ immutability megfigyelés terhelését is tartalmazza; nem teljes OS RSS.
 512MiB mérési budget, nem általános memóriaígéret. Nincs automatikus emelés,
 shell, fixture/evidence output vagy repository-artifact.
 
-TD06 nincs implementálva; TD01/TD02/A1.1 változatlan. A TD04 manifest-only
+TD06 szűk contract/consumer-proof implementációja alább szerepel; TD01/TD02/A1.1 változatlan. A TD04 manifest-only
 orchestration és TD05 acquisition külön alább; nincs canonical rewrite vagy launch authorization.
 WP7-F01/F02 OPEN; transaction PoC NOT READY.
 
@@ -499,7 +502,7 @@ Ezek helyi szerzői mérési eredmények; nem production kapacitásígéret, és
 független review vagy projektgazdai acceptance. A teljes canonical maximum manifest
 nem futott. A végrehajtás nem módosított történeti evidenciát és nem indított PoC-t.
 
-**TD06 NOT IMPLEMENTED. WP7-F01/F02 OPEN. TRANSACTION PoC NOT READY.**
+**TD06 IMPLEMENTED — PENDING INDEPENDENT REVIEW. WP7-F01/F02 OPEN. TRANSACTION PoC NOT READY.**
 
 ## A1.2 TD05 — bounded manifest acquisition
 
@@ -581,14 +584,14 @@ Nincs új process-memory/time budget vagy silent emelés. A byte/read korlátoka
 injected és actual saját regular-file boundary tesztek mérik. A teljes native
 identity és file-backed integration acceptance későbbi scope.
 
-Szerzői ellenőrzés (2026-11-22, PHP8.4.27,64-bit): focused TD05 **37/37 PASS,
+Történeti, remediation előtti szerzői ellenőrzés (2026-11-22, PHP8.4.27,64-bit): focused TD05 **37/37 PASS,
 1099 assertions**,4 saját fixture-pár cleanup; size/reopen/close in-memory mutant
 childok mind expected exit1, a parent suite exit0. Valóban disabled fopen/fread/fstat
 childok CAPABILITY_UNAVAILABLE/INCONCLUSIVE eredménnyel exit0-t adtak.
 Actual symlink creation standard joggal unavailable: nem állítunk actual link vagy
 native proof PASS-t; injected REPARSE_FOUND ág tesztelt. Fixture-artifact nem maradt.
 
-Külön A1.1 203/203, TD01 226/226 (7033 assertions), TD02 115/115 (4612),
+Ugyanezen remediation előtti történeti futás: A1.1 203/203, TD01 226/226 (7033 assertions), TD02 115/115 (4612),
 TD03 43/43 (238), TD04 57/57 (820). Combined `--all` az előzőleg használt
 `memory_limit=512M` mellett **681/681 PASS,0 failed**; a közölt assertion-számlálók
 összege13802, az A1.1 itt nem számlált assertionjei nélkül. Az első default128M
@@ -605,4 +608,144 @@ Az öt érintett PHP syntax check, targeted Pint és README Prettier sikeres.
 Laravel/SQL/VM/native és a régi18 resource-scenario/R1 benchmark nem futott:
 külön standalone acquisition scope, nincs ilyen új integrációs változás.
 
-**TD06 NOT IMPLEMENTED. WP7-F01/F02 OPEN. TRANSACTION PoC NOT READY.**
+**TD06 IMPLEMENTED — PENDING INDEPENDENT REVIEW. WP7-F01/F02 OPEN. TRANSACTION PoC NOT READY.**
+
+## TD06 — Integration contract és negatív consumer proof
+
+[Integrációs szerződés és source-mapping](INTEGRATION.md). P9B §8 TD06 és §9
+TD-T37–40 szerint: dokumentáció és private test-only refusal policy; nincs új
+runtime consumer, authorization API, preflight boundary vagy file-backed pipeline.
+A runner változatlan: a meglévő `--td04` és `--all` tartalmazza az új eseteket.
+
+A successful TD04-result csak MANIFEST_ONLY. Az öt fix invariant, a selected
+release/profile binding és a pontos SIMULATED/OPERATOR_ATTESTED címke megmarad;
+egyik helyi mód sem protected deployment approval. Ledger freshness, actual file
+inventory, native identity és execution authorization nem következik belőlük.
+A TD05 CONTENT_ONLY acquisition külön evidence; nincs automatic promotion.
+
+`TD05.read() → TD04.verify()` G01/G02 előtt olvas, ezért nem teljes, helyesen
+sorrendezett fájlalapú verifier. Külön future preflight-boundary kell; TD06 nem
+valósítja meg. A historical evidence nem current manifest és nem execution proof;
+C06-T09/10 csak synthetic adatot használ, actual history változatlan.
+
+### Consumer-proof katalógus
+
+Mind a 12 kulcs a `ManifestVerificationTest::cases()` része; az eredeti 57 TD04
+eset változatlanul megmarad.
+
+| ID      | Actual tesztkulcs a C06 prefix után                | Bizonyíték                                                                    |
+| ------- | -------------------------------------------------- | ----------------------------------------------------------------------------- |
+| C06-T01 | supported local scope and authenticity             | Genuine FIXTURE/operator success, invariantok; MANIFEST_ONLY pozitív kontroll |
+| C06-T02 | selected and candidate binding substitution        | Profile/hash/release csere mindkét oldalon, G02 existing failure              |
+| C06-T03 | decoded manifest and profile binding               | Digest/schema/canonical siker után G08 mismatch, null manifest                |
+| C06-T04 | unauthorized full input VM and run requests        | Genuine VERIFIED resultból refusal; zero callback; eredeti result változatlan |
+| C06-T05 | local authenticity is not deployment approval      | Mindkét local authenticity deployment-refusal                                 |
+| C06-T06 | missing and not evaluated external evidence        | Ledger/revocation/native hiány és NOT_EVALUATED refusal                       |
+| C06-T07 | stale synthetic evidence                           | Explicit STALE címke refusal, clock/service nélkül                            |
+| C06-T08 | synthetic content only envelope cannot authorize   | Plain synthetic envelope; nem actual acquisition vagy ManifestSnapshot        |
+| C06-T09 | synthetic historical shape is not current manifest | Matching fixture pin után G06 MANIFEST_SCHEMA_INVALID                         |
+| C06-T10 | modified synthetic history retains original pin    | Fixed pin és módosított synthetic bytes: G04 MANIFEST_UNTRUSTED               |
+| C06-T11 | permitted import map and no launch or file access  | Runner/source token-map, included-file allowlist, file trap és zero callback  |
+| C06-T12 | isolated weakened refusal negative control         | Accepted child exit0; in-memory weakened child intended assertionnel exit1    |
+
+A private helper csak refusal-policy modell; nem bizonyítja valódi launcher vagy
+VM consumer biztonságát. Genuine resultot nem konstruál/hydrate-el unsafe módon.
+A synthetic CURRENT/STALE proof-címkék nem valódi független bizonyítékok; a private
+magyarázatok nem új publikus error/verdict kódok. A MANIFEST_ONLY pozitív kontroll
+elfogadható adatfogyasztást igazol, execution callback nélkül.
+
+### Korábban elfogadott baseline és új mérés
+
+Owner által megadott, post-remediation pre-TD06 baseline:
+TD05 **42/42 PASS, 1147 assertions**; combined **686/686 PASS**, **13850 counted
+assertions**, az A1.1 külön nem számlált assertionjei nélkül. A fent megőrzött
+37/681 és 1099/13802 értékek remediation előtti történeti evidence-ek.
+Az új TD06-mérés külön alább szerepel; korábbi evidence nem újramérés.
+
+### Új szerzői ellenőrzés — 2026-11-24
+
+PHP8.4.27, 64-bit, standalone `-n`; a lent felsorolt suite-parancsok mind exit0.
+A focused stdin futás **12/12 PASS, 291 assertions**. Az eredeti 57 TD04 case és
+helper-rész változatlan; az új 12 C06 case együtt a bővített **69/69 PASS** suite.
+
+| Suite          | Külön futás: tests PASS | Külön futás: counted assertions | Combined counted assertions |
+| -------------- | ----------------------: | ------------------------------: | --------------------------: |
+| A1.1           |                 203/203 |              Külön nem számlált |          Külön nem számlált |
+| TD01           |                 226/226 |                            7033 |                        7033 |
+| TD02           |                 115/115 |                            4612 |                        4612 |
+| TD03           |                   43/43 |                             238 |                         238 |
+| TD04 + TD06    |                   69/69 |                            1113 |                        1119 |
+| TD05           |                   42/42 |                            1147 |                        1147 |
+| Combined --all |                 698/698 |                               — |                       14149 |
+
+A TD04 számláló 1113/1119 eltérése a C06-T11 actual included-file listájának
+külön/combined hosszából ered: combinedben további hat engedélyezett fájl
+ellenőrzése történik. Ez nem új case vagy kihagyott assertion. Az A1.1 itt nem
+számlált assertionjei egyik összegben sem szerepelnek.
+
+C06-T12 minden futásban: accepted child exit0, `{"failure":null}`; weakened child
+exit1, `{"failure":"C06-T04 unauthorized execution was accepted"}`, stderr üres.
+A parent suite exit0; nem unrelated harness/process failure, nincs tracked mutant.
+Külön TD05 és combined: 9 saját fixture-root cleanup, size/reopen/close mutant
+childok expected exit1. Actual Windows symlink továbbra is UNAVAILABLE; injected
+REPARSE_FOUND külön tesztelt, native PASS nincs.
+
+Módosított PHP syntax check, célzott Pint és két Markdown Prettier check sikeres;
+a relatív linkcélok léteznek, `git diff --check` tiszta. A Pint `-n` konfigurációjához
+explicit mbstring és a WAMP extension_dir szükséges; a kezdeti mbstring nélküli
+próbák környezeti hibáját a sikeres célzott ellenőrzés feloldotta.
+
+A projekt quality-gate `affected --dry-run --explain` e standalone útvonalra
+integration fallbacket választott, alkalmazás-/SQLite-tesztekkel. Ezek nem futottak:
+a jelen feladat explicit standalone ellenőrzéseket kér, SQL/app/VM/PoC futást tilt.
+TD04-D01 memória benchmark és R1 újramérés nem futott; nincs ilyen runtime-változás
+vagy új TD06 resource acceptance-követelmény.
+
+### Ellenőrzési parancsok
+
+```powershell
+php -n -d memory_limit=512M tests/ProofOfConcept/RmaTransactionBoundary/integrity/tests/run-tests.php --a11
+php -n -d memory_limit=512M tests/ProofOfConcept/RmaTransactionBoundary/integrity/tests/run-tests.php --td01
+php -n -d memory_limit=512M tests/ProofOfConcept/RmaTransactionBoundary/integrity/tests/run-tests.php --td02
+php -n -d memory_limit=512M tests/ProofOfConcept/RmaTransactionBoundary/integrity/tests/run-tests.php --td03
+php -n -d memory_limit=512M tests/ProofOfConcept/RmaTransactionBoundary/integrity/tests/run-tests.php --td04
+php -n tests/ProofOfConcept/RmaTransactionBoundary/integrity/tests/run-tests.php --td05
+php -n -d memory_limit=512M tests/ProofOfConcept/RmaTransactionBoundary/integrity/tests/run-tests.php --all
+php -n -l tests/ProofOfConcept/RmaTransactionBoundary/integrity/tests/ManifestVerificationTest.php
+php -n -d extension_dir=C:/wamp64/bin/php/php8.4.27/ext -d extension=mbstring vendor/bin/pint --test tests/ProofOfConcept/RmaTransactionBoundary/integrity/tests/ManifestVerificationTest.php
+node node_modules/prettier/bin/prettier.cjs --check tests/ProofOfConcept/RmaTransactionBoundary/integrity/README.md tests/ProofOfConcept/RmaTransactionBoundary/integrity/INTEGRATION.md
+git diff --check
+```
+
+Külön focused futás a 12 C06 case-re, új runner-opció nélkül, stdin-only bootstrap:
+
+```powershell
+@'
+<?php
+$root = 'tests/ProofOfConcept/RmaTransactionBoundary/integrity';
+foreach (['Manifest', 'ValidationResult', 'ManifestValidator', 'TrustAnchor', 'TrustContext', 'AnchorProvider', 'AnchorValidator', 'DigestComparisonResult', 'TrustedDigestVerifier', 'JsonParseResult', 'StrictJsonTokenizer', 'CanonicalJson', 'ManifestDigestVerifier', 'ManifestVerificationResult'] as $name) {
+    require $root.'/src/'.$name.'.php';
+}
+require $root.'/tests/TrustVerificationTest.php';
+require $root.'/tests/ManifestVerificationTest.php';
+$class = RmaTransactionBoundaryPoc\Integrity\Tests\ManifestVerificationTest::class;
+$total = 0;
+foreach ($class::cases() as $name => $test) {
+    if (!str_starts_with($name, 'C06-')) { continue; }
+    try { $test(); echo "PASS $name\n"; $total++; }
+    catch (Throwable $error) { fwrite(STDERR, "$name: ".$error->getMessage()."\n"); exit(1); }
+}
+echo "TD06 focused: $total PASS; ".$class::$assertions." assertions\n";
+'@ | php -n
+```
+
+A focused futás C06-T12-t és annak két izolált childját is tartalmazza. Az új
+fixture-ök kis memóriabeli stringek; nincs új buffer/reopen/source discovery vagy
+resource budget. Existing regresszió disposable fixture-jei ownership-registry
+és exact cleanup szerint maradnak. TD04-D01 resource benchmark nem TD06-kapu.
+A Windows actual symlink unavailable korlát változatlan; nincs native proof PASS.
+
+WP7-F01/F02 OPEN; transaction PoC NOT READY. A1.3–A1.6/C028, protected store,
+ledger/freshness service, CLI/writer/bootstrap/launcher és SQL/VM/app integráció
+külön feladat; TD-D07/09 nem nyílt újra. Független review és owner acceptance
+nem állítható az itt közölt szerzői ellenőrzésből.

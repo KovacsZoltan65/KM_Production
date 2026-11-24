@@ -412,7 +412,282 @@ namespace RmaTransactionBoundaryPoc\Integrity\Tests {
                 self::ensure(! self::memoryAccepted($record, 0, false, '', $start, 'small', '512M'));
             };
 
-            return $cases;
+            return $cases + self::consumerCases();
+        }
+
+        /** TD06 test-only refusal policy proof; no production consumer is exercised. */
+        private static function consumerCases(): array
+        {
+            return [
+                'C06-T01 supported local scope and authenticity' => static function (): void {
+                    foreach (['FIXTURE' => 'SIMULATED', 'OPERATOR_ATTESTED' => 'OPERATOR_ATTESTED'] as $mode => $authenticity) {
+                        $raw = self::fixture();
+                        [$v, $context, $candidate] = self::setup($raw, [], ['trustMode' => $mode]);
+                        $r = self::checked($v, $context, $candidate, $raw);
+                        self::ensure($r->manifestVerdict === 'VERIFIED' && $r->authenticity === $authenticity);
+                        $launches = 0;
+                        self::ensure(self::consumeForTest($r, 'MANIFEST_ONLY', [], static function () use (&$launches): void {
+                            $launches++;
+                        }) === []);
+                        self::ensure($launches === 0);
+                    }
+                },
+                'C06-T02 selected and candidate binding substitution' => static function (): void {
+                    foreach (['profileId' => 'PROFILE_MISMATCH', 'profileSha256' => 'PROFILE_MISMATCH', 'verifierReleaseId' => 'VERIFIER_RELEASE_MISMATCH'] as $field => $code) {
+                        foreach (['selected', 'candidate'] as $side) {
+                            $raw = self::fixture();
+                            [$v, $context, $candidate] = self::setup($raw);
+                            $changed = clone $candidate;
+                            $changed->{$field} = $field === 'profileSha256' ? str_repeat('c', 64) : 'substituted';
+                            if ($side === 'selected') {
+                                $v = new ManifestDigestVerifier(new AnchorProvider(new TrustAnchor(...get_object_vars($changed))));
+                            } else {
+                                $candidate = $changed;
+                            }
+                            $r = self::checked($v, $context, $candidate, $raw);
+                            self::failed($r, $code, 'G02');
+                            self::ensure($r->digestStatus === 'NOT_EVALUATED' && $r->authenticity === null);
+                        }
+                    }
+                },
+                'C06-T03 decoded manifest and profile binding' => static function (): void {
+                    foreach (['manifestId' => 'ANCHOR_MANIFEST_MISMATCH', 'profileId' => 'PROFILE_MISMATCH', 'profileSha256' => 'PROFILE_MISMATCH'] as $field => $code) {
+                        $raw = self::fixture();
+                        [$v, $context, $candidate] = self::setup($raw, [$field => $field === 'profileSha256' ? str_repeat('c', 64) : 'other']);
+                        $r = self::checked($v, $context, $candidate, $raw);
+                        self::failed($r, $code, 'G08');
+                        self::ensure($r->digestStatus === 'MATCH' && $r->schemaStatus === 'VALID' && $r->canonicalStatus === 'CANONICAL');
+                        self::ensure($r->bindingStatus === 'MISMATCH');
+                    }
+                },
+                'C06-T04 unauthorized full input VM and run requests' => static function (): void {
+                    $r = self::consumerResult();
+                    $before = $r->toArray();
+                    foreach (['FULL_INPUT', 'VM_AUTHORIZATION', 'RUN_AUTHORIZATION'] as $scope) {
+                        $launches = 0;
+                        $refusals = self::consumeForTest($r, $scope, self::syntheticProofs(), static function () use (&$launches): void {
+                            $launches++;
+                        });
+                        if ($refusals === [] || $launches !== 0) {
+                            throw new RuntimeException('C06-T04 unauthorized execution was accepted');
+                        }
+                        self::ensure(in_array('scope does not authorize execution', $refusals, true));
+                        self::ensure($launches === 0 && $r->toArray() === $before);
+                        self::invariants($r);
+                    }
+                },
+                'C06-T05 local authenticity is not deployment approval' => static function (): void {
+                    foreach (['FIXTURE', 'OPERATOR_ATTESTED'] as $mode) {
+                        $r = self::consumerResult($mode);
+                        $before = $r->toArray();
+                        $launches = 0;
+                        $refusals = self::consumeForTest($r, 'DEPLOYMENT_APPROVAL', self::syntheticProofs(), static function () use (&$launches): void {
+                            $launches++;
+                        });
+                        self::ensure(in_array('protected deployment provenance missing', $refusals, true));
+                        self::ensure($launches === 0 && $r->toArray() === $before);
+                    }
+                },
+                'C06-T06 missing and not evaluated external evidence' => static function (): void {
+                    $r = self::consumerResult();
+                    foreach (['ledger', 'revocation', 'native'] as $proof) {
+                        foreach ([null, 'NOT_EVALUATED'] as $missing) {
+                            $proofs = self::syntheticProofs();
+                            if ($missing === null) {
+                                unset($proofs[$proof]);
+                            } else {
+                                $proofs[$proof] = $missing;
+                            }
+                            self::ensure(in_array($proof.' proof is missing or not current', self::consumeForTest($r, 'RUN_AUTHORIZATION', $proofs, static function (): never {
+                                throw new LogicException('Unexpected launch');
+                            }), true));
+                        }
+                    }
+                    self::ensure($r->anchorHistoryStatus === 'NOT_EVALUATED' && $r->filesystemIdentityStatus === 'NOT_EVALUATED');
+                },
+                'C06-T07 stale synthetic evidence' => static function (): void {
+                    $r = self::consumerResult();
+                    foreach (['ledger', 'revocation', 'native'] as $proof) {
+                        $proofs = self::syntheticProofs();
+                        $proofs[$proof] = 'STALE';
+                        $refusals = self::consumeForTest($r, 'RUN_AUTHORIZATION', $proofs, static function (): never {
+                            throw new LogicException('Unexpected launch');
+                        });
+                        self::ensure(in_array($proof.' proof is missing or not current', $refusals, true));
+                    }
+                    // Freshness labels belong only to this synthetic envelope, not TD04.
+                    self::ensure($r->manifestVerdict === 'VERIFIED' && $r->anchorHistoryStatus === 'NOT_EVALUATED');
+                },
+                'C06-T08 synthetic content only envelope cannot authorize' => static function (): void {
+                    // Not a ManifestSnapshot and not evidence of actual acquisition.
+                    $synthetic = ['kind' => 'SYNTHETIC_CONTENT_ACQUISITION', 'acquired' => true, 'assurance' => 'CONTENT_ONLY'];
+                    $launches = 0;
+                    $refusals = self::consumeForTest($synthetic, 'RUN_AUTHORIZATION', self::syntheticProofs(), static function () use (&$launches): void {
+                        $launches++;
+                    });
+                    self::ensure(in_array('content acquisition is not manifest verification', $refusals, true));
+                    self::ensure($launches === 0 && $synthetic['assurance'] === 'CONTENT_ONLY');
+                },
+                'C06-T09 synthetic historical shape is not current manifest' => static function (): void {
+                    $raw = self::syntheticHistory();
+                    [$v, $context, $candidate] = self::setup($raw);
+                    $r = self::checked($v, $context, $candidate, $raw);
+                    self::failed($r, 'MANIFEST_SCHEMA_INVALID', 'V06_V07');
+                    self::ensure($r->digestStatus === 'MATCH' && $r->schemaStatus === 'INVALID');
+                    self::ensure($r->canonicalStatus === 'NOT_EVALUATED' && $r->bindingStatus === 'NOT_EVALUATED');
+                },
+                'C06-T10 modified synthetic history retains original pin' => static function (): void {
+                    $raw = self::syntheticHistory();
+                    [$v, $context, $candidate] = self::setup($raw);
+                    $changed = str_replace('BLOCKED', 'ALTERED', $raw);
+                    self::ensure($changed !== $raw);
+                    $r = self::checked($v, $context, $candidate, $changed);
+                    self::failed($r, 'MANIFEST_UNTRUSTED', 'G04');
+                    self::ensure($r->digestStatus === 'MISMATCH' && $r->schemaStatus === 'NOT_EVALUATED');
+                    self::ensure($context->manifestSha256 === \hash('sha256', $raw));
+                },
+                'C06-T11 permitted import map and no launch or file access' => static function (): void {
+                    $root = dirname(__DIR__);
+                    $allowed = [realpath(__FILE__), realpath(__DIR__.'/TrustVerificationTest.php'), realpath(__DIR__.'/ManifestValidationTest.php'), realpath(__DIR__.'/StrictJsonTest.php'), realpath(__DIR__.'/CanonicalJsonTest.php'), realpath(__DIR__.'/ManifestAcquisitionTest.php'), realpath(__DIR__.'/run-tests.php')];
+                    foreach (glob($root.'/src/*.php') as $path) {
+                        $allowed[] = realpath($path);
+                    }
+                    foreach (get_included_files() as $path) {
+                        self::ensure(in_array(realpath($path), $allowed, true));
+                    }
+                    // Inspect the runner's literal require map and production sources.
+                    // The test-only forbidden-name oracle is not an actual import.
+                    foreach ([__DIR__.'/run-tests.php', ...glob($root.'/src/*.php')] as $path) {
+                        $prohibited = [];
+                        foreach (token_get_all(file_get_contents($path)) as $token) {
+                            if (is_array($token) && in_array($token[0], [T_CONSTANT_ENCAPSED_STRING, T_NAME_QUALIFIED, T_NAME_FULLY_QUALIFIED], true)) {
+                                if (preg_match('~(?:Prototype|Illuminate|vendor/autoload|launch\\.ps1|windows-inspect\\.ps1|(?:^|/)run\\.php)~', $token[1]) === 1) {
+                                    $prohibited[] = $token[1];
+                                }
+                            }
+                        }
+                        self::ensure($prohibited === []);
+                    }
+                    $imports = array_filter(token_get_all(file_get_contents(__FILE__)), static fn (mixed $token): bool => is_array($token) && in_array($token[0], [T_REQUIRE, T_REQUIRE_ONCE, T_INCLUDE, T_INCLUDE_ONCE], true));
+                    self::ensure($imports === []);
+                    $r = self::consumerResult();
+                    $included = get_included_files();
+                    $launches = 0;
+                    self::ensure(stream_wrapper_unregister('file'));
+                    try {
+                        self::ensure(stream_wrapper_register('file', VerificationFileTrap::class));
+                        $refusals = self::consumeForTest($r, 'RUN_AUTHORIZATION', self::syntheticProofs(), static function () use (&$launches): void {
+                            $launches++;
+                        });
+                    } finally {
+                        stream_wrapper_restore('file');
+                    }
+                    self::ensure($refusals !== [] && $launches === 0 && get_included_files() === $included);
+                },
+                'C06-T12 isolated weakened refusal negative control' => static function (): void {
+                    $script = <<<'PHP'
+                    $root = $argv[1];
+                    foreach (['Manifest', 'ValidationResult', 'ManifestValidator', 'TrustAnchor', 'TrustContext', 'AnchorProvider', 'AnchorValidator', 'DigestComparisonResult', 'TrustedDigestVerifier', 'JsonParseResult', 'StrictJsonTokenizer', 'CanonicalJson', 'ManifestDigestVerifier', 'ManifestVerificationResult'] as $name) {
+                        require $root.'/src/'.$name.'.php';
+                    }
+                    require $root.'/tests/TrustVerificationTest.php';
+                    $source = file_get_contents($root.'/tests/ManifestVerificationTest.php');
+                    if ($argv[2] === 'weakened') {
+                        $source = str_replace('return $refusals;'.' // C06 refusal boundary', 'return []; // intentionally weakened in memory', $source, $count);
+                        if ($count !== 1) { fwrite(STDERR, 'Mutation target mismatch'); exit(2); }
+                    }
+                    eval(substr($source, 5));
+                    try {
+                        RmaTransactionBoundaryPoc\Integrity\Tests\ManifestVerificationTest::cases()['C06-T04 unauthorized full input VM and run requests']();
+                        echo json_encode(['failure' => null], JSON_THROW_ON_ERROR);
+                        exit(0);
+                    } catch (RuntimeException $error) {
+                        echo json_encode(['failure' => $error->getMessage()], JSON_THROW_ON_ERROR);
+                        exit($error->getMessage() === 'C06-T04 unauthorized execution was accepted' ? 1 : 2);
+                    }
+                    PHP;
+                    foreach (['accepted' => 0, 'weakened' => 1] as $variant => $expectedExit) {
+                        $process = proc_open([PHP_BINARY, '-n', '-r', $script, dirname(__DIR__), $variant], [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
+                        self::ensure(is_resource($process));
+                        fclose($pipes[0]);
+                        $stdout = stream_get_contents($pipes[1]);
+                        $stderr = stream_get_contents($pipes[2]);
+                        fclose($pipes[1]);
+                        fclose($pipes[2]);
+                        $exit = proc_close($process);
+                        self::ensure($exit === $expectedExit && $stderr === '');
+                        self::ensure(json_decode($stdout, true, 8, JSON_THROW_ON_ERROR) === ['failure' => $variant === 'accepted' ? null : 'C06-T04 unauthorized execution was accepted']);
+                        echo 'TD06 control '.$variant.': exit='.$exit.'; '.$stdout.PHP_EOL;
+                    }
+                },
+            ];
+        }
+
+        private static function consumerResult(string $mode = 'FIXTURE'): ManifestVerificationResult
+        {
+            $raw = self::fixture();
+            [$v, $context, $candidate] = self::setup($raw, [], ['trustMode' => $mode]);
+            $r = self::checked($v, $context, $candidate, $raw);
+            self::ensure($r->manifestVerdict === 'VERIFIED');
+
+            return $r;
+        }
+
+        /** Synthetic labels only; no ledger, clock, freshness or native service. */
+        private static function syntheticProofs(): array
+        {
+            return ['ledger' => 'CURRENT', 'revocation' => 'CURRENT', 'native' => 'CURRENT'];
+        }
+
+        private static function syntheticHistory(): string
+        {
+            return '{"artifact_kind":"synthetic-history","source_sha256":"'.str_repeat('a', 64).'","tests":[{"status":"BLOCKED"}]}'."\n";
+        }
+
+        /**
+         * Test-only policy model, never production authorization evidence.
+         * These private explanation strings are not public result/error codes.
+         */
+        private static function consumerRefusals(mixed $evidence, string $scope, array $syntheticProofs): array
+        {
+            $refusals = [];
+            if (! $evidence instanceof ManifestVerificationResult) {
+                $refusals[] = is_array($evidence) && ($evidence['assurance'] ?? null) === 'CONTENT_ONLY'
+                    ? 'content acquisition is not manifest verification' : 'manifest verification evidence missing';
+            } elseif ($evidence->manifestVerdict !== 'VERIFIED' || $evidence->bindingStatus !== 'MATCH') {
+                $refusals[] = 'manifest verification failed';
+            }
+            if ($scope === 'MANIFEST_ONLY') {
+                return $refusals;
+            }
+            if (! in_array($scope, ['FULL_INPUT', 'VM_AUTHORIZATION', 'RUN_AUTHORIZATION', 'DEPLOYMENT_APPROVAL'], true)) {
+                $refusals[] = 'unsupported consumer scope';
+            }
+            if (! $evidence instanceof ManifestVerificationResult || $evidence->scope !== 'FULL_INPUT'
+                || $evidence->fileInventoryStatus !== 'VERIFIED' || $evidence->filesystemIdentityStatus !== 'VERIFIED'
+                || $evidence->executionAuthorization !== 'AUTHORIZED' || ! $evidence->canLaunchPoC) {
+                $refusals[] = 'scope does not authorize execution';
+            }
+            if ($scope === 'DEPLOYMENT_APPROVAL' && (! $evidence instanceof ManifestVerificationResult || $evidence->authenticity !== 'PROTECTED_DEPLOYMENT')) {
+                $refusals[] = 'protected deployment provenance missing';
+            }
+            foreach (['ledger', 'revocation', 'native'] as $proof) {
+                if (($syntheticProofs[$proof] ?? null) !== 'CURRENT') {
+                    $refusals[] = $proof.' proof is missing or not current';
+                }
+            }
+
+            return $refusals; // C06 refusal boundary
+        }
+
+        private static function consumeForTest(mixed $evidence, string $scope, array $syntheticProofs, Closure $launch): array
+        {
+            $refusals = self::consumerRefusals($evidence, $scope, $syntheticProofs);
+            if ($refusals === [] && in_array($scope, ['VM_AUTHORIZATION', 'RUN_AUTHORIZATION'], true)) {
+                $launch();
+            }
+
+            return $refusals;
         }
 
         private static function setup(string $raw, array $anchorChanges = [], array $contextChanges = []): array
