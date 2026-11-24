@@ -4,6 +4,9 @@
 
 Accepted
 
+Aktuális technikai hatókör: a 2026-11-24-i owner amendment a 14.2.2 fejezetben.
+Az eredeti üzleti döntések és a C1 integritási feltételek változatlanok.
+
 - Feladat: RMA-0002/A tervezet, RMA-0002/B felülvizsgálat, RMA-0002/C véglegesítés és elfogadás; előzmény: RMA-0001 domainaudit.
 - Létrehozás: 2026-10-27; felülvizsgálat és architekturális elfogadás: 2026-10-28.
 - Ellenőrzött branch: `feature/returns-repair-management`.
@@ -1189,6 +1192,38 @@ zársorrend; reprezentatív legacy audit, stock baseline, migration/mixed-versio
 rollback és környezeti ellenőrzések. A
 [C2 előkészítési terv](../designs/rma-0003c2-detailed-schema-review-plan.md)
 csak a következő munka terve, nem elvégzett C2 vagy implementáció.
+
+### 14.2.2. RMA architecture simplification — owner amendment (2026-11-24)
+
+**ACCEPTED — technikai irány és alkalmazhatóság, nem implementációs bizonyíték.**
+A cél működő RMA-modul a KM_Production alkalmazásban. A projektgazda elfogadta:
+
+- Az általános RMA-adatbázis-integrációs tesztekhez a meglévő guardolt
+  Laravel/Pest/MySQL/CI környezet az elsődleges út. Saját manifest-verifier,
+  natív Windows filesystem inspection, dedikált Windows VM és token-infrastruktúra
+  nem kötelező előfeltétel; a C3-02.8 A1/B2/C2 profil kötelező hatóköre
+  a korábbi standalone PoC-ra korlátozódik.
+- Laravel service-owned root tranzakció az elfogadott, integritásvizsgálatra váró
+  technikai irány. A tranzakciótulajdon, teljes atomikusság, ugyanazon tranzakcióban
+  megőrzött kötelező audit/proof, DB-enforcement és bypass-védelem kötelező marad.
+  Ez nem enged routine-owned COMMIT-ot vagy pusztán service-szintű ígérettel
+  kiváltott raw SQL/jogosultsági védelmet. A pontos DB/service határ WP2-ben igazolandó.
+- Első üzleti prioritás: RMA-ügy, serial-tagság, aktív claim, garanciális értékelés,
+  audit és authorization policy. A meglévő WP2 sémavéglegesítése ezt szolgálja;
+  nem új infrastruktúra vagy munkacsomag létrehozása a következő lépés.
+
+**WP7-F01 és WP7-F02 OPEN.** A framework képessége vagy a preferált irány
+elfogadása nem closure-proof; az alkalmazandó eredeti integritási, jogosultsági
+és tesztkritériumok nem kerülnek elengedésre. A1.3/native/manifest és custom
+execution-security fejlesztés felfüggesztett; a meglévő implementációk, commitok,
+elfogadások és történeti evidence változatlanul megőrzendők, nem átminősítendők.
+
+Tesztkörnyezeti migráció/adatmodell-implementáció és production migration readiness
+külön mérföldkő. Éles readiness-hez az érintett legacy, consumer, rollout és recovery
+kapuk is szükségesek. A jelen amendment kizárólag dokumentációs felhatalmazás;
+nem enged alkalmazáskódot, migrációt, SQL-t vagy tesztfuttatást.
+Alkalmazhatóság: [C3-02.8 §1.1](../designs/rma-0004-c3-02-8-execution-architecture-specification.md).
+Aktuális sorrend és nyitott WP2-minimum: [C2-terv §2.1–2.2](../designs/rma-0003c2-detailed-schema-review-plan.md).
 
 ### 14.3. Dokumentált későbbi bővítések
 

@@ -9,6 +9,9 @@ Kötelező alap: [Accepted ADR-0006](../decisions/0006-rma-repair-management-arc
 Előzmény: [A adatmodell](rma-0003a-data-model-integrity-design.md),
 [B review](rma-0003b-integrity-verification.md).
 
+**Aktuális prioritás:** a 2026-11-24-i owner amendment szerinti folytatás
+a §2.1–2.2-ben; az alábbi eredeti scope és baseline történeti előkészítési állapot.
+
 ## 1. Cél, hatókör és belépési feltételek
 
 A következő fázis célja a teljes séma, integritási DDL és integrációs szerződés
@@ -45,6 +48,49 @@ Az alkalmazásfunkció implementációja a séma review-jától is külön fázi
 WP1 után WP4/WP5 és WP3 szerződései egyeztethetők, majd WP2 véglegesíthető;
 nem kell hiányos WP1-re teljes DDL-készséget állítani. WP6 baseline-a korán
 előkészíthető, de readiness csak WP7-ben, igazolt előfeltételekkel értékelhető.
+
+### 2.1. Elfogadott fókusz és aktuális sorrend (2026-11-24)
+
+Alap: [ADR-0006 §14.2.2](../decisions/0006-rma-repair-management-architecture.md)
+és [C3-02.8 §1.1](rma-0004-c3-02-8-execution-architecture-specification.md).
+Az alábbi sorrend a meglévő WP-k prioritása, nem új munkacsomag vagy teljes
+RMA-architektúra. A WP1–WP7 review-k és korábbi eredmények változatlanok.
+
+| Sorrend | Meglévő felelősség és üzleti eredmény                                      | Következő elégséges kimenet / kapu                                                                                                                                |
+| ------- | -------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1       | WP2: az első üzleti szelet sémájának és DB/service határának véglegesítése | §2.2 pontos döntései és végrehajtható migrációs/constraint/jog terv; nincs A1.3/VM előfeltétel                                                                    |
+| 2       | WP2/WP7: tesztkörnyezeti adatmodell és integritásbizonyítás                | Külön engedéllyel Laravel-migrációk és célzott Pest/MySQL tesztek a meglévő guardolt környezetben; valódi commit/concurrency/grant próbák, ahol szükséges         |
+| 3       | Első működő alkalmazásszelet                                               | Ügy, serial-tagság, aktív claim, garanciaértékelés, audit/policy; funkcionális tesztek, fizikai készletposting és teljes close nem aktiválható hiányzó guardokkal |
+| 4       | WP3/WP6/WP7: production migration readiness                                | Érintett legacy audit/mapping, consumer change-or-no-change, rollout/fence, backup/restore és tényleges eredmények review-ja; külön owner go/no-go                |
+| 5       | Meglévő WP4/WP5 és alkalmazásintegráció: további üzleti szállítás          | Intake/custody, ajánlat/javítás/QC/anyag, visszaadás/csere, kredit/coverage az adott invariánsok és közös készletkapuk teljesítésével                             |
+
+A tesztkörnyezeti migráció-implementáció nem production migration readiness,
+és egyik sem automatikus éles migrációengedély. A scoped fejlesztés nem igényli
+az összes későbbi üzleti funkció előzetes megvalósítását, de a szükséges FK/guard
+függőség nem hagyható ki vagy helyettesíthető álproof-fal. **WP7-F01/F02 OPEN**;
+az első résztesztcsomag nem zárja le a teljes findingokat. A1.3/native/manifest
+és custom execution-security fejlesztés felfüggesztett, minden meglévő artifact megőrzendő.
+
+### 2.2. Első üzleti szelet — minimum nyitott WP2-követelmények
+
+Ez a [WP2](rma-0003c2-wp2-mysql-schema-integrity-review.md) fennmaradó követelményeinek
+scope-olt kivonata, nem lezárt séma vagy új architektúratervezési kör.
+
+| Blokkoló                                    | Pontos következő döntés / bizonyítandó minimum                                                                                                                                                                                                                                                                                                                            | WP2-forrás                                         |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
+| Teljes függőségi DDL és létrehozási sorrend | requests/items/claims mellett az opening command, history és repair order kötelező függéseinek lezárása; warranty rule/handover/assessment és szükséges existing composite kulcsok. A history jelenlegi későbbi FK-i miatt pontos staged create/ALTER sorrend vagy explicit reviewed függőségi határ kell; FK/proof nem kapcsolható ki és nem gyártható hozzá dummy adat. | §3.1.1–4, §3.1.10–12, §3.1.20–21, §4; WP2-F01/F05  |
+| Claim acquire és védett release             | Serial-PK, member/serial/owner kapcsolatok, atomikus member+claim+order+history nyitás és concurrent kettős acquire elutasítás; direct claim DML/DDL és korai release tiltás. Amíg teljes close-proof nincs, close/release út nem aktiválható.                                                                                                                            | §3.1.1–4, §11/§13; WP2-F01/F02                     |
+| Tranzakció és DB-authority határ            | Laravel service-owned root pontos szerződése, szükséges runtime/definer/EXECUTE/trigger jogok és actor-binding; raw CALL/DML bypass ne tarthasson meg fél parancsot. Audit/proof hiba teljes rollback, nested/dirty caller és retry/unknown outcome kezelés. Nem elegendő a DB::transaction önmagában.                                                                    | §12–13; WP2-F02/F10; WP7 §6.4                      |
+| Garanciális assessment és audit/policy      | Saját gyártási eredet, case-owner/serial/order/subject tuple, rule/handover verzió és immutable assessment/history pontosítása. Hiányos proof pending; override csak indokolt jogosultsággal; audit ugyanazon tranzakcióban.                                                                                                                                              | §3.1.2/§3.1.10–12/§3.1.20–21, §11/§13; WP2-F05/F12 |
+| Scope-olt teszt és elfogadás                | A fenti pozitív/negatív, kétkapcsolatos claim-, valódi commit-, runtime grant- és audit-fault esetek a meglévő guardolt MySQL/Pest/CI úton; SQLite nem grant/locking proof. WP7 követelményekre trace-elt eredmények és independent review, nem új custom harness.                                                                                                        | §17–19; WP7-F01/F02                                |
+
+A meglévő WP2 raw-DML/claim/finalizer védelmét az új tranzakciós irány nem
+helyettesíti service-only ellenőrzéssel. A későbbi pénzügyi/procurement és
+teljes rollout blokkolók nem vesznek el, de nem automatikus előfeltételei egy
+készletposting nélküli első szeletnek; tényleges schema/guard függésüket WP2-ben
+expliciten el kell dönteni. Következő konkrét munka a fenti WP2-séma véglegesítése,
+nem filesystem-, manifest- vagy VM-szerződés előkészítése. Most csak dokumentáció
+módosulhat; implementációhoz és futtatáshoz külön owner-felhatalmazás szükséges.
 
 ## 3. C2-WP1 – teljes séma- és változásleltár
 

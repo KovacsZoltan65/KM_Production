@@ -5,6 +5,10 @@ Verdikt: **SPECIFICATION COMPLETE — IMPLEMENTATION APPROVAL REQUIRED**.
 Az A1/B2/C2 a C3-02.8 feladatban elfogadott architekturális korlát;
 az alábbi új interfészek és fájlok specifikációk, nem létező implementációk.
 
+**Aktuális alkalmazhatóság:** a 2026-11-24-i owner amendment (§1.1) szűkíti
+az alábbi korábbi A1/B2/C2 profil kötelező hatókörét. A korábbi PoC-leírás
+nem általános RMA-fejlesztési előfeltétel.
+
 ## 1. Vezetői összefoglaló
 
 A PoC kizárólag eldobható **Windows VM-ben (C2)**, dedikált standard local
@@ -26,6 +30,33 @@ változatlan harness nem felel meg e szerződésnek. A két eredeti PARTIAL
 eset, a hiányzó fault-scope és az oracle-hiányok külön láthatók. **WP7-F01
 OPEN — BLOCKER; WP7-F02 OPEN — PARTIALLY VERIFIED — HIGH**, kizárólag
 operátori filesystem-részproof. Ez nem implementation-, migration- vagy execution approval.
+
+### 1.1. Owner amendment — RMA application focus (2026-11-24)
+
+Autoritatív döntés: [ADR-0006 §14.2.2](../decisions/0006-rma-repair-management-architecture.md).
+Az ordinary RMA DB-integrációs tesztek elsődleges környezete a meglévő
+[guardolt Laravel/Pest/MySQL/CI tesztút](../../docs/backend-quality-gate.md),
+dedikált tesztadatbázissal és credentiallel. Saját manifest-verifikáció,
+natív Windows inspection, VM-provisioning és child-token infrastruktúra
+nem kapuja ennek az útnak. A1.3 és a kapcsolódó custom infrastruktúra fejlesztése
+felfüggesztett; nem kerül törlésre vagy sikertelennek átminősítésre.
+
+A §1 és §3–13 VM/token/import/export és custom manifest mechanizmusai a
+korábbi standalone C3-02 PoC-profilhoz tartoznak. Az ordinary tesztút nem e
+harness másik indítási módja: L/R/W guardjai nem távolíthatók el vagy kerülhetők meg.
+A profil-specifikus A/B/V/M/E acceptance-mechanizmusok nem ordinary teszt-előfeltételek;
+az eredeti integritási, DB-jogosultsági, izolációs, audit-, no-production és
+failure-evidence követelmények továbbra is igazolandók. VM/token-próba nem
+jelölhető ordinary teszteredményből PASS-nak; az új út tesztjei az eredeti
+WP2/WP7 követelményazonosítókhoz kötendők, kihagyás csak explicit indoklással.
+
+Laravel service-owned root az elfogadott technikai irány, nem bizonyított
+WP7-F01-megoldás. Nem kötelező a Prototype single-INSERT/trigger megoldását
+alkalmazási architektúrává emelni; a szükséges DB-enforcement, raw bypass-védelem,
+atomikus command/audit és failure/retry bizonyítás WP2 feladata marad.
+**WP7-F01/F02 OPEN; Transaction PoC NOT READY.** Meglévő verifier-kód és minden
+történeti report/evidence megőrzendő. Nincs új futtatási vagy implementációs engedély.
+Fejlesztési prioritás: [C2-terv §2.1–2.2](rma-0003c2-detailed-schema-review-plan.md).
 
 ## 2. Baseline és források
 
