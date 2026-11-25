@@ -58,6 +58,16 @@ atomikus command/audit és failure/retry bizonyítás WP2 feladata marad.
 történeti report/evidence megőrzendő. Nincs új futtatási vagy implementációs engedély.
 Fejlesztési prioritás: [C2-terv §2.1–2.2](rma-0003c2-detailed-schema-review-plan.md).
 
+**2026-11-25 hatókör-pontosítás:** [ADR-0006 §14.2.3](../decisions/0006-rma-repair-management-architecture.md#1423-első-rma-szelet--b1b2-owner-amendment-2026-11-25)
+és [WP2 §2.1](rma-0003c2-wp2-mysql-schema-integrity-review.md#21-első-szelet-végleges-migrációs-szerződés--2026-11-25)
+az első kilenctáblás szeletben felváltja a mandatory routine-only írást és a
+független DB actor-bindinget: trusted Laravel, service root, közvetlen repository
+írás és server-side actor/Policy az elfogadott modell. Raw SQL az alkalmazási
+authorizationt és orchestrationt megkerülheti; a kritikus DB-korlátok megmaradnak.
+A fenti általános raw-bypass elvárás e szeletre e pontosítással értendő.
+Ez nem változtatja meg a standalone PoC guardjait vagy történeti eredményeit;
+WP7-F01/F02 továbbra OPEN, futtatott bizonyítás nincs.
+
 ## 2. Baseline és források
 
 ### 2.1. Repository és megőrzési baseline

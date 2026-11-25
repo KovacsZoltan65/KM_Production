@@ -4,8 +4,8 @@
 
 Accepted
 
-Aktuális technikai hatókör: a 2026-11-24-i owner amendment a 14.2.2 fejezetben.
-Az eredeti üzleti döntések és a C1 integritási feltételek változatlanok.
+Aktuális technikai hatókör: a §14.2.2 fókuszdöntés és az első szeletre azt pontosító §14.2.3 owner amendment.
+Az eredeti üzleti döntések és a C1 üzleti invariánsok változatlanok; az első szelet technikai enforcement-határát §14.2.3 módosítja.
 
 - Feladat: RMA-0002/A tervezet, RMA-0002/B felülvizsgálat, RMA-0002/C véglegesítés és elfogadás; előzmény: RMA-0001 domainaudit.
 - Létrehozás: 2026-10-27; felülvizsgálat és architekturális elfogadás: 2026-10-28.
@@ -1224,6 +1224,43 @@ kapuk is szükségesek. A jelen amendment kizárólag dokumentációs felhatalma
 nem enged alkalmazáskódot, migrációt, SQL-t vagy tesztfuttatást.
 Alkalmazhatóság: [C3-02.8 §1.1](../designs/rma-0004-c3-02-8-execution-architecture-specification.md).
 Aktuális sorrend és nyitott WP2-minimum: [C2-terv §2.1–2.2](../designs/rma-0003c2-detailed-schema-review-plan.md).
+
+### 14.2.3. Első RMA-szelet — B1/B2 owner amendment (2026-11-25)
+
+**ACCEPTED — implementációs szerződés, nem futtatott bizonyíték.** A projektgazda
+jóváhagyta a kilenctáblás első szeletet és a Laravel trusted application boundary-t.
+Kizárólag ebben a szeletben ez a döntés felülírja a C1/WP2 és §14.2.2 kötelező
+routine-only/raw-DML-deny, független DB actor-binding és autocommit/CALL előírásait.
+A pontos séma, védelmek és migrációs sorrend: [WP2 §2.1](../designs/rma-0003c2-wp2-mysql-schema-integrity-review.md#21-első-szelet-végleges-migrációs-szerződés--2026-11-25).
+
+- **B1:** Laravel Service birtokolja a root `DB::transaction`-t; Repository/Eloquent
+  közvetlenül írhatja a szükséges RMA-táblákat, a claimet csak a tagságtrigger hozza
+  létre. Domain, command, history és kötelező audit egy InnoDB-kapcsolaton, egy
+  tranzakcióban készül. Minden hiba a root tulajdonosig terjed és teljes rollbacket
+  okoz. Nincs kötelező stored procedure, belső COMMIT vagy autocommit=0 profil.
+  A publikus command belépés meglévő tranzakció esetén írás előtt elutasít; a belső
+  repository-hívások a service tranzakcióját használják. Retry csak teljes rootra.
+- **B2:** Laravel Authentication alapján szerver oldalon feloldott User, aktív
+  Employee, Policies és Spatie Permission adja az authority-t. Authoritative actor
+  nem vehető át klienspayloadból; explicit továbbadandó a domain/history/audit felé.
+  A permission és a külön domain-guard egyaránt kötelező, super-admin esetén is.
+  Nincs második autentikáció, aláírt actor-token vagy önálló identity-rendszer.
+- **DB-invariánsok:** FK/UNIQUE/CHECK, atomikus triggeres claim-acquire,
+  megváltoztathatatlan rekordok és hivatkozott bizonyítékok védelme megmarad.
+  Claim UPDATE/DELETE és case-close az első szeletben DB-szinten tiltott;
+  finalizer/release út nem készül. A munkalap csak garanciafüggőség, nincs execution.
+- **Elfogadott maradék kockázat:** kompromittált alkalmazás vagy runtime DB-credential
+  megkerülheti az alkalmazási authorizationt, a teljes parancs tranzakciós
+  összeállítását és hamis actort írhat be. Ezt a DB nem hitelesíti függetlenül.
+  A raw SQL hiányos parancsot/audit nélküli új tényt is létrehozhat a megadott
+  írásjogokon belül; a megmaradó DB-korlátok ettől még érvényesek. Nem állítunk
+  SQL-bypass elleni teljes védelmet. Runtime DDL/TRUNCATE/trigger-módosítás tiltott.
+
+Séma-döntési B1/B2 blokkolók feloldva; **WP7-F01/F02 OPEN** a tényleges MySQL/Pest
+integrációs bizonyításig. Ez nem production migration readiness és nem PoC-closure.
+Készletviselkedés, elfogadott üzleti invariánsok, történeti reportok, implementációk
+és evidence megőrzendők. A mostani engedély csak dokumentáció; implementáció és
+futtatás külön jóváhagyást igényel. Nem indul új infrastruktúra vagy munkacsomag.
 
 ### 14.3. Dokumentált későbbi bővítések
 

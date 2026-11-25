@@ -3,6 +3,10 @@
 Státusz: **REVIEW / NOT MIGRATION READY**. Dátum: 2026-11-04.
 Dokumentációs, executable-level review-terv; nincs implementált vagy futtatott DDL/rutin/teszt.
 
+Aktuális első-szelet státusz: **READY FOR IMPLEMENTATION APPROVAL**, §2.1,
+2026-11-25. A fenti történeti teljesmodell-státusz nem production readiness;
+WP7-F01/F02 OPEN, tényleges integrációs bizonyítás még nincs.
+
 ## 1. Baseline and authority
 
 Branch: `feature/returns-repair-management`.
@@ -58,6 +62,186 @@ D3 egy owner/case, reporter külön lehet. D4 nincs automatic warranty reset. D5
 külön. D6 approval-only credit, D7 proofos unused/unsettled release, cancel nem release.
 D8 minden actual replacement return karantén; D9 új authorized shipment új reservation/attempt;
 D10 legal reversal saját original event/proof; D11 demand/coverage/commitment/receipt/handoff külön.
+
+### 2.1. Első szelet: végleges migrációs szerződés — 2026-11-25
+
+Authority: [ADR-0006 §14.2.3](../decisions/0006-rma-repair-management-architecture.md#1423-első-rma-szelet--b1b2-owner-amendment-2026-11-25),
+owner-approved kilenctáblás szelet. Baseline: `feature/returns-repair-management`,
+`98edbac059ba951e1a73e9a40c7039f25769bebc`. **Ez a szakasz normatív az első szeletre**:
+felülírja a §3/§11–13/§16–19 és a C1 routine-only/raw-DML-deny/független actor-binding
+kötelezettségét és a halasztott mező/FK-függőségeket. Az eredeti teljesmodell-review,
+SQL-példák és findingok megmaradnak; nem implementációs recept e szelethez.
+Scope: case, eredeti serial-tagság, claim, manuális garancia, audit, policy.
+Nincs receipt/stock posting, procurement, execution, replacement vagy finance.
+
+#### 2.1.1. B1/B2 és az enforcement határa
+
+**B1 döntés lezárva:** a publikus Laravel Service command meglévő tranzakciót
+írás előtt elutasít, majd a normál Laravel root `DB::transaction`-t birtokolja.
+Repository/Eloquent ír; nincs public routine, CALL/definer gateway, autocommit=0
+előfeltétel vagy routine ROLLBACK/COMMIT. Command, teljes domainművelet, history
+és kötelező `AuditLogService` rekord ugyanazon InnoDB-kapcsolat/tranzakció része.
+Hiba/constraint/audit exception kijut a rootig; nincs catch-and-continue vagy
+félsiker. Repository nem commitol, audit nem queue-zott/külön kapcsolatos.
+Retry kizárólag teljes rootra, azonos command identityvel; commit-kimenet
+bizonytalanságánál előbb a canonical command eredményét kell lekérni.
+
+**B2 döntés lezárva:** Auth User szerver oldali feloldása, aktív Employee-kapcsolat,
+Policies és Spatie Permission; explicit actor átadás a command, claim, assessment,
+history és audit felé. Kliens actor/approver/verified_by mező nem authoritative;
+az aktuális művelet actorát a szerver tölti. Reporter ettől külön üzleti adat.
+HTTP-n kívüli service-hívás is ellenőrzött, szerver oldali actort és authorizationt
+igényel. Domain-guard külön a permissiontől, a `Gate::before` super-admin ág után
+is lefut. ADR §9 elfogadott, még seedelendő permissionjei használatosak; rule-publish és handover-verify
+ebben a szeletben a `repair-orders.warranty`, override ezen felül a
+`repair-orders.warranty-override` jogot és bizonyítékot igényli. Célügy/serial és
+dokumentum hozzáférése külön ellenőrzendő; szakmai szerep nem permission.
+
+| Alkalmazás felelőssége | MySQL által továbbra is kikényszerített invariáns |
+| --- | --- |
+| Policy, aktív Employee, valódi actor, jogosult indokolt override | FK-k és typed subject tuple-k; actor FK csak létezést bizonyít |
+| Teljes case/member/order/history/audit összeállítás és root rollback | Claim PK-egyediség és tagságtriggeres acquire; zárás/release tiltott |
+| Origin alkalmasság, subject/order egyezés, megfelelő hatályos rule, proof tartalmi igazsága | UNIQUE/CHECK; immutable rekordok, hivatkozott serial-identitás és dokumentum védelme |
+| Idempotent retry actor/hash/permission ellenőrzéssel, nincs sikeres processing command | Command kulcs UNIQUE, processing→completed utáni immutabilitás |
+
+Elfogadott residual risk: kompromittált app vagy runtime DB-credential az
+alkalmazási authorizationt/atomikus orchestrationt megkerülheti, actort hamisíthat,
+hiányos parancsot vagy audit nélküli új tényt írhat. Nem állítunk független DB
+actor-hitelesítést vagy raw SQL elleni teljes command-totality védelmet.
+Runtime szükséges SELECT/INSERT és command UPDATE jogot kap; claimre csak SELECT,
+INSERT kizárólag a membership-trigger szűk definer jogával. Új immutable táblákra
+nincs szükséges UPDATE/DELETE jog. Runtime DDL/TRUNCATE/trigger/routine módosítás,
+emelt alternatív credential tiltott; nincs legacy írókra kiterjedő grant-cutover.
+
+#### 2.1.2. Végleges első-szelet oszlopok, kulcsok és CHECK-ek
+
+A következő profil **teljes az első szeletre**; a §3.1 további mezői most nem
+készülnek. Jelölés: F=BIGINT UNSIGNED FK, U32=INT UNSIGNED, DT=DATETIME(6) UTC,
+J=JSON, S(n)=VARCHAR(n), T=TEXT, ?=NULL engedett; minden más NOT NULL.
+InnoDB; default csak ahol megadott, egyébként nincs. Minden táblán id BIGINT
+UNSIGNED AUTO_INCREMENT PK, kivéve claim. Minden táblán created_at DT; requests,
+members, orders, claims és commands táblán updated_at DT is, értékét a writer
+adja. Nincs soft-delete. Minden FK UPDATE/DELETE RESTRICT; nincs CASCADE/SET NULL.
+Minden FK-hoz teljes, megfelelő sorrendű child index (a meglévő index újrahasználható),
+parent composite tuple-höz explicit UNIQUE. Gépi command_type/idempotency_key és
+result_type byte-pontos VARBINARY, payload_hash BINARY(32), SHA-256 nyers 32 byte.
+Emberi azonosítók S típusúak a projekt collationjével, nincs prefix UNIQUE.
+
+| Tábla / felelősség | Oszlopok a közös mezőkön felül | UNIQUE / további index / CHECK |
+| --- | --- | --- |
+| repair_commands — idempotent művelet | command_type VARBINARY(64); idempotency_key VARBINARY(128); payload_hash BINARY(32); actor_id F→users; status S(16) default processing; result_type VARBINARY(64)?; result_id BIGINT UNSIGNED?; result_snapshot J?; completed_at DT? | U(command_type,idempotency_key); IX(actor_id,created_at); status processing/completed; processing: completed_at NULL, completed: completed_at és result_snapshot NOT NULL. Result morph nem domain-FK. |
+| repair_requests — egy owner ügye | case_number S(64); owner_customer_id F→customers; created_by F→users; creator_employee_id F→employees; reporter_employee_id F?→employees; reporter_name S(255); reporter_contact_snapshot J; owner_snapshot J; status S(16) default open; closed_at DT?; closed_by F?→users; opening_command_id F→repair_commands; closing_command_id F?→repair_commands | U(case_number), U(opening_command_id), U(closing_command_id), U(id,owner_customer_id); IX(owner_customer_id,created_at), IX(status,created_at); CHECK status='open' AND closed_at/closed_by/closing_command_id mind NULL. Zárás nincs. |
+| repair_request_items — eredeti serial-tagság | repair_request_id F→repair_requests; owner_customer_id F→customers; item_instance_id F→item_instances; reported_fault T; origin_production_order_id F→production_orders; origin_verified_by F→users; origin_verified_at DT; origin_evidence J; membership_command_id F→repair_commands | U(repair_request_id,item_instance_id), U(id,item_instance_id), U(id,repair_request_id); IX(item_instance_id,created_at), IX(membership_command_id); composite FK(request,owner)→requests(id,owner_customer_id). Receipt mezők nincsenek. |
+| active_repair_claims — globális aktív serial-kizárás | item_instance_id F→item_instances PK, nincs id; repair_request_item_id F→repair_request_items; claimed_by F→users; command_id F→repair_commands | U(repair_request_item_id); composite FK(member,instance)→request_items(id,item_instance_id); nincs további row CHECK; csak trigger-acquire, nincs release. |
+| repair_orders — minimális garanciahivatkozás | repair_request_item_id F→repair_request_items; work_order_number S(64); execution_status S(32) default awaiting_receipt; current_attempt_number U32 default 1 | U(repair_request_item_id), U(work_order_number); IX(execution_status,created_at); CHECK execution_status='awaiting_receipt' AND current_attempt_number=1. Nincs díjazás/execution. |
+| product_warranty_rules — jóváhagyott verzió | item_id F→items; version U32; effective_from DT; duration_value U32; duration_unit S(8); rule_reference T; approved_by F→users; approved_at DT; command_id F→repair_commands | U(item_id,version), U(item_id,effective_from), U(id,item_id); CHECK version>=1 AND duration_value>0; unit day/month/year. Nincs jogszabályi default. |
+| product_handover_evidences — igazolt átadás | item_instance_id F→item_instances; recipient_customer_id F→customers; handed_over_at DT; handover_reference S(128); evidence_document_id F→documents; verified_by F→users; verified_at DT; supersedes_evidence_id F?→önmaga; command_id F→repair_commands | U(command_id), U(supersedes_evidence_id), U(id,item_instance_id); IX(item_instance_id,handed_over_at), IX(handover_reference); CHECK verified_at>=handed_over_at. Nincs repair_release_id; predecessor/self szabályt a BI-trigger ellenőrzi, nem AUTO_INCREMENT id-t használó CHECK. |
+| warranty_assessments — immutable manuális döntés | repair_order_id F→repair_orders; item_instance_id F→item_instances; subject_item_id F→items; version U32; classification S(24); handover_evidence_id F?→product_handover_evidences; product_warranty_rule_id F?→product_warranty_rules; rule_snapshot J; warranty_start DT?; warranty_end DT?; assessed_by F→users; assessed_at DT; justification T; is_override TINYINT UNSIGNED default 0; override_reason T?; command_id F→repair_commands | U(repair_order_id,version), U(command_id); IX(item_instance_id,assessed_at), IX(repair_order_id,item_instance_id,version); composite FK(instance,item)→item_instances(id,item_id), FK(handover,instance)→handover_evidences(id,item_instance_id), FK(rule,item)→warranty_rules(id,item_id); CHECK version>=1; classification warranty/non_warranty/pending_assessment; end NULL OR (start NOT NULL AND end>=start); override 0/1, false→reason NULL, true→reason NOT NULL. |
+| repair_status_histories — typed append-only történet | repair_request_id F?→repair_requests; repair_order_id F?→repair_orders; repair_request_item_id F?→repair_request_items; item_instance_id F?→item_instances; state_dimension S(32); from_state S(32)?; to_state S(32); actor_id F→users; occurred_at DT; reason T; metadata J; authorization_document_id F?→documents; command_id F→repair_commands; event_sequence U32 | U(command_id,event_sequence); IX(repair_request_id,occurred_at), IX(repair_order_id,state_dimension,occurred_at); composite FK(member,instance)→request_items(id,item_instance_id); CHECK pontosan egy request/order cél; member és instance együtt NULL/NOT NULL; sequence>=1; dimension case/claim/warranty. Későbbi typed domainek FK-i nincsenek. |
+
+Nullable proof FK nem jogosít nem-pending minősítésre. Service ellenőrzi a
+case-owner/serial/order/subject egyezést, saját gyártási eredetet, alkalmazandó
+átadást és rule-t. Hiányos proof → pending; eltérés csak reason+permission+
+megőrzött dokumentumos override. Override history authorization_document_id
+kötelező, az assessmenttel azonos command/actor/order és warranty dimension;
+assessment/history egy T-ben. Korábbi verzió soha nem írható felül.
+Garancia rule/handover publikálás saját command+audit, nem fiktív case-history.
+Case-open history és serialonként claim history típusos tagság/serial kapcsolattal;
+case dimension csak request cél, warranty csak order cél. Nem JSON-only proof.
+
+#### 2.1.3. Zárolás, trigger- és bizonyítékvédelem
+
+Service root: meglévő case (ha van), serialok növekvő id szerint; rule-versionhöz
+item, assessment-versionhöz order, bizonyítékhoz konkrét documents sor zárolása.
+Nyitás egy parancsban case+összes member+tagonként egy order+claim+history+audit.
+Idempotency UNIQUE a commandot sorosítja; duplicate esetén teljes root rollback,
+új olvasással actor/hash/permission vizsgálat, csak azonos command eredménye adható.
+
+Kötelező triggercsaládok az utolsó migrációban, név: `rma_<table>_<bi|ai|bu|bd>`:
+
+- `repair_request_items_ai`: NEW adatokból, parent case és command current locking
+  read mellett ellenőrzi open parentet és opening_command=membership_command
+  egyezést; ugyanabban az INSERT statementben beszúrja a claimet a command actorával.
+  Claim konfliktus SIGNAL/duplicate error, nincs INSERT IGNORE/upsert. Nincs kézi
+  második claim INSERT. Nem írja az invoking tagságtáblát; a trigger nem commitol.
+- BU/BD mind a kilenc új táblán: UPDATE/DELETE mindig tiltott, kivéve commands BU,
+  amely kizárólag processing→completed váltást, result mezőket/completed_at és
+  updated_at kitöltést engedi; minden más mező változatlan. Completed immutable.
+  Requests CHECK már INSERT-kor is tiltja closed létrehozását. Nincs close finalizer,
+  claim-release helper vagy session-variable bypass; jövőbeli aktiválás külön migráció.
+- `product_handover_evidences_bi`: documents sor current locking read; nem törölt,
+  version>=1, 64 hex SHA-256 checksum és konkrét storage disk/path szükséges.
+  Supersedes csak korábbi, azonos serialú sor lehet. `repair_status_histories_bi`
+  ugyanígy ellenőrzi és zárolja a nem-NULL authorization_document_id bizonyítékot.
+- `documents_bu/bd`: ha bármely handover/history hivatkozza, current locking read
+  alapján tiltott hard/soft-delete, és id/documentable_type/documentable_id/version/
+  checksum/disk/path/file_path/original_filename/mime_type/file_size változtatás.
+  Új feltöltés új dokumentumsor/verzió, nincs hivatkozott fájl felülírás/törlés a
+  meglévő fájlkezelési úton; title/is_current és nem hivatkozott dokumentum kezelése
+  megmarad. FK önmagában soft-delete/fájlvesztés ellen nem elég. A fájl checksumát
+  a meglévő storage úton ellenőrizni kell; DB nem védi az OS/storage compromise-t.
+- `item_instances_bu`: csak RMA-membership vagy handover által hivatkozott serialnál
+  tiltja id/serial_number/item_id/production_order_id átírását. Más inventory mezőt,
+  location/status/quantity működést nem változtat. Új FK-k tiltják a parent törlését.
+- `activity_log_bu/bd`: OLD.log_name='rma' sor módosítása/törlése tiltott. Az RMA
+  AuditLogService-hívások ebbe a log_name-ba írnak actor+subject+properties.command_id
+  kapcsolattal, ugyanazon T-ben. Nincs log-table újratervezés vagy globális retention
+  átírás; az alkalmazás kötelessége minden kötelező logot ténylegesen létrehozni.
+
+Trigger-definer csak a szükséges table-szintű TRIGGER/SELECT/claim INSERT jogot kapja a deployment
+meglévő MySQL jogosultságkezelésében; nem runtime-admin. A document proof INSERT és
+document UPDATE közös sorzárat használ, a hivatkozásvizsgálat current read,
+nem korábbi RR snapshot; így a destructive edit és az új proof versenye sorosított.
+Nincs új verifier, token, identity-rendszer vagy infrastruktúra.
+
+#### 2.1.4. Pontos migrációs fájlok és sorrend (még nem létrehozva)
+
+Mindegyik a `database/migrations/` alatt, ebben a sorrendben:
+
+1. `2026_11_25_000001_add_rma_subject_unique_to_item_instances_table.php` — U(id,item_id).
+2. `2026_11_25_000002_create_repair_commands_table.php`.
+3. `2026_11_25_000003_create_repair_requests_table.php`.
+4. `2026_11_25_000004_create_repair_request_items_table.php`.
+5. `2026_11_25_000005_create_repair_orders_table.php`.
+6. `2026_11_25_000006_create_active_repair_claims_table.php`.
+7. `2026_11_25_000007_create_product_warranty_rules_table.php`.
+8. `2026_11_25_000008_create_product_handover_evidences_table.php` — ön-FK is itt.
+9. `2026_11_25_000009_create_warranty_assessments_table.php`.
+10. `2026_11_25_000010_create_repair_status_histories_table.php`.
+11. `2026_11_25_000011_add_rma_first_slice_integrity_triggers.php` — összes fenti trigger.
+
+A nevek az implementációs szerződés részei, nem most létrehozott fájlok.
+Index/CHECK/FK neveket explicit, MySQL 64 karakteres limiten belül kell megadni.
+Nincs FK-ciklus az új táblák között a self-FK-n kívül, FK-kikapcsolás vagy dummy
+parent nem megengedett. Rollback fordított sorrendben, először triggerek; ez nem
+engedély elfogadott üzleti adatok destruktív production rollbackjére. MySQL DDL nem
+egy alkalmazási transaction: teljes csomag és védelmek előtt nincs runtime RMA-írás.
+
+Meglévő schema change kizárólag az item_instances U(id,item_id); documents és
+activity_log meglévő oszlopokat használó, csak RMA-ra ható triggert kap. Globális
+production_order_id FK/adattisztítás, inventory-scope/reservation/movement és
+fizikai receipt változtatás nincs. A belépő serial origin-validációja alkalmazási
+kötelezettség, nem bizonyított legacy adattisztaság. A munkalap minimuma és a
+halasztott FK-k explicit scope, nem későbbi business invariant eltörlése.
+
+#### 2.1.5. Implementációs elfogadás és megőrzött nyitott bizonyítás
+
+Következő feladat a fenti csomag implementációjának owner-jóváhagyása. B1/B2
+szerződésdöntésben nincs további blocker; **WP7-F01/F02 OPEN / NOT EXECUTED**.
+Az eredeti findingok nem átírandók és nem záródnak le e dokumentációtól.
+Test-env implementation readiness különbözik production migration readiness-től.
+
+A meglévő guardolt MySQL 8.4/Pest/CI úton szükséges: FK/U/CHECK és immutable
+negatív próbák; kétkapcsolatos claim-race és többserialos teljes rollback;
+valódi commit másik kapcsolatról; hibák domain/history/audit írásnál; nested root
+írás előtti elutasítás; exception és reconnect/retry/unknown-commit kezelés;
+idempotency actor/hash eltérés; Policy/Employee/super-admin domain guard és
+kliens-actor hamisítás; proof-hiány/pending/override/rule-version; document
+destructive-edit vs evidence-acquire verseny; tényleges runtime grantok és
+trigger-definer claim-acquire. RefreshDatabase külső transaction nem helyettesít
+commit/race bizonyítást; SQLite nem MySQL trigger/grant/locking proof.
+Grant-negatív elvárás a megmaradó tiltásokra vonatkozik, nem a most engedett
+Repository DML elutasítására. Nincs manifest/Windows/VM kapu és nincs új harness.
 
 ## 3. Schema inventory
 
