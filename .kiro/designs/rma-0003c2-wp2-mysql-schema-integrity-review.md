@@ -3,9 +3,10 @@
 Státusz: **REVIEW / NOT MIGRATION READY**. Dátum: 2026-11-04.
 Dokumentációs, executable-level review-terv; nincs implementált vagy futtatott DDL/rutin/teszt.
 
-Aktuális első-szelet státusz: **READY FOR IMPLEMENTATION APPROVAL**, §2.1,
-2026-11-25. A fenti történeti teljesmodell-státusz nem production readiness;
-WP7-F01/F02 OPEN, tényleges integrációs bizonyítás még nincs.
+Aktuális első-szelet státusz (2026-11-26): **IMPLEMENTED AND VERIFIED**;
+implementáció **COMMITTED AND PUSHED**, commit `898737c382810500953f0ba1f242f022fc2f94c4`.
+A részletes bizonyíték és határ §2.2-ben található. A fenti 2026-11-04-i állapot
+a történeti teljesmodell-review-é; **WP7-F01/F02 OPEN**, production migration readiness **NOT READY**.
 
 ## 1. Baseline and authority
 
@@ -194,23 +195,24 @@ document UPDATE közös sorzárat használ, a hivatkozásvizsgálat current read
 nem korábbi RR snapshot; így a destructive edit és az új proof versenye sorosított.
 Nincs új verifier, token, identity-rendszer vagy infrastruktúra.
 
-#### 2.1.4. Pontos migrációs fájlok és sorrend (még nem létrehozva)
+#### 2.1.4. Pontos migrációs fájlok és sorrend
 
 Mindegyik a `database/migrations/` alatt, ebben a sorrendben:
 
-1. `2026_11_25_000001_add_rma_subject_unique_to_item_instances_table.php` — U(id,item_id).
-2. `2026_11_25_000002_create_repair_commands_table.php`.
-3. `2026_11_25_000003_create_repair_requests_table.php`.
-4. `2026_11_25_000004_create_repair_request_items_table.php`.
-5. `2026_11_25_000005_create_repair_orders_table.php`.
-6. `2026_11_25_000006_create_active_repair_claims_table.php`.
-7. `2026_11_25_000007_create_product_warranty_rules_table.php`.
-8. `2026_11_25_000008_create_product_handover_evidences_table.php` — ön-FK is itt.
-9. `2026_11_25_000009_create_warranty_assessments_table.php`.
-10. `2026_11_25_000010_create_repair_status_histories_table.php`.
-11. `2026_11_25_000011_add_rma_first_slice_integrity_triggers.php` — összes fenti trigger.
+1. [2026_11_25_000001_add_rma_subject_unique_to_item_instances_table.php](../../database/migrations/2026_11_25_000001_add_rma_subject_unique_to_item_instances_table.php) — U(id,item_id).
+2. [2026_11_25_000002_create_repair_commands_table.php](../../database/migrations/2026_11_25_000002_create_repair_commands_table.php).
+3. [2026_11_25_000003_create_repair_requests_table.php](../../database/migrations/2026_11_25_000003_create_repair_requests_table.php).
+4. [2026_11_25_000004_create_repair_request_items_table.php](../../database/migrations/2026_11_25_000004_create_repair_request_items_table.php).
+5. [2026_11_25_000005_create_repair_orders_table.php](../../database/migrations/2026_11_25_000005_create_repair_orders_table.php).
+6. [2026_11_25_000006_create_active_repair_claims_table.php](../../database/migrations/2026_11_25_000006_create_active_repair_claims_table.php).
+7. [2026_11_25_000007_create_product_warranty_rules_table.php](../../database/migrations/2026_11_25_000007_create_product_warranty_rules_table.php).
+8. [2026_11_25_000008_create_product_handover_evidences_table.php](../../database/migrations/2026_11_25_000008_create_product_handover_evidences_table.php) — ön-FK is itt.
+9. [2026_11_25_000009_create_warranty_assessments_table.php](../../database/migrations/2026_11_25_000009_create_warranty_assessments_table.php).
+10. [2026_11_25_000010_create_repair_status_histories_table.php](../../database/migrations/2026_11_25_000010_create_repair_status_histories_table.php).
+11. [2026_11_25_000011_add_rma_first_slice_integrity_triggers.php](../../database/migrations/2026_11_25_000011_add_rma_first_slice_integrity_triggers.php) — összes fenti trigger.
 
-A nevek az implementációs szerződés részei, nem most létrehozott fájlok.
+A nevek az implementációs szerződés részei; a 11 fájl megvalósult és a §2.2-ben
+rögzített commitban szerepel. A következő korlátok továbbra is alkalmazandók.
 Index/CHECK/FK neveket explicit, MySQL 64 karakteres limiten belül kell megadni.
 Nincs FK-ciklus az új táblák között a self-FK-n kívül, FK-kikapcsolás vagy dummy
 parent nem megengedett. Rollback fordított sorrendben, először triggerek; ez nem
@@ -226,10 +228,14 @@ halasztott FK-k explicit scope, nem későbbi business invariant eltörlése.
 
 #### 2.1.5. Implementációs elfogadás és megőrzött nyitott bizonyítás
 
-Következő feladat a fenti csomag implementációjának owner-jóváhagyása. B1/B2
-szerződésdöntésben nincs további blocker; **WP7-F01/F02 OPEN / NOT EXECUTED**.
-Az eredeti findingok nem átírandók és nem záródnak le e dokumentációtól.
-Test-env implementation readiness különbözik production migration readiness-től.
+Az első sémacsomag implementációja és scope-olt adatbázis-verifikációja megtörtént
+(§2.2). B1/B2 szerződésdöntésben nincs további blocker; **WP7-F01/F02 OPEN**,
+teljes elfogadásuk nem igazolt. Az eredeti findingok nem átírandók és nem záródnak
+le e részproof-tól. A következő alkalmazási milestone a C2-terv §2.3 szerinti
+modellek és kapcsolatok; production migration readiness továbbra is külön kapu.
+
+Az alábbi teljes elfogadási minimum első-séma részét §2.2 igazolja; az alkalmazási
+orchestration, authorization és production-jogosultság részei továbbra is nyitottak.
 
 A meglévő guardolt MySQL 8.4/Pest/CI úton szükséges: FK/U/CHECK és immutable
 negatív próbák; kétkapcsolatos claim-race és többserialos teljes rollback;
@@ -242,6 +248,51 @@ trigger-definer claim-acquire. RefreshDatabase külső transaction nem helyettes
 commit/race bizonyítást; SQLite nem MySQL trigger/grant/locking proof.
 Grant-negatív elvárás a megmaradó tiltásokra vonatkozik, nem a most engedett
 Repository DML elutasítására. Nincs manifest/Windows/VM kapu és nincs új harness.
+
+### 2.2. Első adatbázisséma — implementáció és verifikáció (státusz: 2026-11-26)
+
+Implementációs commit: `898737c382810500953f0ba1f242f022fc2f94c4`,
+`feat(rma): implement and verify initial repair database schema`;
+15 új fájl, **+1177/−0** sor. Kilenc új RMA-tábla, `item_instances` U(id,item_id),
+11 migráció a §2.1.4 pontos fájlneveivel és sorrendjében. Meglévő inventory-oszlop
+nem módosult. Az implementáció commitolva és pusholva; nem a teljes WP2/WP7 lezárása.
+
+Commitolt tesztforrások:
+
+- [RmaSchemaIntegrityTest.php](../../tests/Feature/RmaSchemaIntegrityTest.php).
+- [RmaSchemaContractTest.php](../../tests/Feature/RmaSchemaContractTest.php).
+- [RmaSchemaConcurrencyTest.php](../../tests/Feature/RmaSchemaConcurrencyTest.php).
+- [RmaSchemaFixture.php](../../tests/Support/RmaSchemaFixture.php) — tesztfixture, nem alkalmazási service.
+
+Az alábbi eredmények a 2026-11-25-i, owner által elfogadott futásokból származnak;
+a 2026-11-26-i dokumentációfrissítés nem új tesztfuttatás. A tesztforrás a commitban
+ellenőrizhető; a MySQL JUnit-összesítés korábbi helyi futási artifact, nem commitolt CI-evidence.
+
+| Scope | Rögzített eredmény / bizonyítékhatár |
+| --- | --- |
+| Első RMA adatbázisséma | **IMPLEMENTED AND VERIFIED** |
+| Implementációs commit | **COMMITTED AND PUSHED** |
+| SQLite verification | **PASSED**: 93 teszt, 588 assertion; 3 MySQL-specifikus teszt kihagyva. Migrate/rollback/remigrate és idempotens alapseeder smoke sikeres. SQLite-kompatibilitás, nem MySQL-integritásproof. |
+| MySQL verification | **PASSED**: MySQL 8.4.7, 80 teszt, 594 assertion, 0 hiba/kihagyás. Mind a 11 migráció apply/fordított rollback/reapply és az idempotens alapseeder smoke sikeres. |
+| RMA MySQL részletezés | Integrity 39/135, contract 3/403, concurrency 2/7 (teszt/assertion); összesen **44/545**. |
+| Meglévő MySQL regressziók | Inventory 12/16, Document 12/14, ProductionExecution 12/19; összesen **36/49**. |
+| MySQL katalógus és izoláció | 26 trigger, 15 CHECK **ENFORCED=YES**; TestEnvironmentGuard sikeres. Dedikált, eldobhatónak megerősített `km_production_testing`, `km_testing@localhost`, loopback 3306. |
+| Grant/definer ellenőrzés | Teljes grantlista: globális USAGE, kizárólag tesztadatbázis-szintű ALL PRIVILEGES; nincs hozzárendelt/aktív/kötelező role. A 26 trigger definere `km_testing@localhost`; nem production runtime least-privilege proof. |
+| Kódminőség és megőrzés | Laravel Pint, git diff/whitespace ellenőrzések sikeresek. A 15 fájl hashazonos maradt a MySQL-verifikáció alatt; javítás nem kellett. |
+| WP7-F01 / WP7-F02 | **OPEN / OPEN** |
+| Production migration readiness | **NOT READY** |
+
+Bizonyított DB-scope: FK/UNIQUE/CHECK enforcement, atomikus és konkurens claim-acquire,
+rollback utáni újrafoglalás, claim-release és case-close tiltása, immutable rekordok,
+hivatkozott dokumentumbizonyítékok védelme, trigger/definer működés és teszt-grant izoláció.
+
+Nem bizonyított és nem lezárt: alkalmazási tranzakció-orchestration, authorization és
+actor-binding, teljes command/audit orchestration, production runtime least-privilege,
+teljes WP7-elfogadás és production rollout readiness. A root rollback/audit-fault
+DB-próbák nem a még hiányzó RMA service bizonyítékai. A teljesmodell-review findingjai,
+korábbi döntések, történeti evidence és további üzleti/rollout blokkolók megmaradnak.
+Következő tervezett milestone: **RMA Eloquent models and relationships**,
+[C2-terv §2.3](rma-0003c2-detailed-schema-review-plan.md#23-aktuális-státusz-és-következő-alkalmazási-milestone-2026-11-26).
 
 ## 3. Schema inventory
 

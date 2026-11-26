@@ -9,8 +9,9 @@ Kötelező alap: [Accepted ADR-0006](../decisions/0006-rma-repair-management-arc
 Előzmény: [A adatmodell](rma-0003a-data-model-integrity-design.md),
 [B review](rma-0003b-integrity-verification.md).
 
-**Aktuális prioritás:** a 2026-11-24-i owner amendment szerinti folytatás
-a §2.1–2.2-ben; az alábbi eredeti scope és baseline történeti előkészítési állapot.
+**Aktuális prioritás (2026-11-26):** az első adatbázisséma IMPLEMENTED AND VERIFIED,
+COMMITTED AND PUSHED; következő milestone **RMA Eloquent models and relationships** (§2.3).
+Az alábbi eredeti scope és baseline történeti előkészítési állapot, nem teljes WP-lezárás.
 
 ## 1. Cél, hatókör és belépési feltételek
 
@@ -81,9 +82,9 @@ Repository/Eloquent írás, server-side actor és Policy; nem kötelező routine
 DML vagy független DB actor-binding. A raw SQL alkalmazási bypass maradék kockázata
 elfogadott. A claim-acquire DB-trigger, az immutable védelem és a close/release
 DB-tilalom megmarad; későbbi domaines FK-k most nem készülnek.
-Következő lépés a rögzített 11 migráció implementációjának jóváhagyása, majd a
-meglévő guardolt MySQL/Pest/CI úton célzott bizonyítás. Nem további architektúra-
-előkészítés. **WP7-F01/F02 OPEN**; production readiness külön kapu.
+A rögzített 11 migráció implementációja és scope-olt bizonyítása megtörtént (§2.3);
+az eredeti döntés nem további architektúra-előkészítésre irányul.
+**WP7-F01/F02 OPEN**; production readiness külön kapu.
 
 Az alábbi lista a korábbi WP2-hiányok megőrzött kiindulópontja; az aktuális,
 lezárt első-szelet sémahatár és következő bizonyítás a WP2 §2.1-ben található.
@@ -101,9 +102,30 @@ a korábbi általános raw-DML/finalizer előírást az első szeletre a fenti a
 váltja fel. A későbbi pénzügyi/procurement és
 teljes rollout blokkolók nem vesznek el, de nem automatikus előfeltételei egy
 készletposting nélküli első szeletnek; tényleges schema/guard függésüket WP2-ben
-explicit scope-határa a WP2 §2.1-ben lezárt. Következő konkrét munka a migrációk implementációjának jóváhagyása,
+explicit scope-határa a WP2 §2.1-ben lezárt. Következő konkrét milestone a §2.3 modellrétege,
 nem filesystem-, manifest- vagy VM-szerződés előkészítése. Most csak dokumentáció
 módosulhat; implementációhoz és futtatáshoz külön owner-felhatalmazás szükséges.
+
+### 2.3. Aktuális státusz és következő alkalmazási milestone (2026-11-26)
+
+Az első adatbázisséma **IMPLEMENTED AND VERIFIED**, commitja
+`898737c382810500953f0ba1f242f022fc2f94c4` **COMMITTED AND PUSHED**.
+§2.1 sorrendjének első-séma döntési és tesztkörnyezeti lépése teljesült;
+ez nem a teljes WP2/WP7 lezárása. SQLite és MySQL verification **PASSED**;
+[részletes scope, fájlok és futási eredmények: WP2 §2.2](rma-0003c2-wp2-mysql-schema-integrity-review.md#22-első-adatbázisséma--implementáció-és-verifikáció-státusz-2026-11-26).
+**WP7-F01 OPEN; WP7-F02 OPEN; production migration readiness NOT READY.**
+
+Következő tervezett implementációs milestone: **RMA Eloquent models and relationships**.
+Modellscope: `RepairCommand`, `RepairRequest`, `RepairRequestItem`, `RepairOrder`,
+`ActiveRepairClaim`, `ProductWarrantyRule`, `ProductHandoverEvidence`,
+`WarrantyAssessment`, `RepairStatusHistory`. Ez kizárólag roadmap-bejegyzés;
+ebben a dokumentációs feladatban modell vagy kapcsolatimplementáció nem készül.
+
+Az alkalmazási tranzakció-orchestration, authorization/actor-binding, teljes
+command/audit orchestration, production runtime least-privilege és rollout
+továbbra is külön implementációs/bizonyítási kötelezettség. A korábbi findingok,
+teljesmodell-tesztmátrix és későbbi WP-k blokkolói megmaradnak; az első DB-szelet
+tesztjei nem jelentenek teljes alkalmazásfunkciót vagy production readiness-t.
 
 ## 3. C2-WP1 – teljes séma- és változásleltár
 

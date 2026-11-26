@@ -1256,11 +1256,23 @@ A pontos séma, védelmek és migrációs sorrend: [WP2 §2.1](../designs/rma-00
   írásjogokon belül; a megmaradó DB-korlátok ettől még érvényesek. Nem állítunk
   SQL-bypass elleni teljes védelmet. Runtime DDL/TRUNCATE/trigger-módosítás tiltott.
 
-Séma-döntési B1/B2 blokkolók feloldva; **WP7-F01/F02 OPEN** a tényleges MySQL/Pest
-integrációs bizonyításig. Ez nem production migration readiness és nem PoC-closure.
+Séma-döntési B1/B2 blokkolók feloldva; **WP7-F01/F02 OPEN** a teljes elfogadási
+feltételeik igazolásáig. Az első séma részproof-ja nem production migration readiness és nem PoC-closure.
 Készletviselkedés, elfogadott üzleti invariánsok, történeti reportok, implementációk
 és evidence megőrzendők. A mostani engedély csak dokumentáció; implementáció és
 futtatás külön jóváhagyást igényel. Nem indul új infrastruktúra vagy munkacsomag.
+
+**Tényállapot — 2026-11-26:** az első kilenctáblás RMA-adatbázisséma
+**IMPLEMENTED AND VERIFIED**, implementációja **COMMITTED AND PUSHED**:
+`898737c382810500953f0ba1f242f022fc2f94c4` (15 új fájl, +1177/−0).
+A motoronként külön rögzített eredmények és források: [WP2 §2.2](../designs/rma-0003c2-wp2-mysql-schema-integrity-review.md#22-első-adatbázisséma--implementáció-és-verifikáció-státusz-2026-11-26).
+SQLite és MySQL verification PASSED; **WP7-F01/F02 OPEN**, production migration
+readiness **NOT READY**. Ez nem alkalmazási tranzakció-, authorization/actor-,
+teljes command/audit- vagy production least-privilege bizonyítás, és nem teljes
+munkacsomag-lezárás. A fenti 2026-11-25-i döntés és indoklás megmarad.
+Következő tervezett implementációs milestone: **RMA Eloquent models and relationships**,
+[C2-terv §2.3](../designs/rma-0003c2-detailed-schema-review-plan.md#23-aktuális-státusz-és-következő-alkalmazási-milestone-2026-11-26);
+ez roadmap-bejegyzés, nem modellimplementáció e dokumentációfrissítésben.
 
 ### 14.3. Dokumentált későbbi bővítések
 

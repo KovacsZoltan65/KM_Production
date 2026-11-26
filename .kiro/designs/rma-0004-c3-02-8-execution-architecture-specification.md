@@ -66,7 +66,16 @@ független DB actor-bindinget: trusted Laravel, service root, közvetlen reposit
 authorizationt és orchestrationt megkerülheti; a kritikus DB-korlátok megmaradnak.
 A fenti általános raw-bypass elvárás e szeletre e pontosítással értendő.
 Ez nem változtatja meg a standalone PoC guardjait vagy történeti eredményeit;
-WP7-F01/F02 továbbra OPEN, futtatott bizonyítás nincs.
+WP7-F01/F02 továbbra OPEN; e 2026-11-25-i hatókör-döntés önmagában nem futtatott bizonyítás.
+
+**Tényállapot — 2026-11-26:** az ordinary tesztúton az első RMA-adatbázisséma
+**IMPLEMENTED AND VERIFIED**, commitja `898737c382810500953f0ba1f242f022fc2f94c4`
+**COMMITTED AND PUSHED**. SQLite és MySQL verification **PASSED**;
+[motoronkénti eredmények és scope: WP2 §2.2](rma-0003c2-wp2-mysql-schema-integrity-review.md#22-első-adatbázisséma--implementáció-és-verifikáció-státusz-2026-11-26).
+Ez nem standalone PoC/T01–T14 PASS vagy teljes WP7-elfogadás; **WP7-F01/F02 OPEN**,
+production migration readiness **NOT READY**. Alkalmazási transaction/actor/policy,
+teljes command/audit és production runtime least-privilege továbbra sem bizonyított.
+A történeti specifikáció, guardok, reportok és evidence változatlanul megőrzendők.
 
 ## 2. Baseline és források
 
