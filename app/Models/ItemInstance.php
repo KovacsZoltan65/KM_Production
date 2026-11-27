@@ -10,10 +10,16 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
+ * @property-read Collection<int, RepairRequestItem> $repairRequestItems
+ * @property-read ActiveRepairClaim|null $activeRepairClaim
+ * @property-read Collection<int, ProductHandoverEvidence> $productHandoverEvidences
+ * @property-read Collection<int, WarrantyAssessment> $warrantyAssessments
+ * @property-read Collection<int, RepairStatusHistory> $repairStatusHistories
  * @property int $item_id
  * @property string $serial_number
  * @property int $factory_unit_id
@@ -101,6 +107,46 @@ class ItemInstance extends Model
     public function parentRelations(): HasMany
     {
         return $this->hasMany(ItemInstanceRelation::class, 'child_item_instance_id');
+    }
+
+    /**
+     * @return HasMany<RepairRequestItem, $this>
+     */
+    public function repairRequestItems(): HasMany
+    {
+        return $this->hasMany(RepairRequestItem::class, 'item_instance_id', 'id');
+    }
+
+    /**
+     * @return HasOne<ActiveRepairClaim, $this>
+     */
+    public function activeRepairClaim(): HasOne
+    {
+        return $this->hasOne(ActiveRepairClaim::class, 'item_instance_id', 'id');
+    }
+
+    /**
+     * @return HasMany<ProductHandoverEvidence, $this>
+     */
+    public function productHandoverEvidences(): HasMany
+    {
+        return $this->hasMany(ProductHandoverEvidence::class, 'item_instance_id', 'id');
+    }
+
+    /**
+     * @return HasMany<WarrantyAssessment, $this>
+     */
+    public function warrantyAssessments(): HasMany
+    {
+        return $this->hasMany(WarrantyAssessment::class, 'item_instance_id', 'id');
+    }
+
+    /**
+     * @return HasMany<RepairStatusHistory, $this>
+     */
+    public function repairStatusHistories(): HasMany
+    {
+        return $this->hasMany(RepairStatusHistory::class, 'item_instance_id', 'id');
     }
 
     /**

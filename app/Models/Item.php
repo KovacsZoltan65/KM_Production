@@ -15,6 +15,8 @@ use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
+ * @property-read Collection<int, ProductWarrantyRule> $productWarrantyRules
+ * @property-read Collection<int, WarrantyAssessment> $warrantyAssessments
  * @property string $item_number
  * @property string $name
  * @property ItemType $item_type
@@ -127,6 +129,22 @@ class Item extends Model
     public function requiresSerialNumberByType(): bool
     {
         return $this->item_type->requiresSerialNumber();
+    }
+
+    /**
+     * @return HasMany<ProductWarrantyRule, $this>
+     */
+    public function productWarrantyRules(): HasMany
+    {
+        return $this->hasMany(ProductWarrantyRule::class, 'item_id', 'id');
+    }
+
+    /**
+     * @return HasMany<WarrantyAssessment, $this>
+     */
+    public function warrantyAssessments(): HasMany
+    {
+        return $this->hasMany(WarrantyAssessment::class, 'subject_item_id', 'id');
     }
 
     /**

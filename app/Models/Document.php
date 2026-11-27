@@ -6,15 +6,19 @@ use App\Enums\DocumentProcessingStatus;
 use App\Enums\DocumentType;
 use Database\Factories\DocumentFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
+ * @property-read Collection<int, ProductHandoverEvidence> $productHandoverEvidences
+ * @property-read Collection<int, RepairStatusHistory> $repairStatusHistories
  * @property string $documentable_type
  * @property int $documentable_id
  * @property DocumentType $document_type
@@ -125,6 +129,22 @@ class Document extends Model
     public function approver(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    /**
+     * @return HasMany<ProductHandoverEvidence, $this>
+     */
+    public function productHandoverEvidences(): HasMany
+    {
+        return $this->hasMany(ProductHandoverEvidence::class, 'evidence_document_id', 'id');
+    }
+
+    /**
+     * @return HasMany<RepairStatusHistory, $this>
+     */
+    public function repairStatusHistories(): HasMany
+    {
+        return $this->hasMany(RepairStatusHistory::class, 'authorization_document_id', 'id');
     }
 
     /**

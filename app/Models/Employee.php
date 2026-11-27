@@ -14,6 +14,8 @@ use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
+ * @property-read Collection<int, RepairRequest> $createdRepairRequests
+ * @property-read Collection<int, RepairRequest> $reportedRepairRequests
  * @property int|null $user_id
  * @property int|null $professional_role_id
  * @property string $employee_number
@@ -92,6 +94,22 @@ class Employee extends Model
     public function workCalendars(): HasMany
     {
         return $this->hasMany(EmployeeWorkCalendar::class);
+    }
+
+    /**
+     * @return HasMany<RepairRequest, $this>
+     */
+    public function createdRepairRequests(): HasMany
+    {
+        return $this->hasMany(RepairRequest::class, 'creator_employee_id', 'id');
+    }
+
+    /**
+     * @return HasMany<RepairRequest, $this>
+     */
+    public function reportedRepairRequests(): HasMany
+    {
+        return $this->hasMany(RepairRequest::class, 'reporter_employee_id', 'id');
     }
 
     /**

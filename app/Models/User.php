@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\DatabaseNotification;
@@ -20,6 +21,15 @@ use Spatie\Permission\Traits\HasRoles;
 
 /**
  * @property int $id
+ * @property-read Collection<int, RepairCommand> $repairCommands
+ * @property-read Collection<int, RepairRequest> $createdRepairRequests
+ * @property-read Collection<int, RepairRequest> $closedRepairRequests
+ * @property-read Collection<int, RepairRequestItem> $originVerifiedRepairRequestItems
+ * @property-read Collection<int, ActiveRepairClaim> $activeRepairClaims
+ * @property-read Collection<int, ProductWarrantyRule> $approvedProductWarrantyRules
+ * @property-read Collection<int, ProductHandoverEvidence> $verifiedProductHandoverEvidences
+ * @property-read Collection<int, WarrantyAssessment> $warrantyAssessments
+ * @property-read Collection<int, RepairStatusHistory> $repairStatusHistories
  * @property string $name
  * @property string $email
  * @property Carbon|null $email_verified_at
@@ -71,6 +81,78 @@ class User extends Authenticatable implements MustVerifyEmail
     public function employee(): HasOne
     {
         return $this->hasOne(Employee::class);
+    }
+
+    /**
+     * @return HasMany<RepairCommand, $this>
+     */
+    public function repairCommands(): HasMany
+    {
+        return $this->hasMany(RepairCommand::class, 'actor_id', 'id');
+    }
+
+    /**
+     * @return HasMany<RepairRequest, $this>
+     */
+    public function createdRepairRequests(): HasMany
+    {
+        return $this->hasMany(RepairRequest::class, 'created_by', 'id');
+    }
+
+    /**
+     * @return HasMany<RepairRequest, $this>
+     */
+    public function closedRepairRequests(): HasMany
+    {
+        return $this->hasMany(RepairRequest::class, 'closed_by', 'id');
+    }
+
+    /**
+     * @return HasMany<RepairRequestItem, $this>
+     */
+    public function originVerifiedRepairRequestItems(): HasMany
+    {
+        return $this->hasMany(RepairRequestItem::class, 'origin_verified_by', 'id');
+    }
+
+    /**
+     * @return HasMany<ActiveRepairClaim, $this>
+     */
+    public function activeRepairClaims(): HasMany
+    {
+        return $this->hasMany(ActiveRepairClaim::class, 'claimed_by', 'id');
+    }
+
+    /**
+     * @return HasMany<ProductWarrantyRule, $this>
+     */
+    public function approvedProductWarrantyRules(): HasMany
+    {
+        return $this->hasMany(ProductWarrantyRule::class, 'approved_by', 'id');
+    }
+
+    /**
+     * @return HasMany<ProductHandoverEvidence, $this>
+     */
+    public function verifiedProductHandoverEvidences(): HasMany
+    {
+        return $this->hasMany(ProductHandoverEvidence::class, 'verified_by', 'id');
+    }
+
+    /**
+     * @return HasMany<WarrantyAssessment, $this>
+     */
+    public function warrantyAssessments(): HasMany
+    {
+        return $this->hasMany(WarrantyAssessment::class, 'assessed_by', 'id');
+    }
+
+    /**
+     * @return HasMany<RepairStatusHistory, $this>
+     */
+    public function repairStatusHistories(): HasMany
+    {
+        return $this->hasMany(RepairStatusHistory::class, 'actor_id', 'id');
     }
 
     /**

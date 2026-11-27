@@ -15,6 +15,7 @@ use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
+ * @property-read Collection<int, RepairRequestItem> $repairRequestItems
  * @property int $production_plan_item_id
  * @property int $customer_order_item_id
  * @property int $item_id
@@ -144,6 +145,14 @@ class ProductionOrder extends Model
     public function productionTasks(): HasMany
     {
         return $this->hasMany(ProductionTask::class);
+    }
+
+    /**
+     * @return HasMany<RepairRequestItem, $this>
+     */
+    public function repairRequestItems(): HasMany
+    {
+        return $this->hasMany(RepairRequestItem::class, 'origin_production_order_id', 'id');
     }
 
     /**

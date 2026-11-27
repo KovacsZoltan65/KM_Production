@@ -13,6 +13,9 @@ use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
+ * @property-read Collection<int, RepairRequest> $repairRequests
+ * @property-read Collection<int, RepairRequestItem> $repairRequestItems
+ * @property-read Collection<int, ProductHandoverEvidence> $productHandoverEvidences
  * @property string $code
  * @property string $name
  * @property string|null $tax_number
@@ -73,6 +76,30 @@ class Customer extends Model
     public function customerOrders(): HasMany
     {
         return $this->hasMany(CustomerOrder::class);
+    }
+
+    /**
+     * @return HasMany<RepairRequest, $this>
+     */
+    public function repairRequests(): HasMany
+    {
+        return $this->hasMany(RepairRequest::class, 'owner_customer_id', 'id');
+    }
+
+    /**
+     * @return HasMany<RepairRequestItem, $this>
+     */
+    public function repairRequestItems(): HasMany
+    {
+        return $this->hasMany(RepairRequestItem::class, 'owner_customer_id', 'id');
+    }
+
+    /**
+     * @return HasMany<ProductHandoverEvidence, $this>
+     */
+    public function productHandoverEvidences(): HasMany
+    {
+        return $this->hasMany(ProductHandoverEvidence::class, 'recipient_customer_id', 'id');
     }
 
     /**
